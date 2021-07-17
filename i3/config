@@ -125,7 +125,7 @@ bindsym $mod+a focus parent
 # move the currently focused window to the scratchpad
 bindsym $mod+Shift+minus move scratchpad
 
-# Sow the next scratchpad window or hide the focused scratchpad window.
+# Show the next scratchpad window or hide the focused scratchpad window.
 # If there are multiple scratchpad windows, this command cycles through them.
 bindsym $mod+minus scratchpad show
 
@@ -254,7 +254,14 @@ bindsym $mod+9 exec --no-startup-id blurlock
 
 # Autostart applications
 
-
+#polybar
+exec_always --no-startup-id ~/.config/polybar/launch.sh
+#feh wallpaper
+exec_always --no-startup-id feh --bg-fill ~/Pictures/gid.jpg
+# picom
+exec_always --no-startup-id ~/.local/bin/picom
+# rescuetime
+exec_always --no-startup-id rescuetime
 
 #
 # Color palette used for the terminal ( ~/.Xresources file )
@@ -386,4 +393,6 @@ mode "$mode_gaps_outer" {
 
         bindsym Return mode "default"
         bindsym Escape mode "default"
-}h
+}
+bindsym $mod+p exec ~/.config/i3/i3lock-fancy-multimonitor/lock -b=0.2
+
