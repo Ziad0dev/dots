@@ -378,9 +378,9 @@ let g:translator_target_lang = "fr"
 " Markdown Preview "
 """"""""""""""""""""
 " Contains CSS for markdown + page + higlight
-let g:mkdp_markdown_css = '/home/gideon/.config/nvim/static/markdown-preview/customStyle.css' 
+let g:mkdp_markdown_css = '~/.config/nvim/static/markdown-preview/customStyle.css' 
 " Trick plugin into hosting colors.css so we get nice themes
-let g:mkdp_highlight_css = '/home/gideon/.cache/wal/colors.css'
+let g:mkdp_highlight_css = '~/.cache/wal/colors.css'
 let g:mkdp_port = '3456'
 let g:mkdp_preview_options = {
     \ 'mkit': {},
