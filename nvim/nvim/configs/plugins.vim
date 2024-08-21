@@ -89,7 +89,8 @@ Plug 'junegunn/goyo.vim'
 Plug 'lervag/vimtex'
 
 " Wal theme
-Plug 'dylanaraps/wal.vim'
+" Plug 'dylanaraps/wal.vim'
+Plug 'AlphaTechnolog/pywal.nvim', { 'as': 'pywal' }
 Plug 'deviantfero/wpgtk.vim'
 Plug 'sonjiku/yawnc.nvim'
 
