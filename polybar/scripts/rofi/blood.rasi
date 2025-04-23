@@ -1,0 +1,156 @@
+/**
+ * Blood Red Occult Theme for Rofi
+ */
+
+* {
+    background:     #300000;
+    background-alt: #6B0000;
+    foreground:     #FFFFFF;
+    selected:       #FF0000;
+    active:         #FF0000;
+    urgent:         #9F0000;
+    border-color:   #FF0000;
+    font:           "Fira Code Medium 11";
+}
+
+window {
+    background-color: @background;
+    border:           2px;
+    border-color:     @border-color;
+    padding:          15;
+}
+
+mainbox {
+    border:  0;
+    padding: 0;
+}
+
+message {
+    border:       2px 0px 0px;
+    border-color: @border-color;
+    padding:      1px;
+}
+
+textbox {
+    text-color: @foreground;
+}
+
+inputbar {
+    children:   [ prompt,textbox-prompt-colon,entry,case-indicator ];
+    background-color: @background-alt;
+    border: 1px;
+    border-color: @border-color;
+    border-radius: 0px;
+    padding: 10px;
+}
+
+prompt {
+    background-color: @background-alt;
+    text-color: @foreground;
+    spacing: 0;
+}
+
+textbox-prompt-colon {
+    expand: false;
+    str: ":";
+    margin: 0px 0.3em 0em 0em;
+    text-color: @foreground;
+}
+
+entry {
+    background-color: @background-alt;
+    text-color: @foreground;
+    spacing: 0;
+}
+
+listview {
+    fixed-height: 0;
+    border:       2px 0px 0px;
+    border-color: @border-color;
+    spacing:      2px;
+    scrollbar:    true;
+    padding:      10px 0px 0px;
+}
+
+element {
+    border:  0;
+    padding: 1px;
+}
+
+element-text {
+    background-color: inherit;
+    text-color:       inherit;
+}
+
+element.normal.normal {
+    background-color: @background;
+    text-color:       @foreground;
+}
+
+element.normal.urgent {
+    background-color: @urgent;
+    text-color:       @foreground;
+}
+
+element.normal.active {
+    background-color: @active;
+    text-color:       @foreground;
+}
+
+element.selected.normal {
+    background-color: @selected;
+    text-color:       @foreground;
+}
+
+element.selected.urgent {
+    background-color: @selected;
+    text-color:       @foreground;
+}
+
+element.selected.active {
+    background-color: @selected;
+    text-color:       @foreground;
+}
+
+element.alternate.normal {
+    background-color: @background-alt;
+    text-color:       @foreground;
+}
+
+element.alternate.urgent {
+    background-color: @urgent;
+    text-color:       @foreground;
+}
+
+element.alternate.active {
+    background-color: @active;
+    text-color:       @foreground;
+}
+
+scrollbar {
+    width:        4px;
+    border:       0;
+    handle-color: @selected;
+    handle-width: 8px;
+    padding:      0;
+}
+
+mode-switcher {
+    border:       2px 0px 0px;
+    border-color: @border-color;
+}
+
+button {
+    spacing:    0;
+    text-color: @foreground;
+}
+
+button.selected {
+    background-color: @selected;
+    text-color:       @foreground;
+}
+
+case-indicator {
+    spacing:    0;
+    text-color: @foreground;
+} 

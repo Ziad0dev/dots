@@ -1,0 +1,68 @@
+/**
+ * Blood Red Occult Theme - Confirmation Dialog
+ */
+
+@import "blood.rasi"
+
+* {
+    font: "Fira Code Medium 11";
+    alternate-background: #400000;
+}
+
+window {
+    width: 250px;
+    border-radius: 0px;
+    border: 2px;
+    border-color: @border-color;
+    background-color: @background;
+}
+
+mainbox {
+    children: [ inputbar, listview ];
+    background-color: @background;
+    spacing: 0;
+    padding: 0;
+}
+
+inputbar {
+    background-color: @background-alt;
+    children: [ prompt ];
+    padding: 10px;
+    border: 1px;
+    border-color: @border-color;
+}
+
+prompt {
+    background-color: @background-alt;
+    text-color: @foreground;
+    padding: 0px;
+}
+
+listview {
+    lines: 2;
+    columns: 1;
+    fixed-height: true;
+    spacing: 0;
+    padding: 0;
+    background-color: @background;
+}
+
+element {
+    padding: 15px;
+    spacing: 5px;
+    background-color: @background;
+}
+
+element-text {
+    horizontal-align: 0.5;
+    background-color: inherit;
+    text-color: inherit;
+}
+
+element selected {
+    background-color: @selected;
+}
+
+element.alternate.normal {
+    background-color: @alternate-background;
+} 
