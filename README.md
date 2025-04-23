@@ -1,4 +1,4 @@
-# 🚀 N3ros Dotfiles
+# 🚀 Dotfiles
 
 My personal dotfiles for a clean and efficient Linux desktop setup.
 
