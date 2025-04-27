@@ -1,4 +1,4 @@
-# Occult-Themed .zshrc with Updated Welcome Message
+# Occult-Themed .zshrc with 'wal' Configuration Fixed
 
 # Path to your Oh My Zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
@@ -9,6 +9,19 @@ DISABLE_AUTO_TITLE="true"
 # Custom occult-themed prompt
 PROMPT='%F{black}⸸%F{red}★%F{blue}%n%F{cyan}@%F{magenta}%m%F{white}✦%F{yellow}%~ %F{green}⸸%F{reset} '
 RPROMPT='%F{blue}✷%F{magenta}$(git_prompt_info)%F{cyan}★%F{reset}'
+
+# Reload 'wal' colorscheme
+if [ -f ~/.cache/wal/colors.sh ]; then
+  source ~/.cache/wal/colors.sh
+fi
+
+# Import colorscheme from 'wal' asynchronously
+if [ -f ~/.cache/wal/sequences ]; then
+  cat ~/.cache/wal/sequences
+fi
+if [ -f ~/.cache/wal/colors-tty.sh ]; then
+  source ~/.cache/wal/colors-tty.sh
+fi
 
 # History configuration
 HISTSIZE=10000
