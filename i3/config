@@ -7,195 +7,150 @@
 #    \|__|\|_______|        \|_______|\|_______|\|__| \|__|\|__|    \|__|\|_______|
 
 # ##################
-# # OCCULT BLOOD RED THEME
 # ##################
+
+###############
+# Core Settings #
+###############
+
+# Set modern defaults
+default_border pixel 2
+default_floating_border pixel 2
+hide_edge_borders none
+
+# Focus follows mouse
+focus_follows_mouse yes
+
+# Mouse warping
+mouse_warping output
+
+# Popup handling
+popup_during_fullscreen smart
+
+# Workspace auto back and forth
+workspace_auto_back_and_forth yes
+
+# Show marks on window decoration
+show_marks yes
 
 ###############
 # Keybindings #
 ###############
 
 # Mod Key Binding
-# %%hotkey: i3 Key%%
 set $mod Mod4
 
-# Use Mouse+$mod to drag floating windows to their wanted position
+# Use Mouse+$mod to drag floating windows
 floating_modifier $mod
 
-# start a terminal
-# %%hotkey: urxvt%%
-# bindsym $mod+Return exec --no-startup-id urxvt
+# Modern terminal launcher
 bindsym $mod+Return exec --no-startup-id kitty
 
-# kill focused window
-# %%hotkey: Kill Focused Window%%
+# Kill focused window
 bindsym $mod+Shift+q kill
 
-# start rofi (a program launcher)
-# %%hotkey: rofi%%
-bindsym $mod+d exec rofi -show run
+# Modern program launcher
+bindsym $mod+d exec --no-startup-id rofi -show drun -show-icons
+bindsym $mod+Shift+d exec --no-startup-id rofi -show run
 
-# %%hotkey: rofi%%
-bindsym --whole-window $mod+button3 exec --no-startup-id ~.con/scripts/xmenu.sh
-# bindsym --whole-window button3+button1 exec urxvt
+# Context menu
+bindsym --whole-window $mod+button3 exec --no-startup-id ~/.config/scripts/xmenu.sh
 
-# show i3 keybinds
-# needed to be symkinked to /usr/bin
-# bindsym $mod+p exec dmenu_hotkeys run -m rofi -a i3
-# %%hotkey: Switch to program%%
+# Clipboard manager
+bindsym $mod+Shift+c exec --no-startup-id "rofi -modi 'clipboard:greenclip print' -show clipboard"
 
-# Open clipboard
-bindsym $mod+Shift+c exec "rofi -modi 'clipboard:greenclip print' -show clipboard"
-
-# change focus
-# %%hotkey: Focus Left%%
+# Window management
 bindsym $mod+h focus left
-# %%hotkey: Focus Down%%
 bindsym $mod+j focus down
-# %%hotkey: Focus Up%%
 bindsym $mod+k focus up
-# %%hotkey: Focus Right%%
 bindsym $mod+l focus right
 
-# alternatively, you can use the cursor keys:
-# %%hotkey: Focus Left%%
 bindsym $mod+Left focus left
-# %%hotkey: Focus Down%%
 bindsym $mod+Down focus down
-# %%hotkey: Focus Up%%
 bindsym $mod+Up focus up
-# %%hotkey: Focus Right%%
 bindsym $mod+Right focus right
 
-# move focused window
-# %%hotkey: Move Window Left%%
 bindsym $mod+Shift+h move left
-# %%hotkey: Move Window Down%%
 bindsym $mod+Shift+j move down
-# %%hotkey: Move Window Up%%
 bindsym $mod+Shift+k move up
-# %%hotkey: Move Window Right%%
 bindsym $mod+Shift+l move right
 
-# alternatively, you can use the cursor keys:
-# %%hotkey: Move Window Left%%
 bindsym $mod+Shift+Left move left
-# %%hotkey: Move Window Down%%
 bindsym $mod+Shift+Down move down
-# %%hotkey: Move Window Up%%
 bindsym $mod+Shift+Up move up
-# %%hotkey: Move Window Right%%
 bindsym $mod+Shift+Right move right
 
-# split in horizontal orientation
-# %%hotkey: Horizontal Split Mode%%
+# Split modes
 bindsym $mod+b split h
-
-# split in vertical orientation
-# %%hotkey: Vertical Split Mode%%
 bindsym $mod+v split v
 
-# enter fullscreen mode for the focused container
-# %%hotkey: Fullscreen Mode Mode%%
-bindsym $mod+Shift+f fullscreen toggle
+# Fullscreen
+bindsym $mod+f fullscreen toggle
 
-# change container layout (stacked, tabbed, toggle split)
-# %%hotkey: Stacked Layout Mode%%
+# Layout modes
 bindsym $mod+s layout stacking
-# %%hotkey: Tabbed Layout Mode%%
 bindsym $mod+w layout tabbed
-# %%hotkey: Split Layout Mode%%
 bindsym $mod+e layout toggle split
 
-# toggle tiling / floating
-# %%hotkey: Toggle Tiling/Floating%%
+# Floating toggle
 bindsym $mod+Shift+space floating toggle
-
-# change focus between tiling / floating windows
-# %%hotkey: Toggle Focus Tiling/Floating%%
 bindsym $mod+space focus mode_toggle
 
-# focus the parent container
-# %%hotkey: Focus Parent Container%%
+# Focus parent/child
 bindsym $mod+a focus parent
 
-# focus the child container
-# %%hotkey: Focus Child Container%%
-#bindsym $mod+d focus child
-
-# middle mouse on title bars/borders kills window
-# %%hotkey: Kill Window%%
+# Mouse bindings
 bindsym --border button2 kill
-
-# %%hotkey: Toggle Floating Window%%
 bindsym --border button3 floating toggle
 
-# reload the configuration file
-# %%hotkey: Reload Configuration File%%
-# bindsym $mod+Shift+c reload
-
-# restart i3 inplace (preserves your layout/session, can be used to upgrade i3)
-# %%hotkey: Restart i3%%
+# System controls
 bindsym $mod+Shift+r restart
+bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'Exit i3?' -B 'Yes, exit i3' 'i3-msg exit'"
 
-# exit i3 (logs you out of your X session)
-
-# %%hotkey: Logout Menu%%
-bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'You pressed the exit shortcut. Do you really want to exit i3? This will end your X session.' -b 'Yes, exit i3' 'i3-msg exit'"
-
-# resize window (you can also use the mouse for that)
+# Modern resize mode
 mode "resize" {
-        # These bindings trigger as soon as you enter the resize mode
+    bindsym h resize shrink width 10 px or 10 ppt
+    bindsym j resize grow height 10 px or 10 ppt
+    bindsym k resize shrink height 10 px or 10 ppt
+    bindsym l resize grow width 10 px or 10 ppt
 
-        # Pressing left will shrink the window's width.
-        # Pressing right will grow the window's width.
-        # Pressing up will shrink the window's height.
-        # Pressing down will grow the window's height.
-        bindsym h resize shrink width 10 px or 10 ppt
-        bindsym k resize grow height 10 px or 10 ppt
-        bindsym j resize shrink height 10 px or 10 ppt
-        bindsym l resize grow width 10 px or 10 ppt
+    bindsym Left resize shrink width 10 px or 10 ppt
+    bindsym Down resize grow height 10 px or 10 ppt
+    bindsym Up resize shrink height 10 px or 10 ppt
+    bindsym Right resize grow width 10 px or 10 ppt
 
-        # same bindings, but for the arrow keys
-        bindsym Left resize shrink width 10 px or 10 ppt
-        bindsym Down resize grow height 10 px or 10 ppt
-        bindsym Up resize shrink height 10 px or 10 ppt
-        bindsym Right resize grow width 10 px or 10 ppt
-
-        # back to normal: Enter or Escape or $mod+r
-        bindsym Return mode "default"
-        bindsym Escape mode "default"
-        bindsym $mod+r mode "default"
+    bindsym Return mode "default"
+    bindsym Escape mode "default"
+    bindsym $mod+r mode "default"
 }
 
-# %%hotkey: Resize Mode%%
 bindsym $mod+r mode "resize"
 
-
 ################
-# Workstations #
+# OCCULT WORKSPACES - Unicode Safe
 ################
-set $ws1 "1: "
-set $ws2 "2: "
-set $ws3 "3: "
-set $ws4 "4: "
-set $ws5 "5: "
-set $ws6 "6: "
-set $ws7 "7: "
-set $ws8 "8: "
-set $ws9 "9: "
+set $ws1 "1:Main"
+set $ws2 "2:IDE"
+set $ws3 "3:Hell" 
+set $ws4 "4:Satan"
+set $ws5 "5:Void"
+set $ws6 "6:Curse"
+set $ws7 "7:Doom"
+set $ws8 "8:Music"
+set $ws9 "9:Discord"
 
-workspace $ws1 output HDMI-1 
-workspace $ws2 output HDMI-1 
-workspace $ws3 output HDMI-1 
-workspace $ws4 output HDMI-1 
-workspace $ws5 output HDMI-1 
-workspace $ws6 output HDMI-1 
-workspace $ws7 output HDMI-1
-workspace $ws8 output HDMI-1
-workspace $ws9 output HDMI-1
+# Modern monitor assignment (using correct monitor name)
+workspace $ws1 output HDMI-0
+workspace $ws2 output HDMI-0
+workspace $ws3 output HDMI-0
+workspace $ws4 output HDMI-0
+workspace $ws5 output HDMI-0
+workspace $ws6 output HDMI-0
+workspace $ws7 output HDMI-0
+workspace $ws8 output HDMI-0
+workspace $ws9 output HDMI-0
 
-# switch to workspace
-# %%hotkey: Switch To Workspace%%
+# Workspace switching
 bindsym $mod+1 workspace $ws1
 bindsym $mod+2 workspace $ws2
 bindsym $mod+3 workspace $ws3
@@ -206,8 +161,7 @@ bindsym $mod+7 workspace $ws7
 bindsym $mod+8 workspace $ws8
 bindsym $mod+9 workspace $ws9
 
-# move focused container to workspace
-# %%hotkey: Move Container To Workspace%%
+# Move containers to workspaces
 bindsym $mod+Shift+1 move container to workspace $ws1
 bindsym $mod+Shift+2 move container to workspace $ws2
 bindsym $mod+Shift+3 move container to workspace $ws3
@@ -219,96 +173,182 @@ bindsym $mod+Shift+8 move container to workspace $ws8
 bindsym $mod+Shift+9 move container to workspace $ws9
 
 #############
+# MODERN APPEARANCE - DYNAMIC PYWAL COLORS
+#############
+include ~/.config/i3/colors
 
-# Occult Blood Red Theme Colors
-# class                 border  backgr. text    indicator child_border
-client.focused          #8B0000 #5A0000 #FFFFFF #AA0000   #8B0000
-client.focused_inactive #500000 #350000 #BBBBBB #450000   #400000
-client.unfocused        #350000 #220000 #888888 #292D2E   #250000
-client.urgent           #A30000 #900000 #FFFFFF #900000   #A30000
-client.placeholder      #000000 #0C0C0C #FFFFFF #000000   #0C0C0C
-client.background       #100000
+# Modern gaps configuration
+gaps inner 3 
+gaps outer 1
 
-# Gaps settings
-new_window pixel 2
-new_float pixel 2
-for_window [class="^.*"] border pixel 2
-gaps inner 8
-gaps outer 2
+# Smart gaps (no gaps when only one container)
+smart_gaps on
 
+# Smart borders (no borders when only one container)
+smart_borders on
 
+#############
+# MODERN APPLICATION RULES
+#############
 
-#Importing translator using kitty
-exec_always kitty --class translate -e zsh -c 'trans -I'
-for_window [instance="translate"] floating enable;
-for_window [instance="translate"] move scratchpad; move position center;
-# %%hotkey: Translator%%
+# Floating applications
+for_window [window_role="pop-up"] floating enable
+for_window [window_role="bubble"] floating enable
+for_window [window_role="task_dialog"] floating enable
+for_window [window_role="Preferences"] floating enable
+for_window [window_type="dialog"] floating enable
+for_window [window_type="menu"] floating enable
+
+# Modern scratchpad setup
+for_window [instance="translate"] floating enable, move scratchpad, move position center
+for_window [instance="calendar"] floating enable, move scratchpad, move position center
+
 bindsym $mod+t [instance="translate"] scratchpad show
-
-#calendar scratchpad
-exec_always kitty --name calendar -e zsh -c 'ikhal'
-for_window [instance="calendar"] floating enable;
-for_window [instance="calendar"] move scratchpad; move position center;
-# %%hotkey: Calendar%%
 bindsym $mod+c [instance="calendar"] scratchpad show, resize set 1500 800
 
-# Media player controls
-bindsym XF86AudioPlay exec cmus-remote -u 
-bindsym XF86AudioNext exec cmus-remote -n
-bindsym XF86AudioPrev exec cmus-remote -r
+#############
+# MODERN MEDIA CONTROLS
+#############
 
-bindsym XF86AudioRaiseVolume exec pactl set-sink-volume @DEFAULT_SINK@ +2%
-bindsym XF86AudioLowerVolume exec pactl set-sink-volume @DEFAULT_SINK@ -2%
-bindsym XF86AudioMute exec pactl set-sink-mute @DEFAULT_SINK@ toggle
+# Hardware media keys
+bindsym XF86AudioPlay exec --no-startup-id playerctl play-pause
+bindsym XF86AudioNext exec --no-startup-id playerctl next
+bindsym XF86AudioPrev exec --no-startup-id playerctl previous
 
-# Mod+Shift+(+/-) for keyboard without media controls
-# %%hotkey: Volume Up%%
-bindsym $mod+Shift+plus exec pactl set-sink-volume @DEFAULT_SINK@ +2%
-# %%hotkey: Volume Down%%
-bindsym $mod+Shift+minus exec pactl set-sink-volume @DEFAULT_SINK@ -2%
+# Modern volume controls with notifications
+bindsym XF86AudioRaiseVolume exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ +5% && notify-send "Volume" "$(pactl get-sink-volume @DEFAULT_SINK@ | grep -oP '\d+%' | head -1)"
+bindsym XF86AudioLowerVolume exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ -5% && notify-send "Volume" "$(pactl get-sink-volume @DEFAULT_SINK@ | grep -oP '\d+%' | head -1)"
+bindsym XF86AudioMute exec --no-startup-id pactl set-sink-mute @DEFAULT_SINK@ toggle && notify-send "Volume" "Toggled"
 
-# Disables screen blanking
+# Keyboard volume controls
+bindsym $mod+Shift+plus exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ +5%
+bindsym $mod+Shift+minus exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ -5%
+
+#############
+# ENHANCED CHAMELEON THEME SYSTEM
+#############
+
+# Quick theme changes
+bindsym $mod+Shift+w exec --no-startup-id ~/.config/polybar/wal-reload $(find ~/Pictures -name "*.jpg" -o -name "*.png" | shuf -n1)
+bindsym $mod+Shift+t exec --no-startup-id ~/.config/scripts/theme_selector.sh
+
+# Wallpaper controls with variety integration
+bindsym $mod+Shift+n exec --no-startup-id variety --next
+bindsym $mod+Shift+p exec --no-startup-id variety --previous
+bindsym $mod+Shift+z exec --no-startup-id variety --favorite
+
+# Screenshot utilities
+bindsym Print exec --no-startup-id maim -s | xclip -selection clipboard -t image/png && notify-send "Screenshot" "Copied to clipboard"
+bindsym $mod+Print exec --no-startup-id maim | xclip -selection clipboard -t image/png && notify-send "Screenshot" "Full screen copied to clipboard"
+
+#############
+# MODERN STARTUP SEQUENCE
+#############
+
+# Essential services
 exec_always --no-startup-id xset s off
-exec_always --no-startup-id xset -dmps 
-exec_always --no-startup-id picom -b
-exec_always --no-startup-id ~/.config/polybar/launch.sh
-# Generate a blood red theme with pywal
-exec_always --no-startup-id wal -i ~/Pictures/1c18ac_42cbb00db5084af6b37c13fd7c79a605~mv2.png -o ~/.config/wal/postrun.sh
-# Use a blood red background
-exec_always --no-startup-id feh --bg-fill ~/Pictures/1c18ac_42cbb00db5084af6b37c13fd7c79a605~mv2.png
+exec_always --no-startup-id xset -dpms
+exec_always --no-startup-id picom --config ~/.config/picom/picom.conf
+exec_always --no-startup-id feh --bg-fill ~/Pictures/wp15589380.png
+exec_always --no-startup-id xrandr --output HDMI-0 --mode 1920x1080 --rate 143.00
 
-## Unused Keybinds:
-# $mod+q
-# $mod+Shift+w
-# $mod+Shift+t
-# $mod+Shift+y
-# $mod+y
-# $mod+u
-# $mod+Shift+u
-# $mod+i
-# $mod+Shift+i
-# $mod+o
-# $mod+Shift+o
-# $mod+Shift+p
-# $mod+Shift+a
-# $mod+Shift+s
-# $mod+Shift+d
-# $mod+g
-# $mod+Shift+g
-# $mod+z
-# $mod+Shift+z
-# $mod+Shift+x
-# $mod+Shift+v
-# $mod+Shift+b
-# $mod+n
-# $mod+Shift+n
-# $mod+braceright
-# $mod+Shift+braceright
-# $mod+braceleft
-# $mod+Shift+braceleft
-# $mod+bracketright
-# $mod+Shift+bracketright
-# $mod+bracketleft
-# $mod+Shift+bracketleft
-# another key: Control_L
-# another key: slash
+# Polybar with modern launch
+exec_always --no-startup-id killall polybar; sleep 1; polybar -c ~/.config/polybar/config.ini main &
+
+# Theme initialization
+exec --no-startup-id ~/.config/polybar/wal-reload --reload
+
+# Background services
+exec --no-startup-id greenclip daemon
+exec --no-startup-id variety
+
+# Scratchpad applications
+exec_always --no-startup-id kitty --class translate -e zsh -c 'trans -I'
+exec_always --no-startup-id kitty --name calendar -e zsh -c 'ikhal'
+
+#############
+# MODERN WINDOW ASSIGNMENTS
+#############
+
+# Workspace 1: Browser (1:Hell)
+assign [class="firefox"] $ws1
+assign [class="Firefox"] $ws1
+assign [class="Google-chrome"] $ws1
+assign [class="Chromium"] $ws1
+# Terminal assignments removed - terminals can now open in any workspace
+
+# Workspace 2: Programming Editors (2:Demon)
+assign [class="code"] $ws2
+assign [class="Code"] $ws2
+assign [class="cursor"] $ws2
+assign [class="Cursor"] $ws2
+assign [class="nvim"] $ws2
+assign [class="Neovim"] $ws2
+assign [class="vim"] $ws2
+assign [class="Gvim"] $ws2
+
+# Workspace 8: Music Applications (8:Chaos)
+assign [class="Spotify"] $ws8
+assign [class="spotify"] $ws8
+assign [class="Rhythmbox"] $ws8
+assign [class="Clementine"] $ws8
+assign [class="Audacious"] $ws8
+assign [class="VLC"] $ws8
+assign [class="vlc"] $ws8
+
+# Workspace 9: Discord (9:Abyss)
+assign [class="discord"] $ws9
+assign [class="Discord"] $ws9
+assign [class="Vesktop"] $ws9
+
+# Modern window behavior
+for_window [urgent=latest] focus
+
+#############
+# QUICK WORKSPACE SHORTCUTS
+#############
+
+# Quick access to your main workspaces
+bindsym $mod+Ctrl+b workspace $ws1  # Browser/Terminal
+bindsym $mod+Ctrl+p workspace $ws2  # Programming
+bindsym $mod+Ctrl+m workspace $ws8  # Music
+bindsym $mod+Ctrl+d workspace $ws9  # Discord
+
+# Quick move to your main workspaces
+bindsym $mod+Ctrl+Shift+b move container to workspace $ws1  # Browser/Terminal
+bindsym $mod+Ctrl+Shift+p move container to workspace $ws2  # Programming
+bindsym $mod+Ctrl+Shift+m move container to workspace $ws8  # Music
+bindsym $mod+Ctrl+Shift+d move container to workspace $ws9  # Discord
+
+#############
+# KEYBIND REFERENCE
+#############
+# Active Bindings:
+# $mod+Return = Terminal
+# $mod+d = App launcher
+# $mod+Shift+d = Run launcher  
+# $mod+Shift+q = Kill window
+# $mod+Shift+c = Clipboard
+# $mod+hjkl = Focus movement
+# $mod+Shift+hjkl = Move windows
+# $mod+bv = Split horizontal/vertical
+# $mod+f = Fullscreen
+# $mod+swe = Layout modes
+# $mod+space = Focus tiling/floating
+# $mod+Shift+space = Toggle floating
+# $mod+a = Focus parent
+# $mod+r = Resize mode
+# $mod+1-9 = Switch workspace
+# $mod+Shift+1-9 = Move to workspace
+# $mod+t = Translator scratchpad
+# $mod+c = Calendar scratchpad
+# $mod+Shift+w = Random wallpaper
+# $mod+Shift+t = Theme selector
+# $mod+Shift+n/p = Next/prev wallpaper
+# $mod+Shift+z = Favorite wallpaper
+# $mod+Shift+r = Restart i3
+# $mod+Shift+e = Exit i3
+# Print = Screenshot selection
+# $mod+Print = Screenshot full
+# $mod+Ctrl+b/p/m/d = Quick workspace access (Browser/Programming/Music/Discord)
+# $mod+Ctrl+Shift+b/p/m/d = Quick move to workspace
