@@ -8,7 +8,7 @@
    curl -fsSL https://ollama.ai/install.sh | sh
    
    # Or on Arch Linux:
-  # sudo pacman -S ollama
+   # sudo pacman -S ollama
    
    # Or on Ubuntu/Debian:
    # curl -fsSL https://ollama.ai/install.sh | sh
