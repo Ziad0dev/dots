@@ -1,10 +1,8 @@
-# 🚀 Dotfiles
+#  Dotfiles
 
 My personal dotfiles for a clean and efficient Linux desktop setup.
 
-![Desktop Screenshot](2025-04-23_15-27.png)
-
-## 🔧 What's Inside
+## What's Inside
 
 This repository contains configuration files for:
 
@@ -16,7 +14,7 @@ This repository contains configuration files for:
 - **Dunst** - Notification daemon
 - **Ranger** - File manager
 
-## 🛠️ Installation
+##  Installation
 
 To use these dotfiles:
 
@@ -26,20 +24,3 @@ cd dots
 # Either manually symlink configurations or use a dotfile manager
 # Example: stow or GNU symlinks
 ```
-
-## 🎨 Themes and Styling
-
-The setup features a consistent dark theme across all applications with custom statusbar configurations for Polybar.
-
-## 🔄 Updates
-
-Pull the latest changes:
-
-```bash
-cd dots
-git pull
-```
-
-## 📝 License
-
-Feel free to use and modify these configurations for your own setup! 
