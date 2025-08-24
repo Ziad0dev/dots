@@ -1,9 +1,11 @@
+@import "~/.cache/wal/colors-rofi-dark.rasi"
+
 configuration {
     modi: "drun,run";
     font: "JetBrainsMono Nerd Font 10";
     show-icons: true;
     icon-theme: "Papirus";
-    display-drun: "⛧ Summon ";
+    display-drun: "☠ Summon";
     display-run: "⚕ Conjure ";
     display-window: "⚧ Portal ";
     drun-display-format: "{name}";
@@ -11,67 +13,40 @@ configuration {
 }
 
 * {
-    /* Blood red occult color scheme */
-    color0: #0A0000;       /* Abyssal black */
-    color1: #1A0000;       /* Dark blood */
-    color2: #330000;       /* Deep crimson */
-    color3: #4D0000;       /* Blood red */
-    color4: #660000;       /* Crimson */
-    color5: #800000;       /* Dark red */
-    color6: #990000;       /* Bright blood */
-    color7: #BF0000;       /* Vivid blood */
-    color8: #150505;       /* Dark background alt */
-    color9: #400000;       /* Sacrificial red */
-    color10: #660000;      /* Same as color4 */
-    color11: #CC0000;      /* Ritual red */
-    color12: #8B0000;      /* Dark red alt */
-    color13: #A30000;      /* Pentagram red */
-    color14: #E60000;      /* Summoning red */
-    color15: #FFFFFF;      /* Pure white */
+    /* Wal color scheme with occult aesthetic */
+    color0: @background;       /* Main background from wal */
+    color1: #998577;           /* Wal color 1 */
+    color2: #AE9077;           /* Wal color 2 */
+    color3: #DDA060;           /* Wal color 3 */
+    color4: #FAC265;           /* Wal color 4 */
+    color5: #7B7D85;           /* Wal color 5 */
+    color6: #A39289;           /* Wal color 6 */
+    color7: @foreground;       /* Foreground from wal */
+    color8: #74675e;           /* Wal color 8 */
+    color9: #998577;           /* Wal color 9 */
+    color10: #AE9077;          /* Wal color 10 */
+    color11: #DDA060;          /* Wal color 11 */
+    color12: #FAC265;          /* Wal color 12 */
+    color13: #7B7D85;          /* Wal color 13 */
+    color14: #A39289;          /* Wal color 14 */
+    color15: @foreground;      /* Wal foreground */
     
-    background: @color0;
-    foreground: #CCCCCC;
-    
-    active-background: @color5;
-    active-foreground: @foreground;
-    normal-background: @background;
-    normal-foreground: @foreground;
-    urgent-background: @color1;
-    urgent-foreground: @foreground;
-    alternate-active-background: @background;
-    alternate-active-foreground: @foreground;
-    alternate-normal-background: @background;
-    alternate-normal-foreground: @foreground;
-    alternate-urgent-background: @background;
-    alternate-urgent-foreground: @foreground;
-    selected-active-background: @color6;
-    selected-active-foreground: #FFFFFF;
-    selected-normal-background: @color5;
-    selected-normal-foreground: #FFFFFF;
-    selected-urgent-background: @color7;
-    selected-urgent-foreground: #FFFFFF;
-    background-color: @background;
-    border-color: @color7;
-    
-    /* Theme specific colors */
-    lightbg: @color3;
-    lightfg: @color15;
-    
-    accent: @color7;
-    highlight: @color14;
+    /* Use existing wal color variables but maintain occult theme */
+    accent: @selected-normal-background;
+    highlight: @color3;
     neon-glow: @color11;
     transparency: #00000000;
     spacing: 2;
 }
 
 window {
-    background-color: @color0;
-    border: 2px;
+    background-color: @background;
+    border: 3px;
     border-color: @accent;
-    border-radius: 0px;
-    padding: 15px;
+    border-radius: 8px;
+    padding: 20px;
     transparency: "real";
-    width: 35%;
+    width: 55%;
     height: 45%;
     location: center;
     x-offset: 0;
@@ -83,6 +58,31 @@ mainbox {
     padding: 0;
     spacing: 8px;
     background-color: transparent;
+    children: [ "horibox" ];
+}
+
+horibox {
+    orientation: horizontal;
+    spacing: 15px;
+    children: [ "image-box", "vertical-box" ];
+}
+
+image-box {
+    background-image: url("~/.config/rofi/ab67616d0000b273d62a6267448745ca64db99ea.jpeg", both);
+    width: 440px;
+    height: 440px;
+    border: 3px;
+    border-color: @accent;
+    border-radius: 5px;
+    expand: false;
+}
+
+vertical-box {
+    orientation: vertical;
+    spacing: 2px;
+    expand: true;
+    width: 55px;
+    children: [ "inputbar", "listview", "mode-switcher" ];
 }
 
 message {
@@ -97,19 +97,24 @@ textbox {
 
 inputbar {
     children: [ prompt, textbox-prompt-colon, entry ];
-    background-color: @color1;
-    border: 2px;
+    background-color: @background;
+    border: 3px;
     border-color: @accent;
-    border-radius: 0px;
+    border-radius: 5px;
     margin: 0px 0px 8px 0px;
-    padding: 4px 8px;
+    padding: 8px 12px;
+    vertical-align: 0.5;
 }
 
 textbox-prompt-colon {
     expand: false;
-    str: "◆";
+    str: "⸸";
     margin: 0px 8px 0px 0px;
-    text-color: @highlight;
+    text-color: @accent;
+    font: "URW Gothic Bold 14";
+    vertical-align: 0.4;
+    horizontal-align: 0.5;
+    padding: 4px 0px 6px 0px;
 }
 
 listview {
@@ -117,8 +122,8 @@ listview {
     border: 0px;
     spacing: 3px;
     scrollbar: false;
-    padding: 8px 4px;
-    lines: 7;
+    padding: 6px 4px;
+    lines: 5;
     columns: 1;
     dynamic: true;
     background-color: transparent;
@@ -153,7 +158,7 @@ element.normal.active {
 
 element.selected.normal {
     background-color: @accent;
-    text-color: @color0;
+    text-color: @background;
 }
 
 element.selected.urgent {
@@ -185,8 +190,10 @@ element-text {
     background-color: inherit;
     text-color: inherit;
     vertical-align: 0.5;
+    horizontal-align: 0.0;
     padding: 0px 5px;
     highlight: bold;
+    font: "URW Gothic 11";
 }
 
 scrollbar {
@@ -212,24 +219,30 @@ button {
 
 button.selected {
     background-color: @accent;
-    text-color: @color0;
+    text-color: @background;
 }
 
 entry {
     background-color: inherit;
     spacing: 0;
     text-color: @foreground;
-    placeholder: "☽ Seek forbidden knowledge...";
-    placeholder-color: #880000;
+    placeholder: "☠ Summon the forbidden...";
+    placeholder-color: @color8;
     cursor: text;
+    font: "URW Gothic 12";
+    vertical-align: 0.5;
+    horizontal-align: 0.0;
+    padding: 2px 0px;
 }
 
 prompt {
     enabled: true;
-    padding: 0px 8px;
+    padding: 8px;
     spacing: 0;
-    text-color: #CC0000;
-    str: "⛥";
+    text-color: @accent;
+    font: "URW Gothic Bold 13";
+    vertical-align: 0.5;
+    horizontal-align: 0.5;
 }
 
 /* Mode switcher */
@@ -239,3 +252,4 @@ mode-switcher {
     margin: 0px 0px 10px 0px;
     background-color: transparent;
 }
+
