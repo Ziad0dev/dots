@@ -1,0 +1,9 @@
+# Pywal i3 Colors
+# class                 border  backgr. text    indicator child_border
+client.focused          {color6} {color6} {color0} {color4}   {color6}
+client.focused_inactive {color8} {color8} {color7} {color4}   {color8}
+client.unfocused        {color0} {color0} {color7} {color4}   {color0}
+client.urgent           {color9} {color9} {color0} {color4}   {color9}
+client.placeholder      {color0} {color0} {color7} {color4}   {color0}
+
+client.background       {color0}
