@@ -1,0 +1,161 @@
+{
+    "layer": "top",
+    "position": "top",
+    "height": 28,
+    "spacing": 4,
+    "margin-top": 0,
+    "margin-bottom": 0,
+    "margin-left": 0,
+    "margin-right": 0,
+    
+    "modules-left": ["hyprland/workspaces", "hyprland/submap", "hyprland/window"],
+    "modules-center": ["clock"],
+    "modules-right": ["tray", "pulseaudio", "network", "battery", "custom/power"],
+    
+    "hyprland/workspaces": {
+        "format": "{name}",
+        "format-icons": {
+            "1": "☠",
+            "2": "⚕", 
+            "3": "👹",
+            "4": "😈",
+            "5": "🕳",
+            "6": "⚡",
+            "7": "💀",
+            "8": "🎵",
+            "9": "💬",
+            "urgent": "🔥",
+            "default": "💻"
+        },
+        "on-scroll-up": "hyprctl dispatch workspace e+1",
+        "on-scroll-down": "hyprctl dispatch workspace e-1",
+        "on-click": "activate",
+        "sort-by-number": true,
+        "show-special": false,
+        "persistent_workspaces": {
+            "1": [],
+            "2": [],
+            "3": [],
+            "4": [],
+            "5": [],
+            "6": [],
+            "7": [],
+            "8": [],
+            "9": []
+        }
+    },
+    
+    "hyprland/window": {
+        "format": "{}",
+        "max-length": 50,
+        "separate-outputs": true,
+        "rewrite": {
+            "(.*) — Mozilla Firefox": "🦊 $1",
+            "(.*) - Visual Studio Code": "💻 $1",
+            "(.*) - Discord": "💬 $1",
+            "(.*) - Spotify": "🎵 $1",
+            "kitty": "🐱 Terminal"
+        }
+    },
+    
+    "hyprland/submap": {
+        "format": "✨ {}",
+        "max-length": 8,
+        "tooltip": false
+    },
+    
+    "clock": {
+        "format": "{:%H:%M:%S}",
+        "format-alt": "{:%Y-%m-%d %H:%M:%S}",
+        "tooltip-format": "<tt><small>{calendar}</small></tt>",
+        "calendar": {
+            "mode": "year",
+            "mode-mon-col": 3,
+            "weeks-pos": "right",
+            "on-scroll": 1,
+            "on-click-right": "mode",
+            "format": {
+                "months": "<span color='#ffead3'><b>{}</b></span>",
+                "days": "<span color='#ecc6d9'><b>{}</b></span>",
+                "weeks": "<span color='#99ffdd'><b>W{}</b></span>",
+                "weekdays": "<span color='#ffcc66'><b>{}</b></span>",
+                "today": "<span color='#ff6699'><b><u>{}</u></b></span>"
+            }
+        },
+        "actions": {
+            "on-click-right": "mode",
+            "on-click-forward": "tz_up",
+            "on-click-backward": "tz_down",
+            "on-scroll-up": "shift_up",
+            "on-scroll-down": "shift_down"
+        },
+        "interval": 1
+    },
+    
+    "pulseaudio": {
+        "format": "{icon} {volume}%",
+        "format-bluetooth": "{icon} {volume}% 🔵",
+        "format-bluetooth-muted": "🔇 {icon}",
+        "format-muted": "🔇",
+        "format-source": " {volume}%",
+        "format-source-muted": "",
+        "format-icons": {
+            "headphone": "🎧",
+            "hands-free": "🤏",
+            "headset": "🎧",
+            "phone": "📱",
+            "portable": "📱",
+            "car": "🚗",
+            "default": ["🔈", "🔉", "🔊"]
+        },
+        "on-click": "pavucontrol",
+        "on-click-right": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
+        "on-scroll-up": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 2%+",
+        "on-scroll-down": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 2%-",
+        "tooltip-format": "Volume: {volume}%\\nDevice: {desc}"
+    },
+    
+    "network": {
+        "format-wifi": "📶 {signalStrength}%",
+        "format-ethernet": "🌐 Connected",
+        "format-disconnected": "❌ Disconnected",
+        "tooltip-format": "{ifname}: {ipaddr}/{cidr}",
+        "tooltip-format-wifi": "📶 {essid} ({signalStrength}%)\\n{ipaddr}/{cidr}",
+        "tooltip-format-ethernet": "🌐 {ifname}\\n{ipaddr}/{cidr}",
+        "tooltip-format-disconnected": "❌ Disconnected",
+        "on-click": "nm-connection-editor",
+        "max-length": 50
+    },
+    
+    "battery": {
+        "bat": "BAT0",
+        "adapter": "ADP0",
+        "interval": 60,
+        "states": {
+            "warning": 30,
+            "critical": 15
+        },
+        "max-length": 20,
+        "format": "{icon} {capacity}%",
+        "format-warning": "⚠️ {capacity}%",
+        "format-critical": "🔋 {capacity}%",
+        "format-charging": "⚡ {capacity}%",
+        "format-plugged": "🔌 {capacity}%",
+        "format-alt": "{icon} {time}",
+        "format-full": "✅ {capacity}%",
+        "format-icons": ["🪫", "🔋", "🔋", "🔋", "🔋"]
+    },
+    
+    "tray": {
+        "icon-size": 16,
+        "spacing": 8,
+        "show-passive-items": true
+    },
+    
+    "custom/power": {
+        "format": "⚡",
+        "tooltip": "Power Menu",
+        "on-click": "~/.config/hypr/scripts/power-menu.sh",
+        "interval": "once"
+    }
+}
