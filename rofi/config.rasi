@@ -8,8 +8,12 @@ configuration {
     display-drun: "☠ Summon";
     display-run: "⚕ Conjure ";
     display-window: "⚧ Portal ";
-    drun-display-format: "{name}";
+    drun-display-format: "{icon} {name}";
     sidebar-mode: true;
+    
+    /* Ensure icons are properly loaded */
+    drun-show-actions: false;
+    disable-history: false;
 }
 
 * {
@@ -68,13 +72,16 @@ horibox {
 }
 
 image-box {
-    background-image: url("~/.config/rofi/ab67616d0000b273d62a6267448745ca64db99ea.jpeg", both);
+    background-image: url("ab67616d0000b273d62a6267448745ca64db99ea.jpeg", both);
     width: 440px;
     height: 440px;
     border: 3px;
     border-color: @accent;
     border-radius: 5px;
     expand: false;
+    
+    /* Ensure proper image display */
+    background-color: rgba(0, 0, 0, 0.5);
 }
 
 vertical-box {
@@ -134,11 +141,20 @@ element {
     padding: 6px 10px;
     border-radius: 0px;
     spacing: 4px;
+    
+    /* Ensure proper layout for icon + text */
+    orientation: horizontal;
+    children: [ element-icon, element-text ];
 }
 
 element-icon {
-    size: 20px;
+    size: 24px;
     background-color: inherit;
+    
+    /* Better icon positioning */
+    horizontal-align: 0.0;
+    vertical-align: 0.5;
+    padding: 0px 8px 0px 0px;
 }
 
 element.normal.normal {
