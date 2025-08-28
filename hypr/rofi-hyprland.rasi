@@ -1,0 +1,221 @@
+@import "~/.cache/wal/colors-rofi-dark.rasi"
+
+configuration {
+    /* Wayland-specific settings */
+    modi: "drun,run,window";
+    font: "JetBrainsMono Nerd Font 10";
+    show-icons: true;
+    icon-theme: "Papirus";
+    display-drun: "☠ Summon";
+    display-run: "⚕ Conjure";
+    display-window: "⚧ Portal";
+    drun-display-format: "{icon} {name}";
+    
+    /* Enable icons explicitly for drun mode */
+    drun-show-actions: false;
+    disable-history: false;
+    hide-scrollbar: true;
+    sidebar-mode: false;
+    
+    /* Window settings for Wayland */
+    window-format: "{w} {c} {t}";
+    click-to-exit: true;
+    
+    /* Icon settings - crucial for showing icons */
+    drun-use-desktop-cache: false;
+    drun-reload-desktop-cache: false;
+}
+
+* {
+    /* Pywal color integration */
+    background:     @background;
+    foreground:     @foreground;
+    selected:       @color1;
+    active:         @color2;
+    urgent:         @color9;
+    
+    /* Occult theme colors */
+    bg-col:         rgba(0, 0, 0, 0.9);
+    bg-col-light:   rgba(255, 255, 255, 0.1);
+    border-col:     @selected;
+    selected-col:   rgba(204, 0, 0, 0.8);
+    blue:           rgba(102, 153, 255, 0.8);
+    fg-col:         #ffffff;
+    fg-col2:        #cccccc;
+    grey:           rgba(255, 255, 255, 0.3);
+    
+    /* Split screen layout */
+    width: 1000;
+    font: "JetBrainsMono Nerd Font 10";
+}
+
+element-text, element-icon, mode-switcher {
+    background-color: inherit;
+    text-color:       inherit;
+}
+
+window {
+    height: 480px;
+    width: 1000px;
+    border: 3px;
+    border-color: @border-col;
+    background-color: @bg-col;
+    border-radius: 8px;
+    location: center;
+    x-offset: 0;
+    y-offset: 0;
+}
+
+mainbox {
+    background-color: @bg-col;
+    children: [ horibox ];
+    spacing: 0px;
+    padding: 20px;
+}
+
+horibox {
+    orientation: horizontal;
+    spacing: 15px;
+    children: [ "image-box", "vertical-box" ];
+}
+
+image-box {
+    background-image: url("~/.config/rofi/ab67616d0000b273d62a6267448745ca64db99ea.jpeg", both);
+    width: 400px;
+    height: 400px;
+    border: 3px;
+    border-color: @selected-col;
+    border-radius: 8px;
+    expand: false;
+    
+    /* Add some visual effects */
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+vertical-box {
+    orientation: vertical;
+    spacing: 10px;
+    expand: true;
+    children: [ inputbar, listview ];
+}
+
+inputbar {
+    children: [ prompt, entry ];
+    background-color: @bg-col-light;
+    border-radius: 5px;
+    padding: 8px;
+    border: 2px;
+    border-color: @selected-col;
+}
+
+prompt {
+    background-color: inherit;
+    text-color: @selected-col;
+    enabled: true;
+    margin: 0px 10px 0px 0px;
+    font: "JetBrainsMono Nerd Font Bold 11";
+}
+
+textbox-prompt-colon {
+    expand: false;
+    str: "⸸";
+    text-color: @selected-col;
+}
+
+entry {
+    placeholder: "Summon the forbidden...";
+    background-color: inherit;
+    text-color: @fg-col;
+    placeholder-color: @grey;
+    cursor: text;
+}
+
+listview {
+    border: 0px 0px 0px;
+    padding: 6px 0px 0px;
+    margin: 10px 0px 0px 0px;
+    columns: 1;
+    lines: 8;
+    background-color: @bg-col;
+    
+    /* Ensure icons are displayed */
+    fixed-height: false;
+    dynamic: true;
+    scrollbar: true;
+    
+    /* Adjust for smaller vertical space */
+    fixed-height: true;
+}
+
+element {
+    padding: 8px;
+    background-color: @bg-col;
+    text-color: @fg-col;
+    border-radius: 4px;
+    spacing: 10px;
+    
+    /* This is crucial for icon display */
+    orientation: horizontal;
+    children: [ element-icon, element-text ];
+}
+
+element-icon {
+    /* Icon sizing and positioning */
+    size: 24px;
+    background-color: transparent;
+    padding: 0px 8px 0px 0px;
+    
+    /* Ensure icon is visible */
+    horizontal-align: 0.0;
+    vertical-align: 0.5;
+}
+
+element-text {
+    background-color: transparent;
+    text-color: inherit;
+    expand: true;
+    horizontal-align: 0.0;
+    vertical-align: 0.5;
+    margin: 0px 2px 0px 2px;
+}
+
+element selected {
+    background-color: @selected-col;
+    text-color: @fg-col;
+    border-radius: 4px;
+}
+
+element-text selected {
+    text-color: @fg-col;
+}
+
+element-icon selected {
+    background-color: transparent;
+}
+
+scrollbar {
+    width: 4px;
+    border: 0;
+    handle-color: @selected-col;
+    handle-width: 8px;
+    padding: 0;
+    background-color: @grey;
+}
+
+mode-switcher {
+    spacing: 0;
+}
+
+button {
+    padding: 10px;
+    background-color: @bg-col-light;
+    text-color: @grey;
+    border: 0px;
+    border-radius: 4px;
+    margin: 4px;
+}
+
+button selected {
+    background-color: @selected-col;
+    text-color: @fg-col2;
+}
