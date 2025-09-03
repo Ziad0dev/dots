@@ -12,7 +12,7 @@ return {
         "stylua",
         "shfmt",
         "lua-language-server",
-        "typescript-language-server",
+        "typescript-language-server", 
         "pyright",
         "rust-analyzer",
         "clangd",
@@ -53,6 +53,7 @@ return {
     event = { "BufReadPre", "BufNewFile" },
     dependencies = {
       "mason.nvim",
+      "hrsh7th/cmp-nvim-lsp",
     },
     opts = {
       -- options for vim.diagnostic.config()
@@ -168,16 +169,10 @@ return {
       setup = {},
     },
     config = function(_, opts)
-      -- Protect against errors
-      local has_config_lsp, config_lsp = pcall(require, "config.lsp")
-      if has_config_lsp then
-        pcall(config_lsp.setup_autoformat, opts)
-        pcall(config_lsp.on_attach, function(client, buffer)
-          pcall(config_lsp.setup_keymaps, client, buffer)
-        end)
-      end
-
-      local servers = opts.servers
+      -- Setup diagnostics first
+      pcall(vim.diagnostic.config, vim.deepcopy(opts.diagnostics))
+      
+      -- Get LSP capabilities with nvim-cmp integration (with safety)
       local has_cmp, cmp_nvim_lsp = pcall(require, "cmp_nvim_lsp")
       local capabilities = vim.tbl_deep_extend(
         "force",
@@ -187,37 +182,46 @@ return {
         opts.capabilities or {}
       )
 
-      local function setup(server)
-        local server_opts = vim.tbl_deep_extend("force", {
-          capabilities = vim.deepcopy(capabilities),
-        }, servers[server] or {})
-
-        if opts.setup[server] then
-          if opts.setup[server](server, server_opts) then
-            return
+      -- Setup the LSP attach handler with protection
+      local has_config_lsp, config_lsp = pcall(require, "config.lsp")
+      if has_config_lsp then
+        pcall(config_lsp.setup_autoformat, opts)
+        config_lsp.on_attach(function(client, buffer)
+          -- Ensure buffer is valid
+          if not buffer or type(buffer) == "function" then
+            buffer = vim.api.nvim_get_current_buf()
           end
-        elseif opts.setup["*"] then
-          if opts.setup["*"](server, server_opts) then
-            return
-          end
-        end
-        
-        -- Protected setup
-        pcall(function()
-          require("lspconfig")[server].setup(server_opts)
+          
+          pcall(config_lsp.setup_keymaps, client, buffer)
+          pcall(config_lsp.setup_inlay_hints, client, buffer)
+          pcall(config_lsp.setup_semantic_tokens, client, buffer)
         end)
       end
 
-      -- Setup servers directly
-      for server, server_opts in pairs(servers) do
-        if server_opts then
-          server_opts = server_opts == true and {} or server_opts
-          setup(server)
+      -- Setup servers manually with traditional lspconfig
+      for server, server_config in pairs(opts.servers) do
+        local server_opts = vim.tbl_deep_extend("force", {
+          capabilities = vim.deepcopy(capabilities),
+        }, server_config or {})
+        
+        -- Apply custom setup if provided
+        if opts.setup[server] then
+          if opts.setup[server](server, server_opts) then
+            goto continue
+          end
+        elseif opts.setup["*"] then
+          if opts.setup["*"](server, server_opts) then
+            goto continue
+          end
         end
+        
+        -- Setup the server with lspconfig
+        pcall(function()
+          require("lspconfig")[server].setup(server_opts)
+        end)
+        
+        ::continue::
       end
-
-      -- Configure diagnostics
-      pcall(vim.diagnostic.config, vim.deepcopy(opts.diagnostics))
     end,
   },
 
