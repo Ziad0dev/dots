@@ -114,8 +114,10 @@ return {
       
       chat.setup(opts)
       
-      -- Custom selections
-      require("CopilotChat.integrations.cmp").setup()
+      -- Custom selections (with safety)
+      pcall(function()
+        require("CopilotChat.integrations.cmp").setup()
+      end)
       
       -- Register custom selections
       vim.api.nvim_create_autocmd("BufEnter", {

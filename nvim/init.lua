@@ -4,6 +4,11 @@
 vim.g.mapleader = " "
 vim.g.maplocalleader = "\\"
 
+-- Apply critical LSP buffer fix before anything else
+pcall(function()
+  require("utils.lsp_buffer_fix")
+end)
+
 -- Bootstrap lazy.nvim (modern plugin manager)
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
@@ -22,6 +27,12 @@ vim.opt.rtp:prepend(lazypath)
 require("core.options")
 require("core.keymaps")
 require("core.autocmds")
+
+-- Apply LSP buffer fix early
+pcall(function()
+  require("utils.lsp_buffer_fix")
+  require("utils.cmp_fix").setup()
+end)
 
 -- Setup lazy.nvim and load plugins
 require("lazy").setup("plugins", {
