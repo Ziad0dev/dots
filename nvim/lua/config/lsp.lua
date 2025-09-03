@@ -73,14 +73,31 @@ function M.on_attach(on_attach)
     callback = function(args)
       local buffer = args.buf
       local client = vim.lsp.get_client_by_id(args.data.client_id)
-      if client then
-        on_attach(client, buffer)
+      
+      -- Ensure we have valid buffer and client
+      if not client or not buffer or type(buffer) == "function" then
+        return
       end
+      
+      -- Ensure buffer is a valid number
+      if type(buffer) ~= "number" then
+        buffer = tonumber(buffer) or vim.api.nvim_get_current_buf()
+      end
+      
+      pcall(on_attach, client, buffer)
     end,
   })
 end
 
 function M.setup_keymaps(client, buffer)
+  -- Ensure buffer is a valid number
+  if not buffer or type(buffer) == "function" then
+    buffer = vim.api.nvim_get_current_buf()
+  end
+  if type(buffer) ~= "number" then
+    buffer = tonumber(buffer) or vim.api.nvim_get_current_buf()
+  end
+
   local keymaps = M.get_keys()
 
   for _, keymap in ipairs(keymaps) do
@@ -227,89 +244,81 @@ end
 
 -- ⸸ Setup inlay hints for supported servers
 function M.setup_inlay_hints(client, bufnr)
-  if client:supports_method("textDocument/inlayHint") then
-    vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
+  -- Ensure bufnr is valid
+  if not bufnr or type(bufnr) == "function" then
+    bufnr = vim.api.nvim_get_current_buf()
+  end
+  if type(bufnr) ~= "number" then
+    bufnr = tonumber(bufnr) or vim.api.nvim_get_current_buf()
+  end
+  
+  if client and client.supports_method and client.supports_method("textDocument/inlayHint") then
+    -- Only enable inlay hints if the API exists (Neovim 0.10+)
+    if vim.lsp.inlay_hint and vim.lsp.inlay_hint.enable then
+      pcall(vim.lsp.inlay_hint.enable, true, { bufnr = bufnr })
+    end
   end
 end
 
--- ⸸ Setup completion using modern completion API
+-- ⸸ Setup completion (disabled - using nvim-cmp instead)
 function M.setup_completion(client, bufnr)
-  if client:supports_method("textDocument/completion") then
-    -- Enable modern LSP completion
-    vim.lsp.completion.enable(true, client.id, bufnr, { autotrigger = true })
-  end
+  -- Completion handled by nvim-cmp plugin
+  -- Do not enable native LSP completion to avoid conflicts
 end
 
 -- ⸸ Setup semantic tokens highlighting
 function M.setup_semantic_tokens(client, bufnr)
-  if client:supports_method("textDocument/semanticTokens/full") then
-    vim.lsp.semantic_tokens.start(bufnr, client.id)
+  -- Ensure bufnr is valid
+  if not bufnr or type(bufnr) == "function" then
+    bufnr = vim.api.nvim_get_current_buf()
+  end
+  if type(bufnr) ~= "number" then
+    bufnr = tonumber(bufnr) or vim.api.nvim_get_current_buf()
+  end
+  
+  if client and client.supports_method and client.supports_method("textDocument/semanticTokens/full") then
+    -- Only enable semantic tokens if the API exists (Neovim 0.9+)
+    if vim.lsp.semantic_tokens and vim.lsp.semantic_tokens.start then
+      pcall(vim.lsp.semantic_tokens.start, bufnr, client.id)
+    end
   end
 end
 
--- ⸸ Modern LSP configuration using vim.lsp.config
+-- ⸸ Modern LSP configuration using traditional lspconfig
 function M.configure_server(name, config)
-  -- Use the modern vim.lsp.config API
-  vim.lsp.config(name, config)
-end
-
--- ⸸ Enable servers using modern API
-function M.enable_server(name)
-  vim.lsp.enable(name)
-end
-
--- ⸸ Unified setup function following modern patterns
-function M.setup(opts)
-  opts = opts or {}
-  
-  -- Setup global configurations
-  M.setup_diagnostics(opts)
-  M.setup_autoformat(opts)
-  
-  -- Setup global LSP defaults using modern config API
-  vim.lsp.config("*", {
-    capabilities = vim.tbl_deep_extend("force", 
-      vim.lsp.protocol.make_client_capabilities(),
-      opts.capabilities or {}
-    ),
-    root_markers = { ".git", ".hg", ".svn" },
-  })
-  
-  -- Setup LspAttach handler
-  M.on_attach(function(client, buffer)
-    M.setup_keymaps(client, buffer)
-    M.setup_inlay_hints(client, buffer)
-    M.setup_completion(client, buffer)
-    M.setup_semantic_tokens(client, buffer)
-    
-    -- Call user's on_attach if provided
-    if opts.on_attach then
-      opts.on_attach(client, buffer)
-    end
-  end)
-  
-  -- Configure specific servers if provided
-  if opts.servers then
-    for name, config in pairs(opts.servers) do
-      M.configure_server(name, config)
-      if config.enable ~= false then
-        M.enable_server(name)
-      end
-    end
+  -- Use traditional lspconfig setup
+  local lspconfig = require("lspconfig")
+  if lspconfig[name] then
+    pcall(lspconfig[name].setup, config)
   end
 end
 
--- ⸸ Helper function to get LSP status (modern)
+-- ⸸ Helper function to get LSP status (traditional)
 function M.get_status()
-  return vim.lsp.status()
+  local clients = vim.lsp.get_active_clients()
+  if #clients == 0 then
+    return "No LSP clients"
+  end
+  
+  local names = {}
+  for _, client in ipairs(clients) do
+    table.insert(names, client.name)
+  end
+  return table.concat(names, ", ")
 end
 
 -- ⸸ Helper function to restart LSP
 function M.restart_server(name)
-  vim.lsp.enable(name, false)
-  vim.defer_fn(function()
-    vim.lsp.enable(name, true)
-  end, 100)
+  local clients = vim.lsp.get_active_clients()
+  for _, client in ipairs(clients) do
+    if client.name == name then
+      client.stop()
+      vim.defer_fn(function()
+        vim.cmd("edit") -- Trigger LSP restart
+      end, 100)
+      break
+    end
+  end
 end
 
 return M

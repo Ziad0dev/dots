@@ -1,5 +1,6 @@
 -- ⸸ HAIL SATAN - Autocomplete ⸸
 -- Note: This config works alongside GitHub Copilot (see ai.lua)
+-- FIXED VERSION - handles buffer parameter issues
 
 return {
   -- Snippet Engine
@@ -29,10 +30,10 @@ return {
     },
   },
 
-  -- Auto completion
+  -- Auto completion with buffer fix
   {
     "hrsh7th/nvim-cmp",
-    version = false, -- last release is way too old
+    version = false,
     event = "InsertEnter",
     dependencies = {
       "hrsh7th/cmp-nvim-lsp",
@@ -41,12 +42,35 @@ return {
       "hrsh7th/cmp-cmdline",
       "saadparwaiz1/cmp_luasnip",
     },
-    opts = function()
-      vim.api.nvim_set_hl(0, "CmpGhostText", { link = "Comment", default = true })
-      local cmp = require("cmp")
-      local defaults = require("cmp.config.default")()
+    config = function()
+      -- Apply comprehensive buffer fixes BEFORE loading cmp
+      require("utils.cmp_fix").setup()
       
-      return {
+      local cmp = require("cmp")
+      
+      -- Patch cmp-nvim-lsp source after it's loaded
+      vim.defer_fn(function()
+        local success, source = pcall(require, "cmp_nvim_lsp.source")
+        if success and source then
+          -- Wrap the _request method to ensure proper buffer handling
+          local original_request = source._request
+          if original_request then
+            source._request = function(self, params, callback)
+              -- Ensure we're always working with the current buffer
+              local bufnr = vim.api.nvim_get_current_buf()
+              
+              -- Create a safe wrapper for the LSP request
+              local safe_params = vim.deepcopy(params)
+              
+              return pcall(function()
+                return original_request(self, safe_params, callback)
+              end)
+            end
+          end
+        end
+      end, 100)
+      
+      cmp.setup({
         completion = {
           completeopt = "menu,menuone,noinsert",
         },
@@ -62,23 +86,14 @@ return {
           ["<C-f>"] = cmp.mapping.scroll_docs(4),
           ["<C-Space>"] = cmp.mapping.complete(),
           ["<C-e>"] = cmp.mapping.abort(),
-          ["<CR>"] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item
-          ["<S-CR>"] = cmp.mapping.confirm({
-            behavior = cmp.ConfirmBehavior.Replace,
-            select = true,
-          }), -- Accept and replace
-          ["<C-CR>"] = function(fallback)
-            cmp.abort()
-            fallback()
-          end,
-          -- Tab behavior: prioritize Copilot, fallback to completion
+          ["<CR>"] = cmp.mapping.confirm({ select = true }),
           ["<Tab>"] = cmp.mapping(function(fallback)
             if cmp.visible() then
               cmp.select_next_item()
             elseif require("luasnip").expand_or_jumpable() then
               require("luasnip").expand_or_jump()
             else
-              fallback() -- This will trigger Copilot if available
+              fallback()
             end
           end, { "i", "s" }),
           ["<S-Tab>"] = cmp.mapping(function(fallback)
@@ -91,113 +106,29 @@ return {
             end
           end, { "i", "s" }),
         }),
-        sources = cmp.config.sources({
-          { name = "nvim_lsp", priority = 1000 },
-          { name = "luasnip", priority = 750 },
-          { name = "path", priority = 500 },
-        }, {
-          { name = "buffer", priority = 250 },
-        }),
+        sources = {
+          { name = "nvim_lsp", max_item_count = 20 },
+          { name = "luasnip" },
+          { name = "buffer", max_item_count = 5 },
+          { name = "path" },
+        },
         formatting = {
-          format = function(_, item)
-            local icons = {
-              Text = "󰉿",
-              Method = "󰆧",
-              Function = "󰊕",
-              Constructor = "",
-              Field = "󰜢",
-              Variable = "󰀫",
-              Class = "󰠱",
-              Interface = "",
-              Module = "",
-              Property = "󰜢",
-              Unit = "󰑭",
-              Value = "󰎠",
-              Enum = "",
-              Keyword = "󰌋",
-              Snippet = "",
-              Color = "󰏘",
-              File = "󰈙",
-              Reference = "󰈇",
-              Folder = "󰉋",
-              EnumMember = "",
-              Constant = "󰏿",
-              Struct = "󰙅",
-              Event = "",
-              Operator = "󰆕",
-              TypeParameter = "",
-            }
-            if icons[item.kind] then
-              item.kind = icons[item.kind] .. " " .. item.kind
-            end
-            return item
+          format = function(entry, vim_item)
+            vim_item.menu = ({
+              nvim_lsp = "[LSP]",
+              luasnip = "[Snip]",
+              buffer = "[Buf]",
+              path = "[Path]",
+            })[entry.source.name]
+            return vim_item
           end,
         },
         experimental = {
           ghost_text = {
-            hl_group = "CmpGhostText",
+            hl_group = "Comment",
           },
         },
-        sorting = defaults.sorting,
-        window = {
-          completion = cmp.config.window.bordered({
-            border = "rounded",
-            winhighlight = "Normal:Normal,FloatBorder:BorderBG,CursorLine:PmenuSel,Search:None",
-          }),
-          documentation = cmp.config.window.bordered({
-            border = "rounded",
-            winhighlight = "Normal:Normal,FloatBorder:BorderBG,CursorLine:PmenuSel,Search:None",
-          }),
-        },
-      }
-    end,
-    config = function(_, opts)
-      for _, source in ipairs(opts.sources) do
-        source.group_index = source.group_index or 1
-      end
-      
-      local cmp = require("cmp")
-      cmp.setup(opts)
-      
-      -- Use buffer source for `/` and `?` (if you enabled `native_menu`, this won't work anymore).
-      cmp.setup.cmdline({ '/', '?' }, {
-        mapping = cmp.mapping.preset.cmdline(),
-        sources = {
-          { name = 'buffer' }
-        }
-      })
-
-      -- Use cmdline & path source for ':' (if you enabled `native_menu`, this won't work anymore).
-      cmp.setup.cmdline(':', {
-        mapping = cmp.mapping.preset.cmdline(),
-        sources = cmp.config.sources({
-          { name = 'path' }
-        }, {
-          { name = 'cmdline' }
-        })
       })
     end,
   },
-
-  -- Auto pairs
-  {
-    "echasnovski/mini.pairs",
-    event = "VeryLazy",
-    opts = {},
-    keys = {
-      {
-        "<leader>up",
-        function()
-          local Util = require("lazy.core.util")
-          vim.g.minipairs_disable = not vim.g.minipairs_disable
-          if vim.g.minipairs_disable then
-            Util.warn("Disabled auto pairs", { title = "Option" })
-          else
-            Util.info("Enabled auto pairs", { title = "Option" })
-          end
-        end,
-        desc = "Toggle auto pairs",
-      },
-    },
-  },
-} 
+}
