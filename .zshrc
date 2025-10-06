@@ -47,8 +47,8 @@ plugins=(
   zsh-autosuggestions
   colored-man-pages
   command-not-found
-  zsh-autocomplete
   fast-syntax-highlighting
+  zsh-autocomplete
 )
 
 source $ZSH/oh-my-zsh.sh
