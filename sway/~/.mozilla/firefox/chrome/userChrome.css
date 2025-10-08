@@ -1,0 +1,106 @@
+/* Occult Blood Red Theme for Firefox */
+@namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
+
+:root {
+  --occult-background: #100000;
+  --occult-background-lighter: #220000;
+  --occult-foreground: #FFFFFF;
+  --occult-highlight: #8B0000;
+  --occult-secondary: #500000;
+  --occult-red-bright: #A30000;
+  --occult-red-dark: #400000;
+  --occult-border: #350000;
+}
+
+/* Main Window */
+#browser {
+  background-color: var(--occult-background) !important;
+  color: var(--occult-foreground) !important;
+}
+
+/* Tab Bar */
+#tabbrowser-tabs {
+  background-color: var(--occult-background) !important;
+}
+
+.tab-background {
+  background-color: var(--occult-background-lighter) !important;
+  border: 1px solid var(--occult-border) !important;
+  margin: 2px !important;
+}
+
+.tab-background[selected="true"] {
+  background-color: var(--occult-highlight) !important;
+  border-color: var(--occult-red-bright) !important;
+}
+
+.tab-content {
+  color: var(--occult-foreground) !important;
+}
+
+/* URL Bar */
+#urlbar-background {
+  background-color: var(--occult-background-lighter) !important;
+  border: 1px solid var(--occult-secondary) !important;
+}
+
+#urlbar-input-container {
+  color: var(--occult-foreground) !important;
+}
+
+#urlbar:hover > #urlbar-background,
+#urlbar[focused="true"] > #urlbar-background {
+  background-color: var(--occult-red-dark) !important;
+  border-color: var(--occult-highlight) !important;
+}
+
+/* Buttons */
+.toolbarbutton-1 {
+  color: var(--occult-foreground) !important;
+}
+
+.toolbarbutton-1:hover {
+  background-color: var(--occult-secondary) !important;
+}
+
+/* Bookmarks bar */
+#PersonalToolbar {
+  background-color: var(--occult-background-lighter) !important;
+  color: var(--occult-foreground) !important;
+  border-bottom: 1px solid var(--occult-border) !important;
+}
+
+/* Sidebar */
+#sidebar-box,
+#sidebar {
+  background-color: var(--occult-background-lighter) !important;
+  color: var(--occult-foreground) !important;
+  border-right: 1px solid var(--occult-border) !important;
+}
+
+/* Scrollbars */
+scrollbar {
+  background-color: var(--occult-background) !important;
+}
+
+scrollbar thumb {
+  background-color: var(--occult-secondary) !important;
+}
+
+scrollbar thumb:hover {
+  background-color: var(--occult-highlight) !important;
+}
+
+/* Menus */
+menupopup,
+panel {
+  background-color: var(--occult-background-lighter) !important;
+  color: var(--occult-foreground) !important;
+  border: 1px solid var(--occult-border) !important;
+  padding: 2px !important;
+}
+
+menuitem:hover,
+menu:hover {
+  background-color: var(--occult-highlight) !important;
+} 
