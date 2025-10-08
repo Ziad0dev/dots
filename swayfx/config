@@ -1,0 +1,57 @@
+# SwayFX entry config (opt-in). Do NOT modify existing sway/config.
+# Launch with: swayfx -c ~/.config/swayfx/config
+# Safe: does not alter your existing sway/ directory.
+
+include ~/.config/swayfx/config.d/10-variables.conf
+include ~/.config/swayfx/config.d/20-input.conf
+include ~/.config/swayfx/config.d/30-look-basics.conf
+include ~/.config/swayfx/config.d/50-effects.conf
+include ~/.config/swayfx/config.d/60-app-rules.conf
+include ~/.config/swayfx/config.d/90-autostart.conf
+
+# Core keybindings (adjust to taste)
+set $mod Mod4
+font pango:JetBrainsMono Nerd Font 10
+
+bindsym $mod+Return exec alacritty
+bindsym $mod+d exec rofi -show drun
+bindsym $mod+Shift+q kill
+
+# Workspaces 1-9 (expand as needed)
+bindsym $mod+1 workspace 1
+bindsym $mod+2 workspace 2
+bindsym $mod+3 workspace 3
+bindsym $mod+4 workspace 4
+bindsym $mod+5 workspace 5
+bindsym $mod+6 workspace 6
+bindsym $mod+7 workspace 7
+bindsym $mod+8 workspace 8
+bindsym $mod+9 workspace 9
+
+bindsym $mod+f fullscreen toggle
+bindsym $mod+Shift+space floating toggle
+bindsym $mod+Shift+c reload
+bindsym $mod+Shift+e exec swaynag -t warning -m 'Exit SwayFX?' -b 'Yes' 'swaymsg exit'
+
+# Resize mode
+mode "resize" {
+  bindsym h resize shrink width 10px
+  bindsym j resize grow height 10px
+  bindsym k resize shrink height 10px
+  bindsym l resize grow width 10px
+  bindsym Escape mode default
+  bindsym Return mode default
+}
+bindsym $mod+r mode "resize"
+
+# Effects toggles
+bindsym $mod+Alt+a exec ~/.config/swayfx/scripts/toggle-effects.sh
+bindsym $mod+Alt+n exec ~/.config/swayfx/scripts/pick-anim.sh next
+bindsym $mod+Alt+l exec ~/.config/swayfx/scripts/light-effects.sh
+bindsym $mod+Alt+h exec ~/.config/swayfx/scripts/heavy-effects.sh
+
+# Scratchpad example
+bindsym $mod+Shift+minus move scratchpad
+bindsym $mod+minus scratchpad show
+
+# End of swayfx/config
