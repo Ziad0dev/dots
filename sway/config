@@ -1,0 +1,208 @@
+# Sway configuration adapted from your i3 setup (updated for DP-3 high refresh)
+
+set $mod Mod4
+font pango:FiraCode Nerd Font 10
+
+focus_follows_mouse yes
+
+### OUTPUT / MONITOR ###
+# Available modes showed: 2560x1440 @ 143.973 Hz etc.
+# Use the exact mode string Sway expects: WIDTHxHEIGHT@REFRESHHz
+# If adaptive sync works for you, uncomment the adaptive_sync line.
+output DP-3 mode 2560x1440@144.973Hz
+# output DP-3 adaptive_sync on   # <-- optional (uncomment to test VRR)
+# output DP-3 scale 1            # (explicit scale; default is 1)
+exec_always swaybg -m fill -i ~/Pictures/Tsunami_by_hokusai_19th_century.jpg
+# gammastep
+exec_always gammastep -c ~/.config/gammastep/config
+### Wayland environment exports (optional bundling)
+exec_always dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=sway
+exec_always systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP
+set $env_cmd export QT_QPA_PLATFORM=wayland XDG_CURRENT_DESKTOP=sway SDL_VIDEODRIVER=wayland MOZ_ENABLE_WAYLAND=1 WLR_NO_HARDWARE_CURSORS=1
+# no border 
+default_border none
+### Terminal
+bindsym $mod+Return exec kitty
+
+### Launchers
+bindsym $mod+d exec rofi -show drun -show-icons
+bindsym $mod+Shift+d exec rofi -show run
+
+### Kill / Restart
+bindsym $mod+Shift+q kill
+bindsym $mod+Shift+r reload
+bindsym $mod+Shift+e exec swaynag -t warning -m 'Exit Sway?' -B 'Yes' 'swaymsg exit'
+
+### Clipboard (Wayland)
+bindsym $mod+Shift+c exec clipman pick -t rofi
+
+### Focus movement
+bindsym $mod+h focus left
+bindsym $mod+j focus down
+bindsym $mod+k focus up
+bindsym $mod+l focus right
+bindsym $mod+Left focus left
+bindsym $mod+Down focus down
+bindsym $mod+Up focus up
+bindsym $mod+Right focus right
+
+### Move windows
+bindsym $mod+Shift+h move left
+bindsym $mod+Shift+j move down
+bindsym $mod+Shift+k move up
+bindsym $mod+Shift+l move right
+bindsym $mod+Shift+Left move left
+bindsym $mod+Shift+Down move down
+bindsym $mod+Shift+Up move up
+bindsym $mod+Shift+Right move right
+
+### Splits / Layout / Floating
+bindsym $mod+b split h
+bindsym $mod+v split v
+bindsym $mod+f fullscreen toggle
+bindsym $mod+s layout stacking
+bindsym $mod+w layout tabbed
+bindsym $mod+e layout toggle split
+bindsym $mod+Shift+space floating toggle
+bindsym $mod+space focus mode_toggle
+bindsym $mod+a focus parent
+
+### Resize mode
+mode "resize" {
+    bindsym h resize shrink width 10px
+    bindsym j resize grow height 10px
+    bindsym k resize shrink height 10px
+    bindsym l resize grow width 10px
+    bindsym Left resize shrink width 10px
+    bindsym Down resize grow height 10px
+    bindsym Up resize shrink height 10px
+    bindsym Right resize grow width 10px
+    bindsym Return mode "default"
+    bindsym Escape mode "default"
+    bindsym $mod+r mode "default"
+}
+bindsym $mod+r mode "resize"
+
+### Workspaces
+set $ws1 "1:Main"
+set $ws2 "2:IDE"
+set $ws3 "3:Hell"
+set $ws4 "4:Satan"
+set $ws5 "5:Void"
+set $ws6 "6:Curse"
+set $ws7 "7:Doom"
+set $ws8 "8:Music"
+set $ws9 "9:Discord"
+
+workspace $ws1 output DP-3
+workspace $ws2 output DP-3
+workspace $ws3 output DP-3
+workspace $ws4 output DP-3
+workspace $ws5 output DP-3
+workspace $ws6 output DP-3
+workspace $ws7 output DP-3
+workspace $ws8 output DP-3
+workspace $ws9 output DP-3
+
+bindsym $mod+1 workspace $ws1
+bindsym $mod+2 workspace $ws2
+bindsym $mod+3 workspace $ws3
+bindsym $mod+4 workspace $ws4
+bindsym $mod+5 workspace $ws5
+bindsym $mod+6 workspace $ws6
+bindsym $mod+7 workspace $ws7
+bindsym $mod+8 workspace $ws8
+bindsym $mod+9 workspace $ws9
+
+bindsym $mod+Shift+1 move container to workspace $ws1
+bindsym $mod+Shift+2 move container to workspace $ws2
+bindsym $mod+Shift+3 move container to workspace $ws3
+bindsym $mod+Shift+4 move container to workspace $ws4
+bindsym $mod+Shift+5 move container to workspace $ws5
+bindsym $mod+Shift+6 move container to workspace $ws6
+bindsym $mod+Shift+7 move container to workspace $ws7
+bindsym $mod+Shift+8 move container to workspace $ws8
+bindsym $mod+Shift+9 move container to workspace $ws9
+
+### Colors include (pywal)
+include ~/.config/sway/colors 
+
+### Gaps
+gaps inner 3
+gaps outer 1
+smart_gaps on
+smart_borders on
+
+### Floating criteria
+for_window [window_role="pop-up"] floating enable
+for_window [window_role="bubble"] floating enable
+for_window [window_role="task_dialog"] floating enable
+for_window [window_role="Preferences"] floating enable
+for_window [window_type="dialog"] floating enable
+for_window [window_type="menu"] floating enable
+
+### Scratchpads
+exec_always kitty --class translate -e zsh -c 'trans -I'
+exec_always kitty --name calendar -e zsh -c 'ikhal'
+bindsym $mod+t [app_id="translate" class="translate"] scratchpad show
+bindsym $mod+c [app_id="calendar" title="calendar"] scratchpad show
+
+### Media
+bindsym XF86AudioPlay exec playerctl play-pause
+bindsym XF86AudioNext exec playerctl next
+bindsym XF86AudioPrev exec playerctl previous
+
+### Volume
+bindsym XF86AudioRaiseVolume exec pactl set-sink-volume @DEFAULT_SINK@ +5% && notify-send "Volume" "$(pactl get-sink-volume @DEFAULT_SINK@ | grep -oP '\\d+%' | head -1)"
+bindsym XF86AudioLowerVolume exec pactl set-sink-volume @DEFAULT_SINK@ -5% && notify-send "Volume" "$(pactl get-sink-volume @DEFAULT_SINK@ | grep -oP '\\d+%' | head -1)"
+bindsym XF86AudioMute exec pactl set-sink-mute @DEFAULT_SINK@ toggle && notify-send "Volume" "Toggled"
+bindsym $mod+Shift+plus exec pactl set-sink-volume @DEFAULT_SINK@ +5%
+bindsym $mod+Shift+minus exec pactl set-sink-volume @DEFAULT_SINK@ -5%
+
+### Theme / Wallpaper randomizer
+exec output * background /home/zed/Pictures/Tsunami_by_hokusai_19th_century.jpg fill
+bindsym $mod+Shift+w exec ~/.config/sway/scripts/theme_randomizer.sh
+bindsym $mod+Shift+t exec ~/.config/scripts/theme_selector.sh
+
+### Screenshots (Wayland)
+bindsym Print exec grim -g "$(slurp)" - | wl-copy && notify-send "Screenshot" "Region copied"
+bindsym $mod+Print exec grim - | wl-copy && notify-send "Screenshot" "Full copied"
+
+### Waybar
+exec_always waybar
+
+### Clipboard persistence
+exec_always wl-paste -t text --watch clipman store
+
+### App assignments
+assign [class="firefox"] $ws1
+assign [app_id="firefox"] $ws1
+assign [class="Google-chrome"] $ws1
+assign [class="Chromium"] $ws1
+
+assign [class="Code"] $ws2
+assign [app_id="code"] $ws2
+assign [class="cursor"] $ws2
+assign [app_id="cursor"] $ws2
+assign [class="nvim"] $ws2
+assign [app_id="nvim"] $ws2
+
+assign [class="Spotify"] $ws8
+assign [app_id="spotify"] $ws8
+assign [class="VLC"] $ws8
+assign [app_id="vlc"] $ws8
+
+assign [class="discord"] $ws9
+assign [app_id="vesktop"] $ws9
+
+for_window [urgent=latest] focus
+
+### Quick workspace access
+bindsym $mod+Ctrl+b workspace $ws1
+bindsym $mod+Ctrl+p workspace $ws2
+bindsym $mod+Ctrl+m workspace $ws8
+bindsym $mod+Ctrl+d workspace $ws9
+bindsym $mod+Ctrl+Shift+b move container to workspace $ws1
+bindsym $mod+Ctrl+Shift+p move container to workspace $ws2
+bindsym $mod+Ctrl+Shift+m move container to workspace $ws8
+bindsym $mod+Ctrl+Shift+d move container to workspace $ws9

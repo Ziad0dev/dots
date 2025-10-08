@@ -1,0 +1,6 @@
+# Placeholder colors file (will be overwritten by pywal integration if you adapt theme_randomizer.sh)
+# You can manually set colors here or let pywal script generate dynamic ones.
+# Example:
+set $bg        #000000
+set $fg        #ffffff
+# Use them in style overrides or future includes as needed.
