@@ -12,7 +12,7 @@ focus_follows_mouse yes
 output DP-3 mode 2560x1440@144.973Hz
 # output DP-3 adaptive_sync on   # <-- optional (uncomment to test VRR)
 # output DP-3 scale 1            # (explicit scale; default is 1)
-exec_always swaybg -m fill -i ~/Pictures/Tsunami_by_hokusai_19th_century.jpg
+exec_always swaybg -m fill -i ~/Pictures/wallpapers/b-413.jpg
 # gammastep
 exec_always gammastep -c ~/.config/gammastep/config
 ### Wayland environment exports (optional bundling)
