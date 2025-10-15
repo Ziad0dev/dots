@@ -1,0 +1,62 @@
+# ═══════════════════════════════════════════════════════
+# GHOSTTY CONFIG
+# ═══════════════════════════════════════════════════════
+
+# Include pywal colors
+config-file = ~/.cache/wal/colors-ghostty
+
+# Fonts
+font-family = Source Code Pro
+font-size = 10.5
+
+# Cursor
+cursor-style = underline
+cursor-style-blink = false
+
+# Scrollback
+scrollback-limit = 10000
+
+# Mouse
+mouse-hide-while-typing = false
+copy-on-select = true
+
+# Window
+window-width = 1000
+window-height = 1000
+window-padding-x = 0
+window-padding-y = 0
+window-decoration = true
+background-opacity = 0.90
+
+# Performance
+resize-overlay = never
+
+# Bell
+visual-bell = false
+audible-bell = false
+
+# Shell
+shell-integration = detect
+
+# URLs
+link-url = true
+
+# Keybindings
+keybind = ctrl+shift+v=paste_from_clipboard
+keybind = ctrl+shift+c=copy_to_clipboard
+keybind = shift+insert=paste_from_clipboard
+
+keybind = ctrl+shift+up=scroll_page_up
+keybind = ctrl+shift+down=scroll_page_down
+keybind = ctrl+shift+k=scroll_page_up
+keybind = ctrl+shift+j=scroll_page_down
+keybind = ctrl+shift+page_up=scroll_page_up
+keybind = ctrl+shift+page_down=scroll_page_down
+keybind = ctrl+shift+home=scroll_to_top
+keybind = ctrl+shift+end=scroll_to_bottom
+
+keybind = ctrl+shift+enter=new_window
+keybind = ctrl+shift+n=new_window
+keybind = ctrl+shift+w=close_window
+keybind = ctrl+shift+]=next_tab
+keybind = ctrl+shift+[=previous_tab
