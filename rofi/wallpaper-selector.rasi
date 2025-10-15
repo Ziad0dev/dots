@@ -1,0 +1,89 @@
+/* Occult Blood Red Wallpaper Selector Theme */
+
+* {
+    background-color: rgba(16, 0, 0, 0.95);
+    text-color: #FFFFFF;
+    font: "FiraCode Nerd Font 12";
+}
+
+window {
+    width: 70%;
+    height: 60%;
+    border: 3px;
+    border-color: #8B0000;
+    border-radius: 10px;
+    padding: 20px;
+}
+
+mainbox {
+    background-color: transparent;
+}
+
+inputbar {
+    background-color: rgba(0, 0, 0, 0.8);
+    border: 2px;
+    border-color: #8B0000;
+    border-radius: 8px;
+    padding: 10px;
+    margin: 0px 0px 20px 0px;
+}
+
+prompt {
+    text-color: #8B0000;
+    padding: 0px 10px 0px 0px;
+}
+
+entry {
+    text-color: #FFFFFF;
+    placeholder: "Search wallpapers...";
+    placeholder-color: #666666;
+}
+
+listview {
+    columns: 4;
+    lines: 3;
+    spacing: 15px;
+    padding: 10px;
+    scrollbar: true;
+}
+
+element {
+    background-color: rgba(0, 0, 0, 0.5);
+    border: 2px;
+    border-color: rgba(139, 0, 0, 0.3);
+    border-radius: 8px;
+    padding: 10px;
+    orientation: vertical;
+}
+
+element selected {
+    background-color: rgba(139, 0, 0, 0.8);
+    border-color: #8B0000;
+}
+
+element-icon {
+    size: 10em;
+    margin: 5px;
+    horizontal-align: 0.5;
+}
+
+element-text {
+    horizontal-align: 0.5;
+    margin: 5px;
+}
+
+scrollbar {
+    width: 8px;
+    handle-width: 8px;
+    handle-color: #8B0000;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+}
+
+message {
+    background-color: rgba(139, 0, 0, 0.5);
+    border: 2px;
+    border-color: #8B0000;
+    border-radius: 8px;
+    padding: 10px;
+}
