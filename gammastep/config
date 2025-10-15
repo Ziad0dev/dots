@@ -1,0 +1,15 @@
+[general]
+adjustment-method=wayland
+temp-day=6500
+temp-night=1000
+transition=1
+fade=1
+; optional gamma tweak to mute green/blue a bit more:
+gamma-day=1.0
+gamma-night=0.9
+
+location-provider=manual
+
+[manual]
+lat=59.3293
+lon=18.0686
