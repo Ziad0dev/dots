@@ -1,19 +1,27 @@
 #!/bin/bash
 
 # ═══════════════════════════════════════════════════════
-# ROFI WALLPAPER SWITCHER - Random SWWW Transitions
-# Works with your existing rofi config
+#
+# 
+# 
+#  
 # ═══════════════════════════════════════════════════════
 
 WALLPAPER_DIR="$HOME/Pictures/wallpapers/"
 
-# Get list of wallpapers
-get_wallpapers() {
-    find "$WALLPAPER_DIR" -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" \) -printf "%f\n" | sort
+# Generate rofi entries with image icons
+get_wallpapers_with_icons() {
+    cd "$WALLPAPER_DIR" || exit 1
+    for wallpaper in *.jpg *.jpeg *.png *.webp; do
+        if [ -f "$wallpaper" ]; then
+            # Format: filename\0icon\x1fpath_to_image\n
+            echo -en "$wallpaper\0icon\x1f$WALLPAPER_DIR/$wallpaper\n"
+        fi
+    done
 }
 
-# Show rofi menu (uses your existing config)
-SELECTION=$(get_wallpapers | rofi -dmenu -i -p "🩸 Select Wallpaper")
+# Show rofi menu with image previews
+SELECTION=$(get_wallpapers_with_icons | rofi -dmenu -i -p "🩸 Select Wallpaper" -show-icons)
 
 if [ -n "$SELECTION" ]; then
     WALLPAPER="$WALLPAPER_DIR/$SELECTION"
@@ -40,7 +48,7 @@ if [ -n "$SELECTION" ]; then
         --transition-bezier 0.65,0,0.35,1
     
     # Reload wal
-    wal -i $WALLPAPER 
+    wal -i "$WALLPAPER" 
     
     # Reload compositor
     if pgrep -x Hyprland > /dev/null; then
@@ -52,4 +60,6 @@ if [ -n "$SELECTION" ]; then
     fi
     
     notify-send "🩸 Wallpaper Applied" "$SELECTION\nTransition: $TRANSITION" -t 3000
+    
+    echo "✅ Wallpaper changed to: $SELECTION"
 fi
