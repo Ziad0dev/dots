@@ -1,4 +1,4 @@
-# Sway configuration adapted from your i3 setup (updated for DP-3 high refresh)
+# Sway configuration adapted from your i3 setup (updated for DP-1 high refresh)
 
 set $mod Mod4
 font pango:FiraCode Nerd Font 10
@@ -9,21 +9,27 @@ focus_follows_mouse yes
 # Available modes showed: 2560x1440 @ 143.973 Hz etc.
 # Use the exact mode string Sway expects: WIDTHxHEIGHT@REFRESHHz
 # If adaptive sync works for you, uncomment the adaptive_sync line.
-output DP-3 mode 2560x1440@144.973Hz
-# output DP-3 adaptive_sync on   # <-- optional (uncomment to test VRR)
-# output DP-3 scale 1            # (explicit scale; default is 1)
-exec_always swaybg -m fill -i ~/Pictures/wallpapers/b-413.jpg
+output DP-1 mode 2560x1440@144.973Hz
+output DP-1 adaptive_sync on
+output DP-1 render_bit_depth 8
+# output DP-1 scale 1            # (explicit scale; default is 1)
 # gammastep
-exec_always gammastep -c ~/.config/gammastep/config
+exec gammastep -c ~/.config/gammastep/config
 ### Wayland environment exports (optional bundling)
 exec_always dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=sway
 exec_always systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP
 set $env_cmd export QT_QPA_PLATFORM=wayland XDG_CURRENT_DESKTOP=sway SDL_VIDEODRIVER=wayland MOZ_ENABLE_WAYLAND=1 WLR_NO_HARDWARE_CURSORS=1
 # no border 
 default_border none
+# polkit
+exec_always lxpolkit
 ### Terminal
-bindsym $mod+Return exec kitty
+bindsym $mod+Return exec ghostty
+### Mic mute toggle 
+bindsym XF86AudioMicMute exec --no-startup-id ~/.config/sway/mic-toggle.sh
+bindsym $mod+m exec --no-startup-id ~/.config/sway/mic-toggle.sh
 
+# ----------------------------------------------------------------------------- -----------------------------------------------------------------------------
 ### Launchers
 bindsym $mod+d exec rofi -show drun -show-icons
 bindsym $mod+Shift+d exec rofi -show run
@@ -62,7 +68,7 @@ bindsym $mod+v split v
 bindsym $mod+f fullscreen toggle
 bindsym $mod+s layout stacking
 bindsym $mod+w layout tabbed
-bindsym $mod+e layout toggle split
+bindsym $mod+e exec ~/.config/rofi/scripts/wallpaper-switcher.sh
 bindsym $mod+Shift+space floating toggle
 bindsym $mod+space focus mode_toggle
 bindsym $mod+a focus parent
@@ -94,15 +100,15 @@ set $ws7 "7:Doom"
 set $ws8 "8:Music"
 set $ws9 "9:Discord"
 
-workspace $ws1 output DP-3
-workspace $ws2 output DP-3
-workspace $ws3 output DP-3
-workspace $ws4 output DP-3
-workspace $ws5 output DP-3
-workspace $ws6 output DP-3
-workspace $ws7 output DP-3
-workspace $ws8 output DP-3
-workspace $ws9 output DP-3
+workspace $ws1 output DP-1
+workspace $ws2 output DP-1
+workspace $ws3 output DP-1
+workspace $ws4 output DP-1
+workspace $ws5 output DP-1
+workspace $ws6 output DP-1
+workspace $ws7 output DP-1
+workspace $ws8 output DP-1
+workspace $ws9 output DP-1
 
 bindsym $mod+1 workspace $ws1
 bindsym $mod+2 workspace $ws2
@@ -125,7 +131,7 @@ bindsym $mod+Shift+8 move container to workspace $ws8
 bindsym $mod+Shift+9 move container to workspace $ws9
 
 ### Colors include (pywal)
-include ~/.config/sway/colors 
+#include ~/.config/sway/colors 
 
 ### Gaps
 gaps inner 3
@@ -142,8 +148,8 @@ for_window [window_type="dialog"] floating enable
 for_window [window_type="menu"] floating enable
 
 ### Scratchpads
-exec_always kitty --class translate -e zsh -c 'trans -I'
-exec_always kitty --name calendar -e zsh -c 'ikhal'
+#exec_always kitty --class translate -e zsh -c 'trans -I'
+#exec_always kitty --name calendar -e zsh -c 'ikhal'
 bindsym $mod+t [app_id="translate" class="translate"] scratchpad show
 bindsym $mod+c [app_id="calendar" title="calendar"] scratchpad show
 
@@ -159,17 +165,12 @@ bindsym XF86AudioMute exec pactl set-sink-mute @DEFAULT_SINK@ toggle && notify-s
 bindsym $mod+Shift+plus exec pactl set-sink-volume @DEFAULT_SINK@ +5%
 bindsym $mod+Shift+minus exec pactl set-sink-volume @DEFAULT_SINK@ -5%
 
-### Theme / Wallpaper randomizer
-exec output * background /home/zed/Pictures/Tsunami_by_hokusai_19th_century.jpg fill
-bindsym $mod+Shift+w exec ~/.config/sway/scripts/theme_randomizer.sh
-bindsym $mod+Shift+t exec ~/.config/scripts/theme_selector.sh
-
 ### Screenshots (Wayland)
 bindsym Print exec grim -g "$(slurp)" - | wl-copy && notify-send "Screenshot" "Region copied"
 bindsym $mod+Print exec grim - | wl-copy && notify-send "Screenshot" "Full copied"
 
 ### Waybar
-exec_always waybar
+exec waybar
 
 ### Clipboard persistence
 exec_always wl-paste -t text --watch clipman store
