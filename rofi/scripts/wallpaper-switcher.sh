@@ -1,18 +1,11 @@
 #!/bin/bash
 
-# ═══════════════════════════════════════════════════════
-#
-# 
-# 
-#  
-# ═══════════════════════════════════════════════════════
-
 WALLPAPER_DIR="$HOME/Pictures/wallpapers/"
 
 # Generate rofi entries with image icons
 get_wallpapers_with_icons() {
     cd "$WALLPAPER_DIR" || exit 1
-    for wallpaper in *.jpg *.jpeg *.png *.webp; do
+    for wallpaper in *.jpg *.jpeg *.png *.webp *.gif; do
         if [ -f "$wallpaper" ]; then
             # Format: filename\0icon\x1fpath_to_image\n
             echo -en "$wallpaper\0icon\x1f$WALLPAPER_DIR/$wallpaper\n"
@@ -30,17 +23,17 @@ if [ -n "$SELECTION" ]; then
     TRANSITIONS=("simple" "fade" "wipe" "wave" "grow" "center" "outer" "any")
     TRANSITION=${TRANSITIONS[$RANDOM % ${#TRANSITIONS[@]}]}
     
-    # Kill and restart swww daemon
-    pkill swww-daemon
+    # Kill and restart awww daemon
+    pkill awww-daemon
     sleep 1
-    swww-daemon &
+    awww-daemon &
     sleep 2
     
     # Generate pywal colors
     wal -i "$WALLPAPER" -n -s -t -e --backend colorz
     
     # Apply wallpaper with RANDOM transition
-    swww img "$WALLPAPER" \
+    awww img "$WALLPAPER" \
         --transition-type "$TRANSITION" \
         --transition-angle $(shuf -i 0-360 -n 1) \
         --transition-duration 2 \

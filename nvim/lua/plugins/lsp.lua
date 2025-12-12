@@ -12,7 +12,7 @@ return {
         "stylua",
         "shfmt",
         "lua-language-server",
-        "typescript-language-server", 
+        "typescript-language-server",
         "pyright",
         "rust-analyzer",
         "clangd",
@@ -165,14 +165,13 @@ return {
         gopls = {},
       },
       -- you can do any additional lsp server setup here
-      -- return true if you don't want this server to be setup with lspconfig
       setup = {},
     },
     config = function(_, opts)
       -- Setup diagnostics first
-      pcall(vim.diagnostic.config, vim.deepcopy(opts.diagnostics))
-      
-      -- Get LSP capabilities with nvim-cmp integration (with safety)
+      vim.diagnostic.config(vim.deepcopy(opts.diagnostics))
+
+      -- Get LSP capabilities with nvim-cmp integration
       local has_cmp, cmp_nvim_lsp = pcall(require, "cmp_nvim_lsp")
       local capabilities = vim.tbl_deep_extend(
         "force",
@@ -182,29 +181,42 @@ return {
         opts.capabilities or {}
       )
 
-      -- Setup the LSP attach handler with protection
+      -- Global on_attach handler (safe execution)
+      local function on_attach(client, bufnr)
+        local has_config_lsp, config_lsp = pcall(require, "config.lsp")
+        if has_config_lsp then
+          pcall(config_lsp.setup_keymaps, client, bufnr)
+          pcall(config_lsp.setup_inlay_hints, client, bufnr)
+          pcall(config_lsp.setup_semantic_tokens, client, bufnr)
+        end
+      end
+
+      -- Setup autoformat (safe execution)
       local has_config_lsp, config_lsp = pcall(require, "config.lsp")
       if has_config_lsp then
         pcall(config_lsp.setup_autoformat, opts)
-        config_lsp.on_attach(function(client, buffer)
-          -- Ensure buffer is valid
-          if not buffer or type(buffer) == "function" then
-            buffer = vim.api.nvim_get_current_buf()
-          end
-          
-          pcall(config_lsp.setup_keymaps, client, buffer)
-          pcall(config_lsp.setup_inlay_hints, client, buffer)
-          pcall(config_lsp.setup_semantic_tokens, client, buffer)
-        end)
       end
 
-      -- Setup servers manually with traditional lspconfig
+      -- Iterate over servers and use the new API
       for server, server_config in pairs(opts.servers) do
         local server_opts = vim.tbl_deep_extend("force", {
           capabilities = vim.deepcopy(capabilities),
         }, server_config or {})
-        
-        -- Apply custom setup if provided
+
+        -- Setup on_attach as a hook for LspAttach event is cleaner,
+        -- but for compatibility we can still pass it if the server supports it,
+        -- though new vim.lsp.config usually relies on autocmds.
+        -- We'll add an autocmd for this server to trigger on_attach logic
+        vim.api.nvim_create_autocmd("LspAttach", {
+          callback = function(args)
+            local client = vim.lsp.get_client_by_id(args.data.client_id)
+            if client and client.name == server then
+              on_attach(client, args.buf)
+            end
+          end,
+        })
+
+        -- Handle custom setup functions
         if opts.setup[server] then
           if opts.setup[server](server, server_opts) then
             goto continue
@@ -214,16 +226,22 @@ return {
             goto continue
           end
         end
-        
-        -- Setup the server with lspconfig
-        pcall(function()
-          require("lspconfig")[server].setup(server_opts)
-        end)
-        
+
+        -- Use the NEW Neovim 0.11+ API
+        -- This avoids 'require("lspconfig")' deprecation warnings
+        if vim.lsp.config then
+          vim.lsp.config(server, server_opts)
+          vim.lsp.enable(server)
+        else
+          -- Fallback for older Neovim versions (just in case)
+          local lspconfig = require("lspconfig")
+          if lspconfig[server] then
+             lspconfig[server].setup(server_opts)
+          end
+        end
+
         ::continue::
       end
     end,
   },
-
-
-} 
+}
