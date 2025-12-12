@@ -1,5 +1,3 @@
-@import "~/.cache/wal/colors-rofi-dark.rasi"
-
 configuration {
     modi: "drun,run";
     font: "JetBrainsMono Nerd Font 10";
@@ -10,53 +8,70 @@ configuration {
     display-window: "⚧ Portal ";
     drun-display-format: "{icon} {name}";
     sidebar-mode: true;
-    
-    /* Ensure icons are properly loaded */
     drun-show-actions: false;
     disable-history: false;
 }
 
+/* Global Variable Definitions */
 * {
-    /* Wal color scheme with occult aesthetic */
-    color0: @background;       /* Main background from wal */
-    color1: #998577;           /* Wal color 1 */
-    color2: #AE9077;           /* Wal color 2 */
-    color3: #DDA060;           /* Wal color 3 */
-    color4: #FAC265;           /* Wal color 4 */
-    color5: #7B7D85;           /* Wal color 5 */
-    color6: #A39289;           /* Wal color 6 */
-    color7: @foreground;       /* Foreground from wal */
-    color8: #74675e;           /* Wal color 8 */
-    color9: #998577;           /* Wal color 9 */
-    color10: #AE9077;          /* Wal color 10 */
-    color11: #DDA060;          /* Wal color 11 */
-    color12: #FAC265;          /* Wal color 12 */
-    color13: #7B7D85;          /* Wal color 13 */
-    color14: #A39289;          /* Wal color 14 */
-    color15: @foreground;      /* Wal foreground */
+    /* --- Colors --- */
+    /* Renamed variables to avoid keyword conflicts */
+    bg-col:             #161616;
+    bg-col-alpha:       rgba(22,22,22,0.78);
+    bg-col-alt:         #262626;
+    fg-col:             #dde1e6;
     
-    /* Use existing wal color variables but maintain occult theme */
-    accent: @selected-normal-background;
-    highlight: @color3;
-    neon-glow: @color11;
-    transparency: #00000000;
+    /* Border color: Changed to transparent as requested */
+    border-col:         transparent; 
+    /* If you want a subtle transparent border instead, use: rgba(57, 57, 57, 0.5) */
+
+    blue:               #33b1ff;
+    blue-alpha:         rgba(51,177,255,0.12);
+    pink:               #ee5396;
+    green:              #42be65;
+    magenta:            #be95ff;
+
+    /* --- Role Assignments --- */
+    /* Used by windows/elements */
+    normal-background:           transparent;
+    normal-foreground:           @fg-col;
+    
+    active-background:           @blue-alpha;
+    active-foreground:           @blue;
+    
+    urgent-background:           @pink;
+    urgent-foreground:           @fg-col;
+    
+    /* Fixed: Set alternate background to transparent to remove zebra striping */
+    alternate-normal-background: transparent;
+    alternate-normal-foreground: @fg-col;
+    
+    selected-normal-background:  rgba(38,38,38,0.85);
+    selected-normal-foreground:  @fg-col;
+    
+    selected-urgent-background:  @pink;
+    selected-urgent-foreground:  @bg-col;
+    
+    selected-active-background:  @blue;
+    selected-active-foreground:  @bg-col;
+
     spacing: 2;
 }
 
+/* Window */
 window {
-    background-color: @background;
+    background-color: @bg-col-alpha; /* Using the alpha variable for transparency */
     border: 3px;
-    border-color: @accent;
+    border-color: @border-col;       /* Now transparent */
     border-radius: 8px;
     padding: 20px;
     transparency: "real";
     width: 55%;
     height: 45%;
     location: center;
-    x-offset: 0;
-    y-offset: 0;
 }
 
+/* Main layout */
 mainbox {
     border: 0;
     padding: 0;
@@ -71,19 +86,19 @@ horibox {
     children: [ "image-box", "vertical-box" ];
 }
 
+/* Image box */
 image-box {
     background-image: url("ab67616d0000b273d62a6267448745ca64db99ea.jpeg", both);
     width: 440px;
     height: 440px;
     border: 3px;
-    border-color: @accent;
+    border-color: @blue;
     border-radius: 5px;
     expand: false;
-    
-    /* Ensure proper image display */
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0,0,0,0.35);
 }
 
+/* Right-side vertical layout */
 vertical-box {
     orientation: vertical;
     spacing: 2px;
@@ -92,21 +107,24 @@ vertical-box {
     children: [ "inputbar", "listview", "mode-switcher" ];
 }
 
+/* Messages */
 message {
     border: 2px 0px 0px;
-    border-color: @border-color;
+    border-color: @border-col;
     padding: 8px;
+    text-color: @pink;
 }
 
 textbox {
-    text-color: @foreground;
+    text-color: @fg-col;
 }
 
+/* Input Bar */
 inputbar {
     children: [ prompt, textbox-prompt-colon, entry ];
-    background-color: @background;
+    background-color: transparent;
     border: 3px;
-    border-color: @accent;
+    border-color: @blue-alpha;
     border-radius: 5px;
     margin: 0px 0px 8px 0px;
     padding: 8px 12px;
@@ -117,13 +135,14 @@ textbox-prompt-colon {
     expand: false;
     str: "⸸";
     margin: 0px 8px 0px 0px;
-    text-color: @accent;
+    text-color: @blue;
     font: "URW Gothic Bold 14";
     vertical-align: 0.4;
     horizontal-align: 0.5;
     padding: 4px 0px 6px 0px;
 }
 
+/* List View */
 listview {
     fixed-height: false;
     border: 0px;
@@ -136,22 +155,21 @@ listview {
     background-color: transparent;
 }
 
+/* Elements (Rows) */
 element {
     border: 0;
     padding: 6px 10px;
     border-radius: 0px;
     spacing: 4px;
-    
-    /* Ensure proper layout for icon + text */
     orientation: horizontal;
     children: [ element-icon, element-text ];
+    background-color: transparent;
+    text-color: @fg-col;
 }
 
 element-icon {
     size: 24px;
     background-color: inherit;
-    
-    /* Better icon positioning */
     horizontal-align: 0.0;
     vertical-align: 0.5;
     padding: 0px 8px 0px 0px;
@@ -173,8 +191,8 @@ element.normal.active {
 }
 
 element.selected.normal {
-    background-color: @accent;
-    text-color: @background;
+    background-color: @blue;
+    text-color: @bg-col;
 }
 
 element.selected.urgent {
@@ -192,16 +210,6 @@ element.alternate.normal {
     text-color: @alternate-normal-foreground;
 }
 
-element.alternate.urgent {
-    background-color: @alternate-urgent-background;
-    text-color: @alternate-urgent-foreground;
-}
-
-element.alternate.active {
-    background-color: @alternate-active-background;
-    text-color: @alternate-active-foreground;
-}
-
 element-text {
     background-color: inherit;
     text-color: inherit;
@@ -212,12 +220,13 @@ element-text {
     font: "URW Gothic 11";
 }
 
+/* Scrollbar + Sidebar */
 scrollbar {
     width: 4px;
     border: 0;
     handle-width: 8px;
     padding: 0;
-    handle-color: @accent;
+    handle-color: @blue;
 }
 
 sidebar {
@@ -226,24 +235,26 @@ sidebar {
     background-color: transparent;
 }
 
+/* Buttons */
 button {
     padding: 8px;
     border-radius: 0px;
-    text-color: @normal-foreground;
+    text-color: @fg-col;
     horizontal-align: 0.5;
 }
 
 button.selected {
-    background-color: @accent;
-    text-color: @background;
+    background-color: @blue;
+    text-color: @bg-col;
 }
 
+/* Entry */
 entry {
     background-color: inherit;
     spacing: 0;
-    text-color: @foreground;
+    text-color: @fg-col;
     placeholder: "☠ Summon the forbidden...";
-    placeholder-color: @color8;
+    placeholder-color: rgba(116,103,94,0.6);
     cursor: text;
     font: "URW Gothic 12";
     vertical-align: 0.5;
@@ -255,17 +266,15 @@ prompt {
     enabled: true;
     padding: 8px;
     spacing: 0;
-    text-color: @accent;
+    text-color: @blue;
     font: "URW Gothic Bold 13";
     vertical-align: 0.5;
     horizontal-align: 0.5;
 }
 
-/* Mode switcher */
 mode-switcher {
     enabled: true;
     spacing: 12px;
     margin: 0px 0px 10px 0px;
     background-color: transparent;
 }
-
