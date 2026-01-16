@@ -1,7 +1,0 @@
-# SwayFX theme reference (extend or script against)
-background = "#1e1e2e"
-foreground = "#cdd6f4"
-accent     = "#89b4fa"
-warning    = "#fab387"
-error      = "#f38ba8"
-success    = "#a6e3a1"
