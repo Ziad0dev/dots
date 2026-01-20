@@ -10,7 +10,7 @@ vim.g.maplocalleader = " "
 local opt = vim.opt
 
 opt.number = true
-opt. relativenumber = true
+opt.relativenumber = true
 opt.mouse = "a"
 opt.showmode = false
 opt.clipboard = "unnamedplus"
@@ -22,9 +22,9 @@ opt.signcolumn = "yes"
 opt.updatetime = 250
 opt.timeoutlen = 300
 opt.splitright = true
-opt. splitbelow = true
+opt.splitbelow = true
 opt.list = true
-opt. listchars = { tab = "» ", trail = "·", nbsp = "␣" }
+opt.listchars = { tab = "» ", trail = "·", nbsp = "␣" }
 opt.inccommand = "split"
 opt.cursorline = true
 opt.scrolloff = 10
@@ -38,7 +38,7 @@ opt.wrap = false
 -- ============================================================================
 -- KEYMAPS
 -- ============================================================================
-local map = vim.keymap. set
+local map = vim.keymap.set
 
 -- Better window navigation
 map("n", "<C-h>", "<C-w>h", { desc = "Move to left window" })
@@ -58,9 +58,9 @@ map("n", "<S-l>", "<cmd>bnext<cr>", { desc = "Next buffer" })
 map("n", "<leader>bd", "<cmd>bdelete<cr>", { desc = "Delete buffer" })
 
 -- Move lines
-map("n", "<A-j>", "<cmd>m . +1<cr>==", { desc = "Move line down" })
+map("n", "<A-j>", "<cmd>m .+1<cr>==", { desc = "Move line down" })
 map("n", "<A-k>", "<cmd>m .-2<cr>==", { desc = "Move line up" })
-map("v", "<A-j>", ":m '>+1<cr>gv=gv", { desc = "Move lines down" })
+map("v", "<A-j>", ": m '>+1<cr>gv=gv", { desc = "Move lines down" })
 map("v", "<A-k>", ": m '<-2<cr>gv=gv", { desc = "Move lines up" })
 
 -- Better indenting
@@ -76,8 +76,8 @@ map("n", "<leader>qq", "<cmd>qa<cr>", { desc = "Quit all" })
 
 -- Diagnostic keymaps
 map("n", "[d", vim.diagnostic.goto_prev, { desc = "Go to previous diagnostic" })
-map("n", "]d", vim.diagnostic. goto_next, { desc = "Go to next diagnostic" })
-map("n", "<leader>d", vim.diagnostic. open_float, { desc = "Show diagnostic error" })
+map("n", "]d", vim.diagnostic.goto_next, { desc = "Go to next diagnostic" })
+map("n", "<leader>d", vim.diagnostic.open_float, { desc = "Show diagnostic error" })
 
 -- ============================================================================
 -- AUTOCOMMANDS
@@ -89,7 +89,7 @@ local augroup = vim.api.nvim_create_augroup
 autocmd("TextYankPost", {
   group = augroup("highlight_yank", { clear = true }),
   callback = function()
-    vim.highlight. on_yank()
+    vim.highlight.on_yank()
   end,
 })
 
@@ -98,7 +98,7 @@ autocmd("BufReadPost", {
   group = augroup("restore_cursor", { clear = true }),
   callback = function()
     local mark = vim.api.nvim_buf_get_mark(0, '"')
-    local lcount = vim.api. nvim_buf_line_count(0)
+    local lcount = vim.api.nvim_buf_line_count(0)
     if mark[1] > 0 and mark[1] <= lcount then
       pcall(vim.api.nvim_win_set_cursor, 0, mark)
     end
@@ -121,10 +121,10 @@ autocmd("LspAttach", {
   callback = function(event)
     local opts = { buffer = event.buf }
     map("n", "gd", vim.lsp.buf.definition, opts)
-    map("n", "gD", vim.lsp. buf.declaration, opts)
-    map("n", "gi", vim.lsp. buf.implementation, opts)
-    map("n", "gr", vim.lsp.buf.references, opts)
-    map("n", "K", vim.lsp.buf.hover, opts)
+    map("n", "gD", vim.lsp.buf.declaration, opts)
+    map("n", "gi", vim. lsp.buf.implementation, opts)
+    map("n", "gr", vim.lsp.buf. references, opts)
+    map("n", "K", vim.lsp.buf. hover, opts)
     map("n", "<leader>rn", vim.lsp.buf.rename, opts)
     map("n", "<leader>ca", vim.lsp.buf.code_action, opts)
     map("n", "<leader>cf", function() vim.lsp.buf.format({ async = true }) end, opts)
@@ -134,15 +134,15 @@ autocmd("LspAttach", {
 -- ============================================================================
 -- LAZY. NVIM BOOTSTRAP
 -- ============================================================================
-local lazypath = vim. fn.stdpath("data") .. "/lazy/lazy.nvim"
+local lazypath = vim.fn. stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.uv.fs_stat(lazypath) then
   vim.fn.system({
-    "git", "clone", "--filter=blob:none",
+    "git", "clone", "--filter=blob: none",
     "https://github.com/folke/lazy.nvim.git",
     "--branch=stable", lazypath,
   })
 end
-vim.opt.rtp: prepend(lazypath)
+vim.opt.rtp:prepend(lazypath)
 
 -- ============================================================================
 -- PLUGINS
@@ -155,7 +155,7 @@ require("lazy").setup({
     priority = 1000,
     config = function()
       vim.opt.background = "dark"
-      vim. cmd. colorscheme("oxocarbon")
+      vim. cmd.colorscheme("oxocarbon")
 
       -- Enable transparency
       local groups = {
@@ -234,11 +234,11 @@ require("lazy").setup({
     build = ":TSUpdate",
     event = { "BufReadPost", "BufNewFile" },
     config = function()
-      require("nvim-treesitter").setup({
+      require("nvim-treesitter.config").setup({
         ensure_installed = {
           "bash", "c", "cpp", "css", "go", "html", "javascript", "json",
           "lua", "markdown", "markdown_inline", "python", "rust", "tsx",
-          "typescript", "vim", "vimdoc", "yaml",
+          "typescript", "vim", "vimdoc", "yaml", "latex", "bibtex",
         },
         auto_install = true,
         highlight = { enable = true },
@@ -270,7 +270,6 @@ require("lazy").setup({
     event = { "BufReadPost", "BufNewFile" },
     dependencies = {
       "williamboman/mason-lspconfig.nvim",
-      "williamboman/mason-lspconfig.nvim",
     },
     config = function()
       vim.diagnostic.config({
@@ -283,13 +282,13 @@ require("lazy").setup({
       local capabilities = vim.lsp.protocol.make_client_capabilities()
       local ok, cmp_lsp = pcall(require, "cmp_nvim_lsp")
       if ok then
-        capabilities = cmp_lsp. default_capabilities(capabilities)
+        capabilities = cmp_lsp.default_capabilities(capabilities)
       end
 
       vim.lsp.config("lua_ls", {
         cmd = { "lua-language-server" },
         filetypes = { "lua" },
-        root_markers = { ".luarc.json", ".stylua. toml", ".git" },
+        root_markers = { ".luarc.json", ".stylua.toml", ".git" },
         capabilities = capabilities,
         settings = {
           Lua = {
@@ -303,21 +302,21 @@ require("lazy").setup({
       vim.lsp.config("pyright", {
         cmd = { "pyright-langserver", "--stdio" },
         filetypes = { "python" },
-        root_markers = { "pyproject.toml", "setup.py", "requirements.txt", ". git" },
+        root_markers = { "pyproject.toml", "setup.py", "requirements.txt", ".git" },
         capabilities = capabilities,
       })
 
       vim.lsp.config("ts_ls", {
         cmd = { "typescript-language-server", "--stdio" },
         filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact" },
-        root_markers = { "tsconfig.json", "jsconfig.json", "package.json", ".git" },
+        root_markers = { "tsconfig.json", "jsconfig. json", "package.json", ".git" },
         capabilities = capabilities,
       })
 
-      vim.lsp. config("rust_analyzer", {
+      vim.lsp.config("rust_analyzer", {
         cmd = { "rust-analyzer" },
         filetypes = { "rust" },
-        root_markers = { "Cargo.toml", ". git" },
+        root_markers = { "Cargo.toml", ".git" },
         capabilities = capabilities,
       })
 
@@ -328,10 +327,10 @@ require("lazy").setup({
         capabilities = capabilities,
       })
 
-      vim.lsp. config("gopls", {
+      vim.lsp.config("gopls", {
         cmd = { "gopls" },
         filetypes = { "go", "gomod", "gowork", "gotmpl" },
-        root_markers = { "go.mod", ". git" },
+        root_markers = { "go.mod", ".git" },
         capabilities = capabilities,
       })
 
@@ -363,17 +362,17 @@ require("lazy").setup({
             luasnip.lsp_expand(args.body)
           end,
         },
-        mapping = cmp. mapping.preset.insert({
-          ["<C-b>"] = cmp.mapping.scroll_docs(-4),
+        mapping = cmp.mapping.preset. insert({
+          ["<C-b>"] = cmp.mapping. scroll_docs(-4),
           ["<C-f>"] = cmp.mapping.scroll_docs(4),
-          ["<C-Space>"] = cmp.mapping.complete(),
-          ["<C-e>"] = cmp.mapping. abort(),
+          ["<C-Space>"] = cmp.mapping. complete(),
+          ["<C-e>"] = cmp.mapping.abort(),
           ["<CR>"] = cmp.mapping. confirm({ select = true }),
           ["<Tab>"] = cmp.mapping(function(fallback)
             if cmp.visible() then
               cmp.select_next_item()
             elseif luasnip.expand_or_jumpable() then
-              luasnip. expand_or_jump()
+              luasnip.expand_or_jump()
             else
               fallback()
             end
@@ -423,7 +422,7 @@ require("lazy").setup({
         changedelete = { text = "▎" },
       },
       on_attach = function(bufnr)
-        local gs = package.loaded.gitsigns
+        local gs = package. loaded.gitsigns
         local opts = { buffer = bufnr }
         map("n", "]h", gs.next_hunk, opts)
         map("n", "[h", gs.prev_hunk, opts)
@@ -435,7 +434,7 @@ require("lazy").setup({
     },
   },
 
-  -- Which-key 
+  -- Which-key
   {
     "folke/which-key.nvim",
     event = "VeryLazy",
@@ -447,6 +446,8 @@ require("lazy").setup({
         { "<leader>b", group = "buffer" },
         { "<leader>q", group = "quit" },
         { "<leader>t", group = "terminal" },
+        { "<leader>m", group = "markdown" },
+        { "<leader>l", group = "latex" },
       },
     },
   },
@@ -488,7 +489,7 @@ require("lazy").setup({
     main = "ibl",
     config = function()
       local hooks = require("ibl.hooks")
-      hooks.register(hooks.type. HIGHLIGHT_SETUP, function()
+      hooks.register(hooks.type.HIGHLIGHT_SETUP, function()
         vim.api.nvim_set_hl(0, "IblIndent", { fg = "#3c3c3c" })
         vim.api.nvim_set_hl(0, "IblScope", { fg = "#ee5396" })
       end)
@@ -539,6 +540,137 @@ require("lazy").setup({
     keys = {
       { "<leader>gg", "<cmd>LazyGit<cr>", desc = "LazyGit" },
     },
+  },
+
+  -- ============================================================================
+  -- MARKDOWN & LATEX SUPPORT
+  -- ============================================================================
+
+  -- Markdown Preview (opens in browser)
+  -- 
+  {
+    "iamcco/markdown-preview.nvim",
+    cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop" },
+    ft = { "markdown" },
+    build = "cd app && npm install",  -- Use npm directly instead of vim function
+    keys = {
+      { "<leader>mp", "<cmd>MarkdownPreviewToggle<cr>", desc = "Markdown Preview" },
+      { "<leader>ms", "<cmd>MarkdownPreviewStop<cr>", desc = "Markdown Preview Stop" },
+    },
+    init = function()
+      vim.g.mkdp_auto_close = 0
+      vim.g. mkdp_theme = "dark"
+      vim.g.mkdp_browser = ""
+      vim.g.mkdp_preview_options = {
+        mkit = {},
+        katex = {},
+        uml = {},
+        maid = {},
+        disable_sync_scroll = 0,
+        sync_scroll_type = "middle",
+      }
+    end,
+  },
+  -- Better Markdown rendering in buffer
+  {
+    "MeanderingProgrammer/render-markdown.nvim",
+    ft = { "markdown" },
+    dependencies = {
+      "nvim-treesitter/nvim-treesitter",
+      "nvim-tree/nvim-web-devicons",
+    },
+    opts = {
+      heading = {
+        enabled = true,
+        icons = { "󰲡 ", "󰲣 ", "󰲥 ", "󰲧 ", "󰲩 ", "󰲫 " },
+      },
+      code = {
+        enabled = true,
+        style = "full",
+      },
+      bullet = {
+        enabled = true,
+        icons = { "●", "○", "◆", "◇" },
+      },
+    },
+  },
+
+  -- LaTeX support with VimTeX
+  {
+    "lervag/vimtex",
+    ft = { "tex", "latex", "bib" },
+    init = function()
+      -- PDF viewer - change to your preferred viewer: 
+      -- Linux: "zathura", "evince", "okular", "sioyek"
+      -- macOS: "skim", "sioyek", "preview"
+      -- Windows: "sumatrapdf", "sioyek"
+      vim.g.vimtex_view_method = "zathura"
+
+      -- Compiler settings
+      vim.g.vimtex_compiler_method = "latexmk"
+      vim.g.vimtex_compiler_latexmk = {
+        build_dir = "",
+        callback = 1,
+        continuous = 1,
+        executable = "latexmk",
+        options = {
+          "-verbose",
+          "-file-line-error",
+          "-synctex=1",
+          "-interaction=nonstopmode",
+        },
+      }
+
+      -- Don't open quickfix for warnings
+      vim.g.vimtex_quickfix_mode = 0
+
+      -- Set tex flavor
+      vim.g.tex_flavor = "latex"
+
+      -- Concealment settings (hide LaTeX markup)
+      vim.g.vimtex_syntax_conceal = {
+        accents = 1,
+        cites = 1,
+        fancy = 1,
+        greek = 1,
+        math_bounds = 1,
+        math_delimiters = 1,
+        math_fracs = 1,
+        math_super_sub = 1,
+        math_symbols = 1,
+        sections = 0,
+        styles = 1,
+      }
+
+      -- TOC settings
+      vim.g. vimtex_toc_config = {
+        name = "TOC",
+        layers = { "content", "todo", "include" },
+        split_width = 25,
+        todo_sorted = 0,
+        show_help = 1,
+        show_numbers = 1,
+      }
+    end,
+    keys = {
+      { "<leader>ll", "<cmd>VimtexCompile<cr>", desc = "LaTeX Compile" },
+      { "<leader>lv", "<cmd>VimtexView<cr>", desc = "LaTeX View PDF" },
+      { "<leader>lt", "<cmd>VimtexTocToggle<cr>", desc = "LaTeX TOC" },
+      { "<leader>lc", "<cmd>VimtexClean<cr>", desc = "LaTeX Clean" },
+      { "<leader>le", "<cmd>VimtexErrors<cr>", desc = "LaTeX Errors" },
+      { "<leader>ls", "<cmd>VimtexStop<cr>", desc = "LaTeX Stop" },
+      { "<leader>li", "<cmd>VimtexInfo<cr>", desc = "LaTeX Info" },
+    },
+  },
+
+  -- LaTeX snippets for faster writing
+  {
+    "evesdropper/luasnip-latex-snippets.nvim",
+    ft = { "tex", "latex" },
+    dependencies = { "L3MON4D3/LuaSnip" },
+    config = function()
+      require("luasnip-latex-snippets").setup()
+    end,
   },
 
 }, {
