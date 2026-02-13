@@ -1,0 +1,30 @@
+sw_volume: 85
+audio_device_state:1:PipeWire Output
+audio_device_state:1:Visualizer
+state: play
+current: 0
+time: 120.548
+random: 0
+repeat: 0
+single: 0
+consume: 0
+crossfade: 0
+mixrampdb: 0
+mixrampdelay: -1
+lastloadedplaylist: 
+playlist_begin
+0:2012 - XXYYXX {Digital Media} {RIA010}/01. About You.flac
+1:2012 - XXYYXX {Digital Media} {RIA010}/02. Good Enough.flac
+2:2012 - XXYYXX {Digital Media} {RIA010}/03. Fields.flac
+3:2012 - XXYYXX {Digital Media} {RIA010}/04. Set It Off.flac
+4:2012 - XXYYXX {Digital Media} {RIA010}/05. Alone.flac
+5:2012 - XXYYXX {Digital Media} {RIA010}/06. DMT.flac
+6:2012 - XXYYXX {Digital Media} {RIA010}/07. Breeze.flac
+7:2012 - XXYYXX {Digital Media} {RIA010}/08. Closer.flac
+8:2012 - XXYYXX {Digital Media} {RIA010}/09. Forest Fires.flac
+9:2012 - XXYYXX {Digital Media} {RIA010}/10. Never Leave.flac
+10:2012 - XXYYXX {Digital Media} {RIA010}/11. Witching Hour.flac
+11:2012 - XXYYXX {Digital Media} {RIA010}/12. Love Isn't Made feat. Steffaloo.flac
+12:2012 - XXYYXX {Digital Media} {RIA010}/13. TIED2U.flac
+13:2012 - XXYYXX {Digital Media} {RIA010}/14. Overdone feat. Anneka.flac
+playlist_end
