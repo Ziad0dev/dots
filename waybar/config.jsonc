@@ -7,6 +7,8 @@
     "mode": "dock",
     "exclusive": true,
     "spacing": 0,
+    "on-sigusr1": "hide",
+    "on-sigusr2": "show",
     "passthrough": false,
     "gtk-layer-shell": true,
     "reload_style_on_change": true,
@@ -44,7 +46,7 @@
       "interval": 10,
       "format": "{load1} {load5} (5) {load15} (15)",
     },
-    // Modules configuration
+    // Modules configuration 
     "backlight": {
       "device": "intel_backlight",
       "format": "{icon} {percent}%",
@@ -346,12 +348,6 @@
         "dnd-inhibited-notification": "<span foreground='red'><sup></sup></span>",
         "dnd-inhibited-none": "",
       },
-      "return-type": "json",
-      "exec-if": "which swaync-client",
-      "exec": "swaync-client -swb",
-      "on-click": "swaync-client -t -sw",
-      "on-click-right": "swaync-client -d -sw",
-      "escape": true,
     },
   },
 ]

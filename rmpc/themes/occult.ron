@@ -1,0 +1,173 @@
+#![enable(implicit_some)]
+#![enable(unwrap_newtypes)]
+#![enable(unwrap_variant_newtypes)]
+(
+    // ═══════════════════════════════════════════════
+    //  ⛧  O C C U L T   T H E M E  ⛧
+    //  "From the void, music emerges..."
+    // ═══════════════════════════════════════════════
+    
+    default_album_art_path: None,
+    show_song_table_header: true,
+    draw_borders: true,
+    browser_column_widths: [20, 38, 42],
+    
+    // Colors - Abyssal darkness
+    background_color: "#0a0a0f",
+    text_color: "#b0b0b0",
+    header_background_color: "#0d0510",
+    modal_background_color: "#12081a",
+    
+    // Tab bar - ritual selection
+    tab_bar: (
+        enabled: true,
+        active_style: (fg: "#0a0a0f", bg: "#8b0000", modifiers: "Bold"),
+        inactive_style: (fg: "#666666"),
+    ),
+    
+    // Item styles - marked souls
+    highlighted_item_style: (fg: "#ff0040", modifiers: "Bold"),
+    current_item_style: (fg: "#0a0a0f", bg: "#8b0000", modifiers: "Bold"),
+    
+    // Borders - ritual circles  
+    borders_style: (fg: "#4a0e2e"),
+    highlight_border_style: (fg: "#8b0000"),
+    
+    // Symbols - occult glyphs
+    symbols: (song: "⛧", dir: "◆", marker: "☽", ellipsis: "..."),
+    
+    // Progress bar - the ritual's progress
+    progress_bar: (
+        symbols: ["█", "░", "◆"],
+        track_style: (fg: "#1a0a0a"),
+        elapsed_style: (fg: "#8b0000"),
+        thumb_style: (fg: "#ff0040", bg: "#1a0a0a"),
+    ),
+    
+    // Scrollbar - spine of darkness
+    scrollbar: (
+        symbols: ["│", "█", "▲", "▼"],
+        track_style: (fg: "#1a1a1a"),
+        ends_style: (fg: "#4a0e2e"),
+        thumb_style: (fg: "#8b0000"),
+    ),
+    
+    // Song table - the grimoire
+    song_table_format: [
+        (
+            prop: (kind: Property(Artist), style: (fg: "#9966cc"),
+                default: (kind: Text("Unknown Entity"), style: (fg: "#9966cc"))
+            ),
+            width: "20%",
+        ),
+        (
+            prop: (kind: Property(Title), style: (fg: "#e0e0e0"),
+                default: (kind: Text("Unknown Incantation"), style: (fg: "#e0e0e0"))
+            ),
+            width: "45%",
+        ),
+        (
+            prop: (kind: Property(Album), style: (fg: "#666699"),
+                default: (kind: Text("Unknown Tome"), style: (fg: "#666699"))
+            ),
+            width: "25%",
+        ),
+        (
+            prop: (kind: Property(Duration), style: (fg: "#4d4d4d"),
+                default: (kind: Text("--:--"), style: (fg: "#4d4d4d"))
+            ),
+            width: "10%",
+            alignment: Right,
+        ),
+    ],
+    
+    // Layout - the altar's structure
+    layout: Split(
+        direction: Vertical,
+        panes: [
+            (
+                pane: Pane(Header),
+                size: "2",
+            ),
+            (
+                pane: Pane(Tabs),
+                size: "3",
+            ),
+            (
+                pane: Pane(TabContent),
+                size: "100%",
+            ),
+            (
+                pane: Pane(ProgressBar),
+                size: "1",
+            ),
+        ],
+    ),
+    
+    // Header - the invocation display
+    header: (
+        rows: [
+            (
+                left: [
+                    (kind: Text("⛧ ["), style: (fg: "#8b0000", modifiers: "Bold")),
+                    (kind: Property(Status(StateV2(playing_label: "INVOKING", paused_label: "DORMANT", stopped_label: "SEALED"))), style: (fg: "#ff0040", modifiers: "Bold")),
+                    (kind: Text("] ⛧"), style: (fg: "#8b0000", modifiers: "Bold"))
+                ],
+                center: [
+                    (kind: Property(Song(Title)), style: (fg: "#e0e0e0", modifiers: "Bold"),
+                        default: (kind: Text("◈ The Void Awaits ◈"), style: (fg: "#666666", modifiers: "Bold"))
+                    )
+                ],
+                right: [
+                    (kind: Property(Widget(Volume)), style: (fg: "#9933ff"))
+                ]
+            ),
+            (
+                left: [
+                    (kind: Property(Status(Elapsed)), style: (fg: "#b0b0b0")),
+                    (kind: Text(" ☽ "), style: (fg: "#8b0000")),
+                    (kind: Property(Status(Duration)), style: (fg: "#b0b0b0")),
+                    (kind: Text(" ("), style: (fg: "#4d4d4d")),
+                    (kind: Property(Status(Bitrate)), style: (fg: "#4d4d4d")),
+                    (kind: Text(" kbps)"), style: (fg: "#4d4d4d"))
+                ],
+                center: [
+                    (kind: Property(Song(Artist)), style: (fg: "#9966cc", modifiers: "Bold"),
+                        default: (kind: Text("Unknown Entity"), style: (fg: "#9966cc"))
+                    ),
+                    (kind: Text(" ⛧ "), style: (fg: "#8b0000")),
+                    (kind: Property(Song(Album)), style: (fg: "#666699"),
+                        default: (kind: Text("The Abyss"), style: (fg: "#666699"))
+                    )
+                ],
+                right: [
+                    (
+                        kind: Property(Widget(States(
+                            active_style: (fg: "#ff0040", modifiers: "Bold"),
+                            separator_style: (fg: "#4a0e2e")))
+                        ),
+                        style: (fg: "#333333")
+                    ),
+                ]
+            ),
+        ],
+    ),
+    
+    // Browser song format
+    browser_song_format: [
+        (
+            kind: Group([
+                (kind: Property(Track), style: (fg: "#4d4d4d")),
+                (kind: Text(" ⛧ "), style: (fg: "#4a0e2e")),
+            ])
+        ),
+        (
+            kind: Group([
+                (kind: Property(Artist), style: (fg: "#9966cc")),
+                (kind: Text(" - "), style: (fg: "#4a0e2e")),
+                (kind: Property(Title), style: (fg: "#e0e0e0")),
+            ]),
+            default: (kind: Property(Filename), style: (fg: "#b0b0b0"))
+        ),
+    ],
+)
