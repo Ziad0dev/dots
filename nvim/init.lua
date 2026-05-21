@@ -134,13 +134,31 @@ autocmd("LspAttach", {
 -- ============================================================================
 -- LAZY. NVIM BOOTSTRAP
 -- ============================================================================
-local lazypath = vim.fn. stdpath("data") .. "/lazy/lazy.nvim"
-if not vim.uv.fs_stat(lazypath) then
-  vim.fn.system({
+local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+local uv = vim.uv or vim.loop
+
+-- Treat an existing-but-broken install (empty dir, missing lua/) as not installed
+local function lazy_ok(path)
+  return uv.fs_stat(path) and uv.fs_stat(path .. "/lua/lazy/init.lua")
+end
+
+if not lazy_ok(lazypath) then
+  -- Wipe any partial leftovers from a previous failed clone
+  vim.fn.delete(lazypath, "rf")
+
+  local out = vim.fn.system({
     "git", "clone", "--filter=blob:none",
+    "--branch=stable",
     "https://github.com/folke/lazy.nvim.git",
-    "--branch=stable", lazypath,
+    lazypath,
   })
+  if vim.v.shell_error ~= 0 then
+    vim.api.nvim_echo({
+      { "Failed to bootstrap lazy.nvim:\n", "ErrorMsg" },
+      { out, "WarningMsg" },
+    }, true, {})
+    return  -- bail; don't try to require('lazy') on a broken install
+  end
 end
 vim.opt.rtp:prepend(lazypath)
 
