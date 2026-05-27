@@ -9,9 +9,8 @@
 
   # ── Boot ──────────────────────────────────────────────────────────────────
   boot.loader.grub = {
-
-  enable  = true;
-  device  = "/dev/sda";
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
 
 };
 
@@ -142,7 +141,7 @@
     # Core utils
     git gh curl wget jq tree unzip zip
     htop btop ripgrep fd fzf
-    gcc gnumake pkg-config
+    gcc gnumake pkg-config podman
 
     # Runtimes / languages
     nodejs_22
