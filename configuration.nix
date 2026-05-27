@@ -19,7 +19,7 @@
   networking.networkmanager.enable = true;
   virtualisation.vmware.guest.enable = true;
   # ── Locale / Time ─────────────────────────────────────────────────────────
-  time.timeZone      = "America/New_York";
+  time.timeZone      = "Europe/Stockholm";
   i18n.defaultLocale = "en_US.UTF-8";
   i18n.extraLocaleSettings = {
     LC_ADDRESS        = "en_US.UTF-8";
