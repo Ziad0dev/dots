@@ -1,5 +1,5 @@
 {
-  description = "Ziad0dev NixOS — KDE Plasma 6 + Hyprland + dotfiles";
+  description = "NixOS — KDE Plasma 6 + Hyprland + dotfiles";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
