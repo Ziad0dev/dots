@@ -108,6 +108,7 @@
   programs.fish.enable = true;
 
   # ── Nix Settings ──────────────────────────────────────────────────────────
+  nixpkgs.overlays = [ inputs.zig-overlay.overlays.default ];
   nixpkgs.config.allowUnfree = true;
 
   nix = {
@@ -137,7 +138,7 @@
     inputs.zen-browser.packages.${system}.default
     pkgs.coolercontrol.coolercontrol-gui
     pkgs.spotify
-    pkgs.zig
+    zigpkgs.master
 
     # Core utils
     git gh curl wget jq tree unzip zip

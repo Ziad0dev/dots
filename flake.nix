@@ -19,6 +19,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    zig-overlay = {
+        url = "github:mitchellh/zig-overlay";
+        inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # dots live at ~/dots as a normal git clone, symlinked live via home.nix.
   };
 
