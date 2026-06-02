@@ -8,11 +8,8 @@
   ];
 
   # ── Boot ──────────────────────────────────────────────────────────────────
-  boot.loader.grub = {
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-
-};
 
   # ── Networking ────────────────────────────────────────────────────────────
   networking.hostName            = hostname;
@@ -49,7 +46,7 @@
 
   # KDE Plasma 6
   services.desktopManager.plasma6.enable = true;
-
+  programs.coolercontrol.enable = true;
   # Hyprland (from flake input — keeps it in sync with home-manager module)
   programs.hyprland = {
     enable         = true;
@@ -106,8 +103,9 @@
     isNormalUser = true;
     description  = username;
     extraGroups  = [ "wheel" "networkmanager" "docker" "audio" "video" "input" ];
-    shell        = pkgs.bash;
+    shell        = pkgs.fish;
   };
+  programs.fish.enable = true;
 
   # ── Nix Settings ──────────────────────────────────────────────────────────
   nixpkgs.config.allowUnfree = true;
@@ -137,10 +135,13 @@
   environment.systemPackages = with pkgs; [
     # Browser
     inputs.zen-browser.packages.${system}.default
+    pkgs.coolercontrol.coolercontrol-gui
+    pkgs.spotify
+    pkgs.zig
 
     # Core utils
     git gh curl wget jq tree unzip zip
-    htop btop ripgrep fd fzf
+    htop btop ripgrep fd fzf nicotine-plus
     gcc gnumake pkg-config podman
 
     # Runtimes / languages
@@ -152,6 +153,10 @@
     rustup
     lua
     luarocks
+    lm_sensors
+    vesktop
+    discord
+    davinci-resolve-studio
 
     # Editors
     neovim
@@ -171,6 +176,7 @@
     slurp
     swaylock-effects   # maintained fork of swaylock
     playerctl
+    awww
     pamixer
     pavucontrol
     brightnessctl
@@ -179,8 +185,9 @@
     hyprpaper
     hypridle
     hyprlock
+    hyprpolkitagent
     # Polkit agent — KDE's agent works in both sessions
-    kdePackages.polkit-kde-agent-1
+    # kdePackages.polkit-kde-agent-1
 
     # File managers / terminal tools
     ranger
@@ -222,10 +229,6 @@
   programs.git.enable    = true;
   programs.nix-ld.enable = true;         # run unpatched dynamic binaries
   programs.dconf.enable  = true;         # required by some GTK apps under KDE/Hyprland
-
-  programs.bash.interactiveShellInit = ''
-    eval "$(direnv hook bash)"
-  '';
 
   system.stateVersion = "24.05";
 }
