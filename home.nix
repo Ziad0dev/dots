@@ -31,26 +31,54 @@ in
   };
 
   # ── Hyprland ───────────────────────────────────────────────────────────
-  # NOTE: the HM `wayland.windowManager.hyprland` module is intentionally NOT
-  # used here, because it wants to write ~/.config/hypr/hyprland.conf and
-  # that collides with the symlinked dots/hypr directory below.
-  #
-  # Hyprland is enabled system-wide in configuration.nix
-  # (`programs.hyprland.enable = true`) and SDDM offers it as a session.
-  # The config in dots/hypr/hyprland.conf is read directly.
+  # HM `wayland.windowManager.hyprland` is intentionally NOT used — it would
+  # collide with the symlinked dots/hypr directory. Hyprland is enabled
+  # system-wide in configuration.nix; the config in dots/hypr/hyprland.conf
+  # is read directly.
 
   # ── Shell ──────────────────────────────────────────────────────────────
+  # bash kept enabled for the rare script that needs it; fish is the login shell.
   programs.bash.enable = true;
 
   programs.direnv = {
     enable            = true;
     nix-direnv.enable = true;
+    # programs.direnv auto-hooks fish, bash, and zsh when they're enabled.
+  };
+
+  programs.fish = {
+    enable = true;
+
+    # Regular aliases — work like bash aliases.
+    shellAliases = {
+      ll     = "ls -l";
+      la     = "ls -la";
+      edit   = "sudo -e";
+    };
+
+    # Fish abbreviations — expand inline when you hit space, so you SEE the
+    # full command before running it. Great for things you want to be
+    # deliberate about. Try them; you'll see the difference.
+    shellAbbrs = {
+      update  = "sudo nixos-rebuild switch";
+      flakeup = "sudo nix flake update --flake /etc/nixos";
+      g       = "git";
+      gst     = "git status";
+      gco     = "git checkout";
+      gp      = "git push";
+      gl      = "git pull";
+    };
+
+    interactiveShellInit = ''
+      # Quieter greeting
+      set fish_greeting
+
+      # Vi keybinds — comment out if you prefer emacs/default
+      # fish_vi_key_bindings
+    '';
   };
 
   # ── Dotfile Symlinks (live — point at ~/dots, no rebuild on edits) ─────
-  # Any HM module that writes a file inside one of these dirs WILL fail
-  # the build. Do not enable services.dunst, services.gammastep,
-  # wayland.windowManager.hyprland, programs.waybar, etc.
   home.file = {
     ".config/hypr"      = { source = link "hypr"; };
     ".config/waybar"    = { source = link "waybar"; };
@@ -73,55 +101,18 @@ in
     style.name         = "breeze";
   };
 
-  gtk = {
-    enable = true;
-    gtk4.theme = config.gtk.theme;  # silence default-change warning
-    theme = {
-      name    = "Breeze";
-      package = pkgs.kdePackages.breeze-gtk;
-    };
-    iconTheme = {
-      name    = "breeze";
-      package = pkgs.kdePackages.breeze-icons;
-    };
-    cursorTheme = {
-      name    = "breeze_cursors";
-      package = pkgs.kdePackages.breeze;
-      size    = 24;
-    };
-  };
+
 
   # ── Clipboard ──────────────────────────────────────────────────────────
-  # cliphist has no config file, so its HM service is safe to use.
   home.packages = with pkgs; [
     cliphist
     wl-clipboard
   ];
   services.cliphist.enable = true;
-  # git 
-  programs.git.enable = true;
-  # zsh  
-  programs.zsh = {
-    enable = true;
-    enableCompletion = true;
-    autosuggestion.enable = true;
-    syntaxHighlighting.enable = true;
 
-    shellAliases = {
-      ll = "ls -l";
-      edit = "sudo -e";
-      update = "sudo nixos-rebuild switch";
-    };
-
-    history.size = 10000;
-    history.ignoreAllDups = true;
-    history.path = "$HOME/.zsh_history";
-    history.ignorePatterns = ["rm *" "pkill *" "cp *"];
-  };
-  # ── Notifications / Gammastep / Hyprland autostart ────────────────────
-  # All daemons that need configs from dots are started from
-  # ~/dots/hypr/hyprland.conf via `exec-once` lines. Recommended additions:
-  #
+  # ── Hyprland autostart reminder ────────────────────────────────────────
+  # Daemons that need configs from dots are started from
+  # ~/dots/hypr/hyprland.conf via `exec-once`, e.g.:
   #   exec-once = dunst
   #   exec-once = gammastep
   #   exec-once = waybar
