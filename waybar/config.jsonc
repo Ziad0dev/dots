@@ -3,7 +3,7 @@
     "name": "topbar",
     "layer": "top",
     "position": "top",
-    "height": 20,
+    "height": 30,
     "mode": "dock",
     "exclusive": true,
     "spacing": 0,
