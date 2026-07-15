@@ -12,7 +12,6 @@
    
    boot.kernelPackages = pkgs.linuxPackages_latest;
    boot.kernelModules = [ "nct6775" ];
-   boot.loader.systemd-boot.configurationLimit = 10;
    
    systemd.sleep.settings.Sleep = {
     AllowSuspend = "no";
@@ -192,6 +191,7 @@
     tor-browser
     element-desktop
     vesktop
+    discord
     calibre
 
     # Editors
