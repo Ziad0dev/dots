@@ -171,6 +171,7 @@
     pkgs.coolercontrol.coolercontrol-gui
     pkgs.spotify
     zigpkgs.master
+    inputs.zls.packages.${system}.zls
 
     # Core utils
     git gh curl wget jq tree unzip zip
