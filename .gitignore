@@ -1,1 +1,12 @@
-
+*.bak
+mpd/database
+mpd/log
+mpd/mpd.db
+mpd/mpd.log
+mpd/mpdstate
+mpd/state
+mpd/sticker.sql
+mpd/pid
+mpd/playlists/
+result
+result-*

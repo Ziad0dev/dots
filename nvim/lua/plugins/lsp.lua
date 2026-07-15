@@ -64,7 +64,7 @@ return {
         ts_ls = "typescript-language-server",
         rust_analyzer = "rust-analyzer",
         nixd = "nixd",
-        zls = "zls"
+        zls = "zls",
       }
       for server, bin in pairs(servers) do
         if vim.fn.executable(bin) == 1 then
