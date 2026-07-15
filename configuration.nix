@@ -6,7 +6,25 @@
     # Hyprland NixOS module from the flake for the most up-to-date version
     inputs.hyprland.nixosModules.default
   ];
+  # Disable user session freezing during sleep
+   systemd.services.systemd-suspend.environment.SYSTEMD_SLEEP_FREEZE_USER_SESSIONS = "false";
 
+   hardware.nvidia.powerManagement = {
+    enable = true;
+    # Experimental but helps with some GPUs:
+    # finegrained = true; 
+    };
+   
+   boot.kernelPackages = pkgs.linuxPackages_latest;
+   boot.kernelModules = [ "nct6775" ];
+   boot.loader.systemd-boot.configurationLimit = 10;
+   
+   systemd.sleep.settings.Sleep = {
+    AllowSuspend = "no";
+    AllowHibernation = "no";
+    AllowHybridSleep = "no";
+    AllowSuspendThenHibernate = "no";
+    };
   # ── Boot ──────────────────────────────────────────────────────────────────
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
@@ -36,6 +54,20 @@
     enable      = true;
     xkb.layout  = "us";
   };
+
+  zramSwap = {
+    enable = true;
+    memoryPercent = 50;   # zram device sized at 50% of RAM (~7.7G for you)
+    # algorithm = "zstd"; # default, fine to omit
+  };
+  services.xserver.videoDrivers = [ "nvidia" ];
+
+  hardware.graphics.enable = true;
+  hardware.nvidia = {
+  modesetting.enable = true;
+  open = true;                 # open kernel module, correct for Ampere
+  package = config.boot.kernelPackages.nvidiaPackages.latest;
+};
 
   # SDDM — shared greeter for both KDE and Hyprland sessions
   services.displayManager.sddm = {
@@ -143,7 +175,8 @@
     # Core utils
     git gh curl wget jq tree unzip zip
     htop btop ripgrep fd fzf nicotine-plus
-    gcc gnumake pkg-config podman
+    gcc gnumake pkg-config podman comma
+    qemu quickemu gparted
 
     # Runtimes / languages
     nodejs_22
@@ -155,9 +188,13 @@
     lua
     luarocks
     lm_sensors
-    vesktop
-    discord
     davinci-resolve-studio
+    weechat
+    tor
+    tor-browser
+    element-desktop
+    vesktop
+    calibre
 
     # Editors
     neovim
@@ -179,6 +216,8 @@
     playerctl
     awww
     pamixer
+    mpc-qt
+    jujutsu
     pavucontrol
     brightnessctl
     networkmanagerapplet
@@ -187,6 +226,7 @@
     hypridle
     hyprlock
     hyprpolkitagent
+    kdePackages.qt6ct
     # Polkit agent — KDE's agent works in both sessions
     # kdePackages.polkit-kde-agent-1
 
@@ -194,6 +234,7 @@
     ranger
     yazi
     broot
+    satty
     flameshot
     gammastep
     rmpc
