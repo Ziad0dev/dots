@@ -40,11 +40,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     
-    zls = {
-        url = "github:zigtools/zls";
-	inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     # dots live at ~/dots as a normal git clone, symlinked live via home.nix.
   };
 
