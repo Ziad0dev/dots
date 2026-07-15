@@ -9,11 +9,6 @@
   # Disable user session freezing during sleep
    systemd.services.systemd-suspend.environment.SYSTEMD_SLEEP_FREEZE_USER_SESSIONS = "false";
 
-   hardware.nvidia.powerManagement = {
-    enable = true;
-    # Experimental but helps with some GPUs:
-    # finegrained = true; 
-    };
    
    boot.kernelPackages = pkgs.linuxPackages_latest;
    boot.kernelModules = [ "nct6775" ];
@@ -32,7 +27,6 @@
   # ── Networking ────────────────────────────────────────────────────────────
   networking.hostName            = hostname;
   networking.networkmanager.enable = true;
-  virtualisation.vmware.guest.enable = true;
   # ── Locale / Time ─────────────────────────────────────────────────────────
   time.timeZone      = "Europe/Stockholm";
   i18n.defaultLocale = "en_US.UTF-8";
@@ -62,7 +56,10 @@
   };
   services.xserver.videoDrivers = [ "nvidia" ];
 
-  hardware.graphics.enable = true;
+  hardware.graphics = {
+    enable      = true;
+    enable32Bit = true;   # Steam/Wine 32-bit GL
+  };
   hardware.nvidia = {
   modesetting.enable = true;
   open = true;                 # open kernel module, correct for Ampere
@@ -213,7 +210,6 @@
     wl-clipboard
     grim
     slurp
-    swaylock-effects   # maintained fork of swaylock
     playerctl
     awww
     pamixer
@@ -223,7 +219,6 @@
     brightnessctl
     networkmanagerapplet
     libnotify
-    hyprpaper
     hypridle
     hyprlock
     hyprpolkitagent
@@ -236,7 +231,7 @@
     yazi
     broot
     satty
-    flameshot
+    (flameshot.override { enableWlrSupport = true; })
     gammastep
     rmpc
 
