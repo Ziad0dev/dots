@@ -5,7 +5,7 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
     home-manager = {
-      url = "github:nix-community/home-manager";
+      url = "github:nix-community/home-manager/master";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -18,10 +18,26 @@
       url = "github:0xc000022070/zen-browser-flake";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    
+    nix-index-database = {
+      url = "github:nix-community/nix-index-database";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    
+    nixcord = {
+      url = "github:FlameFlag/nixcord";
+      inputs.nixpkgs.follows = "nixpkgs";
+
+    };
 
     zig-overlay = {
         url = "github:mitchellh/zig-overlay";
         inputs.nixpkgs.follows = "nixpkgs";
+    };
+    
+    zls = {
+        url = "github:zigtools/zls";
+	inputs.nixpkgs.follows = "nixpkgs";
     };
 
     # dots live at ~/dots as a normal git clone, symlinked live via home.nix.
