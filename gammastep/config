@@ -1,7 +1,8 @@
 [general]
 adjustment-method=wayland
 temp-day=6500
-temp-night=1000
+temp-night=2700
+; was 1000 (absolute floor, near-monochrome red) — drop back if that was the point
 transition=1
 fade=1
 ; optional gamma tweak to mute green/blue a bit more:

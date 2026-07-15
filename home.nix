@@ -60,8 +60,8 @@ in
     # full command before running it. Great for things you want to be
     # deliberate about. Try them; you'll see the difference.
     shellAbbrs = {
-      update  = "sudo nixos-rebuild switch";
-      flakeup = "sudo nix flake update --flake /etc/nixos";
+      update  = "sudo nixos-rebuild switch --flake /home/${username}/dots#nixos";
+      flakeup = "nix flake update --flake /home/${username}/dots";
       g       = "git";
       gst     = "git status";
       gco     = "git checkout";
@@ -92,6 +92,8 @@ in
     ".config/yazi"      = { source = link "yazi"; };
     ".config/broot"     = { source = link "broot"; };
     ".config/rmpc"      = { source = link "rmpc"; };
+    ".config/mpd"       = { source = link "mpd"; };
+    ".config/mpdscribble" = { source = link "mpdscribble"; };
   };
 
   # ── Qt / GTK ───────────────────────────────────────────────────────────
