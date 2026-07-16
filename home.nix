@@ -69,8 +69,7 @@ in
       gl      = "git pull";
     };
 
-    interactiveShellInit = 
-      fish_vi_key_bindings
+    interactiveShellInit = "fish_vi_key_bindings";
   };
 
   # ── Dotfile Symlinks (live — point at ~/dots, no rebuild on edits) ─────
@@ -110,16 +109,14 @@ in
 
     config = {
       frameless = true;
-      plugins = {
-        # confirmed from your setup history
-        screenShareAudio.enable = true;   # your Hyprland stream-audio fix
+     plugins = {
         messageLogger.enable = true;
 
-        # standard QoL set — prune what you don't want
         alwaysTrust.enable = true;
         betterFolders.enable = true;
+        blurNsfw.enable = true;
         callTimer.enable = true;
-        clearURLs.enable = true;
+        clearUrls.enable = true;
         fakeNitro.enable = true;
         fixSpotifyEmbeds.enable = true;
         imageZoom.enable = true;
