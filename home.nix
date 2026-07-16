@@ -69,13 +69,8 @@ in
       gl      = "git pull";
     };
 
-    interactiveShellInit = ''
-      # Quieter greeting
-      set fish_greeting
-
-      # Vi keybinds — comment out if you prefer emacs/default
-      # fish_vi_key_bindings
-    '';
+    interactiveShellInit = 
+      fish_vi_key_bindings
   };
 
   # ── Dotfile Symlinks (live — point at ~/dots, no rebuild on edits) ─────
@@ -103,6 +98,40 @@ in
     style.name         = "breeze";
   };
 
+  imports = [
+    inputs.nix-index-database.homeModules.default
+    inputs.nixcord.homeModules.nixcord
+  ];
+
+  # ── Discord / Vencord ──────────────────────────────────────────────────
+  programs.nixcord = {
+    enable = true;
+    vesktop.enable = true;        # Wayland-native client; screenshare works on Hyprland
+
+    config = {
+      frameless = true;
+      plugins = {
+        # confirmed from your setup history
+        screenShareAudio.enable = true;   # your Hyprland stream-audio fix
+        messageLogger.enable = true;
+
+        # standard QoL set — prune what you don't want
+        alwaysTrust.enable = true;
+        betterFolders.enable = true;
+        callTimer.enable = true;
+        clearURLs.enable = true;
+        fakeNitro.enable = true;
+        fixSpotifyEmbeds.enable = true;
+        imageZoom.enable = true;
+        noF1.enable = true;
+        noTypingAnimation.enable = true;
+        silentTyping.enable = true;
+        volumeBooster.enable = true;
+        webScreenShareFixes.enable = true;
+        youtubeAdblock.enable = true;
+      };
+    };
+  };
 
 
   # ── Clipboard ──────────────────────────────────────────────────────────

@@ -183,6 +183,7 @@
     go
     rustup
     lua
+    sbcl
     luarocks
     lm_sensors
     davinci-resolve-studio
@@ -231,6 +232,7 @@
     yazi
     broot
     satty
+    flameshot
     (flameshot.override { enableWlrSupport = true; })
     gammastep
     rmpc
