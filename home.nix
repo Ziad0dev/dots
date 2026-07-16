@@ -106,12 +106,12 @@ in
   programs.nixcord = {
     enable = true;
     vesktop.enable = true;        # Wayland-native client; screenshare works on Hyprland
+    discord.vencord.enable = true;
 
     config = {
       frameless = true;
      plugins = {
         messageLogger.enable = true;
-
         alwaysTrust.enable = true;
         betterFolders.enable = true;
         blurNsfw.enable = true;
