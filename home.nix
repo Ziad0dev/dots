@@ -100,6 +100,7 @@ in
   imports = [
     inputs.nix-index-database.homeModules.default
     inputs.nixcord.homeModules.nixcord
+    ./emacs.nix
   ];
 
   # ── Discord / Vencord ──────────────────────────────────────────────────
@@ -130,14 +131,18 @@ in
     };
   };
 
-
-  # ── Clipboard ──────────────────────────────────────────────────────────
-  home.packages = with pkgs; [
-    cliphist
-    wl-clipboard
-  ];
-  services.cliphist.enable = true;
-
+    # ── Clipboard + BEAM ───────────────────────────────────────────────────
+home.packages = let
+  beamPkgs = pkgs.beam.packages.erlang_27;
+in (with pkgs; [
+  cliphist
+  wl-clipboard
+]) ++ [
+  beamPkgs.erlang
+  beamPkgs.elixir
+  beamPkgs.elixir-ls   # if you added the LSP here rather than elsewhere
+];
+services.cliphist.enable = true;
     # ── Hyprland autostart reminder ────────────────────────────────────────
   # Daemons that need configs from dots are started from
   # ~/dots/hypr/hyprland.conf via `exec-once`, e.g.:
