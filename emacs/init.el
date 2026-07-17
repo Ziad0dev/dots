@@ -47,8 +47,13 @@
 (require 'envrc)
 (envrc-global-mode 1)
 
+;; was: (load-theme 'modus-vivendi t)
+(require 'autothemer)
+(add-to-list 'custom-theme-load-path "~/dots/emacs/themes/")
+(load-theme 'oxocarbon t)
 ;;; --- Common Lisp / SLY -----------------------------------------------
 (require 'sly)
+(require 'sly-mrepl)
 (setq inferior-lisp-program "sbcl"
       sly-symbol-completion-mode nil)   ; let corfu drive completion UI
 
