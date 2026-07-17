@@ -138,7 +138,7 @@ in
   ];
   services.cliphist.enable = true;
 
-  # ── Hyprland autostart reminder ────────────────────────────────────────
+    # ── Hyprland autostart reminder ────────────────────────────────────────
   # Daemons that need configs from dots are started from
   # ~/dots/hypr/hyprland.conf via `exec-once`, e.g.:
   #   exec-once = dunst
