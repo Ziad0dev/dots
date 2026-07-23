@@ -2,10 +2,11 @@
   description = "NixOS — KDE Plasma 6 + Hyprland + dotfiles";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-
     # CachyOS kernel + gaming bleeding-edge packages (with binary cache)
     chaotic.url = "github:chaotic-cx/nyx/nyxpkgs-unstable";
+
+    nixpkgs.follows = "chaotic/nixpkgs";
+
     helium.url = "github:FKouhai/helium2nix/main";
 
     home-manager = {

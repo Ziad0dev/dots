@@ -197,7 +197,7 @@
     tor-browser
     element-desktop
     vesktop
-    discord
+    discord-krisp   # discord with working Krisp noise suppression (chaotic overlay)
     calibre
 
     # Editors

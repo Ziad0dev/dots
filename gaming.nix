@@ -28,13 +28,26 @@
   programs.steam = {
     enable = true;
     gamescopeSession.enable = true;                  # "Gamescope" session in SDDM
-    extraCompatPackages = [ pkgs.proton-ge-bin ];    # GE-Proton in compat dropdown
+    # Both show up in each game's Compatibility dropdown; proton-cachyos is
+    # CachyOS's own Proton fork (from the chaotic overlay, cached).
+    extraCompatPackages = [
+      pkgs.proton-ge-bin
+      pkgs.proton-cachyos
+    ];
     remotePlay.openFirewall      = false;
     dedicatedServer.openFirewall = false;
   };
 
   # gamemoded — games (or `gamemoderun %command%`) request perf governor etc.
   programs.gamemode.enable = true;
+
+  # ananicy-cpp with CachyOS's rule set — auto-nices/ionices processes
+  # (compilers down, games up). The other half of the CachyOS feel.
+  services.ananicy = {
+    enable        = true;
+    package       = pkgs.ananicy-cpp;
+    rulesProvider = pkgs.ananicy-rules-cachyos_git;
+  };
 
   environment.systemPackages = with pkgs; [
     mangohud        # overlay: mangohud %command%
