@@ -108,7 +108,7 @@ in
     enable = true;
     vesktop.enable = true;        # Wayland-native client; screenshare works on Hyprland
     discord.vencord.enable = true;
-
+    discord.krisp.enable = true;
     config = {
       frameless = true;
      plugins = {
