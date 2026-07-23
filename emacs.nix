@@ -17,6 +17,7 @@
       corfu                # completion-at-point UI, feeds off sly
       envrc                # per-buffer direnv -> sly launches the flake's sbcl
       magit                # you'll thank me later
+      autothemer
     ];
   };
 
