@@ -10,7 +10,8 @@
    systemd.services.systemd-suspend.environment.SYSTEMD_SLEEP_FREEZE_USER_SESSIONS = "false";
 
    
-   boot.kernelPackages = pkgs.linuxPackages_latest;
+   # boot.kernelPackages is set in gaming.nix (CachyOS kernel via chaotic-nyx).
+   # One owner per path — don't also set it here.
    boot.kernelModules = [ "nct6775" ];
    
    systemd.sleep.settings.Sleep = {
