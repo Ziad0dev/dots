@@ -100,13 +100,12 @@
   services.printing.enable   = true;
   services.gvfs.enable       = true;
   services.udisks2.enable    = true;
-
   # Bluetooth
   hardware.bluetooth = {
-    enable      = true;
-    powerOnBoot = true;
+    enable      = false;
+    powerOnBoot = false;
   };
-  services.blueman.enable = true;
+  services.blueman.enable = false;
 
   # ── Audio (PipeWire) ──────────────────────────────────────────────────────
   # sound.enable and hardware.pulseaudio are mutually exclusive with PipeWire.
@@ -166,6 +165,7 @@
     inputs.zen-browser.packages.${system}.default
     pkgs.coolercontrol.coolercontrol-gui
     pkgs.spotify
+    inputs.helium.defaultPackage.${system}
     zigpkgs.master
     inputs.zls.packages.${system}.zls
 
@@ -183,8 +183,12 @@
     go
     rustup
     lua
+    fastfetch
+    cmake
+
     sbcl
     luarocks
+    chromium
     lm_sensors
     davinci-resolve-studio
     weechat
@@ -206,6 +210,9 @@
     # Hyprland / Wayland stack
     waybar
     dunst
+    haruna
+    mpv
+    qbittorrent
     rofi
     ghostty
     wl-clipboard
