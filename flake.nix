@@ -3,6 +3,9 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+
+    # CachyOS kernel + gaming bleeding-edge packages (with binary cache)
+    chaotic.url = "github:chaotic-cx/nyx/nyxpkgs-unstable";
     helium.url = "github:FKouhai/helium2nix/main";
 
     home-manager = {
@@ -44,7 +47,7 @@
     # dots live at ~/dots as a normal git clone, symlinked live via home.nix.
   };
 
-  outputs = inputs@{ self, nixpkgs, home-manager, hyprland, zen-browser, ... }:
+  outputs = inputs@{ self, nixpkgs, home-manager, hyprland, zen-browser, chaotic, ... }:
   let
     system   = "x86_64-linux";
     hostname = "nixos";
@@ -57,6 +60,13 @@
       modules = [
         ./hardware-configuration.nix
         ./configuration.nix
+        ./gaming.nix
+
+        # chaotic-nyx: binary cache first so linuxPackages_cachyos is a
+        # download, not a 1h local kernel build. Overlay exposes the pkgs.
+        chaotic.nixosModules.nyx-cache
+        chaotic.nixosModules.nyx-overlay
+        chaotic.nixosModules.nyx-registry
 
         home-manager.nixosModules.home-manager
         {
