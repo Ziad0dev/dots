@@ -76,6 +76,7 @@
   # KDE Plasma 6
   services.desktopManager.plasma6.enable = true;
   programs.coolercontrol.enable = true;
+  services.resolved.enable = true;
   # Hyprland (from flake input — keeps it in sync with home-manager module)
   programs.hyprland = {
     enable         = true;
