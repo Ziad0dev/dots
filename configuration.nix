@@ -175,7 +175,7 @@
     git gh curl wget jq tree unzip zip
     htop btop ripgrep fd fzf nicotine-plus
     gcc gnumake pkg-config podman comma
-    qemu quickemu gparted
+    qemu quickemu gparted tauon
 
     # Runtimes / languages
     nodejs_22
@@ -187,7 +187,6 @@
     lua
     fastfetch
     cmake
-
     sbcl
     luarocks
     chromium
