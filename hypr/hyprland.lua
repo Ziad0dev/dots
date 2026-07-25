@@ -13,7 +13,7 @@ local colors = require("colors")
 ---- MONITORS
 --------------------------------------------------------------------------
 hl.monitor({ output = "DP-2",     mode = "2560x1440@240",  position = "0x0",    scale = 1 })
-hl.monitor({ output = "HDMI-A-1", mode = "1920x0@144",  position = "auto-left", scale = 1, transform = 3 })
+hl.monitor({ output = "HDMI-A-1", mode = "1920x0@144",  position = "0x0", scale = 1, transform = 3 })
 -- Fallback for any other monitors
 hl.monitor({ output = "", mode = "preferred", position = "auto", scale = "auto" })
 
@@ -286,6 +286,7 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP HYPRLAND_INSTANCE_SIGNATURE")
     hl.exec_cmd("systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP HYPRLAND_INSTANCE_SIGNATURE")
     hl.exec_cmd("waybar")
+    hl.exec_cmd("hyprpolkitagent")
     hl.exec_cmd("dunst")
     hl.exec_cmd("awww-daemon")   -- restores cached wallpaper on start
     hl.exec_cmd("flameshot")
