@@ -175,7 +175,7 @@
     git gh curl wget jq tree unzip zip
     htop btop ripgrep fd fzf nicotine-plus
     gcc gnumake pkg-config podman comma
-    qemu quickemu gparted tauon
+    qemu quickemu gparted tauon obs-studio
 
     # Runtimes / languages
     nodejs_22
