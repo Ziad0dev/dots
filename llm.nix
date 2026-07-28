@@ -1,30 +1,25 @@
-{ pkgs, config, username, ... }:
+{ pkgs, lib, username, ... }:
 
 # ── Local LLM inference ───────────────────────────────────────────────────────
 # llama.cpp with CUDA, serving one model over an OpenAI-compatible HTTP API on
-# 127.0.0.1:8080. Weights live on /data (they're 6-20 GB each and there's no
-# reason to burn root space or push them through the Nix store).
+# 127.0.0.1:8080. Weights live on /data — they're 6-20 GB each and there's no
+# reason to burn root space or push them through the Nix store.
 #
-# Sizing note — this box has ~15.4 GiB RAM and 12 GiB VRAM, and swapDevices is
-# empty (zram only). That rules out the MoE-offload trick, where routed experts
-# of a 35B-A3B live in system RAM: that wants 32 GB. So everything here is
-# built around a dense model that fits entirely in VRAM, which is also the
-# faster and much less fiddly option.
+# Sizing: ~15.4 GiB RAM, 12 GiB VRAM, swapDevices = [ ] (zram only). That rules
+# out MoE expert-offload (a 35B-A3B wants 32 GB of system RAM for the routed
+# experts), so this is built around a dense 9B that fits entirely in VRAM.
+# Faster and far less fiddly anyway.
 #
-# This file owns nothing that configuration.nix owns except an extra entry in
-# nix.settings.substituters — that option is a list and merges across modules,
-# so both declarations coexist.
+# Owns nothing configuration.nix owns except an extra nix.settings.substituters
+# entry — that option is a list and merges across modules.
 
 {
   # ── CUDA binary cache ──────────────────────────────────────────────────────
-  # llama-cpp.override { cudaSupport = true; } pulls a large CUDA closure. Get
-  # it from cuda-maintainers rather than compiling it on 6 cores.
-  #
-  # Caveat: nixpkgs follows chaotic/nixpkgs here, and this cache is populated
-  # against nixpkgs-unstable revisions. Chaotic tracks unstable closely so hits
-  # are likely but not guaranteed — if the first rebuild starts compiling
-  # cudatoolkit, that's a miss and it's worth waiting for the next flake update
-  # rather than sitting through the build.
+  # cudaSupport = true pulls a large closure; fetch it rather than build it on
+  # 6 cores. Caveat: nixpkgs follows chaotic/nixpkgs and this cache is populated
+  # against nixpkgs-unstable revisions, so hits are likely but not guaranteed.
+  # If a rebuild starts compiling cudatoolkit, that's a miss — kill it and wait
+  # for the next flakeup rather than sitting through it.
   nix.settings = {
     substituters = [ "https://cuda-maintainers.cachix.org" ];
     trusted-public-keys = [
@@ -33,71 +28,76 @@
   };
 
   # ── The server ─────────────────────────────────────────────────────────────
-  # Model file is a *quoted string* path deliberately: an unquoted path literal
-  # would be copied into the Nix store at eval time, which for a 7 GB GGUF is
-  # not what anyone wants.
+  # settings is a freeform attrset fed through lib.cli.toCommandLine. Names
+  # longer than one character become --${name}, so they must be llama-server's
+  # *long* option names: --ngl and --ctk do not exist, only -ngl/--n-gpu-layers
+  # and -ctk/--cache-type-k. Getting this wrong fails at runtime, not eval.
   #
-  # Download the weights once, imperatively:
+  # model is a quoted string on purpose — an unquoted path literal would be
+  # copied into the Nix store at eval time, which for a 7 GB GGUF is not what
+  # anyone wants. Download once, imperatively:
   #   mkdir -p /data/models && cd /data/models
-  #   nix run nixpkgs#huggingface-hub -- \
-  #     hf download unsloth/Qwen3.5-9B-Instruct-GGUF \
+  #   nix run nixpkgs#huggingface-hub -- hf download \
+  #     unsloth/Qwen3.5-9B-Instruct-GGUF \
   #     Qwen3.5-9B-Instruct-UD-Q6_K_XL.gguf --local-dir .
-  #
-  # Q6_K on a 9B is ~7.5 GB of weights. With a q8_0 KV cache that leaves room
-  # for a 64k context inside 12 GiB, so there's no reason to drop to Q4 here —
-  # Q4 is for when the model doesn't otherwise fit, and this one does.
+  # Make sure it lands world-readable (0644) — the unit runs under DynamicUser
+  # and won't be able to read a 0600 file owned by you.
   services.llama-cpp = {
     enable  = true;
     package = pkgs.llama-cpp.override { cudaSupport = true; };
-    model   = "/data/models/Qwen3.5-9B-Instruct-UD-Q6_K_XL.gguf";
-    host    = "127.0.0.1";
-    port    = 8080;
-    openFirewall = false;   # loopback only; tunnel over ssh if you want it remote
+    openFirewall = false;   # loopback only; ssh-tunnel it if you want it remote
 
-    extraFlags = [
-      "-ngl" "99"            # every layer on the GPU — the whole point of a dense fit
-      "--flash-attn" "on"    # newer llama.cpp takes on/off/auto here, not 0/1
-      "-c" "65536"           # 64k context; drop to 32768 if VRAM gets tight
-      "-ctk" "q8_0"          # quantized KV cache, roughly halves cache VRAM
-      "-ctv" "q8_0"
-      "-t" "6"               # 12400f is 6 physical cores, no E-cores.
-                             # Hyperthreads hurt llama.cpp — do not use 12.
-      "-b" "2048"            # bigger prompt-processing batch; helps long prompts
-      "-ub" "512"
-      "--jinja"              # use the model's own chat template
-      "--mlock"              # keep weights resident; matters more with no swap
-    ];
-  };
+    settings = {
+      host  = "127.0.0.1";
+      port  = 8080;
+      model = "/data/models/Qwen3.5-9B-Instruct-UD-Q6_K_XL.gguf";
 
-  # /data is mounted nofail behind a LUKS unlock. Without this the service
-  # races the mount on boot and fails with a missing model file.
-  systemd.services.llama-cpp = {
-    unitConfig.RequiresMountsFor = "/data";
-    serviceConfig = {
-      # --mlock needs the capability, and the unit runs sandboxed by default.
-      AmbientCapabilities = [ "CAP_IPC_LOCK" ];
-      LimitMEMLOCK = "infinity";
-      Restart = "on-failure";
-      RestartSec = 10;
+      # Q6_K on a 9B is ~7.5 GB of weights. With a q8_0 KV cache a 64k context
+      # still fits inside 12 GiB, so there's no reason to drop to Q4 — Q4 is
+      # for when the model doesn't otherwise fit, and this one does.
+      n-gpu-layers = 99;      # NOT "ngl" — that flag doesn't exist
+      ctx-size     = 65536;   # drop to 32768 if nvtop shows you're tight
+      cache-type-k = "q8_0";  # NOT "ctk"
+      cache-type-v = "q8_0";
+      flash-attn   = "on";    # takes on/off/auto now, not 0/1
+
+      threads      = 6;       # 12400f is 6 physical cores, no E-cores.
+                              # Hyperthreads hurt llama.cpp — do not use 12.
+      batch-size   = 2048;    # helps long-prompt prefill
+      ubatch-size  = 512;
+      jinja        = true;    # bare bool renders as a lone --jinja
     };
   };
+
+  # /data is mounted nofail behind a LUKS unlock; without this the unit races
+  # the mount on boot and dies on a missing model file. The upstream module
+  # sets Restart=on-failure with RestartSec=300, so a race would cost 5min.
+  systemd.services.llama-cpp.unitConfig.RequiresMountsFor = "/data";
+
+  # ── If it dies immediately with a CUDA error ───────────────────────────────
+  # The upstream unit sets MemoryDenyWriteExecute = true. If the CUDA build
+  # lacks precompiled sm_86 kernels it JITs PTX at load and needs W+X pages,
+  # which that blocks. Symptom is a CUDA init failure in `journalctl -u
+  # llama-cpp` within seconds of start. If so, uncomment:
+  #
+  # systemd.services.llama-cpp.serviceConfig.MemoryDenyWriteExecute =
+  #   lib.mkForce false;
 
   systemd.tmpfiles.rules = [
     "d /data/models 0755 ${username} users -"
   ];
 
   environment.systemPackages = with pkgs; [
-    nvtopPackages.nvidia   # watch VRAM headroom while tuning -c / -ctk
-    # llama-bench and llama-cli ship inside the llama-cpp package above, but
-    # that package isn't in systemPackages — it's only referenced by the
-    # service. Uncomment if you want the CLI tools on PATH:
+    nvtopPackages.nvidia   # watch VRAM headroom while tuning ctx-size
+    # llama-bench / llama-cli live in the llama-cpp package, which is only
+    # referenced by the service above. Uncomment for them on PATH:
     # (llama-cpp.override { cudaSupport = true; })
   ];
 
   # ── Optional frontend ──────────────────────────────────────────────────────
   # llama-server has a usable built-in web UI at http://127.0.0.1:8080 already.
-  # open-webui only earns its keep if you want persistent chat history and
-  # multi-model switching — it drags in a Python stack and its own state dir.
+  # open-webui only earns its keep if you want persistent history and
+  # multi-model switching; it drags in a Python stack and its own state dir.
   #
   # services.open-webui = {
   #   enable = true;
