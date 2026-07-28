@@ -62,6 +62,7 @@
         ./hardware-configuration.nix
         ./configuration.nix
         ./gaming.nix
+        ./llm.nix
 
         # chaotic-nyx: binary cache first so linuxPackages_cachyos is a
         # download, not a 1h local kernel build. Overlay exposes the pkgs.
