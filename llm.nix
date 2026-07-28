@@ -10,23 +10,14 @@
 # experts), so this is built around a dense 9B that fits entirely in VRAM.
 # Faster and far less fiddly anyway.
 #
-# Owns nothing configuration.nix owns except an extra nix.settings.substituters
-# entry — that option is a list and merges across modules.
+# Backend is Vulkan, not CUDA. llama-cpp-vulkan is a top-level nixpkgs attr
+# (pkgs/by-name/ll/llama-cpp-vulkan), so Hydra builds it and it substitutes as
+# a 23 MiB download with an 88 MiB closure. The CUDA variant has no such attr —
+# cudaSupport defaults false, so any CUDA build is local and drags the whole
+# CUDA runtime into the closure. The NVIDIA driver already provides the Vulkan
+# ICD, so nothing else in configuration.nix needs to change.
 
 {
-  # ── CUDA binary cache ──────────────────────────────────────────────────────
-  # cudaSupport = true pulls a large closure; fetch it rather than build it on
-  # 6 cores. Caveat: nixpkgs follows chaotic/nixpkgs and this cache is populated
-  # against nixpkgs-unstable revisions, so hits are likely but not guaranteed.
-  # If a rebuild starts compiling cudatoolkit, that's a miss — kill it and wait
-  # for the next flakeup rather than sitting through it.
-  nix.settings = {
-    substituters = [ "https://cuda-maintainers.cachix.org" ];
-    trusted-public-keys = [
-      "cuda-maintainers.cachix.org-1:0dq3bujKpuEPMCX6U4WylrUDZ9JyUG0VpVZa7CNfq5E="
-    ];
-  };
-
   # ── The server ─────────────────────────────────────────────────────────────
   # settings is a freeform attrset fed through lib.cli.toCommandLine. Names
   # longer than one character become --${name}, so they must be llama-server's
@@ -44,7 +35,7 @@
   # and won't be able to read a 0600 file owned by you.
   services.llama-cpp = {
     enable  = true;
-    package = pkgs.llama-cpp.override { cudaSupport = true; };
+    package = pkgs.llama-cpp-vulkan;
     openFirewall = false;   # loopback only; ssh-tunnel it if you want it remote
 
     settings = {
@@ -59,7 +50,8 @@
       ctx-size     = 65536;   # drop to 32768 if nvtop shows you're tight
       cache-type-k = "q8_0";  # NOT "ctk"
       cache-type-v = "q8_0";
-      flash-attn   = "on";    # takes on/off/auto now, not 0/1
+      flash-attn   = "auto";  # auto, not on: Vulkan FA coverage is patchier
+                              # than CUDA's, and auto falls back cleanly
 
       threads      = 6;       # 12400f is 6 physical cores, no E-cores.
                               # Hyperthreads hurt llama.cpp — do not use 12.
@@ -74,14 +66,19 @@
   # sets Restart=on-failure with RestartSec=300, so a race would cost 5min.
   systemd.services.llama-cpp.unitConfig.RequiresMountsFor = "/data";
 
-  # ── If it dies immediately with a CUDA error ───────────────────────────────
-  # The upstream unit sets MemoryDenyWriteExecute = true. If the CUDA build
-  # lacks precompiled sm_86 kernels it JITs PTX at load and needs W+X pages,
-  # which that blocks. Symptom is a CUDA init failure in `journalctl -u
-  # llama-cpp` within seconds of start. If so, uncomment:
+  # ── If it dies immediately ─────────────────────────────────────────────────
+  # The upstream unit sets MemoryDenyWriteExecute = true. NVIDIA's Vulkan
+  # driver compiles SPIR-V to native code at pipeline-creation time and may
+  # want W+X pages for it. Symptom is a device-init or pipeline failure in
+  # `journalctl -u llama-cpp` within seconds of start. If so, uncomment:
   #
   # systemd.services.llama-cpp.serviceConfig.MemoryDenyWriteExecute =
   #   lib.mkForce false;
+  #
+  # If it starts but reports 0 offloaded layers, the unit can't see the ICD or
+  # the device nodes. Check `vulkaninfo --summary` as your user first, then
+  # compare against the sandbox: PrivateDevices is already false upstream and
+  # /dev/nvidia* is 0666, so this shouldn't happen, but that's where to look.
 
   systemd.tmpfiles.rules = [
     "d /data/models 0755 ${username} users -"
@@ -91,7 +88,7 @@
     nvtopPackages.nvidia   # watch VRAM headroom while tuning ctx-size
     # llama-bench / llama-cli live in the llama-cpp package, which is only
     # referenced by the service above. Uncomment for them on PATH:
-    # (llama-cpp.override { cudaSupport = true; })
+    # llama-cpp-vulkan
   ];
 
   # ── Optional frontend ──────────────────────────────────────────────────────
