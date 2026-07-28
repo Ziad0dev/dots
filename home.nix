@@ -85,9 +85,11 @@ in
     ".config/ranger"    = { source = link "ranger"; };
     ".config/yazi"      = { source = link "yazi"; };
     ".config/broot"     = { source = link "broot"; };
+    # rmpc has no HM module, so dots owns its config.ron (live-editable).
+    # NOTE: ~/dots/rmpc/ must actually exist or this is a dangling symlink.
     ".config/rmpc"      = { source = link "rmpc"; };
-    ".config/mpd"       = { source = link "mpd"; };
-    ".config/mpdscribble" = { source = link "mpdscribble"; };
+    # .config/mpd and .config/mpdscribble are NOT symlinked — the HM modules
+    # below generate those files. One owner per path.
   };
 
   # ── Qt / GTK ───────────────────────────────────────────────────────────
@@ -131,19 +133,81 @@ in
     };
   };
 
-    # ── Clipboard + BEAM ───────────────────────────────────────────────────
-home.packages = let
-  beamPkgs = pkgs.beam.packages.erlang_27;
-in (with pkgs; [
-  cliphist
-  wl-clipboard
-]) ++ [
-  beamPkgs.erlang
-  beamPkgs.elixir
-  beamPkgs.elixir-ls   # if you added the LSP here rather than elsewhere
-];
-services.cliphist.enable = true;
-    # ── Hyprland autostart reminder ────────────────────────────────────────
+  # ── Packages: clipboard + BEAM + MPD client ────────────────────────────
+  # rmpc is NOT here — it's already in environment.systemPackages
+  # (configuration.nix). One owner per package.
+  home.packages = let
+    beamPkgs = pkgs.beam.packages.erlang_27;
+  in (with pkgs; [
+    cliphist
+    wl-clipboard
+    mpc           # CLI: `mpc update` / `mpc stats` when debugging the library
+  ]) ++ [
+    beamPkgs.erlang
+    beamPkgs.elixir
+    beamPkgs.elixir-ls   # if you added the LSP here rather than elsewhere
+  ];
+
+  services.cliphist.enable = true;
+
+  # ── Removable media ────────────────────────────────────────────────────
+  # Auto-mounts removable drives at login via udisks, so the music drive is
+  # at /run/media/${username}/Backup before you ever open a file manager.
+  services.udiskie = {
+    enable       = true;
+    automount    = true;
+    notify       = true;
+    tray         = "auto";
+  };
+
+  # ── MPD ────────────────────────────────────────────────────────────────
+  # User-level daemon, so it inherits the session's PipeWire socket.
+  # A system-level services.mpd would run as user `mpd` and can't reach it.
+  services.mpd = {
+    enable         = true;
+    # udisks mount point for the "Backup" exFAT drive. Only exists while the
+    # drive is mounted — services.udiskie below mounts it at login.
+    musicDirectory = "/run/media/${username}/Backup/music";
+    network = {
+      listenAddress   = "127.0.0.1";
+      port            = 6600;
+      startWhenNeeded = true;              # socket-activated; rmpc's default target
+    };
+    extraConfig = ''
+      restore_paused "yes"
+
+      # auto_update deliberately off: inotify across a whole USB exFAT drive
+      # is expensive and breaks when the drive goes away. Use `mpc update`.
+
+      audio_output {
+        type "pipewire"
+        name "PipeWire"
+      }
+    '';
+  };
+
+  # MPRIS bridge — lets playerctl / waybar see MPD as a normal player.
+  services.mpdris2 = {
+    enable        = true;
+    mpd.host      = "127.0.0.1";
+    notifications = true;
+    multimediaKeys = true;
+  };
+
+  # Last.fm scrobbling. The password file lives OUTSIDE the repo — dots is public.
+  # Create it once with:
+  #   mkdir -p ~/.local/share/secrets
+  #   echo -n 'your-lastfm-password' > ~/.local/share/secrets/mpdscribble
+  #   chmod 600 ~/.local/share/secrets/mpdscribble
+  services.mpdscribble = {
+    enable = true;
+    endpoints."last.fm" = {
+      username     = "Mikael_tonos777";
+      passwordFile = "${config.home.homeDirectory}/.local/share/secrets/mpdscribble";
+    };
+  };
+
+  # ── Hyprland autostart reminder ────────────────────────────────────────
   # Daemons that need configs from dots are started from
   # ~/dots/hypr/hyprland.conf via `exec-once`, e.g.:
   #   exec-once = dunst
