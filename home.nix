@@ -69,6 +69,19 @@ in
       gl      = "git pull";
     };
 
+    # Functions — for things that need arguments or loops, which abbrs can't do.
+    functions = {
+      dnx = {
+        description = "Transcode video to DNxHR HQ for DaVinci Resolve";
+        body = ''
+          for f in $argv
+            ffmpeg -n -i $f -c:v dnxhd -profile:v dnxhr_hq -c:a pcm_s16le \
+              -pix_fmt yuv422p (path change-extension mov $f)
+          end
+        '';
+      };
+    };
+
     interactiveShellInit = "fish_vi_key_bindings";
   };
 
