@@ -1,4 +1,5 @@
-# DaVinci Resolve — wrapped so it survives being launched from a Qt desktop.
+# DaVinci Resolve (free edition) — wrapped so it survives being launched from
+# a Qt desktop.
 #
 # Two problems this solves:
 #   1. Resolve can't run on native Wayland (its bundled Qt 5.15 vs qtwayland
@@ -26,8 +27,8 @@ let
   };
 in
 {
-  # ffmpeg-full for the DNxHR transcode step — the free edition of Resolve has
-  # no H.264/H.265 and no AAC on Linux, so normal MP4s need converting first.
+  # ffmpeg-full for the DNxHR transcode step — the free edition has no
+  # H.264/H.265 and no AAC on Linux, so normal MP4s need converting first.
   # See the `dnx` fish function in home.nix.
   environment.systemPackages = [ resolve pkgs.ffmpeg-full ];
 }
