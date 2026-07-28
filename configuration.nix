@@ -24,6 +24,14 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.systemd-boot.configurationLimit = 3;
+
+  # ── Storage ───────────────────────────────────────────────────────────────
+  # The music drive (exFAT, label "Backup", sdc1, UUID 6087-5FAB) is left to
+  # udisks so it stays a normal removable drive at
+  # /run/media/${username}/Backup. Deliberately NOT declared in fileSystems —
+  # an fstab entry would take it away from udisks and change the path.
+  # See services.udiskie in home.nix, which mounts it automatically at login.
+
   # ── Networking ────────────────────────────────────────────────────────────
   networking.hostName            = hostname;
   networking.networkmanager.enable = true;
@@ -243,6 +251,7 @@
     (flameshot.override { enableWlrSupport = true; })
     gammastep
     rmpc
+    exfatprogs      # fsck.exfat for the /mnt/backup music drive
 
     # KDE integration helpers (useful even when using Hyprland)
     kdePackages.dolphin
