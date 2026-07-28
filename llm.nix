@@ -29,8 +29,11 @@
   # anyone wants. Download once, imperatively:
   #   mkdir -p /data/models && cd /data/models
   #   nix run nixpkgs#huggingface-hub -- hf download \
-  #     unsloth/Qwen3.5-9B-Instruct-GGUF \
-  #     Qwen3.5-9B-Q6_K.gguf --local-dir .
+  #     unsloth/Qwen3.5-9B-GGUF Qwen3.5-9B-Q6_K.gguf --local-dir .
+  # (repo is Qwen3.5-9B-GGUF — no "-Instruct". Siblings in that repo are named
+  #  Qwen3.5-9B-Q8_0.gguf / -Q3_K_M.gguf etc, so Q6_K follows the pattern; if
+  #  the download 404s, `hf download unsloth/Qwen3.5-9B-GGUF --include "*Q6*"`
+  #  will show what's actually there.)
   # Make sure it lands world-readable (0644) — the unit runs under DynamicUser
   # and won't be able to read a 0600 file owned by you.
   services.llama-cpp = {
@@ -65,6 +68,28 @@
   # the mount on boot and dies on a missing model file. The upstream module
   # sets Restart=on-failure with RestartSec=300, so a race would cost 5min.
   systemd.services.llama-cpp.unitConfig.RequiresMountsFor = "/data";
+
+  # ── Not on by default ──────────────────────────────────────────────────────
+  # Upstream sets wantedBy = [ "multi-user.target" ], i.e. start at boot and
+  # hold ~8 GiB of VRAM forever. On a 12 GiB card that leaves nothing for
+  # games. wantedBy is a list and lists merge, so [] alone won't override it —
+  # mkForce is required.
+  #
+  # The unit stays enabled and startable, it just doesn't autostart:
+  #   systemctl start llama-cpp    # before working
+  #   systemctl stop  llama-cpp    # before gaming
+  systemd.services.llama-cpp.wantedBy = lib.mkForce [ ];
+
+  # Automatic alternative: gamemode already runs on this box (gaming.nix), and
+  # it can shell out on start/end. Untested here, and there's a wrinkle —
+  # gamemoded runs as your user, so stopping a system unit needs a polkit rule
+  # granting manage-units on llama-cpp.service. Worth it only if the manual
+  # start/stop above gets annoying.
+  #
+  # programs.gamemode.settings.custom = {
+  #   start = "${pkgs.systemd}/bin/systemctl stop llama-cpp.service";
+  #   end   = "${pkgs.systemd}/bin/systemctl start llama-cpp.service";
+  # };
 
   # ── If it dies immediately ─────────────────────────────────────────────────
   # The upstream unit sets MemoryDenyWriteExecute = true. NVIDIA's Vulkan
