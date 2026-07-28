@@ -30,7 +30,7 @@
   #   mkdir -p /data/models && cd /data/models
   #   nix run nixpkgs#huggingface-hub -- hf download \
   #     unsloth/Qwen3.5-9B-Instruct-GGUF \
-  #     Qwen3.5-9B-Instruct-UD-Q6_K_XL.gguf --local-dir .
+  #     Qwen3.5-9B-Q6_K.gguf --local-dir .
   # Make sure it lands world-readable (0644) — the unit runs under DynamicUser
   # and won't be able to read a 0600 file owned by you.
   services.llama-cpp = {
@@ -41,7 +41,7 @@
     settings = {
       host  = "127.0.0.1";
       port  = 8080;
-      model = "/data/models/Qwen3.5-9B-Instruct-UD-Q6_K_XL.gguf";
+      model = "/data/models/Qwen3.5-9B-Q6_K.gguf";
 
       # Q6_K on a 9B is ~7.5 GB of weights. With a q8_0 KV cache a 64k context
       # still fits inside 12 GiB, so there's no reason to drop to Q4 — Q4 is
