@@ -111,9 +111,11 @@
 
   environment.systemPackages = with pkgs; [
     nvtopPackages.nvidia   # watch VRAM headroom while tuning ctx-size
-    # llama-bench / llama-cli live in the llama-cpp package, which is only
-    # referenced by the service above. Uncomment for them on PATH:
-    # llama-cpp-vulkan
+
+    # Puts llama-cli, llama-server and llama-bench on PATH, from the same
+    # store path the service uses. Note llama-cli loads its OWN copy of the
+    # model — stop the service before using it or you'll run out of VRAM.
+    llama-cpp-vulkan
   ];
 
   # ── Optional frontend ──────────────────────────────────────────────────────
