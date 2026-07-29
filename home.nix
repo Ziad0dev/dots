@@ -215,7 +215,7 @@ in
   services.mpdscribble = {
     enable = true;
     endpoints."last.fm" = {
-      username     = "Mikael_tonos777";
+      username     = "Z";
       passwordFile = "${config.home.homeDirectory}/.local/share/secrets/mpdscribble";
     };
   };
