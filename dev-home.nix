@@ -28,9 +28,9 @@
 
   # If home.nix already has a git block, merge — delta is the point here:
   # syntax-highlighted, word-level diffs everywhere git shows one.
-  programs.git = {
+  programs.delta = {
     enable = true;
-    delta.enable = true;
+    enableGitIntegration = true;
   };
 
   home.packages = with pkgs; [
