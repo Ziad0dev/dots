@@ -37,7 +37,7 @@
     eza # fd/ripgrep not repeated — configuration.nix carries them
     hyperfine # `hyperfine 'zig build'` — proper benchmarking
     tokei # line counts by language
-    nixfmt-rfc-style # the repo is public and multi-module now —
+    nixfmt
     statix # fmt / lint / dead-code keep it honest
     deadnix
   ];
