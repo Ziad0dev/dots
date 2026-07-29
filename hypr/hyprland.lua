@@ -12,8 +12,8 @@ local colors = require("colors")
 --------------------------------------------------------------------------
 ---- MONITORS
 --------------------------------------------------------------------------
-hl.monitor({ output = "DP-1", mode = "2560x1440@239.97", position = "0x0", scale = 1 })
-hl.monitor({output = "HDMI-A-1", mode = "1920x0@144", position = "auto-right", scale = 1, transform = 3,})
+hl.monitor({ output = "DP-1", mode = "2560x1440@239.97", position = "0x0", scale = 1})
+hl.monitor({output = "HDMI-A-1", mode = "1920x0@144", position = "auto-right", scale = 1, transform = 3})
 -- Fallback for any other monitors
 hl.monitor({ output = "", mode = "preferred", position = "auto", scale = "auto" })
 
@@ -286,7 +286,6 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP HYPRLAND_INSTANCE_SIGNATURE")
     hl.exec_cmd("systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP HYPRLAND_INSTANCE_SIGNATURE")
     hl.exec_cmd("waybar")
-    hl.exec_cmd("hyprpolkitagent")
     hl.exec_cmd("dunst")
     hl.exec_cmd("awww-daemon")   -- restores cached wallpaper on start
     hl.exec_cmd("flameshot")
@@ -294,3 +293,16 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("hypridle")      -- idle -> dpms off -> hyprlock
     hl.exec_cmd("systemctl --user start hyprpolkitagent")
 end)
+
+--------------------------------------------------------------------------
+---- LOCK + REPLAY BINDS
+--------------------------------------------------------------------------
+-- SUPER+L / SUPER+SHIFT+L are taken by vim-style focus/move, so Escape
+-- carries the lock. Routing through loginctl means hypridle's guarded
+-- lock_cmd runs (single instance + --grace 5) — same path before-sleep
+-- and the idle timeout use, so all three behave identically.
+hl.bind(mainMod .. " + Escape", hl.dsp.exec_cmd("loginctl lock-session"))
+
+-- Save the last 5 minutes of the gsr-replay ring buffer
+hl.bind(mainMod .. " + SHIFT + R", hl.dsp.exec_cmd(
+    [[sh -c 'systemctl --user reload gsr-replay && notify-send -t 3000 "Replay saved" "last 5 min -> /data/replays"']]))
