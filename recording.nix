@@ -46,7 +46,7 @@ in
         "-q very_high"
         "-a default_output"   # desktop audio; add a second -a for the mic
         "-r 300"         # replay buffer length, seconds
-        "-ro ${replayDir}"
+        "-o ${replayDir}"
       ];
       # SIGUSR1 flushes the buffer to disk without stopping the recorder.
       ExecReload = "${pkgs.coreutils}/bin/kill -USR1 $MAINPID";
