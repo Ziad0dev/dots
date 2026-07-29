@@ -19,7 +19,7 @@
           rev = "30610d3b68f109e950d924bc7d9c42b8cbbc5df8";
           # Fake hash on purpose: the first build fails and prints the real
           # one — paste it here, rebuild. One round trip.
-          hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+          hash = "sha256-pSbVf9mMWazkaTgNM0X4pfkIS/6AzoAfs7YTS27udOE=";
         };
       });
     })
