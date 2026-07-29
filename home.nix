@@ -60,8 +60,12 @@ in
     # full command before running it. Great for things you want to be
     # deliberate about. Try them; you'll see the difference.
     shellAbbrs = {
-      update  = "sudo nixos-rebuild switch --flake /home/${username}/dots#nixos";
+      update  = "nh os switch";                    # nh handles sudo itself; nom tree + diff
+      upall   = "nh os switch -u";                 # flake update + switch in one
       flakeup = "nix flake update --flake /home/${username}/dots";
+      llm     = "sudo systemctl start llama-cpp";  # chat model :8080 — stop before gaming
+      fim     = "sudo systemctl start llama-fim";  # completion model :8012 (llama.vim)
+      llmoff  = "sudo systemctl stop llama-cpp llama-fim";
       g       = "git";
       gst     = "git status";
       gco     = "git checkout";
@@ -116,6 +120,8 @@ in
     inputs.nix-index-database.homeModules.default
     inputs.nixcord.homeModules.nixcord
     ./emacs.nix
+    ./dev-home.nix     # comma, fzf/zoxide/lazygit/gh/bat, delta, lint tools
+    ./gaming-home.nix  # MangoHud declarative config
   ];
 
   # ── Discord / Vencord ──────────────────────────────────────────────────
@@ -195,6 +201,22 @@ in
       audio_output {
         type "pipewire"
         name "PipeWire"
+      }
+
+      # Bit-perfect path: straight to the DAC, exclusive access, hardware
+      # rates, no software mixer. Find the id with `aplay -l` and fix the
+      # device line. Off by default — flip it on from rmpc's outputs view
+      # (or `mpc enable 2`) for critical listening; PipeWire loses the
+      # device while it's active.
+      audio_output {
+        type "alsa"
+        name "DAC bit-perfect"
+        device "hw:CARD=DAC"   # ← adjust after `aplay -l`
+        auto_resample "no"
+        auto_format "no"
+        auto_channels "no"
+        mixer_type "none"
+        enabled "no"
       }
     '';
   };

@@ -64,6 +64,10 @@
         ./gaming.nix
         ./llm.nix
         ./davinci.nix
+        ./audio.nix          # hi-res PipeWire rate switching (owns audio now)
+        ./dev.nix            # nh, registry pin, warn-dirty
+        ./gaming-extras.nix  # launchers/tricks + controller/streaming stubs
+        ./recording.nix      # gpu-screen-recorder + replay buffer
 
         # chaotic-nyx: binary cache first so linuxPackages_cachyos is a
         # download, not a 1h local kernel build. Overlay exposes the pkgs.
@@ -86,6 +90,15 @@
           home-manager.users.${username} = import ./home.nix;
         }
       ];
+    };
+
+    # New-project starters: nix flake init -t ~/dots#zig && direnv allow
+    # (each template ships its own .envrc)
+    templates = {
+      zig     = { path = ./templates/zig;     description = "Zig (zig-overlay) + zls"; };
+      rust    = { path = ./templates/rust;    description = "Rust stable + rust-analyzer"; };
+      haskell = { path = ./templates/haskell; description = "GHC + HLS (+ Clash, commented)"; };
+      beam    = { path = ./templates/beam;    description = "Elixir OTP-matched + elixir-ls"; };
     };
   };
 }

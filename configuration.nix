@@ -118,16 +118,8 @@
   services.blueman.enable = false;
 
   # ── Audio (PipeWire) ──────────────────────────────────────────────────────
-  # sound.enable and hardware.pulseaudio are mutually exclusive with PipeWire.
-  security.rtkit.enable = true;
-  services.pipewire = {
-    enable            = true;
-    alsa.enable       = true;
-    alsa.support32Bit = true;
-    pulse.enable      = true;
-    jack.enable       = true;
-    wireplumber.enable = true;
-  };
+  # Moved to audio.nix (owns rtkit + the whole services.pipewire tree,
+  # including the hi-res allowed-rates config). One owner per path.
 
   # ── Virtualisation ────────────────────────────────────────────────────────
   virtualisation.docker = {
@@ -162,11 +154,9 @@
         "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc="
       ];
     };
-    gc = {
-      automatic = true;
-      dates     = "weekly";
-      options   = "--delete-older-than 14d";
-    };
+    # gc block removed — nh clean owns garbage collection now (dev.nix).
+    # programs.nh.clean refuses to coexist with nix.gc.automatic, so this
+    # must stay out.
   };
 
   # ── System Packages ───────────────────────────────────────────────────────
@@ -180,9 +170,9 @@
     inputs.zls.packages.${system}.zls
 
     # Core utils
-    git gh curl wget jq tree unzip zip
-    htop btop ripgrep fd fzf nicotine-plus
-    gcc gnumake pkg-config podman comma
+    git curl wget jq tree unzip zip     # gh → dev-home.nix (programs.gh)
+    htop btop ripgrep fd nicotine-plus  # fzf → dev-home.nix (fish keybinds wired)
+    gcc gnumake pkg-config podman       # comma → dev-home.nix (nix-index db wired)
     qemu quickemu gparted tauon obs-studio
 
     # Runtimes / languages
@@ -199,7 +189,8 @@
     luarocks
     chromium
     lm_sensors
-    davinci-resolve-studio
+    # davinci-resolve-studio removed — davinci.nix wraps the free
+    # davinci-resolve; this line was a leftover installing BOTH editions.
     weechat
     tor
     tor-browser
@@ -211,9 +202,8 @@
     neovim
     vscode
 
-    # Shell / env
-    direnv
-    nix-direnv
+    # Shell / env: direnv + nix-direnv removed — home.nix's programs.direnv
+    # already owns them (they were double-installed here).
 
     # Hyprland / Wayland stack
     waybar
