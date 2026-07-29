@@ -105,6 +105,47 @@
   # compare against the sandbox: PrivateDevices is already false upstream and
   # /dev/nvidia* is 0666, so this shouldn't happen, but that's where to look.
 
+  # ── FIM completion server (llama.vim, :8012) ───────────────────────────────
+  # Second, small model for fill-in-the-middle ghost text in Neovim
+  # (nvim/lua/plugins/llm.lua). The 9B above has no FIM tokens; coder-tuned
+  # Qwen2.5 does. 3B-Q8 is llama.vim's recommended tier for a 12 GiB card.
+  # Download once, same drill as the chat model (and chmod 644 — DynamicUser):
+  #   cd /data/models && nix run nixpkgs#huggingface-hub -- hf download \
+  #     ggml-org/Qwen2.5-Coder-3B-Q8_0-GGUF qwen2.5-coder-3b-q8_0.gguf --local-dir .
+  #
+  # No wantedBy at all → on-demand by construction (custom units don't need
+  # the mkForce dance the upstream module did):
+  #   sudo systemctl start llama-fim    # ~3.3 GiB VRAM
+  # Fine alongside games; alongside the 9B chat server it's tight — run one,
+  # or drop ctx-size above to 32768 first.
+  # Flags follow llama.vim's recommended invocation (ctx 0 = model max, with
+  # cache-reuse for its context ring); flash-attn auto + q8_0 KV match the
+  # Vulkan notes above.
+  systemd.services.llama-fim = {
+    description = "llama-server FIM (Qwen2.5-Coder-3B) for llama.vim on :8012";
+    unitConfig.RequiresMountsFor = "/data";
+    serviceConfig = {
+      DynamicUser = true;
+      Restart = "on-failure";
+      ExecStart = lib.concatStringsSep " " [
+        "${pkgs.llama-cpp-vulkan}/bin/llama-server"
+        "-m /data/models/qwen2.5-coder-3b-q8_0.gguf"
+        "--host 127.0.0.1"
+        "--port 8012"
+        "--n-gpu-layers 99"
+        "--ctx-size 0"
+        "--cache-reuse 256"
+        "--batch-size 1024"
+        "--ubatch-size 1024"
+        "--defrag-thold 0.1"
+        "--flash-attn auto"
+        "--cache-type-k q8_0"
+        "--cache-type-v q8_0"
+        "--threads 6"
+      ];
+    };
+  };
+
   systemd.tmpfiles.rules = [
     "d /data/models 0755 ${username} users -"
   ];

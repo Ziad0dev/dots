@@ -50,7 +50,8 @@
   };
 
   environment.systemPackages = with pkgs; [
-    mangohud        # overlay: mangohud %command%
+    # mangohud moved to home-manager (gaming-home.nix) — declarative config,
+    # same `mangohud %command%` usage.
     protonup-qt     # manage extra Proton-GE builds imperatively if wanted
     heroic          # Epic/GOG launcher — drop if unused
   ];
