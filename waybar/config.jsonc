@@ -241,7 +241,7 @@
         // "default": " "
       },
     },
-    "hyprlandland/workspaces": {
+    "hyprland/workspaces": {
       "on-click": "activate",
       "format": "{icon} {windows}",
       "format-window-separator": " ",
@@ -254,7 +254,7 @@
         "title<.*figma.*>": "",
         "title<.*discord.*>": " ",
         "title<.*jira.*>": "",
-        "class<firefox-developer-edition>": "🦊",
+        "class<zen>": "🦊",
         "class<firefox>": "",
         "class<Postman>": "",
         "class<dev.zed.Zed>": "",
