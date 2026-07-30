@@ -69,8 +69,8 @@
         ./dev.nix            # nh, registry pin, warn-dirty
         ./gaming-extras.nix  # launchers/tricks + controller/streaming stubs
         ./recording.nix      # gpu-screen-recorder + replay buffer
+        ./media.nix          # jellyfin + NVENC transcode + tailscale access
         ./waybar-lua-fix.nix
-        ./virt.nix
 
         # chaotic-nyx: binary cache first so linuxPackages_cachyos is a
         # download, not a 1h local kernel build. Overlay exposes the pkgs.
