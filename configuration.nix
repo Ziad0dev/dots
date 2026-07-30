@@ -173,7 +173,7 @@
     git curl wget jq tree unzip zip     # gh → dev-home.nix (programs.gh)
     htop btop ripgrep fd nicotine-plus  # fzf → dev-home.nix (fish keybinds wired)
     gcc gnumake pkg-config podman       # comma → dev-home.nix (nix-index db wired)
-    qemu quickemu gparted tauon obs-studio
+    gparted tauon obs-studio
 
     # Runtimes / languages
     nodejs_22
