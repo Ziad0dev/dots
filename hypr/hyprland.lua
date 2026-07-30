@@ -283,15 +283,29 @@ hl.bind(mainMod .. " + CTRL + L",  hl.dsp.exec_cmd("hyprlock"))
 ---- AUTOSTART
 --------------------------------------------------------------------------
 hl.on("hyprland.start", function()
-    hl.exec_cmd("dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP HYPRLAND_INSTANCE_SIGNATURE")
-    hl.exec_cmd("systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP HYPRLAND_INSTANCE_SIGNATURE")
+    -- One shell, so these run IN ORDER. hl.exec_cmd is asynchronous, so
+    -- issuing them as separate calls raced: the session target could start
+    -- before the environment was imported, leaving services without
+    -- WAYLAND_DISPLAY. Starting hyprland-session.target (defined in
+    -- home.nix) is what finally activates graphical-session.target and with
+    -- it udiskie, gsr-replay, and friends.
+    hl.exec_cmd([[sh -c '
+        dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP HYPRLAND_INSTANCE_SIGNATURE
+        systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP HYPRLAND_INSTANCE_SIGNATURE
+        systemctl --user start hyprland-session.target
+        systemctl --user start hyprpolkitagent
+    ']])
     hl.exec_cmd("waybar")
     hl.exec_cmd("dunst")
     hl.exec_cmd("awww-daemon")   -- restores cached wallpaper on start
     hl.exec_cmd("flameshot")
     hl.exec_cmd("gammastep")
     hl.exec_cmd("hypridle")      -- idle -> dpms off -> hyprlock
-    hl.exec_cmd("systemctl --user start hyprpolkitagent")
+end)
+
+-- Tear the session down on exit so a re-login gets a clean target state.
+hl.on("hyprland.shutdown", function()
+    hl.exec_cmd("systemctl --user stop hyprland-session.target")
 end)
 
 --------------------------------------------------------------------------
