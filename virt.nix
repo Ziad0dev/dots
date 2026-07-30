@@ -38,12 +38,14 @@
       # dir below only needs to be traversable by others.
       runAsRoot = false;
 
-      # UEFI firmware + variable-store templates. OVMFFull brings secure boot
-      # and CSM, which is what Windows 11 guests want.
-      ovmf = {
-        enable = true;
-        packages = [ pkgs.OVMFFull.fd ];
-      };
+      # No ovmf block: the submodule was removed (nixpkgs #421549). libvirtd now
+      # reads QEMU's own firmware descriptors from
+      #   ${pkgs.qemu_kvm}/share/qemu/firmware/*.json
+      # and symlinks the blobs into /run/libvirt/nix-ovmf, with the rewritten
+      # metadata at /var/lib/qemu/firmware. The edk2 x86_64 *secure*-code
+      # variant ships in there, so Secure Boot for Windows 11 guests still
+      # works — just pick "UEFI x86_64: secboot" in virt-manager's firmware
+      # dropdown instead of naming a path. pkgs.OVMFFull is no longer involved.
 
       # Software TPM — the other Windows 11 requirement.
       swtpm.enable = true;
@@ -83,8 +85,12 @@
   environment.systemPackages = with pkgs; [
     virt-viewer   # standalone SPICE/VNC console
     spice-gtk     # clipboard sharing, dynamic resolution, USB redirection
-    win-virtio    # virtio driver ISO for Windows guests (mount as a 2nd CD-ROM)
-    libguestfs    # virt-df / virt-cat / virt-sparsify on guest images
+    virtio-win    # virtio driver ISO for Windows guests (renamed from win-virtio
+                  # 2025-10-27; unfree, which allowUnfree already covers).
+                  # Mount as a second CD-ROM during install.
+    libguestfs-with-appliance # virt-df / virt-cat / virt-sparsify. The plain
+                  # libguestfs attr builds the tools but ships no appliance, so
+                  # every command dies at runtime looking for one.
 
     # Moved here from configuration.nix — this file owns VM tooling now.
     qemu          # qemu-img and friends outside of libvirt

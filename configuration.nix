@@ -107,6 +107,28 @@
   # ── System Services ───────────────────────────────────────────────────────
   services.dbus.enable       = true;
   security.polkit.enable     = true;
+
+  # udisks2: allow a locally logged-in, ACTIVE session to mount/unmount
+  # removable media without an authentication prompt.
+  #
+  # Why: hyprpolkitagent authenticates fine (pkexec prompts normally), but
+  # Dolphin's udisks path still reported "PolicyKit authentication system
+  # appears to be not available" — the agent starts a couple of seconds into
+  # the session, so anything asking earlier misses it. This removes the
+  # question entirely rather than racing it, and also unblocks MPD reaching
+  # the music library on the external drive.
+  #
+  # Tradeoff: any locally logged-in active user can mount/unmount without a
+  # password. Standard for a single-user desktop. To tighten it, add
+  # `&& subject.isInGroup("wheel")` to the condition below.
+  security.polkit.extraConfig = ''
+    polkit.addRule(function(action, subject) {
+      if (action.id.indexOf("org.freedesktop.udisks2.") === 0 &&
+          subject.local && subject.active) {
+        return polkit.Result.YES;
+      }
+    });
+  '';
   services.printing.enable   = true;
   services.gvfs.enable       = true;
   services.udisks2.enable    = true;

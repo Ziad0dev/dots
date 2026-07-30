@@ -171,9 +171,33 @@ in
 
   services.cliphist.enable = true;
 
+  # ── Systemd session target ─────────────────────────────────────────────
+  # graphical-session.target is a virtual alias: systemd forbids starting it
+  # directly, and every compositor is expected to ship its own *-session
+  # target that "implements" it. The home-manager Hyprland module would
+  # provide one, but this config symlinks dots/hypr instead — so nothing
+  # did, and the target never went active. Everything hanging off it stayed
+  # dead at login: udiskie (drives unmounted), gsr-replay (no replay
+  # buffer), and anything else wantedBy graphical-session.target.
+  #
+  # BindsTo pulls graphical-session.target in as a dependency, which IS
+  # allowed even though starting it by hand is not. hyprland.lua starts
+  # this target from its hyprland.start handler.
+  systemd.user.targets.hyprland-session = {
+    Unit = {
+      Description      = "Hyprland session";
+      Documentation    = [ "man:systemd.special(7)" ];
+      BindsTo          = [ "graphical-session.target" ];
+      Wants            = [ "graphical-session-pre.target" ];
+      After            = [ "graphical-session-pre.target" ];
+      PropagatesStopTo = [ "graphical-session.target" ];
+    };
+  };
+
   # ── Removable media ────────────────────────────────────────────────────
   # Auto-mounts removable drives at login via udisks, so the music drive is
   # at /run/media/${username}/Backup before you ever open a file manager.
+  # Requires the session target above to actually fire at login.
   services.udiskie = {
     enable       = true;
     automount    = true;
