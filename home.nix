@@ -120,8 +120,10 @@ in
     inputs.nix-index-database.homeModules.default
     inputs.nixcord.homeModules.nixcord
     ./emacs.nix
+    ./virt-home.nix
     ./dev-home.nix     # comma, fzf/zoxide/lazygit/gh/bat, delta, lint tools
-    ./gaming-home.nix  # MangoHud declarative config
+    ./gaming-home.nix  # MangoHud declarative confiog
+    ./virt-home.nix
   ];
 
   # ── Discord / Vencord ──────────────────────────────────────────────────
