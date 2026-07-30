@@ -1,11 +1,12 @@
 { config, lib, pkgs, username, ... }:
 
 let
-  # Library root. /data is the LUKS ext4 volume from hardware-configuration.nix
-  # and is the right home for this — the exFAT externals have no ownership bits,
-  # so a system user can't be granted scoped access to them, and Jellyfin's
-  # metadata matcher trips over exFAT case folding on rename.
-  mediaRoot = "/data/media";
+  # Library root. The 10 TB external (exFAT, label "10TBackup") declared as a
+  # real mount below rather than left to udisks. udiskie puts it at
+  # /run/media/${username}/10TBackup, but that directory is 0700 and only
+  # exists after you log in — the jellyfin user can't traverse it, and the
+  # service starts long before it appears.
+  mediaRoot = "/mnt/media";
 
   # RTX 3060 (Ampere, GA106), same silicon recording.nix drives:
   #   encode: H.264, HEVC 8/10-bit. No AV1 encode — Ada (40-series) and up.
@@ -98,23 +99,39 @@ in
   systemd.services.jellyfin.serviceConfig.DeviceAllow =
     map (d: "${d} rw") extraNvidiaDevices;
 
-  # ── Library layout ────────────────────────────────────────────────────────
-  # setgid so anything you drop in stays group-jellyfin and stays readable by
-  # the service without a chmod after every copy. You own the dirs; jellyfin
-  # gets group write so it can drop .nfo/artwork alongside the media if you
-  # ever switch metadata storage from the data dir to the library.
-  systemd.tmpfiles.rules = [
-    "d ${mediaRoot}        2775 ${username} jellyfin -"
-    "d ${mediaRoot}/movies 2775 ${username} jellyfin -"
-    "d ${mediaRoot}/shows  2775 ${username} jellyfin -"
-  ];
+  # ── Library storage ───────────────────────────────────────────────────────
+  # exFAT carries no ownership or permission bits, so the driver synthesises
+  # them at mount time from these options. Files come out owned by you and
+  # world-readable, which is what lets the jellyfin user read them without
+  # being in a shared group. On a single-user desktop that's a non-issue; if
+  # you'd rather scope it, drop fmask to 0137 and set gid to a group you add
+  # both yourself and jellyfin to.
+  #
+  # Declaring this here takes the drive away from udisks, exactly like the note
+  # about the music drive in configuration.nix: it will stop appearing at
+  # /run/media/${username}/10TBackup and stop being ejectable from the file
+  # manager. Anything referencing the old path needs updating.
+  #
+  # UUID rather than label: labels are mutable and you have three exFAT
+  # externals, so a relabel or a swap shouldn't be able to silently point this
+  # at the wrong volume. 2A0B-58D1 is sda1, the 10 TB one.
+  fileSystems.${mediaRoot} = {
+    device  = "/dev/disk/by-uuid/2A0B-58D1";
+    fsType  = "exfat";
+    options = [
+      "uid=1000"      # you; first normal user, and there's only one here
+      "gid=100"       # users
+      "dmask=0022"    # dirs  rwxr-xr-x
+      "fmask=0133"    # files rw-r--r--
+      "iocharset=utf8"
+      "nofail"        # don't wedge boot if the drive is unplugged
+      "noatime"       # nothing should be writing to this volume at all
+      "x-gvfs-hide"   # keep it out of the file manager's removable list
+    ];
+  };
 
-  # Lets you write into the library as yourself without sudo.
-  users.users.${username}.extraGroups = [ "jellyfin" ];
-
-  # Don't start hunting for a library on a volume that isn't unlocked yet —
-  # /data is nofail, so without this the service races the LUKS unlock and
-  # comes up with an empty library.
+  # Wait for the drive instead of racing it. nofail means boot proceeds without
+  # it; this means jellyfin won't come up scanning an empty directory.
   systemd.services.jellyfin.unitConfig.RequiresMountsFor = [ mediaRoot ];
 
   # ── Remote access ─────────────────────────────────────────────────────────
