@@ -153,6 +153,10 @@
   users.users.${username} = {
     isNormalUser = true;
     description  = username;
+    # Pinned rather than auto-allocated. exFAT mounts synthesise ownership from
+    # a uid= mount option (see media.nix), so if this ever shifted on a fresh
+    # install the external drives would silently become read-only.
+    uid          = 1001;
     extraGroups  = [ "wheel" "networkmanager" "docker" "audio" "video" "input" ];
     shell        = pkgs.fish;
   };

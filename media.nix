@@ -8,6 +8,11 @@ let
   # service starts long before it appears.
   mediaRoot = "/mnt/media";
 
+  # Shared group for anything that needs to write into the library. exFAT has no
+  # ownership of its own, so gid= below is what actually grants this — pinned to
+  # a literal because mount options take a number, not a name.
+  mediaGid = 3000;
+
   # RTX 3060 (Ampere, GA106), same silicon recording.nix drives:
   #   encode: H.264, HEVC 8/10-bit. No AV1 encode — Ada (40-series) and up.
   #   decode: H.264, HEVC 8/10-bit, VP8, VP9, MPEG-2, VC-1, AV1.
@@ -101,11 +106,9 @@ in
 
   # ── Library storage ───────────────────────────────────────────────────────
   # exFAT carries no ownership or permission bits, so the driver synthesises
-  # them at mount time from these options. Files come out owned by you and
-  # world-readable, which is what lets the jellyfin user read them without
-  # being in a shared group. On a single-user desktop that's a non-issue; if
-  # you'd rather scope it, drop fmask to 0137 and set gid to a group you add
-  # both yourself and jellyfin to.
+  # them at mount time from these options. You own everything; the shared media
+  # group gets write so radarr can rename and reorganise; everyone else — which
+  # in practice means the jellyfin user — reads through the "other" bits.
   #
   # Declaring this here takes the drive away from udisks, exactly like the note
   # about the music drive in configuration.nix: it will stop appearing at
@@ -119,10 +122,13 @@ in
     device  = "/dev/disk/by-uuid/2A0B-58D1";
     fsType  = "exfat";
     options = [
-      "uid=1000"      # you; first normal user, and there's only one here
-      "gid=100"       # users
-      "dmask=0022"    # dirs  rwxr-xr-x
-      "fmask=0133"    # files rw-r--r--
+      # Derived rather than hardcoded — the uid is pinned in configuration.nix
+      # precisely so this can't drift out of sync. It is 1001 here, not the
+      # usual 1000.
+      "uid=${toString config.users.users.${username}.uid}"
+      "gid=${toString mediaGid}"   # shared media group — lets radarr rename
+      "dmask=0002"    # dirs  rwxrwxr-x
+      "fmask=0113"    # files rw-rw-r--
       "iocharset=utf8"
       "nofail"        # don't wedge boot if the drive is unplugged
       "noatime"       # nothing should be writing to this volume at all
@@ -133,6 +139,41 @@ in
   # Wait for the drive instead of racing it. nofail means boot proceeds without
   # it; this means jellyfin won't come up scanning an empty directory.
   systemd.services.jellyfin.unitConfig.RequiresMountsFor = [ mediaRoot ];
+
+  # ── Library management (Radarr) ───────────────────────────────────────────
+  # Used here for organising, not acquiring: it matches your existing files
+  # against TMDB, renames them into a consistent scheme, and tracks what you
+  # own. No indexers or download clients are configured by this module.
+  users.groups.media.gid = mediaGid;
+
+  services.radarr = {
+    enable = true;
+    group  = "media";        # write access to the library via the gid above
+    openFirewall = false;    # reachable over the tailnet, same as jellyfin
+  };
+
+  systemd.services.radarr.unitConfig.RequiresMountsFor = [ mediaRoot ];
+
+  # Radarr's DB and config live here, on the LUKS SSD rather than the exFAT
+  # volume — exFAT has no journal and SQLite on it is a corruption waiting to
+  # happen.
+  #   Web UI: http://100.111.248.58:7878 over the tailnet.
+  #
+  # Two settings that MUST be changed from their defaults, because exFAT can't
+  # support them and Radarr will throw on every import otherwise:
+  #
+  #   Settings -> Media Management -> Permissions -> "Set Permissions" = OFF
+  #     exFAT has no chmod. Leaving this on produces a failed operation for
+  #     every file it touches.
+  #
+  #   Settings -> Media Management -> "Use Hardlinks instead of Copy" = OFF
+  #     FAT-family filesystems have no hardlinks. Radarr falls back to copying
+  #     anyway, but turning it off avoids a misleading error first.
+  #
+  # Root folder to add in the UI: ${mediaRoot}/Movies
+  # Renaming is opt-in — Media Management -> "Rename Movies" — and worth
+  # running against the existing library, which is where the scene-release
+  # filenames come from.
 
   # ── Remote access ─────────────────────────────────────────────────────────
   # Tailscale over port-forwarding: no inbound ports, no dynamic-DNS, and it
