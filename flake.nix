@@ -71,6 +71,7 @@
         ./modules/recording.nix      # gpu-screen-recorder + replay buffer
         ./modules/media.nix          # jellyfin + NVENC transcode + tailscale access
         ./modules/mullvad.nix        # mullvad vpn daemon + gui
+        ./modules/storage.nix        # declarative mounts for the external exFAT drives
         ./modules/waybar-lua-fix.nix
 
         # chaotic-nyx: binary cache first so linuxPackages_cachyos is a
