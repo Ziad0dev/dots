@@ -70,6 +70,7 @@
         ./gaming-extras.nix  # launchers/tricks + controller/streaming stubs
         ./recording.nix      # gpu-screen-recorder + replay buffer
         ./media.nix          # jellyfin + NVENC transcode + tailscale access
+        ./mullvad.nix        # mullvad vpn daemon + gui
         ./waybar-lua-fix.nix
 
         # chaotic-nyx: binary cache first so linuxPackages_cachyos is a

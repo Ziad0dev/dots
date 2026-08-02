@@ -154,6 +154,31 @@ in
 
   systemd.services.radarr.unitConfig.RequiresMountsFor = [ mediaRoot ];
 
+  # ── TV library management (Sonarr) ────────────────────────────────────────
+  # Radarr is films only; Sonarr is the same application for series. Same
+  # posture: organising and cataloguing, no indexers or download clients.
+  services.sonarr = {
+    enable = true;
+    group  = "media";        # same shared gid, so it can rename in the library
+    openFirewall = false;    # tailnet/loopback only
+  };
+
+  systemd.services.sonarr.unitConfig.RequiresMountsFor = [ mediaRoot ];
+
+  #   Web UI: http://100.111.248.58:8989 over the tailnet (7878 is radarr).
+  #
+  # The same two exFAT constraints apply — Settings -> Media Management,
+  # with Show Advanced on:
+  #   "Set Permissions"                  = OFF   (exFAT has no chmod)
+  #   "Use Hardlinks instead of Copy"    = OFF   (no hardlinks either)
+  #
+  # Root folder to add: ${mediaRoot}/Shows
+  #
+  # Sonarr matches series folders against TVDB, so folder names have to be
+  # actual series titles — the sg-1 / sg-atlantis / sg-universe folders won't
+  # resolve until they're renamed to "Stargate SG-1" and so on. Episodes want
+  # a Season NN subfolder and SxxEyy in the filename to group properly.
+
   # Radarr's DB and config live here, on the LUKS SSD rather than the exFAT
   # volume — exFAT has no journal and SQLite on it is a corruption waiting to
   # happen.
