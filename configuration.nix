@@ -80,7 +80,14 @@
     wayland.enable = true;
     theme          = "breeze"; # ships with plasma-workspace
   };
-
+  services.prowlarr = {
+    enable = true;
+    openFirewall = true; # Opens port 9696 by default
+  };
+  services.flaresolverr = {
+    enable = true;
+    openFirewall = true; # Ensures port 8191 is exposed to your local network
+  };
   # KDE Plasma 6
   services.desktopManager.plasma6.enable = true;
   programs.coolercontrol.enable = true;
