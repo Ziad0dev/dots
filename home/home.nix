@@ -219,9 +219,11 @@ in
   # A system-level services.mpd would run as user `mpd` and can't reach it.
   services.mpd = {
     enable         = true;
-    # Declarative mount from modules/storage.nix. Unlike the old udisks
-    # path, this exists whether or not anyone has logged in.
-    musicDirectory = "/mnt/backup/music";
+    # The library actually lives on the 10 TB drive, which modules/media.nix
+    # mounts at /mnt/media for Jellyfin — NOT on the drive labelled "Backup".
+    # The old /run/media/.../Backup/music path pointed at a directory that
+    # doesn't exist, so MPD had an empty library.
+    musicDirectory = "/mnt/media/music";
     network = {
       listenAddress   = "127.0.0.1";
       port            = 6600;
@@ -259,7 +261,7 @@ in
   # MPD now has a real dependency on the music drive instead of hoping it's
   # mounted. With x-systemd.automount this pulls the drive in on demand
   # rather than forcing it up at boot.
-  systemd.user.services.mpd.Unit.RequiresMountsFor = [ "/mnt/backup" ];
+  systemd.user.services.mpd.Unit.RequiresMountsFor = [ "/mnt/media" ];
 
   # MPRIS bridge — lets playerctl / waybar see MPD as a normal player.
   services.mpdris2 = {
