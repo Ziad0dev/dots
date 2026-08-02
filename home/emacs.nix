@@ -31,7 +31,7 @@
   # dots owns the actual config:
   xdg.configFile."emacs/init.el".source =
     config.lib.file.mkOutOfStoreSymlink
-      "${config.home.homeDirectory}/dots/emacs/init.el";
+      "${config.home.homeDirectory}/dots/config/emacs/init.el";
 
   # Required for the envrc glue (skip if already enabled elsewhere):
   # programs.direnv = {
