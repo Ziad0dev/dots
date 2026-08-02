@@ -194,14 +194,24 @@ in
   };
 
   # ── Removable media ────────────────────────────────────────────────────
-  # Auto-mounts removable drives at login via udisks, so the music drive is
-  # at /run/media/${username}/Backup before you ever open a file manager.
-  # Requires the session target above to actually fire at login.
+  # The three permanent externals are mounted declaratively in
+  # modules/storage.nix and modules/media.nix (/mnt/backup,
+  # /mnt/newvolume, /mnt/media), so
+  # udiskie must NOT also grab them — otherwise the same device can end up
+  # mounted twice at different paths. udiskie stays on for genuinely
+  # removable media: USB sticks, SD cards, phones.
   services.udiskie = {
     enable       = true;
     automount    = true;
     notify       = true;
     tray         = "auto";
+    settings = {
+      device_config = [
+        { id_uuid = "6087-5FAB"; ignore = true; }   # Backup     -> /mnt/backup
+        { id_uuid = "2A0B-58D1"; ignore = true; }   # 10TBackup  -> /mnt/media (media.nix)
+        { id_uuid = "4619-E5D1"; ignore = true; }   # New Volume -> /mnt/newvolume
+      ];
+    };
   };
 
   # ── MPD ────────────────────────────────────────────────────────────────
@@ -209,9 +219,9 @@ in
   # A system-level services.mpd would run as user `mpd` and can't reach it.
   services.mpd = {
     enable         = true;
-    # udisks mount point for the "Backup" exFAT drive. Only exists while the
-    # drive is mounted — services.udiskie below mounts it at login.
-    musicDirectory = "/run/media/${username}/Backup/music";
+    # Declarative mount from modules/storage.nix. Unlike the old udisks
+    # path, this exists whether or not anyone has logged in.
+    musicDirectory = "/mnt/backup/music";
     network = {
       listenAddress   = "127.0.0.1";
       port            = 6600;
@@ -245,6 +255,11 @@ in
       }
     '';
   };
+
+  # MPD now has a real dependency on the music drive instead of hoping it's
+  # mounted. With x-systemd.automount this pulls the drive in on demand
+  # rather than forcing it up at boot.
+  systemd.user.services.mpd.Unit.RequiresMountsFor = [ "/mnt/backup" ];
 
   # MPRIS bridge — lets playerctl / waybar see MPD as a normal player.
   services.mpdris2 = {

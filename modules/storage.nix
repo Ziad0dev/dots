@@ -43,11 +43,10 @@ in
     options = exfatOpts;
   };
 
-  fileSystems."/mnt/10tb" = {
-    device = "/dev/disk/by-uuid/2A0B-58D1";
-    fsType = "exfat";
-    options = exfatOpts;
-  };
+  # NOTE: the 10 TB drive (UUID 2A0B-58D1) is deliberately NOT here.
+  # modules/media.nix already declares it at /mnt/media with the media-group
+  # ownership Jellyfin needs. One owner per device — declaring it twice would
+  # mount the same volume at two paths with conflicting uid/gid options.
 
   fileSystems."/mnt/newvolume" = {
     device = "/dev/disk/by-uuid/4619-E5D1";
@@ -57,6 +56,6 @@ in
 
   # fsck.exfat / exfatlabel. Also what clears the "dirty" flag left by an
   # unclean unmount, which otherwise shows up as a mount that just fails:
-  #   sudo fsck.exfat -y /dev/disk/by-uuid/2A0B-58D1
+  #   sudo fsck.exfat -y /dev/disk/by-uuid/6087-5FAB
   environment.systemPackages = [ pkgs.exfatprogs ];
 }
