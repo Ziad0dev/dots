@@ -41,7 +41,7 @@ in
 
     # Deliberately closed. Reachable over the tailnet only (see below); flip to
     # true only if you decide to port-forward and expose it publicly.
-    openFirewall = false;
+    openFirewall = true;
 
     hardwareAcceleration = {
       enable = true;
