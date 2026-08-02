@@ -7,7 +7,7 @@ let
   dotsPath = "/home/${username}/dots";
 
   # Helper: live symlink into the source tree (instead of a copy into /nix/store).
-  link = sub: config.lib.file.mkOutOfStoreSymlink "${dotsPath}/${sub}";
+  link = sub: config.lib.file.mkOutOfStoreSymlink "${dotsPath}/config/${sub}";
 in
 {
   home.username      = username;
@@ -123,7 +123,6 @@ in
     ./virt-home.nix
     ./dev-home.nix     # comma, fzf/zoxide/lazygit/gh/bat, delta, lint tools
     ./gaming-home.nix  # MangoHud declarative confiog
-    ./virt-home.nix
   ];
 
   # ── Discord / Vencord ──────────────────────────────────────────────────

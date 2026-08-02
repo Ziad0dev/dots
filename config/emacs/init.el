@@ -49,7 +49,7 @@
 
 ;; was: (load-theme 'modus-vivendi t)
 (require 'autothemer)
-(add-to-list 'custom-theme-load-path "~/dots/emacs/themes/")
+(add-to-list 'custom-theme-load-path "~/dots/config/emacs/themes/")
 (load-theme 'oxocarbon t)
 ;;; --- Common Lisp / SLY -----------------------------------------------
 (require 'sly)

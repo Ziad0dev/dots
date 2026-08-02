@@ -59,19 +59,19 @@
       specialArgs = { inherit inputs username hostname system; };
 
       modules = [
-        ./hardware-configuration.nix
-        ./configuration.nix
-        ./virt.nix
-        ./gaming.nix
-        ./llm.nix
-        ./davinci.nix
-        ./audio.nix          # hi-res PipeWire rate switching (owns audio now)
-        ./dev.nix            # nh, registry pin, warn-dirty
-        ./gaming-extras.nix  # launchers/tricks + controller/streaming stubs
-        ./recording.nix      # gpu-screen-recorder + replay buffer
-        ./media.nix          # jellyfin + NVENC transcode + tailscale access
-        ./mullvad.nix        # mullvad vpn daemon + gui
-        ./waybar-lua-fix.nix
+        ./hosts/nixos/hardware-configuration.nix
+        ./hosts/nixos/configuration.nix
+        ./modules/virt.nix
+        ./modules/gaming.nix
+        ./modules/llm.nix
+        ./modules/davinci.nix
+        ./modules/audio.nix          # hi-res PipeWire rate switching (owns audio now)
+        ./modules/dev.nix            # nh, registry pin, warn-dirty
+        ./modules/gaming-extras.nix  # launchers/tricks + controller/streaming stubs
+        ./modules/recording.nix      # gpu-screen-recorder + replay buffer
+        ./modules/media.nix          # jellyfin + NVENC transcode + tailscale access
+        ./modules/mullvad.nix        # mullvad vpn daemon + gui
+        ./modules/waybar-lua-fix.nix
 
         # chaotic-nyx: binary cache first so linuxPackages_cachyos is a
         # download, not a 1h local kernel build. Overlay exposes the pkgs.
@@ -91,7 +91,7 @@
           # migration so you shouldn't see this in normal use.
           home-manager.backupFileExtension = "backup";
           home-manager.extraSpecialArgs = { inherit inputs username system; };
-          home-manager.users.${username} = import ./home.nix;
+          home-manager.users.${username} = import ./home/home.nix;
         }
       ];
     };
