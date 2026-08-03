@@ -71,7 +71,8 @@
         ./modules/recording.nix      # gpu-screen-recorder + replay buffer
         ./modules/media.nix          # jellyfin + NVENC transcode + tailscale access
         ./modules/mullvad.nix        # mullvad vpn daemon + gui
-        ./modules/homarr.nix         # dashboard for the self-hosted services
+        ./modules/media-extras.nix   # audiobookshelf, calibre-web, whisper-cpp
+        ./modules/performance.nix    # swap, sysctls, oomd, nix build limits
         ./modules/storage.nix        # declarative mounts for the external exFAT drives
         ./modules/waybar-lua-fix.nix
 
