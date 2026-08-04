@@ -13,7 +13,8 @@ return {
       ensure_installed = {
         "lua", "vim", "vimdoc", "query",
         "bash", "fish",
-        "python", "rust", "c", "cpp",
+        "python", "rust", "c", "cpp", "zig", "commonlisp",
+        "cmake", "make",
         "javascript", "typescript", "tsx", "json", "jsonc", "yaml", "toml",
         "nix", "markdown", "markdown_inline", "html", "css",
         "git_config", "gitcommit", "gitignore", "diff", "regex",
