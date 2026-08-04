@@ -6,8 +6,9 @@
 -- and gives you eval-in-place, the inspector, the debugger, and cross-reference
 -- — the actual reason to write Lisp.
 --
--- Requires: sbcl (dev-langs.nix) and Swank. First run installs Swank via the
--- dependency manager; with ocicl, from inside a project:  ocicl install swank
+-- Requires: sbcl with swank. dev-langs.nix provides this declaratively via
+-- sbcl.withPackages, so there is no first-run install step — <localleader>cc
+-- connects straight away.
 -- ============================================================================
 
 return {

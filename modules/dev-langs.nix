@@ -50,11 +50,18 @@
     # ── Common Lisp ──────────────────────────────────────────────────────────
     # For linear-a.lisp / sigla-query.lisp. sbcl is the implementation; the
     # rest is the dependency and REPL story.
-    sbcl
+    # ocicl and qlot are both ABSENT from nixpkgs. The native route is
+    # sbcl.withPackages, which pulls systems from the quicklisp-derived
+    # sbclPackages set — declarative, and it means nvlime has swank on day one
+    # instead of needing an imperative install.
+    #
+    # Add systems here as linear-a.lisp / sigla-query.lisp need them:
+    #   nix repl -f '<nixpkgs>'  then  sbclPackages.<TAB>
+    (sbcl.withPackages (ps: with ps; [
+      swank              # the server nvlime/slime connect to
+      alexandria         # de-facto stdlib supplement
+    ]))
     rlwrap               # readline for a bare `sbcl` REPL
-    # ocicl: modern ASDF dependency manager, project-local, no ~/quicklisp
-    # global state. If absent from your nixpkgs rev, fall back to qlot.
-    ocicl
   ];
 
   # ── Build accelerators ─────────────────────────────────────────────────────
