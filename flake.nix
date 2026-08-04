@@ -74,6 +74,8 @@
         ./modules/media-extras.nix   # audiobookshelf, calibre-web, whisper-cpp
         ./modules/performance.nix    # swap, sysctls, oomd, nix build limits
         ./modules/storage.nix        # declarative mounts for the external exFAT drives
+        ./modules/hdr.nix            # HDR output: proton/mpv env (compositor half in hyprland.lua)
+        ./modules/dev-langs.nix      # zig, C/C++, python, common lisp toolchains
         ./modules/waybar-lua-fix.nix
 
         # chaotic-nyx: binary cache first so linuxPackages_cachyos is a
@@ -106,6 +108,8 @@
       rust    = { path = ./templates/rust;    description = "Rust stable + rust-analyzer"; };
       haskell = { path = ./templates/haskell; description = "GHC + HLS (+ Clash, commented)"; };
       beam    = { path = ./templates/beam;    description = "Elixir OTP-matched + elixir-ls"; };
+      c       = { path = ./templates/c;       description = "C/C++ clangStdenv + clangd + mold + bear"; };
+      lisp    = { path = ./templates/lisp;    description = "SBCL + ocicl (project-local systems)"; };
     };
   };
 }

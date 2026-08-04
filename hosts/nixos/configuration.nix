@@ -199,8 +199,7 @@
     pkgs.coolercontrol.coolercontrol-gui
     pkgs.spotify
     inputs.helium.defaultPackage.${system}
-    zigpkgs.master
-    inputs.zls.packages.${system}.zls
+    # zig + zls → modules/dev-langs.nix (one owner per toolchain)
 
     # Core utils
     git curl wget jq tree unzip zip     # gh → dev-home.nix (programs.gh)
@@ -210,15 +209,14 @@
 
     # Runtimes / languages
     nodejs_22
-    python313
-    python313Packages.pip
-    python313Packages.virtualenv
+    # python313 + uv/ruff/pyright → modules/dev-langs.nix
+    # (pip/virtualenv dropped: uv supersedes both)
     go
     rustup
     lua
     fastfetch
     cmake
-    sbcl
+    # sbcl + ocicl → modules/dev-langs.nix
     luarocks
     chromium
     lm_sensors
