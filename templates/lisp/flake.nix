@@ -10,16 +10,22 @@
     in {
       devShells.${system}.default = pkgs.mkShell {
         packages = with pkgs; [
-          sbcl
-          ocicl      # deps land in ./systems/ — the project is self-contained
+          # Declare this project's Lisp systems here. Browse the set with:
+          #   nix repl -f '<nixpkgs>'   then   sbclPackages.<TAB>
+          (sbcl.withPackages (ps: with ps; [
+            swank            # required for nvlime / slime
+            alexandria
+          ]))
           rlwrap
         ];
 
         shellHook = ''
           echo "Common Lisp — $(sbcl --version)"
-          echo "  ocicl install <system>   add a dependency to this project"
-          echo "  rlwrap sbcl              bare REPL with line editing"
-          echo "  nvim file.lisp           then <localleader>cc to connect nvlime"
+          echo "  rlwrap sbcl     bare REPL with line editing"
+          echo "  nvim x.lisp     then <localleader>cc to connect nvlime"
+          echo ""
+          echo "  Deps are declarative: add systems to sbcl.withPackages in"
+          echo "  flake.nix. ocicl/qlot are not packaged in nixpkgs."
         '';
       };
     };
