@@ -105,6 +105,7 @@ in
     # rmpc has no HM module, so dots owns its config.ron (live-editable).
     # NOTE: ~/dots/rmpc/ must actually exist or this is a dangling symlink.
     ".config/rmpc"      = { source = link "rmpc"; };
+    ".config/mpv"       = { source = link "mpv"; };
     # .config/mpd and .config/mpdscribble are NOT symlinked — the HM modules
     # below generate those files. One owner per path.
   };

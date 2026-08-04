@@ -65,6 +65,9 @@ return {
         rust_analyzer = "rust-analyzer",
         nixd = "nixd",
         zls = "zls",
+        clangd = "clangd",
+        ruff = "ruff",          -- lint/format as an LSP; pairs with pyright
+        -- ty = "ty",           -- Astral's checker; still beta, enable alongside
       }
       for server, bin in pairs(servers) do
         if vim.fn.executable(bin) == 1 then

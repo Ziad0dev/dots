@@ -12,8 +12,39 @@ local colors = require("colors")
 --------------------------------------------------------------------------
 ---- MONITORS
 --------------------------------------------------------------------------
-hl.monitor({ output = "DP-1", mode = "2560x1440@239.97", position = "0x0", scale = 1})
+hl.monitor({
+    output   = "DP-1",
+    mode     = "2560x1440@239.97",
+    position = "0x0",
+    scale    = 1,
+
+    bitdepth = 10,        -- required for HDR. Also the thing that can break
+                          -- screen capture — see recording.nix note below.
+    cm       = "auto",    -- srgb at 8bpc, wide at 10bpc. Set to "hdr" only if
+                          -- you want ALWAYS-ON desktop HDR (bright borders/cursor).
+
+    -- Panel characteristics (XG27AQDMG, WOLED). Adjust max_luminance if you
+    -- have a measured 3% window peak for your unit.
+    min_luminance     = 0,
+    max_luminance     = 1000,
+    max_avg_luminance = 275,
+
+    -- SDR-in-HDR rendering. These are reachable ONLY via hl.monitor() — the
+    -- legacy monitor= string parser rejects the sdr_*_luminance tokens.
+    sdr_min_luminance = 0.005,
+    sdr_max_luminance = 200,
+    sdrbrightness     = 1.0,
+    sdrsaturation     = 1.0,
+})
 hl.monitor({output = "HDMI-A-1", mode = "1920x0@144", position = "auto-right", scale = 1, transform = 3})
+-- Auto-HDR: flip DP-1 into HDR only when a fullscreen surface actually signals
+-- HDR content (mpv with target-colorspace-hint, or Proton with
+-- PROTON_ENABLE_HDR). Desktop stays SDR otherwise, sidestepping the
+-- too-bright-chrome bug. render:cm_fs_passthrough was REMOVED in 0.55 and
+-- folded into this option.
+-- Verify semantics on your build: hyprctl getoption render:cm_auto_hdr
+hl.config({ render = { cm_auto_hdr = 2 } })
+
 -- Fallback for any other monitors
 hl.monitor({ output = "", mode = "preferred", position = "auto", scale = "auto" })
 

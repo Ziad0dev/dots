@@ -16,7 +16,7 @@ SELECTION=$(get_wallpapers_with_icons | rofi -dmenu -i -p "🩸 Select Wallpaper
 WALLPAPER="$WALLPAPER_DIR/$SELECTION"
 
 # Daemon is started by hyprland exec-once; only start if somehow missing.
-pgrep -x awww-daemon >/dev/null || { awww-daemon & sleep 1; }
+awww query >/dev/null 2>&1 || { awww-daemon & sleep 1; }
 
 TRANSITIONS=("simple" "fade" "wipe" "wave" "grow" "center" "outer" "any")
 TRANSITION=${TRANSITIONS[$RANDOM % ${#TRANSITIONS[@]}]}
