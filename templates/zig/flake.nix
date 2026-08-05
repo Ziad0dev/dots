@@ -14,7 +14,7 @@
     {
       devShells.${system}.default = pkgs.mkShell {
         packages = [
-          zig-overlay.packages.${system}.master # pin e.g. ."0.14.1" if zls lags master
+          zig-overlay.packages.${system}.master
           pkgs.zls
         ];
       };

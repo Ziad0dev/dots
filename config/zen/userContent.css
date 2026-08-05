@@ -1,0 +1,15 @@
+/* Zen — oxocarbon for browser-internal pages (about:blank, new tab, reader).
+   Deliberately does NOT restyle arbitrary websites: overriding page colours
+   globally breaks far more than it fixes. */
+
+@-moz-document url("about:blank"), url("about:newtab"), url("about:home") {
+  :root, body { background: #161616 !important; }
+}
+
+@-moz-document url-prefix("about:reader") {
+  :root {
+    --main-background: #161616 !important;
+    --main-foreground: #f2f4f8 !important;
+    --link-foreground: #33b1ff !important;
+  }
+}

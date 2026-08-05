@@ -1,0 +1,85 @@
+/* ═══════════════════════════════════════════════════════════════════
+   Zen Browser — oxocarbon chrome
+   base16-oxocarbon (shaunsingh/IBM). Themes the browser UI: tab bar,
+   sidebar, URL bar, menus. Page content is untouched — that's userContent.css.
+
+   Requires: toolkit.legacyUserProfileCustomizations.stylesheets = true
+   (about:config). The zen-theme-link.sh script sets this for you.
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root {
+  --oxo-base00: #161616;  /* bg           */
+  --oxo-base01: #262626;  /* bg lighter   */
+  --oxo-base02: #393939;  /* borders      */
+  --oxo-base03: #525252;  /* dim text     */
+  --oxo-base04: #dde1e6;  /* fg dim       */
+  --oxo-base05: #f2f4f8;  /* fg           */
+  --oxo-pink:   #ee5396;  /* accent       */
+  --oxo-blue:   #33b1ff;
+  --oxo-cyan:   #3ddbd9;
+  --oxo-purple: #be95ff;
+
+  /* Firefox/Zen's own theming variables — overriding these reaches far
+     more surfaces than styling elements individually. */
+  --zen-primary-color: var(--oxo-pink) !important;
+  --zen-colors-primary: var(--oxo-base00) !important;
+  --zen-colors-secondary: var(--oxo-base01) !important;
+  --zen-colors-tertiary: var(--oxo-base02) !important;
+  --zen-colors-border: var(--oxo-base02) !important;
+
+  --toolbar-bgcolor: var(--oxo-base00) !important;
+  --toolbar-color: var(--oxo-base05) !important;
+  --lwt-accent-color: var(--oxo-base00) !important;
+  --lwt-text-color: var(--oxo-base05) !important;
+  --arrowpanel-background: var(--oxo-base01) !important;
+  --arrowpanel-color: var(--oxo-base05) !important;
+  --arrowpanel-border-color: var(--oxo-base02) !important;
+  --toolbarbutton-icon-fill: var(--oxo-base04) !important;
+  --urlbar-box-bgcolor: var(--oxo-base01) !important;
+  --urlbar-box-text-color: var(--oxo-base05) !important;
+}
+
+/* Window + sidebar */
+#navigator-toolbox,
+#titlebar,
+#zen-sidebar-box,
+#zen-tabbox-wrapper {
+  background-color: var(--oxo-base00) !important;
+}
+
+/* Active tab: base01 fill with a pink underline, matching the waybar
+   active-workspace treatment rather than inventing a second idiom. */
+.tabbrowser-tab[selected] .tab-background {
+  background: var(--oxo-base01) !important;
+  border-bottom: 2px solid var(--oxo-pink) !important;
+}
+.tabbrowser-tab:not([selected]):hover .tab-background {
+  background: var(--oxo-base01) !important;
+}
+.tabbrowser-tab .tab-label { color: var(--oxo-base04) !important; }
+.tabbrowser-tab[selected] .tab-label { color: var(--oxo-base05) !important; }
+
+/* URL bar */
+#urlbar-background {
+  background-color: var(--oxo-base01) !important;
+  border: 1px solid var(--oxo-base02) !important;
+}
+#urlbar[focused] #urlbar-background {
+  border-color: var(--oxo-pink) !important;
+}
+.urlbarView-row[selected] .urlbarView-row-inner,
+.urlbarView-row:hover .urlbarView-row-inner {
+  background-color: var(--oxo-base02) !important;
+}
+
+/* Menus and popups */
+menupopup, panel {
+  --panel-background: var(--oxo-base01) !important;
+  --panel-color: var(--oxo-base05) !important;
+  --panel-border-color: var(--oxo-base02) !important;
+}
+menuitem:hover, menu:hover { background-color: var(--oxo-base02) !important; }
+
+/* Findbar, notifications */
+findbar { background-color: var(--oxo-base01) !important;
+          color: var(--oxo-base05) !important; }

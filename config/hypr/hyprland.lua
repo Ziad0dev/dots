@@ -17,23 +17,13 @@ hl.monitor({
     mode     = "2560x1440@239.97",
     position = "0x0",
     scale    = 1,
-
     bitdepth = 10,        -- required for HDR. Also the thing that can break
-                          -- screen capture — see recording.nix note below.
-    cm       = "auto",    -- srgb at 8bpc, wide at 10bpc. Set to "hdr" only if
-                          -- you want ALWAYS-ON desktop HDR (bright borders/cursor).
-
-    -- Panel characteristics (XG27AQDMG, WOLED). Adjust max_luminance if you
-    -- have a measured 3% window peak for your unit.
-    min_luminance     = 0,
+    cm       = "hdr", 
     max_luminance     = 1000,
-    max_avg_luminance = 275,
-
-    -- SDR-in-HDR rendering. These are reachable ONLY via hl.monitor() — the
-    -- legacy monitor= string parser rejects the sdr_*_luminance tokens.
-    sdr_min_luminance = 0.005,
+    max_avg_luminance = 300,
+    sdr_min_luminance = 0,
     sdr_max_luminance = 200,
-    sdrbrightness     = 1.0,
+    sdrbrightness     = 1.7,
     sdrsaturation     = 1.0,
 })
 hl.monitor({output = "HDMI-A-1", mode = "1920x0@144", position = "auto-right", scale = 1, transform = 3})
