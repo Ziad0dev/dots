@@ -1,3 +1,5 @@
+@import "oxocarbon.css";
+
 /* Global Styles */
 * {
     font-family: FiraCode Nerd Font;
@@ -66,7 +68,7 @@ button:hover {
 
 /* Workspaces Button Styling */
 #workspaces button {
-    color: #b4f9f8; background: transparent;
+    color: @cyan; background: transparent;
     font-weight: bolder;
     box-shadow: inset 0 -3px transparent;
     transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1);
@@ -74,7 +76,7 @@ button:hover {
 }
 
 #workspaces button.active {
-    color: #ff9e64;
+    color: @accent;
     border-bottom: 2px solid transparent;
     border-image: linear-gradient(45deg, rgb(250, 139, 255), rgb(0, 238, 255)) 1;
     padding: 0 10px;
@@ -93,7 +95,7 @@ button:hover {
 }
 
 #workspaces button:hover {
-    color: #ff9e64;
+    color: @accent;
 }
 
 /* If workspaces is the leftmost module, omit left margin */
@@ -207,15 +209,15 @@ label:focus {
 }
 
 #privacy-item.screenshare {
-    color: #ff9e64;
+    color: @accent;
 }
 
 #privacy-item.audio-in {
-    color: #73daca;
+    color: @teal;
 }
 
 #privacy-item.audio-out {
-    color: #bb9af7;
+    color: @purple;
 }
 
 #bluetooth.disabled,
@@ -229,39 +231,39 @@ label:focus {
 }
 
 #cpu {
-    color: #f7768e;
+    color: @accent;
 }
 
 #battery {
-    color: #73daca;
+    color: @teal;
 }
 
 #wireplumber {
-    color: #b4f9f8;
+    color: @cyan;
 }
 
 #backlight {
-    color: #e0af68;
+    color: @base0C;
 }
 
 #memory {
-    color: #bb9af7;
+    color: @purple;
 }
 
 #temperature {
-    color: #7aa2f7;
+    color: @accent2;
 }
 
 #network {
-    color: #ff9e64;
+    color: @accent;
 }
 
 #clock {
-    color: #b4f9f8;
+    color: @cyan;
 }
 
 #custom-updates {
-    color: #cfc9c2;
+    color: @fg_dim;
 }
 
 #custom-power {
@@ -269,13 +271,13 @@ label:focus {
 }
 
 #custom-quit {
-    color: #7dcfff;
+    color: @pale;
 }
 
 #custom-lock {
-    color: #ff9e64;
+    color: @accent;
 }
 
 #custom-reboot {
-    color: #c0caf5;
+    color: @blue;
 }

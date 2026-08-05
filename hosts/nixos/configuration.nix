@@ -1,41 +1,29 @@
 { config, pkgs, inputs, username, hostname, system, ... }:
 
-
 {
   imports = [
-    # Hyprland NixOS module from the flake for the most up-to-date version
+
     inputs.hyprland.nixosModules.default
   ];
-  # Disable user session freezing during sleep
+
    systemd.services.systemd-suspend.environment.SYSTEMD_SLEEP_FREEZE_USER_SESSIONS = "false";
 
-   
-   # boot.kernelPackages is set in gaming.nix (CachyOS kernel via chaotic-nyx).
-   # One owner per path — don't also set it here.
    boot.kernelModules = [ "nct6775" ];
-   
+
    systemd.sleep.settings.Sleep = {
     AllowSuspend = "no";
     AllowHibernation = "no";
     AllowHybridSleep = "no";
     AllowSuspendThenHibernate = "no";
     };
-  # ── Boot ──────────────────────────────────────────────────────────────────
+
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.systemd-boot.configurationLimit = 3;
 
-  # ── Storage ───────────────────────────────────────────────────────────────
-  # The music drive (exFAT, label "Backup", sdc1, UUID 6087-5FAB) is left to
-  # udisks so it stays a normal removable drive at
-  # /run/media/${username}/Backup. Deliberately NOT declared in fileSystems —
-  # an fstab entry would take it away from udisks and change the path.
-  # See services.udiskie in home.nix, which mounts it automatically at login.
-
-  # ── Networking ────────────────────────────────────────────────────────────
   networking.hostName            = hostname;
   networking.networkmanager.enable = true;
-  # ── Locale / Time ─────────────────────────────────────────────────────────
+
   time.timeZone      = "Europe/Stockholm";
   i18n.defaultLocale = "en_US.UTF-8";
   i18n.extraLocaleSettings = {
@@ -50,8 +38,6 @@
     LC_TIME           = "en_US.UTF-8";
   };
 
-  # ── Display / Desktop ─────────────────────────────────────────────────────
-  # X server (required by SDDM even in Wayland mode)
   services.xserver = {
     enable      = true;
     xkb.layout  = "us";
@@ -59,49 +45,45 @@
 
   zramSwap = {
     enable = true;
-    memoryPercent = 50;   # zram device sized at 50% of RAM (~7.7G for you)
-    # algorithm = "zstd"; # default, fine to omit
+    memoryPercent = 50;
+
   };
   services.xserver.videoDrivers = [ "nvidia" ];
 
   hardware.graphics = {
     enable      = true;
-    enable32Bit = true;   # Steam/Wine 32-bit GL
+    enable32Bit = true;
   };
   hardware.nvidia = {
   modesetting.enable = true;
-  open = true;                 # open kernel module, correct for Ampere
+  open = true;
   package = config.boot.kernelPackages.nvidiaPackages.latest;
 };
 
-  # SDDM — shared greeter for both KDE and Hyprland sessions
   services.displayManager.sddm = {
     enable         = true;
     wayland.enable = true;
-    theme          = "breeze"; # ships with plasma-workspace
+    theme          = "breeze";
   };
   services.prowlarr = {
     enable = true;
-    openFirewall = true; # Opens port 9696 by default
+    openFirewall = true;
   };
   services.flaresolverr = {
     enable = true;
-    openFirewall = true; # Ensures port 8191 is exposed to your local network
+    openFirewall = true;
   };
-  # KDE Plasma 6
+
   services.desktopManager.plasma6.enable = true;
   programs.coolercontrol.enable = true;
   services.resolved.enable = true;
-  # Hyprland (from flake input — keeps it in sync with home-manager module)
+
   programs.hyprland = {
     enable         = true;
     package        = inputs.hyprland.packages.${system}.hyprland;
     xwayland.enable = true;
   };
 
-  # ── XDG Portals ───────────────────────────────────────────────────────────
-  # KDE provides xdg-desktop-portal-kde; Hyprland needs its own portal.
-  # lxqt-portals.conf (or the portal's own config) handles per-session routing.
   xdg.portal = {
     enable = true;
     config = {
@@ -111,23 +93,9 @@
     };
   };
 
-  # ── System Services ───────────────────────────────────────────────────────
   services.dbus.enable       = true;
   security.polkit.enable     = true;
 
-  # udisks2: allow a locally logged-in, ACTIVE session to mount/unmount
-  # removable media without an authentication prompt.
-  #
-  # Why: hyprpolkitagent authenticates fine (pkexec prompts normally), but
-  # Dolphin's udisks path still reported "PolicyKit authentication system
-  # appears to be not available" — the agent starts a couple of seconds into
-  # the session, so anything asking earlier misses it. This removes the
-  # question entirely rather than racing it, and also unblocks MPD reaching
-  # the music library on the external drive.
-  #
-  # Tradeoff: any locally logged-in active user can mount/unmount without a
-  # password. Standard for a single-user desktop. To tighten it, add
-  # `&& subject.isInGroup("wheel")` to the condition below.
   security.polkit.extraConfig = ''
     polkit.addRule(function(action, subject) {
       if (action.id.indexOf("org.freedesktop.udisks2.") === 0 &&
@@ -139,37 +107,28 @@
   services.printing.enable   = true;
   services.gvfs.enable       = true;
   services.udisks2.enable    = true;
-  # Bluetooth
+
   hardware.bluetooth = {
     enable      = false;
     powerOnBoot = false;
   };
   services.blueman.enable = false;
 
-  # ── Audio (PipeWire) ──────────────────────────────────────────────────────
-  # Moved to audio.nix (owns rtkit + the whole services.pipewire tree,
-  # including the hi-res allowed-rates config). One owner per path.
-
-  # ── Virtualisation ────────────────────────────────────────────────────────
   virtualisation.docker = {
     enable           = true;
     enableOnBoot     = true;
   };
 
-  # ── Users ─────────────────────────────────────────────────────────────────
   users.users.${username} = {
     isNormalUser = true;
     description  = username;
-    # Pinned rather than auto-allocated. exFAT mounts synthesise ownership from
-    # a uid= mount option (see media.nix), so if this ever shifted on a fresh
-    # install the external drives would silently become read-only.
+
     uid          = 1001;
     extraGroups  = [ "wheel" "networkmanager" "docker" "audio" "video" "input" ];
     shell        = pkgs.fish;
   };
   programs.fish.enable = true;
 
-  # ── Nix Settings ──────────────────────────────────────────────────────────
   nixpkgs.overlays = [ inputs.zig-overlay.overlays.default ];
   nixpkgs.config.allowUnfree = true;
 
@@ -177,7 +136,7 @@
     settings = {
       experimental-features = [ "nix-command" "flakes" ];
       auto-optimise-store   = true;
-      # Hyprland Cachix — speeds up Hyprland builds
+
       substituters          = [
         "https://cache.nixos.org"
         "https://hyprland.cachix.org"
@@ -187,41 +146,33 @@
         "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc="
       ];
     };
-    # gc block removed — nh clean owns garbage collection now (dev.nix).
-    # programs.nh.clean refuses to coexist with nix.gc.automatic, so this
-    # must stay out.
+
   };
 
-  # ── System Packages ───────────────────────────────────────────────────────
   environment.systemPackages = with pkgs; [
-    # Browser
+
     inputs.zen-browser.packages.${system}.default
     pkgs.coolercontrol.coolercontrol-gui
     pkgs.spotify
     inputs.helium.defaultPackage.${system}
-    # zig + zls → modules/dev-langs.nix (one owner per toolchain)
 
-    # Core utils
-    git curl wget jq tree unzip zip     # gh → dev-home.nix (programs.gh)
-    htop btop ripgrep fd nicotine-plus  # fzf → dev-home.nix (fish keybinds wired)
-    gcc gnumake pkg-config podman       # comma → dev-home.nix (nix-index db wired)
+    git curl wget jq tree unzip zip
+    htop btop ripgrep fd nicotine-plus
+    gcc gnumake pkg-config podman
     gparted tauon obs-studio
 
-    # Runtimes / languages
     nodejs_22
-    # python313 + uv/ruff/pyright → modules/dev-langs.nix
-    # (pip/virtualenv dropped: uv supersedes both)
+
     go
     rustup
     lua
     fastfetch
     cmake
-    # sbcl + ocicl → modules/dev-langs.nix
+
     luarocks
     chromium
     lm_sensors
-    # davinci-resolve-studio removed — davinci.nix wraps the free
-    # davinci-resolve; this line was a leftover installing BOTH editions.
+
     weechat
     tor
     tor-browser
@@ -229,14 +180,9 @@
     vesktop
     calibre
 
-    # Editors
     neovim
     vscode
 
-    # Shell / env: direnv + nix-direnv removed — home.nix's programs.direnv
-    # already owns them (they were double-installed here).
-
-    # Hyprland / Wayland stack
     waybar
     dunst
     haruna
@@ -260,10 +206,7 @@
     hyprlock
     hyprpolkitagent
     kdePackages.qt6ct
-    # Polkit agent — KDE's agent works in both sessions
-    # kdePackages.polkit-kde-agent-1
 
-    # File managers / terminal tools
     ranger
     yazi
     broot
@@ -272,9 +215,8 @@
     (flameshot.override { enableWlrSupport = true; })
     gammastep
     rmpc
-    exfatprogs      # fsck.exfat for the /mnt/backup music drive
+    exfatprogs
 
-    # KDE integration helpers (useful even when using Hyprland)
     kdePackages.dolphin
     kdePackages.ark
     kdePackages.kate
@@ -283,7 +225,6 @@
     kdePackages.ksystemlog
   ];
 
-  # ── Fonts ─────────────────────────────────────────────────────────────────
   fonts = {
     enableDefaultPackages = true;
     packages = with pkgs; [
@@ -302,10 +243,9 @@
     };
   };
 
-  # ── Misc Programs ─────────────────────────────────────────────────────────
   programs.git.enable    = true;
-  programs.nix-ld.enable = true;         # run unpatched dynamic binaries
-  programs.dconf.enable  = true;         # required by some GTK apps under KDE/Hyprland
+  programs.nix-ld.enable = true;
+  programs.dconf.enable  = true;
 
   system.stateVersion = "24.05";
 }

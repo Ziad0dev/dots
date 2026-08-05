@@ -10,10 +10,9 @@
     in {
       devShells.${system}.default = pkgs.mkShell {
         packages = with pkgs; [
-          # Declare this project's Lisp systems here. Browse the set with:
-          #   nix repl -f '<nixpkgs>'   then   sbclPackages.<TAB>
+
           (sbcl.withPackages (ps: with ps; [
-            swank            # required for nvlime / slime
+            swank
             alexandria
           ]))
           rlwrap

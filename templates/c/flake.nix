@@ -9,21 +9,19 @@
       pkgs = import nixpkgs { inherit system; };
     in {
       devShells.${system}.default = pkgs.mkShell.override {
-        # clang stdenv so clangd and the compiler agree on include paths —
-        # the single most common source of phantom red squiggles.
+
         stdenv = pkgs.clangStdenv;
       } {
         packages = with pkgs; [
-          clang-tools    # clangd, clang-format, clang-tidy
+          clang-tools
           mold
-          bear           # `bear -- make`  →  compile_commands.json
+          bear
           meson ninja cmake
           gdb lldb
           valgrind
           pkg-config
         ];
 
-        # mold as linker. Remove if a project's build system fights it.
         NIX_CFLAGS_LINK = "-fuse-ld=mold";
 
         shellHook = ''

@@ -22,7 +22,7 @@
     horizontal_padding = 8
     text_icon_padding = 0
     frame_width = 2
-    frame_color = "#8B0000"
+    frame_color = "#393939"
     separator_color = frame
     sort = yes
     font = FiraCode Nerd Font 10
@@ -63,19 +63,19 @@
     mouse_right_click = close_all
 
 [urgency_low]
-    background = "#100000"
-    foreground = "#FFFFFF"
+    background = "#161616"
+    foreground = "#f2f4f8"
     timeout = 5
-    frame_color = "#8B0000"
+    frame_color = "#393939"
 
 [urgency_normal]
-    background = "#100000"
-    foreground = "#FFFFFF"
+    background = "#161616"
+    foreground = "#f2f4f8"
     timeout = 10
-    frame_color = "#8B0000"
+    frame_color = "#393939"
 
 [urgency_critical]
-    background = "#8B0000"
-    foreground = "#FFFFFF"
-    frame_color = "#FF0000"
+    background = "#262626"
+    foreground = "#f2f4f8"
+    frame_color = "#ee5396"
     timeout = 0
