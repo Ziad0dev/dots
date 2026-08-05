@@ -1,24 +1,4 @@
 {
-  # ───────────────────────────────────────────────────────────────────────
-  # Python dev environment — self-contained template flake
-  #
-  # Location:   ~/dots/templates/python/flake.nix   (this file, committed)
-  #
-  # This flake is self-referential: it IS the dev environment *and* it
-  # exposes itself as a template, so no changes to your root dots flake
-  # are strictly required.
-  #
-  # New project:
-  #   mkdir ~/projects/thing && cd ~/projects/thing
-  #   nix flake init -t path:$HOME/dots/templates/python
-  #   git init && git add . && direnv allow    # .envrc is auto-created
-  #
-  # Optional nicety — short alias via the registry (system or HM config):
-  #   nix.registry.pydev.to = {
-  #     type = "git"; url = "file:///home/ziad0dev/dots"; dir = "templates/python";
-  #   };
-  # then:  nix flake init -t pydev
-  # ───────────────────────────────────────────────────────────────────────
 
   description = "Python devshell: nix-first with uv escape hatch";
 
@@ -31,7 +11,7 @@
         (system: f nixpkgs.legacyPackages.${system});
     in
     {
-      # This flake offers itself as a template.
+
       templates = {
         python = {
           path = ./.;
@@ -42,33 +22,26 @@
 
       devShells = eachSystem (pkgs:
         let
-          # ── Tier 1: pure nix — everything that exists in nixpkgs ──────
-          # Check availability:  nix search nixpkgs python312Packages.<name>
+
           python = pkgs.python312.withPackages (ps: with ps; [
             requests
-            # numpy
-            # httpx
-            # rich
+
           ]);
         in
         {
           default = pkgs.mkShell {
             packages = [
               python
-              pkgs.ruff        # lint + format (replaces black/flake8/isort)
-              pkgs.pyright     # LSP — matches the nvim lsp setup
-              pkgs.uv          # tier-2 escape hatch below
+              pkgs.ruff
+              pkgs.pyright
+              pkgs.uv
             ];
 
-            # ── Tier 2: uv/pip wheels missing from nixpkgs ───────────────
-            # manylinux wheels dlopen system libs at FHS paths that don't
-            # exist on NixOS; exposing them here makes `uv pip install`
-            # just work inside the shell.
             env.LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath [
-              pkgs.stdenv.cc.cc.lib   # libstdc++ (numpy/scipy/torch wheels)
+              pkgs.stdenv.cc.cc.lib
               pkgs.zlib
               pkgs.openssl
-              # pkgs.libGL            # opencv / anything GL
+
             ];
 
             shellHook = ''

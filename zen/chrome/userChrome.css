@@ -1,0 +1,8 @@
+/* ~/dots/zen/chrome/userChrome.css */
+@import "nebula-loader.css";      /* Nebula core */
+@import "url-bar-tweaks.css";     /* your recovered mod */
+
+/* No Tab X */
+.tabbrowser-tab .tab-close-button {
+  visibility: collapse !important;
+}

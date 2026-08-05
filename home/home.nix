@@ -1,12 +1,9 @@
 { config, pkgs, lib, inputs, username, system, ... }:
 
 let
-  # Local clone of github:Ziad0dev/dots — edits here are live, no rebuild needed.
-  # Clone once with:
-  #   git clone https://github.com/Ziad0dev/dots ~/dots
+
   dotsPath = "/home/${username}/dots";
 
-  # Helper: live symlink into the source tree (instead of a copy into /nix/store).
   link = sub: config.lib.file.mkOutOfStoreSymlink "${dotsPath}/config/${sub}";
 in
 {
@@ -16,7 +13,6 @@ in
 
   programs.home-manager.enable = true;
 
-  # ── Session Variables ──────────────────────────────────────────────────
   home.sessionVariables = {
     EDITOR   = "nvim";
     VISUAL   = "nvim";
@@ -30,41 +26,29 @@ in
     _JAVA_AWT_WM_NONREPARENTING = "1";
   };
 
-  # ── Hyprland ───────────────────────────────────────────────────────────
-  # HM `wayland.windowManager.hyprland` is intentionally NOT used — it would
-  # collide with the symlinked dots/hypr directory. Hyprland is enabled
-  # system-wide in configuration.nix; the config in dots/hypr/hyprland.conf
-  # is read directly.
-
-  # ── Shell ──────────────────────────────────────────────────────────────
-  # bash kept enabled for the rare script that needs it; fish is the login shell.
   programs.bash.enable = true;
 
   programs.direnv = {
     enable            = true;
     nix-direnv.enable = true;
-    # programs.direnv auto-hooks fish, bash, and zsh when they're enabled.
+
   };
 
   programs.fish = {
     enable = true;
 
-    # Regular aliases — work like bash aliases.
     shellAliases = {
       ll     = "ls -l";
       la     = "ls -la";
       edit   = "sudo -e";
     };
 
-    # Fish abbreviations — expand inline when you hit space, so you SEE the
-    # full command before running it. Great for things you want to be
-    # deliberate about. Try them; you'll see the difference.
     shellAbbrs = {
-      update  = "nh os switch";                    # nh handles sudo itself; nom tree + diff
-      upall   = "nh os switch -u";                 # flake update + switch in one
+      update  = "nh os switch";
+      upall   = "nh os switch -u";
       flakeup = "nix flake update --flake /home/${username}/dots";
-      llm     = "sudo systemctl start llama-cpp";  # chat model :8080 — stop before gaming
-      fim     = "sudo systemctl start llama-fim";  # completion model :8012 (llama.vim)
+      llm     = "sudo systemctl start llama-cpp";
+      fim     = "sudo systemctl start llama-fim";
       llmoff  = "sudo systemctl stop llama-cpp llama-fim";
       g       = "git";
       gst     = "git status";
@@ -73,7 +57,6 @@ in
       gl      = "git pull";
     };
 
-    # Functions — for things that need arguments or loops, which abbrs can't do.
     functions = {
       dnx = {
         description = "Transcode video to DNxHR HQ for DaVinci Resolve";
@@ -89,7 +72,6 @@ in
     interactiveShellInit = "fish_vi_key_bindings";
   };
 
-  # ── Dotfile Symlinks (live — point at ~/dots, no rebuild on edits) ─────
   home.file = {
     ".config/hypr"      = { source = link "hypr"; };
     ".config/waybar"    = { source = link "waybar"; };
@@ -102,15 +84,13 @@ in
     ".config/ranger"    = { source = link "ranger"; };
     ".config/yazi"      = { source = link "yazi"; };
     ".config/broot"     = { source = link "broot"; };
-    # rmpc has no HM module, so dots owns its config.ron (live-editable).
-    # NOTE: ~/dots/rmpc/ must actually exist or this is a dangling symlink.
+
     ".config/rmpc"      = { source = link "rmpc"; };
     ".config/mpv"       = { source = link "mpv"; };
-    # .config/mpd and .config/mpdscribble are NOT symlinked — the HM modules
-    # below generate those files. One owner per path.
+    ".config/zen-theme"  = { source = link "zen"; };
+
   };
 
-  # ── Qt / GTK ───────────────────────────────────────────────────────────
   qt = {
     enable             = true;
     platformTheme.name = "kde";
@@ -122,14 +102,13 @@ in
     inputs.nixcord.homeModules.nixcord
     ./emacs.nix
     ./virt-home.nix
-    ./dev-home.nix     # comma, fzf/zoxide/lazygit/gh/bat, delta, lint tools
-    ./gaming-home.nix  # MangoHud declarative confiog
+    ./dev-home.nix
+    ./gaming-home.nix
   ];
 
-  # ── Discord / Vencord ──────────────────────────────────────────────────
   programs.nixcord = {
     enable = true;
-    vesktop.enable = true;        # Wayland-native client; screenshare works on Hyprland
+    vesktop.enable = true;
     discord.vencord.enable = true;
     discord.krisp.enable = true;
     config = {
@@ -154,35 +133,20 @@ in
     };
   };
 
-  # ── Packages: clipboard + BEAM + MPD client ────────────────────────────
-  # rmpc is NOT here — it's already in environment.systemPackages
-  # (configuration.nix). One owner per package.
   home.packages = let
     beamPkgs = pkgs.beam.packages.erlang_27;
   in (with pkgs; [
     cliphist
     wl-clipboard
-    mpc           # CLI: `mpc update` / `mpc stats` when debugging the library
+    mpc
   ]) ++ [
     beamPkgs.erlang
     beamPkgs.elixir
-    beamPkgs.elixir-ls   # if you added the LSP here rather than elsewhere
+    beamPkgs.elixir-ls
   ];
 
   services.cliphist.enable = true;
 
-  # ── Systemd session target ─────────────────────────────────────────────
-  # graphical-session.target is a virtual alias: systemd forbids starting it
-  # directly, and every compositor is expected to ship its own *-session
-  # target that "implements" it. The home-manager Hyprland module would
-  # provide one, but this config symlinks dots/hypr instead — so nothing
-  # did, and the target never went active. Everything hanging off it stayed
-  # dead at login: udiskie (drives unmounted), gsr-replay (no replay
-  # buffer), and anything else wantedBy graphical-session.target.
-  #
-  # BindsTo pulls graphical-session.target in as a dependency, which IS
-  # allowed even though starting it by hand is not. hyprland.lua starts
-  # this target from its hyprland.start handler.
   systemd.user.targets.hyprland-session = {
     Unit = {
       Description      = "Hyprland session";
@@ -194,13 +158,6 @@ in
     };
   };
 
-  # ── Removable media ────────────────────────────────────────────────────
-  # The three permanent externals are mounted declaratively in
-  # modules/storage.nix and modules/media.nix (/mnt/backup,
-  # /mnt/newvolume, /mnt/media), so
-  # udiskie must NOT also grab them — otherwise the same device can end up
-  # mounted twice at different paths. udiskie stays on for genuinely
-  # removable media: USB sticks, SD cards, phones.
   services.udiskie = {
     enable       = true;
     automount    = true;
@@ -208,27 +165,21 @@ in
     tray         = "auto";
     settings = {
       device_config = [
-        { id_uuid = "6087-5FAB"; ignore = true; }   # Backup     -> /mnt/backup
-        { id_uuid = "2A0B-58D1"; ignore = true; }   # 10TBackup  -> /mnt/media (media.nix)
-        { id_uuid = "4619-E5D1"; ignore = true; }   # New Volume -> /mnt/newvolume
+        { id_uuid = "6087-5FAB"; ignore = true; }
+        { id_uuid = "2A0B-58D1"; ignore = true; }
+        { id_uuid = "4619-E5D1"; ignore = true; }
       ];
     };
   };
 
-  # ── MPD ────────────────────────────────────────────────────────────────
-  # User-level daemon, so it inherits the session's PipeWire socket.
-  # A system-level services.mpd would run as user `mpd` and can't reach it.
   services.mpd = {
     enable         = true;
-    # The library actually lives on the 10 TB drive, which modules/media.nix
-    # mounts at /mnt/media for Jellyfin — NOT on the drive labelled "Backup".
-    # The old /run/media/.../Backup/music path pointed at a directory that
-    # doesn't exist, so MPD had an empty library.
+
     musicDirectory = "/mnt/media/music";
     network = {
       listenAddress   = "127.0.0.1";
       port            = 6600;
-      startWhenNeeded = true;              # socket-activated; rmpc's default target
+      startWhenNeeded = true;
     };
     extraConfig = ''
       restore_paused "yes"
@@ -259,12 +210,8 @@ in
     '';
   };
 
-  # MPD now has a real dependency on the music drive instead of hoping it's
-  # mounted. With x-systemd.automount this pulls the drive in on demand
-  # rather than forcing it up at boot.
   systemd.user.services.mpd.Unit.RequiresMountsFor = [ "/mnt/media" ];
 
-  # MPRIS bridge — lets playerctl / waybar see MPD as a normal player.
   services.mpdris2 = {
     enable        = true;
     mpd.host      = "127.0.0.1";
@@ -272,11 +219,6 @@ in
     multimediaKeys = true;
   };
 
-  # Last.fm scrobbling. The password file lives OUTSIDE the repo — dots is public.
-  # Create it once with:
-  #   mkdir -p ~/.local/share/secrets
-  #   echo -n 'your-lastfm-password' > ~/.local/share/secrets/mpdscribble
-  #   chmod 600 ~/.local/share/secrets/mpdscribble
   services.mpdscribble = {
     enable = true;
     endpoints."last.fm" = {
@@ -285,12 +227,4 @@ in
     };
   };
 
-  # ── Hyprland autostart reminder ────────────────────────────────────────
-  # Daemons that need configs from dots are started from
-  # ~/dots/hypr/hyprland.conf via `exec-once`, e.g.:
-  #   exec-once = dunst
-  #   exec-once = gammastep
-  #   exec-once = waybar
-  #   exec-once = dbus-update-activation-environment --systemd --all
-  #   exec-once = systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP HYPRLAND_INSTANCE_SIGNATURE
 }

@@ -13,9 +13,7 @@
       devShells.${system}.default = pkgs.mkShell {
         packages = [
           (hs.ghcWithPackages (ps: [
-            # reduceron: uncomment for Clash RTL work
-            # ps.clash-prelude
-            # ps.clash-ghc
+
           ]))
           hs.cabal-install
           hs.haskell-language-server

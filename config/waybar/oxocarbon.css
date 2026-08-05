@@ -1,0 +1,37 @@
+/* ═══════════════════════════════════════════════════════════════════
+   oxocarbon — base16 palette by shaunsingh/IBM
+   Single source of truth for waybar colour. Edit here, not in style.css.
+   @import'd at the top of style.css.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* base16 slots, verbatim from nyoom-engineering/base16-oxocarbon */
+@define-color base00 #161616;  /* bg            */
+@define-color base01 #262626;  /* bg lighter    */
+@define-color base02 #393939;  /* selection     */
+@define-color base03 #525252;  /* comment/dim   */
+@define-color base04 #dde1e6;  /* fg dim        */
+@define-color base05 #f2f4f8;  /* fg            */
+@define-color base06 #ffffff;  /* fg bright     */
+@define-color base07 #08bdba;  /* teal          */
+@define-color base08 #3ddbd9;  /* cyan          */
+@define-color base09 #78a9ff;  /* blue soft     */
+@define-color base0A #ee5396;  /* pink  ← primary accent */
+@define-color base0B #33b1ff;  /* blue  ← secondary accent */
+@define-color base0C #ff7eb6;  /* pink light    */
+@define-color base0D #42be65;  /* green         */
+@define-color base0E #be95ff;  /* purple        */
+@define-color base0F #82cfff;  /* blue pale     */
+
+/* Semantic aliases — modules reference THESE, so retheming later means
+   changing one line rather than hunting selectors. */
+@define-color accent    @base0A;   /* was tokyo-night #ff9e64 */
+@define-color accent2   @base0B;
+@define-color teal      @base07;
+@define-color cyan      @base08;
+@define-color purple    @base0E;
+@define-color green     @base0D;
+@define-color blue      @base09;
+@define-color pale      @base0F;
+@define-color fg        @base05;
+@define-color fg_dim    @base04;
+@define-color muted     @base03;
