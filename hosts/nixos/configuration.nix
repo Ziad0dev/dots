@@ -108,6 +108,10 @@
   services.gvfs.enable       = true;
   services.udisks2.enable    = true;
 
+  # iOS device access over USB. Provides usbmuxd.service, the usbmux user,
+  # and the udev rules that let a local user reach /var/run/usbmuxd.
+  services.usbmuxd.enable    = true;
+
   hardware.bluetooth = {
     enable      = false;
     powerOnBoot = false;
@@ -216,6 +220,10 @@
     gammastep
     rmpc
     exfatprogs
+
+    usbutils
+    libimobiledevice
+    ifuse
 
     kdePackages.dolphin
     kdePackages.ark
