@@ -93,6 +93,17 @@
       ];
     };
 
+    nixosConfigurations.claude-vm = nixpkgs.lib.nixosSystem {
+      inherit system;
+      specialArgs = {
+        inherit inputs system;
+        username = "dev";
+        hostname = "claude-vm";
+      };
+
+      modules = [ ./hosts/claude-vm ];
+    };
+
     templates = {
       zig     = { path = ./templates/zig;     description = "Zig (zig-overlay) + zls"; };
       rust    = { path = ./templates/rust;    description = "Rust stable + rust-analyzer"; };
