@@ -321,7 +321,6 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("awww-daemon")   -- restores cached wallpaper on start
     hl.exec_cmd("flameshot")
     hl.exec_cmd("gammastep")
-    hl.exec_cmd("hypridle")      -- idle -> dpms off -> hyprlock
 end)
 
 -- Tear the session down on exit so a re-login gets a clean target state.
