@@ -100,6 +100,7 @@
       beam    = { path = ./templates/beam;    description = "Elixir OTP-matched + elixir-ls"; };
       c       = { path = ./templates/c;       description = "C/C++ clangStdenv + clangd + mold + bear"; };
       lisp    = { path = ./templates/lisp;    description = "SBCL + ocicl (project-local systems)"; };
+      python  = { path = ./templates/python;  description = "Python nix-first + uv escape hatch"; };
     };
   };
 }
