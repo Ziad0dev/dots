@@ -163,7 +163,7 @@
     git curl wget jq tree unzip zip
     htop btop ripgrep fd nicotine-plus
     gcc gnumake pkg-config podman
-    gparted tauon obs-studio 
+    gparted tauon obs-studio jrnl 
 
     nodejs_22
 
