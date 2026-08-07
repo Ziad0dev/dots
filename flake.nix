@@ -63,6 +63,7 @@
         ./modules/virt.nix
         ./modules/gaming.nix
         ./modules/llm.nix
+        ./modules/ollama.nix
         ./modules/davinci.nix
         ./modules/audio.nix
         ./modules/dev.nix
