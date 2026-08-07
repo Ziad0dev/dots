@@ -208,6 +208,29 @@ in
     Install.WantedBy = [ "graphical-session.target" ];
   };
 
+  systemd.user.services.lastfm-secret = {
+    Unit = {
+      Description = "Materialize the last.fm password from secretspec";
+      PartOf      = [ "graphical-session.target" ];
+      After       = [ "graphical-session.target" ];
+      Before      = [ "mpdscribble.service" ];
+    };
+    Service = {
+      Type             = "oneshot";
+      RemainAfterExit  = true;
+      WorkingDirectory = "%h/dots";
+      ExecStart = toString (pkgs.writeShellScript "lastfm-secret" ''
+        set -eu
+        umask 077
+        mkdir -p "$HOME/.local/share/secrets"
+        v=$(${pkgs.secretspec}/bin/secretspec get LASTFM_PASSWORD)
+        [ -n "$v" ] || { echo "secretspec returned nothing, refusing to write" >&2; exit 1; }
+        printf '%s' "$v" > "$HOME/.local/share/secrets/mpdscribble"
+      '');
+    };
+    Install.WantedBy = [ "graphical-session.target" ];
+  };
+
   services.udiskie = {
     enable       = true;
     automount    = true;

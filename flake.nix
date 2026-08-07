@@ -73,6 +73,7 @@
         ./modules/mullvad.nix
         ./modules/media-extras.nix
         ./modules/performance.nix
+        ./modules/secrets.nix
         ./modules/storage.nix
         ./modules/hdr.nix
         ./modules/dev-langs.nix
