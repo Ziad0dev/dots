@@ -301,6 +301,26 @@ hl.bind(mainMod .. " + SHIFT + R", hl.dsp.exec_cmd("hyprctl reload"))
 hl.bind(mainMod .. " + CTRL + L",  hl.dsp.exec_cmd("hyprlock"))
 
 --------------------------------------------------------------------------
+---- WINDOW RULES
+--------------------------------------------------------------------------
+-- Zathura. decoration.inactive_opacity is 0.95 globally, which is fine for
+-- terminals and miserable for body text you're reading for an hour. The
+-- override keyword makes these absolute rather than multiplicative.
+hl.window_rule({
+    name    = "zathura-readable",
+    match   = { class = "^(org\\.pwmt\\.zathura)$" },
+    opacity = "1.0 override 1.0 override 1.0 override",
+    no_blur = true,
+})
+
+-- Separate call on purpose: if this effect key is wrong on your build, the
+-- error pops a notification and the opacity rule above still applies.
+hl.window_rule({
+    match        = { class = "^(org\\.pwmt\\.zathura)$" },
+    idle_inhibit = "fullscreen",
+})
+
+--------------------------------------------------------------------------
 ---- AUTOSTART
 --------------------------------------------------------------------------
 hl.on("hyprland.start", function()

@@ -91,6 +91,14 @@ in
       gco     = "git checkout";
       gp      = "git push";
       gl      = "git pull";
+
+      # Documents. The templates' `nix build` / `nix run` cover project work;
+      # these are for one-off files outside a flake.
+      tw      = "typst watch";
+      tc      = "typst compile";
+      tf      = "typstyle -i";
+      lmk     = "latexmk -pdf -pvc -interaction=nonstopmode";
+      lmc     = "latexmk -C";
     };
 
     functions = {
@@ -140,6 +148,7 @@ in
     ./virt-home.nix
     ./dev-home.nix
     ./gaming-home.nix
+    ./documents.nix
   ];
 
   programs.nixcord = {
