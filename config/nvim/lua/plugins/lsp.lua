@@ -57,6 +57,29 @@ return {
         },
       })
 
+      vim.lsp.config("tinymist", {
+        settings = {
+          -- "onSave" drops a PDF next to the source on every write; preview
+          -- and `typst compile` both work regardless, so leave it off.
+          exportPdf = "never",
+          formatterMode = "typstyle",
+          formatterPrintWidth = 90,
+          semanticTokens = "disable",   -- treesitter already highlights typst
+        },
+      })
+
+      -- Build is off: latexmk is driven by vimtex, and letting texlab also
+      -- build means two latexmk processes fighting over build/.
+      vim.lsp.config("texlab", {
+        settings = {
+          texlab = {
+            build = { onSave = false, forwardSearchAfter = false },
+            chktex = { onOpenAndSave = true, onEdit = false },
+            diagnosticsDelay = 300,
+          },
+        },
+      })
+
       -- server name -> binary it needs (skip-enable if binary absent)
       local servers = {
         lua_ls = "lua-language-server",
@@ -67,6 +90,8 @@ return {
         zls = "zls",
         clangd = "clangd",
         ruff = "ruff",          -- lint/format as an LSP; pairs with pyright
+        tinymist = "tinymist",  -- Typst
+        texlab = "texlab",      -- LaTeX
         -- ty = "ty",           -- Astral's checker; still beta, enable alongside
       }
       for server, bin in pairs(servers) do
