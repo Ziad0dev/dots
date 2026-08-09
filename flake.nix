@@ -45,6 +45,14 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Reproducible Typst builds. Consumed by templates/typst, not by the
+    # host config — pinned here so `nix flake init -t .#typst` resolves
+    # against a revision this repo has actually locked.
+    typix = {
+      url = "github:loqusion/typix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
   };
 
   outputs = inputs@{ self, nixpkgs, home-manager, hyprland, zen-browser, chaotic, ... }:
@@ -114,6 +122,8 @@
       c       = { path = ./templates/c;       description = "C/C++ clangStdenv + clangd + mold + bear"; };
       lisp    = { path = ./templates/lisp;    description = "SBCL + ocicl (project-local systems)"; };
       python  = { path = ./templates/python;  description = "Python nix-first + uv escape hatch"; };
+      typst   = { path = ./templates/typst;   description = "Typst + typix reproducible builds"; };
+      latex   = { path = ./templates/latex;   description = "LaTeX latexmk + reproducible nix build"; };
     };
   };
 }

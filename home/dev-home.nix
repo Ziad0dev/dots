@@ -23,5 +23,6 @@
     nixfmt
     statix
     deadnix
+    devenv
   ];
 }

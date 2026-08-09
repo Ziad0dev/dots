@@ -240,8 +240,20 @@
       nerd-fonts.jetbrains-mono
       noto-fonts
       noto-fonts-cjk-sans
+      noto-fonts-cjk-serif
       noto-fonts-color-emoji
       font-awesome
+
+      # Document authoring. Typst embeds New Computer Modern, Libertine and
+      # DejaVu Sans Mono internally, so it renders without any of these — they
+      # matter for documents that deviate from the defaults, and for typix
+      # builds, which are hermetic and only see the font paths handed to them.
+      newcomputermodern
+      libertinus          # Libertinus Serif/Sans/Math
+      stix-two            # STIX Two Math
+      lmodern             # Latin Modern, for TeX-alike output in Typst
+      dejavu_fonts
+      liberation_ttf
     ];
     fontconfig.defaultFonts = {
       monospace  = [ "FiraCode Nerd Font Mono" ];
