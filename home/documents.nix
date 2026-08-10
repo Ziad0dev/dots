@@ -124,6 +124,17 @@ in
     };
   };
 
+  # This module owns ~/.config/mimeapps.list outright ("one owner per path").
+  #
+  # Without force, activation tried to move the existing file aside using
+  # backupFileExtension = "backup" and died because mimeapps.list.backup was
+  # already there from an earlier run:
+  #   Existing file '~/.config/mimeapps.list.backup' would be clobbered by
+  #   backing up '~/.config/mimeapps.list'
+  # force overwrites instead of backing up, so it cannot recur. Delete the
+  # stale artefact once:  rm ~/.config/mimeapps.list.backup
+  xdg.configFile."mimeapps.list".force = true;
+
   # Keeps a bare `latexmk` behaving identically to the one vimtex drives.
   # -synctex=1 has to be on the $pdflatex line too, not just the CLI flags,
   # or forward search silently finds no .synctex.gz.
