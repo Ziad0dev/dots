@@ -2,8 +2,10 @@
 
 {
 
+ 
   boot.kernelPackages = pkgs.linuxPackages_cachyos;
 
+  
   services.scx = {
     enable    = true;
     scheduler = "scx_lavd";
