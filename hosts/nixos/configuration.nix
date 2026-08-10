@@ -20,7 +20,6 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.systemd-boot.configurationLimit = 3;
-
   networking.hostName            = hostname;
   networking.networkmanager.enable = true;
 
@@ -37,6 +36,8 @@
     LC_TELEPHONE      = "en_US.UTF-8";
     LC_TIME           = "en_US.UTF-8";
   };
+
+  services.flatpak.enable = true;
 
   services.xserver = {
     enable      = true;
@@ -55,10 +56,27 @@
     enable32Bit = true;
   };
   hardware.nvidia = {
-  modesetting.enable = true;
-  open = true;
-  package = config.boot.kernelPackages.nvidiaPackages.latest;
-};
+    modesetting.enable = true;
+    open = true;
+
+    # WAS: config.boot.kernelPackages.nvidiaPackages.latest
+    #
+    # boot.kernelPackages is chaotic's linuxPackages_cachyos, so that attribute
+    # path resolves inside CHAOTIC's package scope, which never receives this
+    # host's nixpkgs.config. hardware/graphics.nix evaluates this package while
+    # building the /run/opengl-driver tmpfiles entry, which is where the
+    # "Refusing to evaluate nvidia-x11 ... unfreeRedistributable" error came
+    # from -- allowUnfree here could not reach it, which is why only
+    # NIXPKGS_ALLOW_UNFREE=1 (read via builtins.getEnv, so it gates every
+    # nixpkgs instance) ever worked.
+    #
+    # pkgs.nvidia_cachyos is a plain pkgs attribute, so allowUnfree below
+    # applies, AND chaotic builds it against linuxPackages_cachyos so the
+    # kernel module ABI still matches. Do NOT substitute
+    # pkgs.linuxPackages.nvidiaPackages.latest: it evaluates fine but builds
+    # the module against the vanilla kernel.
+    package = pkgs.nvidia_cachyos;
+  };
 
   services.displayManager.sddm = {
     enable         = true;
@@ -135,6 +153,11 @@
 
   nixpkgs.overlays = [ inputs.zig-overlay.overlays.default ];
   nixpkgs.config.allowUnfree = true;
+
+  # Belt-and-braces alongside allowUnfree: a different code path through
+  # check-meta. Harmless to keep both; drop it if a pure `nh os switch`
+  # succeeds without it.
+  nixpkgs.config.allowUnfreePredicate = _: true;
 
   nix = {
     settings = {
