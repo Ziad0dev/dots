@@ -78,7 +78,15 @@ hl.config({
     },
 
     cursor = {
-        no_hardware_cursors = true,
+        -- WAS: no_hardware_cursors = true. That forced software cursors on BOTH
+        -- outputs (hyprctl monitors -> hardwareCursorsInUse: false), so every
+        -- pointer move recomposited the whole 2560x1440 surface at 240 Hz.
+        -- Measured cost: nvidia-smi dmon sm 10-34% just moving the mouse.
+        -- On NVIDIA the HW cursor plane needs a CPU-mapped buffer, hence
+        -- use_cpu_buffer. Verify after reload:
+        --   hyprctl monitors | grep hardwareCursorsInUse   -> want true, true
+        no_hardware_cursors = false,
+        use_cpu_buffer      = true,
     },
 })
 
@@ -114,8 +122,10 @@ hl.config({
         -- Blur (dual_kawase-ish, ported from picom days)
         blur = {
             enabled            = true,
-            size               = 2,
-            passes             = 4,
+            size               = 3,
+            passes             = 2,   -- WAS 4. Passes are ~quadratic in cost at
+                                      -- 1440p240; size 3 / passes 2 looks nearly
+                                      -- identical to size 2 / passes 4.
             new_optimizations  = true,
             xray               = false,
             ignore_opacity     = true,
@@ -144,27 +154,30 @@ hl.curve("overshot", { type = "bezier", points = { {0.05, 0.9}, {0.1, 1.1}   } }
 hl.curve("bounce",   { type = "bezier", points = { {1, 1.6},    {0.1, 0.85}  } })
 hl.curve("sligshot", { type = "bezier", points = { {1, -1},     {0.15, 1.25} } })
 hl.curve("nice",     { type = "bezier", points = { {0, 1.9},    {0.5, -1.0} } })
+-- Front-loaded curve: most of the travel happens in the first third, so the
+-- motion reads as "already done" even though it is still settling.
+hl.curve("snap",     { type = "bezier", points = { {0.2, 0.9},  {0.3, 1.0}   } })
 
 -- Windows
-hl.animation({ leaf = "windowsIn",   enabled = true, speed = 4, bezier = "winIn",  style = "popin" })
-hl.animation({ leaf = "windowsOut",  enabled = true, speed = 4, bezier = "winOut", style = "popin" })
-hl.animation({ leaf = "windowsMove", enabled = true, speed = 4, bezier = "wind",   style = "slide" })
+hl.animation({ leaf = "windowsIn",   enabled = true, speed = 2, bezier = "snap",  style = "popin 80%" })
+hl.animation({ leaf = "windowsOut",  enabled = true, speed = 2, bezier = "snap",   style = "popin 80%" })
+hl.animation({ leaf = "windowsMove", enabled = true, speed = 2, bezier = "snap",   style = "slide" })
 
 -- Fades
-hl.animation({ leaf = "fadeIn",     enabled = true, speed = 4, bezier = "slow" })
-hl.animation({ leaf = "fadeOut",    enabled = true, speed = 4, bezier = "slow" })
-hl.animation({ leaf = "fadeSwitch", enabled = true, speed = 4, bezier = "slow" })
-hl.animation({ leaf = "fadeShadow", enabled = true, speed = 4, bezier = "slow" })
-hl.animation({ leaf = "fadeDim",    enabled = true, speed = 4, bezier = "slow" })
+hl.animation({ leaf = "fadeIn",     enabled = true, speed = 2, bezier = "snap" })
+hl.animation({ leaf = "fadeOut",    enabled = true, speed = 2, bezier = "snap" })
+hl.animation({ leaf = "fadeSwitch", enabled = true, speed = 1, bezier = "snap" })
+hl.animation({ leaf = "fadeShadow", enabled = true, speed = 1, bezier = "snap" })
+hl.animation({ leaf = "fadeDim",    enabled = true, speed = 1, bezier = "snap" })
 
 -- Border
-hl.animation({ leaf = "border", enabled = true, speed = 10, bezier = "linear" })
+hl.animation({ leaf = "border", enabled = true, speed = 2, bezier = "linear" })
 -- borderangle loop = continuous GPU redraw; enable knowingly
 -- hl.animation({ leaf = "borderangle", enabled = true, speed = 120, bezier = "linear", style = "loop" })
 
 -- Workspaces
-hl.animation({ leaf = "workspaces",       enabled = true, speed = 5, bezier = "wind", style = "slidevert" })
-hl.animation({ leaf = "specialWorkspace", enabled = true, speed = 5, bezier = "wind", style = "slidevert" })
+hl.animation({ leaf = "workspaces",       enabled = true, speed = 2, bezier = "snap", style = "slidevert" })
+hl.animation({ leaf = "specialWorkspace", enabled = true, speed = 2, bezier = "snap", style = "slidevert" })
 
 --------------------------------------------------------------------------
 ---- LAYOUTS / GESTURES / MISC
@@ -194,8 +207,10 @@ hl.config({
         mouse_move_enables_dpms     = true,
         key_press_enables_dpms      = true,
         vrr                         = 2,
-        animate_manual_resizes      = true,
-        animate_mouse_windowdragging = true,
+        animate_manual_resizes      = false,  -- WAS true: animates on every
+        animate_mouse_windowdragging = false, -- pointer sample while dragging,
+                                              -- which is exactly where the lag
+                                              -- was most noticeable.
         enable_swallow              = true,
         swallow_regex               = "^(ghostty)$",
         focus_on_activate           = true,
