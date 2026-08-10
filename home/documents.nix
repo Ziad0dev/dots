@@ -121,14 +121,28 @@ in
       "application/postscript" = [ "org.pwmt.zathura.desktop" ];
       "application/epub+zip" = [ "org.pwmt.zathura.desktop" ];
       "application/x-pdf" = [ "org.pwmt.zathura.desktop" ];
+
+      # These four were previously set imperatively and lived only in
+      # ~/.config/mimeapps.list. force below makes home-manager own that file
+      # outright, so anything not declared here is silently dropped -- which
+      # would leave no http/https handler at all, and the GeForce NOW client
+      # hands its OAuth flow to whatever the default browser is.
+      #
+      # NOTE: GFN's login fails against Zen (Firefox-based) with a 400 at
+      # accounts.nvgs.nvidia.com/.../factor/challenge/verify. It needs a
+      # Chromium engine. Zen stays the daily driver here; for the occasional
+      # GFN re-auth, switch temporarily:
+      #   xdg-settings set default-web-browser helium.desktop
+      #   (log in, then set it back to zen-beta.desktop)
+      "x-scheme-handler/http" = [ "zen-beta.desktop" ];
+      "x-scheme-handler/https" = [ "zen-beta.desktop" ];
+      "text/html" = [ "zen-beta.desktop" ];
+      "x-scheme-handler/discord" = [ "vesktop.desktop" ];
     };
   };
 
-  # This module owns ~/.config/mimeapps.list outright ("one owner per path").
-  #
-  # Without force, activation tried to move the existing file aside using
-  # backupFileExtension = "backup" and died because mimeapps.list.backup was
-  # already there from an earlier run:
+  # Activation was failing because backupFileExtension = "backup" tried to move
+  # the existing mimeapps.list aside and mimeapps.list.backup already existed:
   #   Existing file '~/.config/mimeapps.list.backup' would be clobbered by
   #   backing up '~/.config/mimeapps.list'
   # force overwrites instead of backing up, so it cannot recur. Delete the
