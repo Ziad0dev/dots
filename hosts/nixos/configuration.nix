@@ -20,6 +20,22 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.systemd-boot.configurationLimit = 3;
+
+  # For the official NVIDIA GeForce NOW client, which is only distributed as a
+  # Flatpak (NVIDIA's .bin installer is a PyInstaller/Tk bundle that dies on
+  # NixOS with `ImportError: libxcb.so.1`, so add the remotes by hand instead):
+  #
+  #   flatpak remote-add --user --if-not-exists flathub \
+  #     https://flathub.org/repo/flathub.flatpakrepo
+  #   flatpak remote-add --user --if-not-exists GeForceNOW \
+  #     https://international.download.nvidia.com/GFNLinux/flatpak/geforcenow.flatpakrepo
+  #   flatpak install -y --user GeForceNOW com.nvidia.geforcenow
+  #
+  # Flathub is required even though the app lives on NVIDIA's remote: the
+  # matching org.freedesktop.Platform.GL.nvidia-<driver> extension and the
+  # freedesktop runtime come from Flathub.
+  services.flatpak.enable = true;
+
   networking.hostName            = hostname;
   networking.networkmanager.enable = true;
 
@@ -36,8 +52,6 @@
     LC_TELEPHONE      = "en_US.UTF-8";
     LC_TIME           = "en_US.UTF-8";
   };
-
-  services.flatpak.enable = true;
 
   services.xserver = {
     enable      = true;
@@ -59,22 +73,11 @@
     modesetting.enable = true;
     open = true;
 
-    # WAS: config.boot.kernelPackages.nvidiaPackages.latest
-    #
-    # boot.kernelPackages is chaotic's linuxPackages_cachyos, so that attribute
-    # path resolves inside CHAOTIC's package scope, which never receives this
-    # host's nixpkgs.config. hardware/graphics.nix evaluates this package while
-    # building the /run/opengl-driver tmpfiles entry, which is where the
-    # "Refusing to evaluate nvidia-x11 ... unfreeRedistributable" error came
-    # from -- allowUnfree here could not reach it, which is why only
-    # NIXPKGS_ALLOW_UNFREE=1 (read via builtins.getEnv, so it gates every
-    # nixpkgs instance) ever worked.
-    #
-    # pkgs.nvidia_cachyos is a plain pkgs attribute, so allowUnfree below
-    # applies, AND chaotic builds it against linuxPackages_cachyos so the
-    # kernel module ABI still matches. Do NOT substitute
-    # pkgs.linuxPackages.nvidiaPackages.latest: it evaluates fine but builds
-    # the module against the vanilla kernel.
+    # WAS config.boot.kernelPackages.nvidiaPackages.latest. That resolves inside
+    # chaotic's linuxPackages_cachyos scope. pkgs.nvidia_cachyos is a plain pkgs
+    # attribute and is built by chaotic against the CachyOS kernel, so the module
+    # ABI still matches. Do NOT use pkgs.linuxPackages.nvidiaPackages.latest --
+    # it evaluates, but builds against the vanilla kernel.
     package = pkgs.nvidia_cachyos;
   };
 
@@ -154,9 +157,12 @@
   nixpkgs.overlays = [ inputs.zig-overlay.overlays.default ];
   nixpkgs.config.allowUnfree = true;
 
-  # Belt-and-braces alongside allowUnfree: a different code path through
-  # check-meta. Harmless to keep both; drop it if a pure `nh os switch`
-  # succeeds without it.
+  # Kept only until `nix flake update chaotic` lands the fix for
+  # chaotic-cx/nyx#2276 (PR #2304, "cache-friendly: evaluate deferred nixpkgs
+  # config before re-import"). Recent nixpkgs made nixpkgs.config a deferred
+  # module; chaotic passed it unevaluated into its own `import nixpkgs`, so its
+  # instance ran with no config and every chaotic-provided unfree package
+  # refused. Drop this line once a pure `nh os switch` succeeds without it.
   nixpkgs.config.allowUnfreePredicate = _: true;
 
   nix = {
