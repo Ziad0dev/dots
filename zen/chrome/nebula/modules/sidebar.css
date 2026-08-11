@@ -1,26 +1,3 @@
-/* -------------------------- COLLAPSED FIX -------------------------- */
-/*
-html[nebula-collapsed-toolbar] {
-  #titlebar #TabsToolbar {
-    padding-left: 2px;
-    padding-right: 2px;
-    transform: none;
-    width: 60px;
-  }
-
-  #navigator-toolbox {
-    max-width: calc(var(--zen-toolbox-max-width) + 5px);
-    min-width: calc(var(--zen-toolbox-max-width) + 5px);
-    padding-bottom: var(--zen-toolbox-padding);
-
-    & #titlebar {
-      align-content: center;
-      justify-content: center;
-    }
-  }
-} */
-
-/* -------------------------- COMPACT SIDEBAR -------------------------- */
 
 #navigator-toolbox:not([animate="true"]) {
   #titlebar {
@@ -48,8 +25,6 @@ html[nebula-collapsed-toolbar] {
   }
 }
 
-/* -------------------------- COMPACT SIDEBAR PSEUDO BACKGROUND -------------------------- */
-
 #Nebula-titlebar-background {
   position: absolute;
   z-index: -100000;
@@ -63,9 +38,6 @@ html[nebula-collapsed-toolbar] {
   opacity: 1;
 }
 
-/* --- Titlebar theming --- */
-
-/* Disable outline */
 .zen-toolbar-background::before,
 .zen-toolbar-background::after {
   outline: none !important;
@@ -75,7 +47,6 @@ html[nebula-collapsed-toolbar] {
   ) !important;
 }
 
-/* Titlebar styling */
 html[nebula-compact-mode] #titlebar > .zen-browser-generic-background {
   padding: 8px;
   border-radius: 13px !important;
@@ -96,18 +67,14 @@ html[nebula-compact-mode] #titlebar > .zen-browser-generic-background {
   }
 }
 
-/* -------------------- SINGLE TOOLBAR -------------------- */
-
 html[nebula-single-toolbar][nebula-compact-mode] #titlebar {
   top: var(--zen-element-separation) !important;
   left: var(--zen-element-separation) !important;
   height: calc(100% - (var(--zen-element-separation) * 2)) !important;
 }
 
-/* -------------------- MULTI & COLLAPSED TOOLBAR -------------------- */
-
 @media (-moz-pref("zen.view.compact.hide-tabbar")) {
-  /* Base position for multi and collapsed toolbars */
+
   html[nebula-multi-toolbar][nebula-compact-mode] #titlebar,
   html[nebula-collapsed-toolbar][nebula-compact-mode] #titlebar {
     top: var(--zen-element-separation) !important;
@@ -115,7 +82,6 @@ html[nebula-single-toolbar][nebula-compact-mode] #titlebar {
     height: calc(100% - (var(--zen-element-separation) * 2)) !important;
   }
 
-  /* Right-side adjustments */
   html[nebula-multi-toolbar]:root[zen-right-side="true"][nebula-compact-mode]
     #titlebar {
     left: auto !important;
@@ -170,44 +136,21 @@ html[nebula-single-toolbar][nebula-compact-mode] #titlebar {
   }
 }
 
-/* ------------------------- GENERAL SIDEBAR -------------------------- */
-
-/* hide scrollbar */
 scrollbox {
   scrollbar-width: none !important;
 }
 
-/*
-#zen-tabs-wrapper {
-    mask-image: linear-gradient(to bottom, black 90%, rgba(0, 0, 0, 0.4) 97%, transparent 100%) !important;
-    -webkit-mask-image: linear-gradient(to bottom, black 90%, rgba(0, 0, 0, 0.7) 97%, transparent 100%) !important;
-    scrollbar-width: none !important;
-    -ms-overflow-style: none !important;
-    overflow-y: auto !important;
-    transition: mask-image 0.3s ease, -webkit-mask-image 0.3s ease;
-}
-*/
-
-/* Hide the overflow background gradient */
 .workspace-arrowscrollbox[overflowing] {
   --zen-scrollbar-overflow-background: transparent !important;
 
   background: transparent !important;
 }
 
-/* Also remove any visual overlay pseudo-elements */
 .workspace-arrowscrollbox[overflowing]::before,
 .workspace-arrowscrollbox[overflowing]::after {
   content: none !important;
   display: none !important;
 }
-
-/* -------------------------- Personal Toolbar --------------------------- */
-
-/* Only apply when NOT in single toolbar */
-/* html:not([nebula-single-toolbar]) #PersonalToolbar:not([collapsed=""]) {
-  padding-bottom: 3px !important;
-} */
 
 #PersonalToolbar toolbarbutton:hover {
   background-color: var(--nebula-color-hover) !important;
@@ -218,11 +161,9 @@ scrollbox {
     box-shadow 0.2s ease-out !important;
 }
 
-/* Auto Hide Bookmark-bar */
-
 @media (not (-moz-pref("nebula-bookmarks-autohide", 0))) {
-  /* Disabled in the compact mode (hide toolbar) to prevent conflicts. */
-  @media (not ((-moz-pref("zen.view.compact.hide-toolbar")) and 
+
+  @media (not ((-moz-pref("zen.view.compact.hide-toolbar")) and
  (-moz-pref("zen.view.compact.enable-at-startup")))) {
     #personal-bookmarks toolbarbutton.bookmark-item:not(#OtherBookmarks),
     #import-button {
@@ -233,7 +174,6 @@ scrollbox {
       border-radius: 13px !important;
     }
 
-    /* Adapt for Zen (Since zen v1.17.1) */
     @media (-moz-pref("zen.view.compact.enable-at-startup")) {
       #navigator-toolbox {
         height: calc(100% - (var(--zen-element-separation) * 4.5)) !important;
@@ -264,7 +204,6 @@ scrollbox {
       transition-delay: 0s !important;
     }
 
-    /* Expand the bookmarks-bar by hovering */
     @media (-moz-pref("nebula-bookmarks-autohide", 1)) or (-moz-pref("nebula-bookmarks-autohide", 3)) {
       #nav-bar:hover + #PersonalToolbar,
       #PersonalToolbar:hover {
@@ -276,7 +215,6 @@ scrollbox {
     }
   }
 
-  /* Expand the bookmarks-bar when search */
   @media (-moz-pref("nebula-bookmarks-autohide", 2)) or (-moz-pref("nebula-bookmarks-autohide", 3)) {
     #nav-bar:focus-within + #PersonalToolbar {
       opacity: 1 !important;
@@ -285,8 +223,6 @@ scrollbox {
     }
   }
 }
-
-/* -------------------------- FINDBAR -------------------------- */
 
 .browserContainer {
   position: relative !important;
@@ -419,16 +355,12 @@ findbar toolbarbutton:active {
   transform: scale(0.92) !important;
 }
 
-/* -------------------------- BOOKMARKS -------------------------- */
-
-/* Transparent Sidebar Items */
 .sidebar-panel {
   background: transparent !important;
   font-weight: 600 !important;
   opacity: 0.7 !important;
 }
 
-/* Clean & Transparent Sidebar Box */
 #sidebar-box {
   background-color: light-dark(
     rgb(255 255 255 / 11%),
@@ -449,7 +381,6 @@ findbar toolbarbutton:active {
   background-color: rgb(0 0 0 / 0%) !important;
 }
 
-/* Transparent Sidebar Search Box & View Button */
 #sidebar-search-container > #search-box,
 #viewButton {
   padding: 4px 8px !important;

@@ -1,6 +1,4 @@
-/* ------------------------- BETTER TOOLBAR ------------------------- */
 
-/* Main toolbar container */
 #customization-container {
   position: absolute;
   bottom: 10px;
@@ -14,7 +12,6 @@
   background: var(--nebula-color) !important;
 }
 
-/* Vertical tabs on right side */
 @media (-moz-pref("zen.tabs.vertical.right-side")) {
   #customization-container {
     left: 10px;
@@ -26,7 +23,6 @@
   }
 }
 
-/* Panel content adjustments */
 #customization-panel-container {
   padding: 12px !important;
 }

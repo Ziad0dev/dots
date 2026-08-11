@@ -26,7 +26,7 @@
       "group/cpu-load",
       "memory",
     ],
-    // Group Configuration
+
     "group/cpu-load": {
       "orientation": "inherit",
       "drawer": {
@@ -46,7 +46,7 @@
       "interval": 10,
       "format": "{load1} {load5} (5) {load15} (15)",
     },
-    // Modules configuration 
+
     "memory": {
       "interval": 30,
       "format": " {}%",
@@ -58,17 +58,16 @@
       "format": " {status}",
       "format-connected": " {device_alias}",
       "format-connected-battery": " {device_alias} {device_battery_percentage}%",
-      // "format-device-preference": [ "device1", "device2" ], // preference list deciding the displayed device
+
       "tooltip-format": "{controller_alias}\t{controller_address}\n\n{num_connections} connected",
       "tooltip-format-connected": "{controller_alias}\t{controller_address}\n\n{num_connections} connected\n\n{device_enumerate}",
       "tooltip-format-enumerate-connected": "{device_alias}\t{device_address}",
       "tooltip-format-enumerate-connected-battery": "{device_alias}\t{device_address}\t{device_battery_percentage}%",
     },
     "temperature": {
-      // "thermal-zone": 2,
-      // "hwmon-path": "/sys/class/hwmon/hwmon2/temp1_input",
+
       "critical-threshold": 80,
-      // "format-critical": "{temperatureC}°C {icon}",
+
       "format": "{icon} {temperatureC}°C",
       "format-alt": "{temperatureF}°F {icon}",
       "format-icons": ["", "", ""],
@@ -102,7 +101,7 @@
       ],
     },
     "network": {
-      //"interface": "wlp2s0",
+
       "format": "{ifname} [󰾆 {bandwidthTotalBytes}]",
       "format-wifi": "{icon} {essid} [󰾆 {bandwidthTotalBytes}]",
       "format-ethernet": "󱘖  {ifname} [󰾆 {bandwidthTotalBytes}]",
@@ -118,9 +117,7 @@
     "clock": {
       "format": "{:%I:%M %p}",
       "format-alt": "{:%A, %B %d, %Y (%I:%M %p)}",
-      //"format": "<span color='#bf616a'> </span>{:%I:%M %p}",
-      //"format-alt": "<span color='#bf616a'> </span>{:%A, %B %d, %Y (%I:%M %p)}",
-      // "format": "{: %R   %d/%m}",
+
       "tooltip-format": "<tt><small>{calendar}</small></tt>",
       "calendar": {
         "mode": "year",
@@ -145,7 +142,7 @@
       },
     },
     "battery": {
-      //"bat": "BAT2",
+
       "interval": 60,
       "states": {
         "good": 95,
@@ -164,9 +161,7 @@
     "wireplumber": {
       "format": "{icon} {volume}%",
       "format-muted": " Muted",
-      // "format-muted": " {format_source}",
-      // "format-source": "{source_volume}% ",
-      // "format-source-muted": " ",
+
       "format-icons": [" ", " ", " "],
       "scroll-step": 0.2,
       "max-volume": 100,
@@ -191,9 +186,9 @@
       "on-click-right": "playerctl next",
       "smooth-scrolling-threshold": 10,
       "on-scroll-down": "playerctl previous",
-      // "ignored-players": ["cmus", "spotify"]
+
     },
-    // Custom
+
     "custom/updates": {
       "format": "{} ",
       "interval": 3600,
@@ -220,7 +215,7 @@
     "hyprland/workspaces": {
       "format": "{icon}",
       "format-icons": {
-        // Named workspaces
+
         "dev": "󰚗",
         "web": "",
         "entertainment": "",
@@ -236,9 +231,6 @@
         "9": "9",
         "10": "10",
 
-        // Icons by state
-        // "active": ""
-        // "default": " "
       },
     },
     "hyprland/workspaces": {
@@ -272,10 +264,10 @@
         "class<vivaldi-stable>": " ",
         "class<slack>": " ",
         "class<vlc>": "󰕼",
-        // "class<vlc>": "zeditor font iconzeditor font iconzeditor font iconzeditor font iconzeditor font iconzeditor font icon🎬󰕼",
+
         "class<libreoffice-writer>": "",
         "class<libreoffice-calc>": "",
-        // "class<gimp>": " 🎨",
+
         "class<gimp>": "",
         "class<thunderbird>": "",
         "title<.*gmail.*>": "󰊫",
@@ -292,31 +284,19 @@
         "class<steam>": "",
         "class<tor browser>": "",
       },
-      // "persistent-workspaces": {
-      //     "*": [10] // 1 workspaces by default on every monitor
-      //     // "HDMI-A-1": 3 // but only three on HDMI-A-1
-      // },
+
       "on-scroll-up": "hyprctl dispatch workspace m-1 > /dev/null",
       "on-scroll-down": "hyprctl dispatch workspace m+1 > /dev/null",
       "format-icons": {
-        // "1": "1",
-        // "2": "2",
-        // "3": "3",
-        // "4": "4",
-        // "5": "5",
-        // "6": "6",
-        // "7": "7",
-        // "8": "8",
-        // "9": "9",
-        // "10": "10",
+
         "special": "🎁",
-        // "urgent": "",
+
         "persistent": "",
-        // "default": " ",
+
       },
     },
     "wlr/taskbar": {
-      // "format": "{icon}",
+
       "format": "{icon} {title:.16}",
       "icon-size": 14,
       "icon-theme": "BeautyLine",

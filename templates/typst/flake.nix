@@ -25,10 +25,6 @@
 
         src = typixLib.cleanTypstSource ./.;
 
-        # typix builds are hermetic: the sandbox has no fontconfig, so every
-        # font the document uses must be listed here explicitly. Typst's own
-        # embedded faces (New Computer Modern, Libertine, DejaVu Sans Mono)
-        # work without any of this — these are for everything else.
         fontPaths = [
           "${pkgs.newcomputermodern}/share/fonts/opentype"
           "${pkgs.libertinus}/share/fonts/opentype"
@@ -47,10 +43,9 @@
         watch-script = typixLib.watchTypstProject commonArgs;
       in
       {
-        # nix build  ->  result/main.pdf, byte-identical across machines
+
         packages.default = build-drv;
 
-        # nix run  ->  incremental watch loop against the working tree
         apps.default = flake-utils.lib.mkApp { drv = watch-script; };
 
         checks.default = build-drv;
@@ -66,8 +61,6 @@
           ];
         };
 
-        # Self-register so `nix flake init -t .` works from inside the template,
-        # matching templates/python.
         templates.typst = {
           path = ./.;
           description = "Typst document with reproducible typix builds";

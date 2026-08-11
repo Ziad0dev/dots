@@ -1,6 +1,5 @@
 @import "oxocarbon.css";
 
-/* Global Styles */
 * {
     font-family: FiraCode Nerd Font;
     font-weight: 600;
@@ -8,7 +7,6 @@
     padding: 0.1rem;
 }
 
-/* Module Styles */
 .module {
     padding: 0 0.8rem;
     color: rgba(180, 249, 248, 1);
@@ -37,13 +35,11 @@ window#waybar.bottom .modules-center {
     margin-right: 4px;
 }
 
-/* Window Styling */
 window#waybar {
     background: transparent;
     transition: background 0.5s;
 }
 
-/* Make window module transparent when no windows present */
 window#waybar.empty #window {
     background: transparent;
     background-color: transparent;
@@ -53,11 +49,10 @@ window#waybar.hidden {
     opacity: 0.2;
 }
 
-/* Button Styling */
 button {
-    /* Use box-shadow instead of border so the text isn't offset */
+
     box-shadow: inset 0 -3px transparent;
-    /* Avoid rounded borders under each button name */
+
     border: none;
     background: transparent;
 }
@@ -66,7 +61,6 @@ button:hover {
     color: rgb(250, 139, 255);
 }
 
-/* Workspaces Button Styling */
 #workspaces button {
     color: @cyan; background: transparent;
     font-weight: bolder;
@@ -98,17 +92,14 @@ button:hover {
     color: @accent;
 }
 
-/* If workspaces is the leftmost module, omit left margin */
 .modules-left > widget:first-child > #workspaces {
     margin-left: 0;
 }
 
-/* If workspaces is the rightmost module, omit right margin */
 .modules-right > widget:last-child > #workspaces {
     margin-right: 0;
 }
 
-/* Taskbar Button Styling */
 #taskbar {
     background: transparent;
     border-radius: 0.4rem;
@@ -125,12 +116,10 @@ button:hover {
     border-image: linear-gradient(45deg, rgb(250, 139, 255), rgb(0, 238, 255)) 1;
 }
 
-/* Transparent Modules When Empty */
 #taskbar.empty {
     background: transparent;
 }
 
-/* Tooltip styling */
 menu,
 tooltip {
     border-radius: 0.4rem;
@@ -143,7 +132,6 @@ tooltip label {
     padding: 0.4rem;
 }
 
-/* Module State Styles */
 #network.disconnected,
 #wireplumber.muted,
 #temperature.critical {
@@ -171,12 +159,10 @@ tooltip label {
     margin-left: 0.5rem;
 }
 
-/* Focused Label Background */
 label:focus {
     background-color: transparent;
 }
 
-/* Tray Styles */
 #tray > .passive {
     -gtk-icon-effect: dim;
 }
@@ -186,7 +172,6 @@ label:focus {
     background-color: red;
 }
 
-/* Gradient Module Styles */
 #mpris,
 #window {
     background: black;

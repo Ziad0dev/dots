@@ -1,10 +1,7 @@
--- ============================================================================
--- AUTOCOMMANDS
--- ============================================================================
+
 local autocmd = vim.api.nvim_create_autocmd
 local augroup = vim.api.nvim_create_augroup
 
--- Highlight on yank
 autocmd("TextYankPost", {
   group = augroup("reaper_highlight_yank", { clear = true }),
   callback = function()
@@ -12,7 +9,6 @@ autocmd("TextYankPost", {
   end,
 })
 
--- Restore last cursor position
 autocmd("BufReadPost", {
   group = augroup("reaper_restore_cursor", { clear = true }),
   callback = function()
@@ -24,7 +20,6 @@ autocmd("BufReadPost", {
   end,
 })
 
--- Close utility filetypes with q
 autocmd("FileType", {
   group = augroup("reaper_close_with_q", { clear = true }),
   pattern = { "help", "lspinfo", "qf", "checkhealth", "man", "aerial", "fugitive" },

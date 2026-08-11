@@ -1,4 +1,3 @@
-/* ------------------------ Glance Animation ----------------------- */
 
 .browserSidebarContainer.zen-glance-background.deck-selected {
   filter: blur(8px) contrast(120%);
@@ -16,7 +15,6 @@
   transform: translate(-15%, 15%) !important;
 }
 
-/* Floating Glance window */
 .browserStack > browser[zen-glance-selected="true"] {
   position: absolute !important;
   background: light-dark(rgb(255 255 255 / 40%), rgb(0 0 0 / 40%)) !important;
@@ -32,8 +30,6 @@
 .browserStack > browser[zen-glance-selected="true"]:hover {
   box-shadow: 0 4px 12px rgb(0 0 0 / 30%) !important;
 }
-
-/* ---------------------- Tab Loading Animation ---------------------- */
 
 .browserSidebarContainer:not([zen-split="true"], :has(.zen-glance-background)) {
   transform-origin: center;
@@ -184,8 +180,6 @@
     transition-delay: 0s !important;
   }
 }
-
-/* --------------------- Tab Switch Animation --------------------- */
 
 #tabbrowser-tabpanels
   > hbox:not(
@@ -341,8 +335,6 @@
     filter: none !important;
   }
 }
-
-/* ------------------ Custom Split View Animation ------------------- */
 
 @media not (-moz-pref("nebula-tab-switch-animation", 0)) {
   @keyframes scale-and-brighten {

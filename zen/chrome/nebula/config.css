@@ -1,10 +1,6 @@
-/* This is the config guide for Nebula theme
-Here you can tweak the various settings like animations, features, etc. to your own preference 
-by changing the variables or adding preferences in about:config
-without searching through the code directly */
 
 :root {
-  /* ✨ Glass & Blur */
+
   --nebula-glass: blur(var(--var-nebula-glass-blur))
     saturate(var(--var-nebula-glass-saturation)) !important;
   --nebula-color-glass: light-dark(
@@ -12,14 +8,12 @@ without searching through the code directly */
     var(--var-nebula-color-glass-dark)
   ) !important;
 
-  /* 🖼️ Layout */
   --nebula-border-radius: var(--var-nebula-border-radius) !important;
   --nebula-essentials-width: var(--var-nebula-essentials-width) !important;
   --nebula-workspace-grayscale: var(
     --var-nebula-workspace-grayscale
   ) !important;
 
-  /* 🎨 UI & Website Tint */
   --nebula-ui-tint: light-dark(
     var(--var-nebula-ui-tint-light),
     var(--var-nebula-ui-tint-dark)
@@ -29,7 +23,6 @@ without searching through the code directly */
     var(--var-nebula-website-tint-dark)
   ) !important;
 
-  /* 🔮 Colors */
   --nebula-color-min: light-dark(
     var(--var-nebula-tabs-minimum-light),
     var(--var-nebula-tabs-minimum-dark)
@@ -52,25 +45,18 @@ without searching through the code directly */
   ) !important;
 }
 
-/* DO NOT ADD OTHER CSS BELOW */
-/* More styles and options will come soon here! */
-
-/* Pre-defined backup values */
 :root {
-  /* ✨ Glass & Blur */
+
   --nebula-glass: blur(32px) saturate(140%);
   --nebula-color-glass: light-dark(rgb(255 255 255 / 40%), rgb(0 0 0 / 40%));
 
-  /* 🖼️ Layout */
   --nebula-border-radius: 13px;
   --nebula-essentials-width: 60px;
   --nebula-workspace-grayscale: 100%;
 
-  /* 🎨 UI & Website Tint */
   --nebula-ui-tint: light-dark(rgb(255 255 255 / 20%), rgb(0 0 0 / 20%));
   --nebula-website-tint: light-dark(rgb(255 255 255 / 0%), rgb(0 0 0 / 0%));
 
-  /* 🔮 Colors */
   --nebula-color-min: light-dark(rgb(255 255 255 / 10%), rgb(0 0 0 / 20%));
   --nebula-color: light-dark(rgb(255 255 255 / 25%), rgb(0 0 0 / 35%));
   --nebula-color-hover: light-dark(rgb(255 255 255 / 35%), rgb(0 0 0 / 45%));

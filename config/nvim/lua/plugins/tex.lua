@@ -1,17 +1,8 @@
--- ============================================================================
--- LaTeX — vimtex owns compilation and viewing.
--- texlab (registered in lsp.lua) only does completion/references, with its own
--- builder disabled so the two never race over build/.
--- ============================================================================
 
 return {
   {
     "lervag/vimtex",
-    -- NOT lazy-loaded, deliberately. vimtex gates its own work on filetype, so
-    -- eager loading costs almost nothing at startup — and inverse search
-    -- depends on it: zathura's hook runs `nvim --headless`, which opens no
-    -- file, so an ft-lazy vimtex never loads there and :VimtexInverseSearch
-    -- dies with E492. Upstream says the same.
+
     lazy = false,
     init = function()
       vim.g.vimtex_view_method = "zathura"
@@ -34,7 +25,6 @@ return {
         },
       }
 
-      -- Don't let a warning-laden build yank focus into quickfix.
       vim.g.vimtex_quickfix_mode = 0
       vim.g.vimtex_quickfix_open_on_warning = 0
 

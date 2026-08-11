@@ -45,9 +45,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # Reproducible Typst builds. Consumed by templates/typst, not by the
-    # host config — pinned here so `nix flake init -t .#typst` resolves
-    # against a revision this repo has actually locked.
     typix = {
       url = "github:loqusion/typix";
       inputs.nixpkgs.follows = "nixpkgs";

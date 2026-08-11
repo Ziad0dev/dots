@@ -1,4 +1,3 @@
-/* ------------------------- PINNED EXTENSIONS ------------------------- */
 
 @media (-moz-pref("nebula-pinned-extensions-mod")) {
   :root[customizing] #TabsToolbar-customization-target {
@@ -110,8 +109,6 @@
     margin-inline: 6px !important;
     margin-block: 2px !important;
   }
-
-  /* -------- Hover Gradient -------- */
 
   .unified-extensions-item {
     position: relative !important;
