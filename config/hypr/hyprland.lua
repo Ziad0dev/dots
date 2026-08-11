@@ -64,7 +64,7 @@ hl.config({
         border_size = 1,
 
         col = {
-            active_border   = { colors = { colors.color1, colors.color9 }, angle = 45 },
+            active_border   = { colors = { colors.color0, colors.color1 }, angle = 45 },
             inactive_border = colors.inactive_border,
         },
 
