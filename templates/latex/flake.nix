@@ -13,10 +13,6 @@
       let
         pkgs = nixpkgs.legacyPackages.${system};
 
-        # Per-project TeX set. Start narrow and add what the document actually
-        # needs — this keeps `nix build` fast for people who don't have the
-        # host's texliveFull already in their store. Swap for pkgs.texliveFull
-        # if you'd rather not curate.
         tex = pkgs.texliveMedium.withPackages (ps: [
           ps.latexmk
           ps.biblatex

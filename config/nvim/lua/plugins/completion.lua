@@ -1,6 +1,3 @@
--- ============================================================================
--- COMPLETION — nvim-cmp + luasnip
--- ============================================================================
 
 return {
   {
@@ -87,7 +84,6 @@ return {
     end,
   },
 
-  -- Auto-pairs, integrated with cmp confirm
   {
     "windwp/nvim-autopairs",
     event = "InsertEnter",

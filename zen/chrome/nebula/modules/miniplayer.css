@@ -1,4 +1,3 @@
-/* -------------------- Media Controls Toolbar -------------------- */
 
 #Nebula-media-cover-art {
   position: absolute !important;
@@ -30,7 +29,6 @@
   position: relative !important;
 }
 
-/* Keyframes */
 @keyframes miniplayer-gradient {
   0% {
     background-position: 0% 50%;
@@ -45,7 +43,6 @@
   }
 }
 
-/* Toolbar Item Styles */
 #zen-media-controls-toolbar > toolbaritem {
   position: relative;
   border-radius: var(--nebula-border-radius) !important;
@@ -66,8 +63,6 @@
   }
 }
 
-/* --------------------- Media Info --------------------- */
-
 #zen-media-service-hbox {
   padding-top: 5px !important;
   transition: padding 0.15s ease-in-out !important;
@@ -84,8 +79,6 @@
 #zen-media-info-vbox::before {
   display: none !important;
 }
-
-/* --------------------- Media Progress Bar ---------------------- */
 
 #zen-media-progress-bar {
   &::-moz-range-thumb {
@@ -115,14 +108,6 @@
   --zen-colors-border: rgb(100 100 100 / 1%) !important;
 }
 
-/* --------------------- Music notes animation ------------------ */
-/*
-#zen-media-focus-button::after {
-  display: none !important;
-}
-*/
-/* ---------------------- Control Buttons ------------------- */
-
 #zen-media-focus-button,
 #zen-media-mute-button,
 #zen-media-playpause-button,
@@ -139,8 +124,6 @@
     transform: scale(1.11);
   }
 }
-
-/* ------------------ Hover Animation for Info ------------------ */
 
 #zen-media-controls-toolbar .show-on-hover {
   max-height: 0;

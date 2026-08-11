@@ -1,6 +1,3 @@
--- ============================================================================
--- DASHBOARD — alpha-nvim (reaper homepage / Startify replacement)
--- ============================================================================
 
 return {
   {
@@ -34,8 +31,7 @@ return {
         dashboard.button("q", "  Quit", "<cmd>qa<cr>"),
       }
 
-      -- accents
-      dashboard.section.header.opts.hl = "Function"        -- pink-ish via oxocarbon
+      dashboard.section.header.opts.hl = "Function"
       for _, b in ipairs(dashboard.section.buttons.val) do
         b.opts.hl = "Keyword"
         b.opts.hl_shortcut = "Constant"
@@ -51,7 +47,6 @@ return {
       dashboard.config.opts.noautocmd = true
       alpha.setup(dashboard.config)
 
-      -- refresh footer once lazy finishes so the count is accurate
       vim.api.nvim_create_autocmd("User", {
         pattern = "LazyVimStarted",
         callback = function()

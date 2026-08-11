@@ -1,7 +1,3 @@
--- ============================================================================
--- LSP — native vim.lsp (nvim 0.11+), no Mason.
--- Servers are installed via Nix; we only enable the ones whose binary exists.
--- ============================================================================
 
 return {
   {
@@ -9,7 +5,7 @@ return {
     event = { "BufReadPre", "BufNewFile" },
     dependencies = { "hrsh7th/cmp-nvim-lsp" },
     config = function()
-      -- Diagnostics presentation
+
       vim.diagnostic.config({
         severity_sort = true,
         float = { border = "rounded", source = true },
@@ -24,11 +20,9 @@ return {
         },
       })
 
-      -- Completion capabilities for every server
       local caps = require("cmp_nvim_lsp").default_capabilities()
       vim.lsp.config("*", { capabilities = caps })
 
-      -- Buffer-local keymaps when a server attaches
       vim.api.nvim_create_autocmd("LspAttach", {
         group = vim.api.nvim_create_augroup("reaper_lsp_attach", { clear = true }),
         callback = function(ev)
@@ -46,7 +40,6 @@ return {
         end,
       })
 
-      -- Per-server overrides
       vim.lsp.config("lua_ls", {
         settings = {
           Lua = {
@@ -59,17 +52,14 @@ return {
 
       vim.lsp.config("tinymist", {
         settings = {
-          -- "onSave" drops a PDF next to the source on every write; preview
-          -- and `typst compile` both work regardless, so leave it off.
+
           exportPdf = "never",
           formatterMode = "typstyle",
           formatterPrintWidth = 90,
-          semanticTokens = "disable",   -- treesitter already highlights typst
+          semanticTokens = "disable",
         },
       })
 
-      -- Build is off: latexmk is driven by vimtex, and letting texlab also
-      -- build means two latexmk processes fighting over build/.
       vim.lsp.config("texlab", {
         settings = {
           texlab = {
@@ -80,7 +70,6 @@ return {
         },
       })
 
-      -- server name -> binary it needs (skip-enable if binary absent)
       local servers = {
         lua_ls = "lua-language-server",
         pyright = "pyright",
@@ -89,10 +78,10 @@ return {
         nixd = "nixd",
         zls = "zls",
         clangd = "clangd",
-        ruff = "ruff",          -- lint/format as an LSP; pairs with pyright
-        tinymist = "tinymist",  -- Typst
-        texlab = "texlab",      -- LaTeX
-        -- ty = "ty",           -- Astral's checker; still beta, enable alongside
+        ruff = "ruff",
+        tinymist = "tinymist",
+        texlab = "texlab",
+
       }
       for server, bin in pairs(servers) do
         if vim.fn.executable(bin) == 1 then

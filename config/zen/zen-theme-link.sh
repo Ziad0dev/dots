@@ -1,17 +1,9 @@
 #!/usr/bin/env bash
-# Link the oxocarbon chrome into every Zen profile and enable custom CSS.
-#
-# Zen profile roots differ per channel (.zen, .zen-beta, .zen-twilight, flatpak
-# paths) and profile DIRECTORY names are generated, so nothing here is
-# hardcoded: candidate roots are probed, then profiles.ini is parsed for the
-# authoritative Path= entries. Re-runnable.
-#
-#   ROOT=/explicit/path bash zen-theme-link.sh    # override discovery
+
 set -euo pipefail
 
 SRC="${SRC:-$HOME/dots/config/zen}"
 
-# ── 1. locate the profile root ──────────────────────────────────────────────
 roots=()
 if [[ -n "${ROOT:-}" ]]; then
   roots=("$ROOT")
@@ -21,7 +13,7 @@ else
            "$HOME/.mozilla/zen"; do
     [[ -f "$c/profiles.ini" ]] && roots+=("$c")
   done
-  # Last resort: search for any zen-ish profiles.ini
+
   if (( ${#roots[@]} == 0 )); then
     while IFS= read -r p; do roots+=("$(dirname "$p")"); done < <(
       find "$HOME" -maxdepth 5 -name profiles.ini -ipath "*zen*" 2>/dev/null)
@@ -38,13 +30,11 @@ if (( ${#roots[@]} == 0 )); then
   exit 1
 fi
 
-# ── 2. parse profiles.ini for real profile paths ────────────────────────────
 linked=0
 for root in "${roots[@]}"; do
   echo "==> $root"
   ini="$root/profiles.ini"
 
-  # Path= may be relative to root (IsRelative=1) or absolute.
   while IFS= read -r path; do
     [[ -z "$path" ]] && continue
     if [[ "$path" = /* ]]; then prof="$path"; else prof="$root/$path"; fi
@@ -54,7 +44,6 @@ for root in "${roots[@]}"; do
     ln -sfn "$SRC/userChrome.css"  "$prof/chrome/userChrome.css"
     ln -sfn "$SRC/userContent.css" "$prof/chrome/userContent.css"
 
-    # user.js is re-applied at every startup; prefs.js gets rewritten on exit.
     touch "$prof/user.js"
     grep -q 'toolkit.legacyUserProfileCustomizations.stylesheets' "$prof/user.js" \
       || echo 'user_pref("toolkit.legacyUserProfileCustomizations.stylesheets", true);' >> "$prof/user.js"

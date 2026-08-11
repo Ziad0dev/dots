@@ -9,7 +9,6 @@
 	--better-findbar-background-color: var(--zen-primary-color);
 }
 
-/* Custom background */
 @media (-moz-bool-pref: "theme-better_find_bar-enable_custom_background") {
 	:root {
 		--better-findbar-background-color: var(--theme-better_find_bar-custom_background);
@@ -23,7 +22,7 @@ findbar {
 	margin: 0px !important;
 
 	width: 90% !important;
-	max-width: calc(var(--theme-better_find_bar-textbox_width) * 1px); 
+	max-width: calc(var(--theme-better_find_bar-textbox_width) * 1px);
 
 	height: auto !important;
 
@@ -70,14 +69,12 @@ findbar {
 	}
 }
 
-/* Disable animations */
 @media (-moz-bool-pref: "theme.better_find_bar.instant_animations") {
 	findbar, findbar .findbar-container {
 		transition: initial !important;
 	}
 }
 
-/* Horizontal Position */
 body:has(
 		#theme-Better-Find-Bar[theme-better_find_bar-horizontal_position="left"]
 	) {
@@ -94,7 +91,6 @@ body:has(
 	--better-findbar-position-right: 15px;
 }
 
-/* Vertical Position */
 body:has(
 		#theme-Better-Find-Bar[theme-better_find_bar-vertical_position="top"]
 	) {
@@ -103,8 +99,6 @@ body:has(
 	--better-findbar-position-top: 15px;
 }
 
-
-/* Background blur */
 @media (-moz-bool-pref: "theme.better_find_bar.transparent_background") {
 	findbar,
 	findbar .findbar-textbox:not([status="notfound"]) {
@@ -114,7 +108,6 @@ body:has(
 	}
 }
 
-/* Hide highlight checkbox */
 body:has(
 		#theme-Better-Find-Bar[theme-better_find_bar-hide_highlight="hide_immediately"]
 	) {
@@ -131,7 +124,6 @@ body:has(
 	}
 }
 
-/* Hide match case checkbox */
 body:has(
 		#theme-Better-Find-Bar[theme-better_find_bar-hide_match_case="hide_immediately"]
 	) {
@@ -148,7 +140,6 @@ body:has(
 	}
 }
 
-/* Hide match diacritics checkbox */
 body:has(
 		#theme-Better-Find-Bar[theme-better_find_bar-hide_match_diacritics="hide_immediately"]
 	) {
@@ -165,7 +156,6 @@ body:has(
 	}
 }
 
-/* Hide whole words checkbox */
 body:has(
 		#theme-Better-Find-Bar[theme-better_find_bar-hide_whole_words="hide_immediately"]
 	) {
@@ -182,14 +172,12 @@ body:has(
 	}
 }
 
-/* Hide find status label */
 @media (-moz-bool-pref: "theme.better_find_bar.hide_find_status") {
 	findbar .findbar-find-status {
 		display: none !important;
 	}
 }
 
-/* Hide found matches label */
 @media (-moz-bool-pref: "theme.better_find_bar.hide_found_matches") {
 	findbar .findbar-label.found-matches {
 		display: none !important;

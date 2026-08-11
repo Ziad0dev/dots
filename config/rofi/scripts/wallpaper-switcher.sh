@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# ⸸ wallpaper switcher — rofi + awww ⸸
 
 WALLPAPER_DIR="$HOME/Pictures/wallpapers"
 
@@ -15,7 +14,6 @@ SELECTION=$(get_wallpapers_with_icons | rofi -dmenu -i -p "🩸 Select Wallpaper
 
 WALLPAPER="$WALLPAPER_DIR/$SELECTION"
 
-# Daemon is started by hyprland exec-once; only start if somehow missing.
 awww query >/dev/null 2>&1 || { awww-daemon & sleep 1; }
 
 TRANSITIONS=("simple" "fade" "wipe" "wave" "grow" "center" "outer" "any")
@@ -28,7 +26,6 @@ awww img "$WALLPAPER" \
     --transition-fps 144 \
     --transition-bezier 0.65,0,0.35,1
 
-# Pywal theming — only if installed (it isn't in configuration.nix right now)
 if command -v wal >/dev/null; then
     wal -i "$WALLPAPER" -n -s -t -e
     pgrep -x Hyprland >/dev/null && hyprctl reload

@@ -1,16 +1,8 @@
--- ============================================================================
--- Typst — no plugins. The LSP is registered in lsp.lua alongside every other
--- server; preview is a tinymist workspace command, so there is no binary for a
--- plugin manager to fetch and nothing here to install.
--- ============================================================================
 
 local function client()
   return vim.lsp.get_clients({ bufnr = 0, name = "tinymist" })[1]
 end
 
--- VERIFY ON YOUR BUILD if the keymap errors — the command name has moved
--- between releases (tinymist.doStartPreview / tinymist.startDefaultPreview):
---   :lua =client().server_capabilities.executeCommandProvider
 local function preview_start()
   local c = client()
   if not c then
@@ -49,7 +41,6 @@ vim.api.nvim_create_autocmd("FileType", {
   end,
 })
 
--- nvim 0.10+ detects .typ already; harmless safety net.
 vim.filetype.add({ extension = { typ = "typst" } })
 
 return {}

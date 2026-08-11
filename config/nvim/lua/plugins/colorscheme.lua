@@ -1,8 +1,3 @@
--- ============================================================================
--- COLORSCHEME — Oxocarbon, transparent (rice-friendly)
--- ============================================================================
--- Transparency is applied on the ColorScheme event so it survives any later
--- re-highlight (treesitter/LSP/plugin loads, cwd changes, scheme reloads).
 
 return {
   {
@@ -10,7 +5,7 @@ return {
     lazy = false,
     priority = 1000,
     config = function()
-      local accent = "#ee5396" -- oxocarbon pink
+      local accent = "#ee5396"
 
       local function make_transparent()
         local groups = {
@@ -37,7 +32,7 @@ return {
       })
 
       vim.opt.background = "dark"
-      vim.cmd.colorscheme("oxocarbon") -- fires the autocmd above
+      vim.cmd.colorscheme("oxocarbon")
     end,
   },
 }

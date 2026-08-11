@@ -21,19 +21,6 @@
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.systemd-boot.configurationLimit = 3;
 
-  # For the official NVIDIA GeForce NOW client, which is only distributed as a
-  # Flatpak (NVIDIA's .bin installer is a PyInstaller/Tk bundle that dies on
-  # NixOS with `ImportError: libxcb.so.1`, so add the remotes by hand instead):
-  #
-  #   flatpak remote-add --user --if-not-exists flathub \
-  #     https://flathub.org/repo/flathub.flatpakrepo
-  #   flatpak remote-add --user --if-not-exists GeForceNOW \
-  #     https://international.download.nvidia.com/GFNLinux/flatpak/geforcenow.flatpakrepo
-  #   flatpak install -y --user GeForceNOW com.nvidia.geforcenow
-  #
-  # Flathub is required even though the app lives on NVIDIA's remote: the
-  # matching org.freedesktop.Platform.GL.nvidia-<driver> extension and the
-  # freedesktop runtime come from Flathub.
   services.flatpak.enable = true;
 
   networking.hostName            = hostname;
@@ -73,11 +60,6 @@
     modesetting.enable = true;
     open = true;
 
-    # WAS config.boot.kernelPackages.nvidiaPackages.latest. That resolves inside
-    # chaotic's linuxPackages_cachyos scope. pkgs.nvidia_cachyos is a plain pkgs
-    # attribute and is built by chaotic against the CachyOS kernel, so the module
-    # ABI still matches. Do NOT use pkgs.linuxPackages.nvidiaPackages.latest --
-    # it evaluates, but builds against the vanilla kernel.
     package = pkgs.nvidia_cachyos;
   };
 
@@ -129,8 +111,6 @@
   services.gvfs.enable       = true;
   services.udisks2.enable    = true;
 
-  # iOS device access over USB. Provides usbmuxd.service, the usbmux user,
-  # and the udev rules that let a local user reach /var/run/usbmuxd.
   services.usbmuxd.enable    = true;
 
   hardware.bluetooth = {
@@ -157,12 +137,6 @@
   nixpkgs.overlays = [ inputs.zig-overlay.overlays.default ];
   nixpkgs.config.allowUnfree = true;
 
-  # Kept only until `nix flake update chaotic` lands the fix for
-  # chaotic-cx/nyx#2276 (PR #2304, "cache-friendly: evaluate deferred nixpkgs
-  # config before re-import"). Recent nixpkgs made nixpkgs.config a deferred
-  # module; chaotic passed it unevaluated into its own `import nixpkgs`, so its
-  # instance ran with no config and every chaotic-provided unfree package
-  # refused. Drop this line once a pure `nh os switch` succeeds without it.
   nixpkgs.config.allowUnfreePredicate = _: true;
 
   nix = {
@@ -192,7 +166,7 @@
     git curl wget jq tree unzip zip
     htop btop ripgrep fd nicotine-plus
     gcc gnumake pkg-config podman
-    gparted tauon obs-studio jrnl 
+    gparted tauon obs-studio jrnl
 
     nodejs_22
 
@@ -273,14 +247,10 @@
       noto-fonts-color-emoji
       font-awesome
 
-      # Document authoring. Typst embeds New Computer Modern, Libertine and
-      # DejaVu Sans Mono internally, so it renders without any of these — they
-      # matter for documents that deviate from the defaults, and for typix
-      # builds, which are hermetic and only see the font paths handed to them.
       newcomputermodern
-      libertinus          # Libertinus Serif/Sans/Math
-      stix-two            # STIX Two Math
-      lmodern             # Latin Modern, for TeX-alike output in Typst
+      libertinus
+      stix-two
+      lmodern
       dejavu_fonts
       liberation_ttf
     ];

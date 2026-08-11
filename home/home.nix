@@ -34,20 +34,16 @@ in
 
   };
 
-  # Agent runs as a user unit; SSH_AUTH_SOCK is exported into fish and bash
-  # by the module itself, so no home.sessionVariables entry is needed.
   services.ssh-agent.enable = true;
 
   programs.ssh = {
     enable = true;
 
-    # The implicit `Host *` defaults are being removed upstream and warn on
-    # every rebuild while enabled. Spelled out under settings."*" instead.
     enableDefaultConfig = false;
 
     settings = {
       "*" = {
-        AddKeysToAgent      = "yes";   # passphrase once per login, not per push
+        AddKeysToAgent      = "yes";
         ForwardAgent        = false;
         Compression         = false;
         ServerAliveInterval = 0;
@@ -63,7 +59,7 @@ in
         User           = "git";
         IdentityFile   = "~/.ssh/id_ed25519";
         IdentitiesOnly = true;
-        # Reuse one connection across back-to-back git operations.
+
         ControlMaster  = "auto";
         ControlPersist = "10m";
       };
@@ -92,8 +88,6 @@ in
       gp      = "git push";
       gl      = "git pull";
 
-      # Documents. The templates' `nix build` / `nix run` cover project work;
-      # these are for one-off files outside a flake.
       tw      = "typst watch";
       tc      = "typst compile";
       tf      = "typstyle -i";

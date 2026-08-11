@@ -1,11 +1,5 @@
 #!/usr/bin/env bash
-# scripts/claude-vm.sh — drive the disposable agent VM.
-#
-#   ./scripts/claude-vm.sh run       ephemeral: all disk writes discarded on exit
-#   ./scripts/claude-vm.sh persist   writes land in the qcow2
-#   ./scripts/claude-vm.sh ssh       shell into a running guest
-#   ./scripts/claude-vm.sh reset     delete the disk image
-#   ./scripts/claude-vm.sh build     build only
+
 set -euo pipefail
 
 FLAKE="${FLAKE:-$HOME/dots}"
@@ -44,8 +38,7 @@ build)
 run)
   preflight
   build
-  # -snapshot: qcow2 is opened read-only, writes go to a temp overlay that
-  # dies with the process. The guest is identical every boot.
+
   boot "-snapshot"
   ;;
 persist)

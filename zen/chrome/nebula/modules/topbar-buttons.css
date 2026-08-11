@@ -1,5 +1,4 @@
-/* ------------------------- BUTTONS ABOVE URLBAR ------------------------- */
-/* Remove padding & adjust scale for top sidebar buttons */
+
 #zen-sidebar-top-buttons,
 #zen-sidebar-top-buttons-customization-target {
   toolbarbutton:not(.titlebar-button) {
@@ -9,8 +8,6 @@
   }
 }
 
-/* Custom icon and styling for main menu button */
-/* Only apply if nebula-turn-off-zen-menu-icon = false */
 @media not (-moz-pref("nebula-turn-off-zen-menu-icon")) {
   toolbarbutton#PanelUI-menu-button {
     list-style-image: url("chrome://branding/content/about-logo.svg") !important;
@@ -22,9 +19,6 @@
   }
 }
 
-/* ------------------------------ ANIMATIONS ------------------------------ */
-
-/* Keyframes */
 @keyframes spin-once {
   to {
     transform: rotate(180deg);
@@ -129,9 +123,8 @@
   }
 }
 
-/* ------------------ BUTTONS IN SINGLE TOOLBAR MODE ------------------ */
 html[zen-single-toolbar="true"] {
-  /* Base styling */
+
   #preferences-button,
   #downloads-button,
   #back-button,
@@ -146,7 +139,6 @@ html[zen-single-toolbar="true"] {
     transition: background-color 0.2s ease-in-out !important;
   }
 
-  /* Hover background */
   #preferences-button:hover,
   #downloads-button:hover,
   #back-button:hover,
@@ -160,7 +152,6 @@ html[zen-single-toolbar="true"] {
     background-color: var(--toolbarbutton-hover-background) !important;
   }
 
-  /* Clear background on icon hover */
   :is(
       #preferences-button,
       #reload-button,
@@ -177,7 +168,6 @@ html[zen-single-toolbar="true"] {
     background-color: transparent !important;
   }
 
-  /* Animation triggers */
   #preferences-button:hover .toolbarbutton-icon {
     animation: spin-once 1s cubic-bezier(0.35, 0.15, 0.12, 1) forwards;
   }
@@ -218,7 +208,6 @@ html[zen-single-toolbar="true"] {
     transform: scale(0.65);
   }
 
-  /* Button border radius */
   #zen-sidebar-bottom-buttons
     .toolbarbutton-1
     > :is(
@@ -240,7 +229,6 @@ html[zen-single-toolbar="true"] {
   }
 }
 
-/* ------------------------- WINDOWS BUTTONS ------------------------- */
 .titlebar-close {
   transition:
     background-color 0.3s ease-out,
@@ -265,19 +253,15 @@ html[zen-single-toolbar="true"] {
   transform: scale(1);
 }
 
-/* ------------------------- MacOS Style buttons ------------------------- */
-
-/* Base for 2 options */
 @media (-moz-pref("nebula-macos-style-buttons")) {
-  /* Container for window control buttons */
+
   .titlebar-buttonbox {
-    margin: -2px -2px 0 -4px !important; /* top right bottom left */
+    margin: -2px -2px 0 -4px !important;
     scale: 0.85 !important;
     transform: translate(0, 0) !important;
     gap: 5px !important;
   }
 
-  /* Common button styles */
   .titlebar-button {
     padding: 0 !important;
     min-height: 14px !important;
@@ -292,7 +276,6 @@ html[zen-single-toolbar="true"] {
     content: none !important;
   }
 
-  /* Pseudo elements for hover effects */
   .titlebar-button::after {
     content: "" !important;
     position: absolute !important;
@@ -306,7 +289,6 @@ html[zen-single-toolbar="true"] {
     opacity: 1 !important;
   }
 
-  /* Hover colors */
   .titlebar-min:hover {
     background-color: #fdc92d !important;
   }
@@ -320,7 +302,6 @@ html[zen-single-toolbar="true"] {
     background-color: #fe6254 !important;
   }
 
-  /* Inactive window colors */
   .titlebar-close:not(:hover):-moz-window-inactive {
     background-color: #fe6254 !important;
   }
@@ -333,7 +314,6 @@ html[zen-single-toolbar="true"] {
     background-color: #28d33f !important;
   }
 
-  /* Hide images inside buttons */
   .titlebar-button > image {
     visibility: collapse !important;
   }
@@ -361,7 +341,6 @@ html[zen-single-toolbar="true"] {
   }
 }
 
-/* When MacOS buttons AND force-left */
 @media (-moz-pref("nebula-macos-style-buttons")) and (-moz-pref("zen.view.experimental-force-window-controls-left")) {
   .titlebar-buttonbox-container {
     order: -1 !important;
@@ -374,10 +353,9 @@ html[zen-single-toolbar="true"] {
   }
 }
 
-/* When MacOS buttons BUT NOT force-left */
 @media (-moz-pref("nebula-macos-style-buttons")) {
   @media not all and (-moz-pref("zen.view.experimental-force-window-controls-left")) {
-    /* Default (left side) */
+
     html[nebula-compact-mode] .titlebar-buttonbox-container {
       order: 1 !important;
       margin-right: 8px !important;
@@ -395,10 +373,9 @@ html[zen-single-toolbar="true"] {
       order: 1 !important;
     }
 
-    /* Right side variant */
     :root[zen-right-side="true"]:not([nebula-compact-mode])
       .titlebar-buttonbox-container {
-      order: 1 !important; /* example: different order */
+      order: 1 !important;
       margin-right: 0 !important;
       margin-top: -3px !important;
       margin-left: 4px !important;
