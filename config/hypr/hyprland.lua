@@ -12,28 +12,46 @@ local colors = require("colors")
 --------------------------------------------------------------------------
 ---- MONITORS
 --------------------------------------------------------------------------
+-- PERSISTENT HDR REMOVED. `hyprctl monitors` showed DP-1 sitting in
+-- XBGR2101010 with colorManagementPreset: hdr at IDLE -- i.e. the 10-bit
+-- colour-management pipeline was running every frame on the desktop, not only
+-- for HDR content. cm_auto_hdr cannot switch away from it while bitdepth = 10
+-- is pinned here. On NVIDIA that path is expensive: strace showed Hyprland
+-- spending 73% of its time in DRM ioctls averaging ~977us per call, which is
+-- what pegged one core at ~75% for an entire session.
+--
+-- To watch HDR content, re-add `bitdepth = 10` and `cm = "hdr"` plus the
+-- luminance lines below, reload, and remove them afterwards.
 hl.monitor({
     output   = "DP-1",
     mode     = "2560x1440@239.97",
     position = "0x0",
     scale    = 1,
-    bitdepth = 10,        -- required for HDR. Also the thing that can break
-    cm       = "hdr", 
-    max_luminance     = 1000,
-    max_avg_luminance = 300,
-    sdr_min_luminance = 0,
-    sdr_max_luminance = 200,
-    sdrbrightness     = 1.7,
-    sdrsaturation     = 1.0,
+    bitdepth = 10,
+    cm       = "srgb",
+    -- max_luminance     = 1000,
+    -- max_avg_luminance = 300,
+    -- sdr_min_luminance = 0,
+    -- sdr_max_luminance = 200,
+    -- sdrbrightness     = 1.7,
+    -- sdrsaturation     = 1.0,
 })
-hl.monitor({output = "HDMI-A-1", mode = "1920x0@144", position = "auto-right", scale = 1, transform = 3})
+
+-- Secondary dropped 144 -> 60. This is a portrait 1080p panel for chat and
+-- logs; every extra Hz on it is another pageflip through the same driver path
+-- that is already the bottleneck. Raise it back if you miss it.
+hl.monitor({output = "HDMI-A-1", mode = "1920x1080@60", position = "auto-right", scale = 1, transform = 3})
 -- Auto-HDR: flip DP-1 into HDR only when a fullscreen surface actually signals
 -- HDR content (mpv with target-colorspace-hint, or Proton with
 -- PROTON_ENABLE_HDR). Desktop stays SDR otherwise, sidestepping the
 -- too-bright-chrome bug. render:cm_fs_passthrough was REMOVED in 0.55 and
 -- folded into this option.
 -- Verify semantics on your build: hyprctl getoption render:cm_auto_hdr
-hl.config({ render = { cm_auto_hdr = 2 } })
+-- direct_scanout lets a fullscreen surface bypass compositing entirely and go
+-- straight to the display, which removes a frame of latency and a large slice
+-- of the per-frame GPU/ioctl work. hyprctl monitors previously reported
+-- `directScanoutBlockedBy: user settings` -- that was this option being off.
+hl.config({ render = { cm_auto_hdr = 2, direct_scanout = true } })
 
 -- Fallback for any other monitors
 hl.monitor({ output = "", mode = "preferred", position = "auto", scale = "auto" })
@@ -206,7 +224,10 @@ hl.config({
         disable_splash_rendering    = true,
         mouse_move_enables_dpms     = true,
         key_press_enables_dpms      = true,
-        vrr                         = 2,
+        -- WAS 2 (fullscreen-only). Both outputs still reported `vrr: false`, so
+        -- it was never actually engaging -- just another thing for the driver
+        -- to renegotiate. Set to 1 to try always-on once CPU is sane again.
+        vrr                         = 0,
         animate_manual_resizes      = false,  -- WAS true: animates on every
         animate_mouse_windowdragging = false, -- pointer sample while dragging,
                                               -- which is exactly where the lag
