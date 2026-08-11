@@ -1,10 +1,6 @@
--- ============================================================================
--- UI EXTRAS — distraction-free writing + symbol outline
---   zen-mode + twilight (Goyo replacement) · aerial (Vista replacement)
--- ============================================================================
 
 return {
-  -- Distraction-free writing (Goyo)
+
   {
     "folke/zen-mode.nvim",
     cmd = "ZenMode",
@@ -21,7 +17,6 @@ return {
     },
   },
 
-  -- Symbol / tag outline (Vista)
   {
     "stevearc/aerial.nvim",
     cmd = { "AerialToggle", "AerialOpen" },

@@ -1,5 +1,5 @@
 @media (-moz-bool-pref: "zen.tabs.vertical") {
-  /* Tab Borders Based on Preference */
+
   .tabbrowser-tab:not([pinned]):is([multiselected="true"], [selected]) {
     &:has(#uc-tabs[uc-tabs-preferred_color="primary"]) .tab-background {
       border: 2px solid var(--zen-colors-primary) !important;
@@ -15,15 +15,14 @@
     }
     &:has(#uc-tabs[uc-tabs-preferred_color="custom"]) .tab-background {
       @media (prefers-color-scheme: light) {
-        border: 2px solid var(--uc-tabs-preferred_color, #000000) !important; /* Fallback to black */
+        border: 2px solid var(--uc-tabs-preferred_color, #000000) !important;
       }
       @media (prefers-color-scheme: dark) {
-        border: 2px solid var(--uc-tabs-preferred_color, #ffffff) !important; /* Fallback to white */
+        border: 2px solid var(--uc-tabs-preferred_color, #ffffff) !important;
       }
     }
   }
 
-  /* Background Modification for Selected Tab */
   #tabbrowser-tabs {
     & .tabbrowser-tab {
       &[selected] .tab-background {
@@ -36,13 +35,12 @@
     }
   }
 
-  /* Dimming Tab Text When Unloaded */
   @media (-moz-bool-pref: "uc.tabs.dim_unloaded") {
     #tabbrowser-tabs {
       & .tabbrowser-tab {
         @media (-moz-bool-pref: "zen.tabs.dim-pending") {
           &[pending="true"] .tab-text {
-            opacity: 0.5; /* Dimmed text for pending tabs */
+            opacity: 0.5;
           }
         }
       }

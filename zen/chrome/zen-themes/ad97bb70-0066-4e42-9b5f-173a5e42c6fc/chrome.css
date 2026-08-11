@@ -1,10 +1,9 @@
 @media (-moz-pref("zen.tabs.vertical")) {
-  /* Prevents stuff from being clipped off from bottom of Essentials */
+
   .zen-essentials-container {
     overflow: visible !important;
   }
 
-  /* Makes essentials transparent (when toggled) */
   @media (-moz-pref("uc.essentials.color-scheme", "transparent")) {
     .tabbrowser-tab[zen-essential="true"]:not(:hover):not([selected="true"])
       .tab-stack
@@ -14,7 +13,7 @@
   }
 
   @media (-moz-pref("zen.view.sidebar-expanded")) {
-    /* Default essentials-width and essentials-gap variables (set to browser default) to fix some bugs */
+
     :root,
     .zen-essentials-container {
       --essentials-gap: calc(var(--zen-toolbox-padding) - 2px);
@@ -99,7 +98,7 @@
         :has([zen-dragtarget], zen-folder .tab-group-label-container[zen-dragtarget])
       ):not(:has(.tabbrowser-tab)):has(> :nth-child(2)) {
       padding-bottom: 0 !important;
-    
+
       @media (-moz-pref("uc.pins.separator-at-bottom")) {
         position: unset !important;
       }
@@ -140,7 +139,6 @@
     }
   }
 
-  /* Enables legacy layout for pinned tabs (icon only in grid) */
   @media (-moz-pref("uc.pins.legacy-layout")) {
     .zen-tab-group-start {
       display: none;
@@ -174,7 +172,6 @@
       }
     }
 
-    /*disable icon shift when tab was renamed*/
     #navigator-toolbox[zen-sidebar-expanded="true"] {
       & #vertical-pinned-tabs-container > .zen-workspace-tabs-section,
       & .zen-workspace-pinned-tabs-section {
@@ -184,7 +181,6 @@
       }
     }
 
-    /* Make pinned tabs auto-grow to span full width of row */
     @media (-moz-pref("uc.pins.auto-grow")) {
       .zen-workspace-pinned-tabs-section:not(
         :has([zen-dragtarget], zen-folder .tab-group-label-container[zen-dragtarget])
@@ -210,7 +206,6 @@
           }
         }
 
-        /* Overwrite orient="vertical" styling quirk */
         &[orient="vertical"] {
           writing-mode: vertical-lr;
           block-size: calc(
@@ -224,7 +219,7 @@
       }
 
       @media (-moz-pref("uc.pins.grid-count")) {
-        /* Logic for pinned tabs that have auto-grow and grid-count. Must use +1 to fix */
+
         #vertical-pinned-tabs-container > .zen-workspace-tabs-section,
         .zen-workspace-pinned-tabs-section:not(
           :has([zen-dragtarget], zen-folder .tab-group-label-container[zen-dragtarget])
@@ -262,7 +257,6 @@
       }
     }
 
-    /* The actual grid layout */
     .zen-workspace-pinned-tabs-section:not(
       :has([zen-dragtarget], zen-folder .tab-group-label-container[zen-dragtarget])
     ) {
@@ -334,14 +328,12 @@
     }
   }
 
-  /* Make Essentials look more box like */
   @media (-moz-pref("uc.essentials.box-like-corners")) {
     .tabbrowser-tab[zen-essential="true"] .tab-stack .tab-background {
       border-radius: 5px !important;
     }
   }
 
-  /* If Essentials have a grid count but do not have auto-grow on */
   @media (-moz-pref("uc.essentials.grid-count")) {
     .zen-essentials-container {
       grid-template-columns: repeat(
@@ -351,7 +343,6 @@
     }
   }
 
-  /* Make Essentials auto-grow to span full width of a row */
   @media (-moz-pref("uc.essentials.auto-grow")) {
     .tabbrowser-tab[zen-essential="true"] {
       width: auto !important;
@@ -360,7 +351,7 @@
     }
 
     @media (-moz-pref("uc.essentials.grid-count")) {
-      /* For auto-grow with grid-count. must use +1 to fix a bug */
+
       .tabbrowser-tab[zen-essential="true"] {
         width: calc(100% / (var(--mod-superpins-essentials-grid-count) + 1)) !important;
       }
@@ -393,7 +384,6 @@
     }
   }
 
-  /* Puts Essentials at the bottom */
   @media (-moz-pref("uc.essentials.position", "bottom")) {
     #tabbrowser-arrowscrollbox {
       position: relative !important;
@@ -406,7 +396,6 @@
       padding-top: 8px !important;
     }
 
-    /* Adds padding-bottom only when media controls are visible */
     #zen-media-controls-toolbar:not([hidden]) ~ .zen-essentials-container {
       padding-bottom: 10px !important;
     }
@@ -436,7 +425,6 @@
     }
   }
 
-  /* Adds a little bg to the pinned tabs */
   @media (-moz-pref("uc.pins.bg")) {
     @media (prefers-color-scheme: light) {
       :root {
@@ -453,7 +441,7 @@
     .zen-workspace-pinned-tabs-section:not(
       :has([zen-dragtarget], zen-folder .tab-group-label-container[zen-dragtarget])
     ) {
-      /* background color of pinned tabs in a normal state (not hovered/selected) */
+
       .tabbrowser-tab[pinned] .tab-stack .tab-background {
         background-color: color-mix(
           in srgb,
@@ -462,7 +450,6 @@
         ) !important;
       }
 
-      /* background color when hovering */
       .tabbrowser-tab[pinned]:hover .tab-stack .tab-background {
         background-color: color-mix(
           in srgb,
@@ -471,7 +458,6 @@
         ) !important;
       }
 
-      /* background color when selected */
       .tabbrowser-tab[pinned][selected="true"] .tab-stack .tab-background,
       .tabbrowser-tab[pinned][multiselected="true"] .tab-stack .tab-background {
         background-color: color-mix(
@@ -481,7 +467,6 @@
         ) !important;
       }
 
-      /* background color when selected and hovering*/
       .tabbrowser-tab[pinned][selected="true"]:hover .tab-stack .tab-background,
       .tabbrowser-tab[pinned][multiselected="true"]:hover .tab-stack .tab-background {
         background-color: color-mix(
@@ -505,7 +490,6 @@
     }
   }
 
-  /* Adds border to Pins/Essentials (when toggled) */
   @media (-moz-pref("uc.superpins.border", "essentials")) {
     .zen-essentials-container {
       & .tabbrowser-tab[zen-essential="true"] .tab-stack .tab-background {
@@ -542,9 +526,8 @@
     }
   }
 
-  /* Let pinned tabs have the same selected styling as essentials */
   @media (-moz-pref("uc.pins.essentials-layout")) {
-    /* Specific query to overwrite previous one */
+
     .zen-workspace-pinned-tabs-section:not(
         :has([zen-dragtarget], zen-folder .tab-group-label-container[zen-dragtarget])
       ):has(> :nth-child(3)) {
@@ -574,7 +557,6 @@
     }
   }
 
-  /* pins height */
   :root {
     --pins-height: var(--tab-min-height);
   }
@@ -613,7 +595,6 @@
     }
   }
 
-  /* favicon size */
   @media (-moz-pref("uc.favicon.size", "small")) {
     .tab-icon-pending,
     .tab-icon-image,
@@ -623,7 +604,6 @@
       width: 16px !important;
     }
 
-    /* No need to scale tab throbber as it is same size. */
   }
 
   @media (-moz-pref("uc.favicon.size", "normal")) {
@@ -654,7 +634,6 @@
     }
   }
 
-  /* workspace icons size */
   @media (-moz-pref("uc.workspace.icon.size", "x-small")) {
     #zen-workspaces-button {
       font-size: x-small !important;
@@ -679,7 +658,6 @@
     }
   }
 
-  /* current workspace icons size */
   @media (-moz-pref("uc.workspace.current.icon.size", "small")) {
     .zen-current-workspace-indicator .zen-current-workspace-indicator-icon {
       font-size: 12px !important;
@@ -698,7 +676,6 @@
     }
   }
 
-  /* Increase margin below Essentials in case the workspace indicator is not visible. */
   @media not (-moz-pref("zen.workspaces.show-workspace-indicator")) {
     .zen-current-workspace-indicator {
       display: none !important;
@@ -715,27 +692,23 @@
     }
   }
 
-  /* Ensure that the browser uses SuperPins dim rather than the built-in dim-pending. */
   .tab-icon-image[pending="true"],
   .tabbrowser-tab[pending="true"] .tab-text {
     opacity: 1 !important;
   }
 
-  /* If dim-type is set to icons. */
   @media (-moz-pref("uc.tabs.dim-type", "icons")) {
     .tab-icon-image[pending="true"] {
       opacity: 0.5 !important;
     }
   }
 
-  /* If dim-type is set to text. */
   @media (-moz-pref("uc.tabs.dim-type", "text")) {
     .tabbrowser-tab[pending="true"] .tab-text {
       opacity: 0.5 !important;
     }
   }
 
-  /* If dim-type is set to icon + text. */
   @media (-moz-pref("uc.tabs.dim-type", "both")) {
     .tab-icon-image[pending="true"],
     .tabbrowser-tab[pending="true"] .tab-text {

@@ -1,13 +1,8 @@
--- ============================================================================
--- EDITING ENHANCEMENTS
---   surround · comment · indent guides · motion (flash) · smooth scroll · which-key
--- ============================================================================
 
 return {
-  -- Surround (vim-surround)
+
   { "kylechui/nvim-surround", event = "VeryLazy", opts = {} },
 
-  -- Comments (NERDcommenter)
   {
     "numToStr/Comment.nvim",
     keys = {
@@ -17,7 +12,6 @@ return {
     opts = {},
   },
 
-  -- Indent guides (indentLine)
   {
     "lukas-reineke/indent-blankline.nvim",
     event = { "BufReadPost", "BufNewFile" },
@@ -35,7 +29,6 @@ return {
     end,
   },
 
-  -- Motion (easymotion replacement)
   {
     "folke/flash.nvim",
     event = "VeryLazy",
@@ -46,14 +39,12 @@ return {
     },
   },
 
-  -- Smooth scrolling (comfortable-motion replacement)
   {
     "karb94/neoscroll.nvim",
     event = "VeryLazy",
     opts = {},
   },
 
-  -- Keybinding hints
   {
     "folke/which-key.nvim",
     event = "VeryLazy",

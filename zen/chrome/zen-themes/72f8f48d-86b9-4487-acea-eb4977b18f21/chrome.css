@@ -1,36 +1,13 @@
-/**
-* Zen Mod: Better CtrlTab Panel
-* Re-style and add customization options for the Ctrl+Tab panel.
-* Pontus Sundén <hi@pontus.cc>
-*/
+
 @-moz-document url-prefix("chrome:") {
   :root {
-    /**
-    --psu-better_ctrltab-roundness: 50px;
-    --psu-better_ctrltab-padding: 35px;
-    --psu-better_ctrltab-zoom: .8;
 
-    --psu-better_ctrltab-background: light-dark(rgba(146, 145, 144, 0.94), rgba(24, 23, 22, 0.94));
-    --psu-better_ctrltab-shadow_size: 20px;
-    
-    --psu-better_ctrltab-preview_padding: 30px;
-    --psu-better_ctrltab-preview_border_width: 1px;
-    --psu-better_ctrltab-preview_border_color: light-dark(rgba(253, 255, 254, 0.1), rgba(83, 82, 79, 0.2));
-    --psu-better_ctrltab-preview_focus_background: light-dark(rgba(77, 76, 78, 0.8), rgba(184, 185, 183, 0.18));
-    --psu-better_ctrltab-preview_font_size: 13px; 
-    --psu-better_ctrltab-preview_letter_spacing: 0px;
-    
-    --psu-better_ctrltab-preview_favicon_size: 36px;
-    --psu-better_ctrltab-preview_favicon_outdent: 12px;
-/**/
-
-    /* helpers */
     --psu-zoom-invert: pow(var(--psu-better_ctrltab-zoom), -1);
     --psu-roundness-zoomed: calc(var(--psu-better_ctrltab-roundness) * var(--psu-better_ctrltab-zoom));
   }
 
   #ctrlTab-panel {
-    /* panel styling */
+
     --panel-border-radius: var(--psu-roundness-zoomed) !important;
     --panel-shadow: 0 0 var(--psu-better_ctrltab-shadow_size) calc(var(--psu-better_ctrltab-shadow_size) / 3) rgba(1, 1, 4, 0.2) !important;
     --panel-background: var(--psu-better_ctrltab-background) !important;
@@ -39,7 +16,6 @@
     padding: 0 !important;
     background-color: unset !important;
 
-    /* panel zoom adjust size */
     --psu-default_spacing: 10%;
     --psu-tile-counter: 0;
     &:has(.ctrlTab-preview:nth-child(1):not([hidden])) {
@@ -66,15 +42,15 @@
     }
     --panel-shadow-margin: var(--psu-better_ctrltab-shadow_size)
       calc(
-        /* decrease by default non-css space */ var(--psu-default_spacing) + (90% - var(--psu-default_spacing)) / 2 * (1 - var(--psu-better_ctrltab-zoom)) -
+         var(--psu-default_spacing) + (90% - var(--psu-default_spacing)) / 2 * (1 - var(--psu-better_ctrltab-zoom)) -
           (
-            /* increase by tile padding and borders */ ((var(--psu-better_ctrltab-preview_padding) * 2 + var(--psu-better_ctrltab-preview_border_width) * 2) * var(--psu-tile-counter)) / 2
-              /* increase by panel padding */ + (var(--psu-better_ctrltab-padding) * 0.8)
+             ((var(--psu-better_ctrltab-preview_padding) * 2 + var(--psu-better_ctrltab-preview_border_width) * 2) * var(--psu-tile-counter)) / 2
+               + (var(--psu-better_ctrltab-padding) * 0.8)
           ) * var(--psu-better_ctrltab-zoom)
       ) !important;
 
     #ctrlTab-previews {
-      /* panel zoom and padding*/
+
       zoom: var(--psu-better_ctrltab-zoom) !important;
       padding: var(--psu-better_ctrltab-padding) calc(var(--psu-better_ctrltab-padding) * 0.8) !important;
 
@@ -83,7 +59,6 @@
         padding: 0 !important;
         border-radius: calc(var(--psu-roundness-zoomed) * 0.8) !important;
 
-        /* previews styling */
         .ctrlTab-preview-inner {
           margin: 0 !important;
           padding: calc(var(--psu-better_ctrltab-preview_padding) + var(--psu-better_ctrltab-preview_border_width)) !important;
@@ -102,7 +77,6 @@
           border-radius: calc(var(--psu-roundness-zoomed) * 0.25) !important;
         }
 
-        /* label styling */
         .ctrlTab-label {
           font-size: calc(var(--psu-better_ctrltab-preview_font_size) * var(--psu-zoom-invert)) !important;
           letter-spacing: calc(var(--psu-better_ctrltab-preview_letter_spacing) * var(--psu-zoom-invert));
@@ -110,7 +84,6 @@
           padding: 0 !important;
         }
 
-        /* favicon styling and position */
         .ctrlTab-favicon-container image {
           height: var(--psu-better_ctrltab-preview_favicon_size) !important;
           width: var(--psu-better_ctrltab-preview_favicon_size) !important;
@@ -126,7 +99,6 @@
           ) !important;
         }
 
-        /* focused bg styling */
         &:focus {
           .ctrlTab-preview-inner {
             background: var(--psu-better_ctrltab-preview_focus_background) !important;
