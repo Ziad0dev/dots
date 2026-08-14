@@ -7,7 +7,10 @@
 
     nixpkgs.follows = "chaotic/nixpkgs";
 
-    helium.url = "github:FKouhai/helium2nix/main";
+    helium = {
+      url = "github:FKouhai/helium2nix/main";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     home-manager = {
       url = "github:nix-community/home-manager/master";
@@ -22,6 +25,7 @@
     zen-browser = {
       url = "github:0xc000022070/zen-browser-flake";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.home-manager.follows = "home-manager";
     };
 
     nix-index-database = {
@@ -32,7 +36,7 @@
     nixcord = {
       url = "github:FlameFlag/nixcord";
       inputs.nixpkgs.follows = "nixpkgs";
-
+      inputs.nixpkgs-nixcord.follows = "nixpkgs";
     };
 
     zig-overlay = {
