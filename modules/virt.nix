@@ -1,4 +1,10 @@
-{ config, lib, pkgs, username, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  username,
+  ...
+}:
 
 {
 
@@ -24,7 +30,10 @@
     after = [ "data.mount" ];
   };
 
-  users.users.${username}.extraGroups = [ "libvirtd" "kvm" ];
+  users.users.${username}.extraGroups = [
+    "libvirtd"
+    "kvm"
+  ];
 
   programs.virt-manager.enable = true;
 

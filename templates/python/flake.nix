@@ -4,11 +4,16 @@
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
-  outputs = { self, nixpkgs }:
+  outputs =
+    { self, nixpkgs }:
     let
-      systems = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
-      eachSystem = f: nixpkgs.lib.genAttrs systems
-        (system: f nixpkgs.legacyPackages.${system});
+      systems = [
+        "x86_64-linux"
+        "aarch64-linux"
+        "x86_64-darwin"
+        "aarch64-darwin"
+      ];
+      eachSystem = f: nixpkgs.lib.genAttrs systems (system: f nixpkgs.legacyPackages.${system});
     in
     {
 
@@ -20,13 +25,16 @@
         default = self.templates.python;
       };
 
-      devShells = eachSystem (pkgs:
+      devShells = eachSystem (
+        pkgs:
         let
 
-          python = pkgs.python312.withPackages (ps: with ps; [
-            requests
+          python = pkgs.python312.withPackages (
+            ps: with ps; [
+              requests
 
-          ]);
+            ]
+          );
         in
         {
           default = pkgs.mkShell {
@@ -61,6 +69,7 @@
               echo "python $(python --version | cut -d' ' -f2) | $(ruff --version) | venv: .venv"
             '';
           };
-        });
+        }
+      );
     };
 }

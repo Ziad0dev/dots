@@ -5,7 +5,7 @@
   boot.kernelPackages = pkgs.linuxPackages_cachyos;
 
   services.scx = {
-    enable    = true;
+    enable = true;
     scheduler = "scx_lavd";
   };
 
@@ -17,15 +17,15 @@
       pkgs.proton-ge-bin
       pkgs.proton-cachyos
     ];
-    remotePlay.openFirewall      = false;
+    remotePlay.openFirewall = false;
     dedicatedServer.openFirewall = false;
   };
 
   programs.gamemode.enable = true;
 
   services.ananicy = {
-    enable        = true;
-    package       = pkgs.ananicy-cpp;
+    enable = true;
+    package = pkgs.ananicy-cpp;
     rulesProvider = pkgs.ananicy-rules-cachyos_git;
   };
 

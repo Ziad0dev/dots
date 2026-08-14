@@ -1,9 +1,14 @@
-
-{ config, lib, pkgs, username, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  username,
+  ...
+}:
 
 let
   modelDir = "/data/models";
-  vulkan   = pkgs.llama-cpp-vulkan;
+  vulkan = pkgs.llama-cpp-vulkan;
 
   freeGpu = pkgs.writeShellScript "free-gpu" ''
     set -u
@@ -19,7 +24,7 @@ let
   '';
 
   gpuUnit = self: {
-    after     = [ "data.mount" ];
+    after = [ "data.mount" ];
     conflicts = lib.filter (n: n != self) [
       "llama-cpp.service"
       "llama-sec.service"
@@ -30,7 +35,7 @@ let
     ];
     unitConfig = {
       RequiresMountsFor = "/data";
-      StartLimitBurst   = 5;
+      StartLimitBurst = 5;
     };
     wantedBy = lib.mkForce [ ];
     serviceConfig.ExecStartPre = freeGpu;
@@ -39,15 +44,15 @@ in
 {
 
   services.llama-cpp = {
-    enable  = true;
+    enable = true;
     package = vulkan;
     settings = {
-      model        = "${modelDir}/Qwen3.5-9B-Q6_K.gguf";
-      host         = "127.0.0.1";
-      port         = 8080;
-      ctx-size     = 16384;
+      model = "${modelDir}/Qwen3.5-9B-Q6_K.gguf";
+      host = "127.0.0.1";
+      port = 8080;
+      ctx-size = 16384;
       n-gpu-layers = 99;
-      flash-attn   = "on";
+      flash-attn = "on";
     };
   };
 

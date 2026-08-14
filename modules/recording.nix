@@ -1,9 +1,15 @@
-{ config, lib, pkgs, username, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  username,
+  ...
+}:
 
 let
 
   replayDir = "/data/replays";
-  monitor = "DP-2";
+  monitor = "DP-1";
 
   gsr = pkgs.gpu-screen-recorder.override { inherit (config.security) wrapperDir; };
 in

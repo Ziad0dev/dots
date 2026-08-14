@@ -1,22 +1,37 @@
-
-{ config, lib, pkgs, modulesPath, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  modulesPath,
+  ...
+}:
 
 {
-  imports =
-    [ (modulesPath + "/installer/scan/not-detected.nix")
-    ];
+  imports = [
+    (modulesPath + "/installer/scan/not-detected.nix")
+  ];
 
-  boot.initrd.availableKernelModules = [ "vmd" "xhci_pci" "ahci" "nvme" "usb_storage" "usbhid" "uas" "sd_mod" ];
+  boot.initrd.availableKernelModules = [
+    "vmd"
+    "xhci_pci"
+    "ahci"
+    "nvme"
+    "usb_storage"
+    "usbhid"
+    "uas"
+    "sd_mod"
+  ];
   boot.initrd.kernelModules = [ ];
   boot.kernelModules = [ "kvm-intel" ];
   boot.extraModulePackages = [ ];
 
-  fileSystems."/" =
-    { device = "/dev/mapper/luks-72749c98-6a12-4a0b-b354-00fd868aa36e";
-      fsType = "ext4";
-    };
+  fileSystems."/" = {
+    device = "/dev/mapper/luks-72749c98-6a12-4a0b-b354-00fd868aa36e";
+    fsType = "ext4";
+  };
 
-  boot.initrd.luks.devices."luks-72749c98-6a12-4a0b-b354-00fd868aa36e".device = "/dev/disk/by-uuid/72749c98-6a12-4a0b-b354-00fd868aa36e";
+  boot.initrd.luks.devices."luks-72749c98-6a12-4a0b-b354-00fd868aa36e".device =
+    "/dev/disk/by-uuid/72749c98-6a12-4a0b-b354-00fd868aa36e";
 
   environment.etc."crypttab".text = ''
     data UUID=bdb1e892-460d-46be-a438-a1e4ab1902b3 /etc/luks-data.key luks
@@ -25,14 +40,20 @@
   fileSystems."/data" = {
     device = "/dev/mapper/data";
     fsType = "ext4";
-    options = [ "x-systemd.requires=systemd-cryptsetup@data.service" "nofail" ];
+    options = [
+      "x-systemd.requires=systemd-cryptsetup@data.service"
+      "nofail"
+    ];
   };
 
-  fileSystems."/boot" =
-    { device = "/dev/disk/by-uuid/82CE-D072";
-      fsType = "vfat";
-      options = [ "fmask=0077" "dmask=0077" ];
-    };
+  fileSystems."/boot" = {
+    device = "/dev/disk/by-uuid/82CE-D072";
+    fsType = "vfat";
+    options = [
+      "fmask=0077"
+      "dmask=0077"
+    ];
+  };
 
   swapDevices = [ ];
 

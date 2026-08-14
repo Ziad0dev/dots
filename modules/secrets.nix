@@ -13,7 +13,4 @@
     enable = true;
     pinentryPackage = pkgs.pinentry-gnome3;
   };
-
-  services.gnome.gnome-keyring.enable = true;
-  security.pam.services.sddm.enableGnomeKeyring = true;
 }
