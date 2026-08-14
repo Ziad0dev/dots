@@ -1,4 +1,10 @@
-{ config, lib, pkgs, username, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  username,
+  ...
+}:
 
 let
 
@@ -22,7 +28,7 @@ in
 
     hardwareAcceleration = {
       enable = true;
-      type   = "nvenc";
+      type = "nvenc";
 
       device = "/dev/nvidiactl";
     };
@@ -34,18 +40,18 @@ in
 
       hardwareEncodingCodecs = {
         hevc = true;
-        av1  = false;
+        av1 = false;
       };
 
       hardwareDecodingCodecs = {
-        h264      = true;
-        hevc      = true;
+        h264 = true;
+        hevc = true;
         hevc10bit = true;
-        vp8       = true;
-        vp9       = true;
-        av1       = true;
-        mpeg2     = true;
-        vc1       = true;
+        vp8 = true;
+        vp9 = true;
+        av1 = true;
+        mpeg2 = true;
+        vc1 = true;
 
       };
 
@@ -58,12 +64,11 @@ in
     };
   };
 
-  systemd.services.jellyfin.serviceConfig.DeviceAllow =
-    map (d: "${d} rw") extraNvidiaDevices;
+  systemd.services.jellyfin.serviceConfig.DeviceAllow = map (d: "${d} rw") extraNvidiaDevices;
 
   fileSystems.${mediaRoot} = {
-    device  = "/dev/disk/by-uuid/2A0B-58D1";
-    fsType  = "exfat";
+    device = "/dev/disk/by-uuid/2A0B-58D1";
+    fsType = "exfat";
     options = [
 
       "uid=${toString config.users.users.${username}.uid}"
@@ -83,7 +88,7 @@ in
 
   services.radarr = {
     enable = true;
-    group  = "media";
+    group = "media";
     openFirewall = false;
   };
 
@@ -91,7 +96,7 @@ in
 
   services.sonarr = {
     enable = true;
-    group  = "media";
+    group = "media";
     openFirewall = false;
   };
 

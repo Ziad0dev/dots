@@ -1,4 +1,3 @@
-
 { pkgs, ... }:
 let
   resolve = pkgs.symlinkJoin {
@@ -17,5 +16,8 @@ let
 in
 {
 
-  environment.systemPackages = [ resolve pkgs.ffmpeg-full ];
+  environment.systemPackages = [
+    resolve
+    pkgs.ffmpeg-full
+  ];
 }

@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+set -uo pipefail
+fail=0
+
+# 1. Every .nix file the flake references must be TRACKED — flakes only see
+#    git content, so an untracked module fails with "path does not exist".
+while read -r ref; do
+    f="${ref#./}"
+    [ -e "$f" ] || { echo "pre-commit: flake references missing file: $f"; fail=1; continue; }
+    git ls-files --error-unmatch "$f" >/dev/null 2>&1 || {
+        echo "pre-commit: flake references UNTRACKED file: $f  (git add it)"; fail=1; }
+done < <(grep -oE '\./[A-Za-z0-9_./-]+\.nix' flake.nix | sort -u)
+
+# 2. Legacy hyprctl dispatch strings fail SILENTLY under the Lua config
+#    (hyprctl still exits 0), so nothing else would catch these.
+if grep -rn "hyprctl dispatch" --include="*.conf" --include="*.jsonc" --include="*.sh" \
+     --include="*.lua" config/ 2>/dev/null | grep -v "hl\.dsp" | grep -q .; then
+    echo "pre-commit: legacy 'hyprctl dispatch' string(s) — these fail silently:"
+    grep -rn "hyprctl dispatch" --include="*.conf" --include="*.jsonc" --include="*.sh" \
+      --include="*.lua" config/ 2>/dev/null | grep -v "hl\.dsp" | sed 's/^/    /'
+    fail=1
+fi
+
+# 3. Full eval — catches duplicate attrs, bad option names, type errors.
+if command -v nix >/dev/null; then
+    echo "pre-commit: evaluating configuration..."
+    nix eval --no-warn-dirty .#nixosConfigurations.nixos.config.system.build.toplevel.drvPath \
+        >/dev/null 2>/tmp/pre-commit-eval.log || {
+        echo "pre-commit: EVAL FAILED — see /tmp/pre-commit-eval.log"
+        tail -15 /tmp/pre-commit-eval.log; fail=1; }
+fi
+
+# 4. Lint. statix reads statix.toml (repeated_keys / empty_pattern disabled —
+#    both are style opinions that would make these modules less readable).
+#    deadnix: -L skips module-signature args like { config, lib, pkgs, ... },
+#    which are idiomatic and not dead code.
+command -v statix  >/dev/null && { statix check . || fail=1; }
+command -v deadnix >/dev/null && { deadnix --fail -L --exclude templates . || fail=1; }
+
+[ $fail -eq 0 ] && echo "pre-commit: ok"
+exit $fail

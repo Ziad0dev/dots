@@ -6,7 +6,8 @@
     zig-overlay.url = "github:mitchellh/zig-overlay";
   };
 
-  outputs = { nixpkgs, zig-overlay, ... }:
+  outputs =
+    { nixpkgs, zig-overlay, ... }:
     let
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};

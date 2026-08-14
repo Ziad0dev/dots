@@ -1,4 +1,12 @@
-{ config, pkgs, inputs, username, hostname, system, ... }:
+{
+  config,
+  pkgs,
+  inputs,
+  username,
+  hostname,
+  system,
+  ...
+}:
 
 {
   imports = [
@@ -6,16 +14,16 @@
     inputs.hyprland.nixosModules.default
   ];
 
-   systemd.services.systemd-suspend.environment.SYSTEMD_SLEEP_FREEZE_USER_SESSIONS = "false";
+  systemd.services.systemd-suspend.environment.SYSTEMD_SLEEP_FREEZE_USER_SESSIONS = "false";
 
-   boot.kernelModules = [ "nct6775" ];
+  boot.kernelModules = [ "nct6775" ];
 
-   systemd.sleep.settings.Sleep = {
+  systemd.sleep.settings.Sleep = {
     AllowSuspend = "no";
     AllowHibernation = "no";
     AllowHybridSleep = "no";
     AllowSuspendThenHibernate = "no";
-    };
+  };
 
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
@@ -23,26 +31,26 @@
 
   services.flatpak.enable = true;
 
-  networking.hostName            = hostname;
+  networking.hostName = hostname;
   networking.networkmanager.enable = true;
 
-  time.timeZone      = "Europe/Stockholm";
+  time.timeZone = "Europe/Stockholm";
   i18n.defaultLocale = "en_US.UTF-8";
   i18n.extraLocaleSettings = {
-    LC_ADDRESS        = "en_US.UTF-8";
+    LC_ADDRESS = "en_US.UTF-8";
     LC_IDENTIFICATION = "en_US.UTF-8";
-    LC_MEASUREMENT    = "en_US.UTF-8";
-    LC_MONETARY       = "en_US.UTF-8";
-    LC_NAME           = "en_US.UTF-8";
-    LC_NUMERIC        = "en_US.UTF-8";
-    LC_PAPER          = "en_US.UTF-8";
-    LC_TELEPHONE      = "en_US.UTF-8";
-    LC_TIME           = "en_US.UTF-8";
+    LC_MEASUREMENT = "en_US.UTF-8";
+    LC_MONETARY = "en_US.UTF-8";
+    LC_NAME = "en_US.UTF-8";
+    LC_NUMERIC = "en_US.UTF-8";
+    LC_PAPER = "en_US.UTF-8";
+    LC_TELEPHONE = "en_US.UTF-8";
+    LC_TIME = "en_US.UTF-8";
   };
 
   services.xserver = {
-    enable      = true;
-    xkb.layout  = "us";
+    enable = true;
+    xkb.layout = "us";
   };
 
   zramSwap = {
@@ -53,7 +61,7 @@
   services.xserver.videoDrivers = [ "nvidia" ];
 
   hardware.graphics = {
-    enable      = true;
+    enable = true;
     enable32Bit = true;
   };
   hardware.nvidia = {
@@ -64,9 +72,9 @@
   };
 
   services.displayManager.sddm = {
-    enable         = true;
+    enable = true;
     wayland.enable = true;
-    theme          = "breeze";
+    theme = "breeze";
   };
   services.prowlarr = {
     enable = true;
@@ -82,22 +90,25 @@
   services.resolved.enable = true;
 
   programs.hyprland = {
-    enable         = true;
-    package        = inputs.hyprland.packages.${system}.hyprland;
+    enable = true;
+    package = inputs.hyprland.packages.${system}.hyprland;
     xwayland.enable = true;
   };
 
   xdg.portal = {
     enable = true;
     config = {
-      common.default           = [ "kde" ];
-      hyprland.default         = [ "hyprland" "kde" ];
+      common.default = [ "kde" ];
+      hyprland.default = [
+        "hyprland"
+        "kde"
+      ];
       hyprland."org.freedesktop.impl.portal.Secret" = [ "kde" ];
     };
   };
 
-  services.dbus.enable       = true;
-  security.polkit.enable     = true;
+  services.dbus.enable = true;
+  security.polkit.enable = true;
 
   security.polkit.extraConfig = ''
     polkit.addRule(function(action, subject) {
@@ -107,48 +118,56 @@
       }
     });
   '';
-  services.printing.enable   = true;
-  services.gvfs.enable       = true;
-  services.udisks2.enable    = true;
+  services.printing.enable = true;
+  services.gvfs.enable = true;
+  services.udisks2.enable = true;
 
-  services.usbmuxd.enable    = true;
+  services.usbmuxd.enable = true;
 
   hardware.bluetooth = {
-    enable      = false;
+    enable = false;
     powerOnBoot = false;
   };
   services.blueman.enable = false;
 
   virtualisation.docker = {
-    enable           = true;
-    enableOnBoot     = true;
+    enable = true;
+    enableOnBoot = true;
   };
 
   users.users.${username} = {
     isNormalUser = true;
-    description  = username;
+    description = username;
 
-    uid          = 1001;
-    extraGroups  = [ "wheel" "networkmanager" "docker" "audio" "video" "input" ];
-    shell        = pkgs.fish;
+    uid = 1001;
+    extraGroups = [
+      "wheel"
+      "networkmanager"
+      "docker"
+      "audio"
+      "video"
+      "input"
+    ];
+    shell = pkgs.fish;
   };
   programs.fish.enable = true;
 
   nixpkgs.overlays = [ inputs.zig-overlay.overlays.default ];
   nixpkgs.config.allowUnfree = true;
 
-  nixpkgs.config.allowUnfreePredicate = _: true;
-
   nix = {
     settings = {
-      experimental-features = [ "nix-command" "flakes" ];
-      auto-optimise-store   = true;
+      experimental-features = [
+        "nix-command"
+        "flakes"
+      ];
+      auto-optimise-store = true;
 
-      substituters          = [
+      substituters = [
         "https://cache.nixos.org"
         "https://hyprland.cachix.org"
       ];
-      trusted-public-keys   = [
+      trusted-public-keys = [
         "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
         "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc="
       ];
@@ -163,10 +182,26 @@
     pkgs.spotify
     inputs.helium.defaultPackage.${system}
 
-    git curl wget jq tree unzip zip
-    htop btop ripgrep fd nicotine-plus
-    gcc gnumake pkg-config podman
-    gparted tauon obs-studio jrnl
+    git
+    curl
+    wget
+    jq
+    tree
+    unzip
+    zip
+    htop
+    btop
+    ripgrep
+    fd
+    nicotine-plus
+    gcc
+    gnumake
+    pkg-config
+    podman
+    gparted
+    tauon
+    obs-studio
+    jrnl
 
     nodejs_22
 
@@ -255,16 +290,16 @@
       liberation_ttf
     ];
     fontconfig.defaultFonts = {
-      monospace  = [ "FiraCode Nerd Font Mono" ];
-      sansSerif  = [ "Noto Sans" ];
-      serif      = [ "Noto Serif" ];
-      emoji      = [ "Noto Color Emoji" ];
+      monospace = [ "FiraCode Nerd Font Mono" ];
+      sansSerif = [ "Noto Sans" ];
+      serif = [ "Noto Serif" ];
+      emoji = [ "Noto Color Emoji" ];
     };
   };
 
-  programs.git.enable    = true;
+  programs.git.enable = true;
   programs.nix-ld.enable = true;
-  programs.dconf.enable  = true;
+  programs.dconf.enable = true;
 
   system.stateVersion = "24.05";
 }
