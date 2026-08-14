@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
 
@@ -18,16 +23,27 @@ in
 
     extraConfig.pipewire."92-hifi-rates" = {
       "context.properties" = {
-        "default.clock.allowed-rates" = [ 44100 48000 88200 96000 176400 192000 ];
+        "default.clock.allowed-rates" = [
+          44100
+          48000
+          88200
+          96000
+          176400
+          192000
+        ];
 
       };
     };
 
     extraConfig.pipewire-pulse."92-hifi-resample" = {
-      "stream.properties" = { "resample.quality" = 10; };
+      "stream.properties" = {
+        "resample.quality" = 10;
+      };
     };
     extraConfig.client."92-hifi-resample" = {
-      "stream.properties" = { "resample.quality" = 10; };
+      "stream.properties" = {
+        "resample.quality" = 10;
+      };
     };
 
     wireplumber.extraConfig = lib.mkIf disableAcpOnUsb {
@@ -35,7 +51,9 @@ in
         "monitor.alsa.rules" = [
           {
             matches = [ { "device.name" = "~alsa_card.usb-.*"; } ];
-            actions.update-props = { "api.alsa.use-acp" = false; };
+            actions.update-props = {
+              "api.alsa.use-acp" = false;
+            };
           }
         ];
       };

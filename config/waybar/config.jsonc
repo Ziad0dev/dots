@@ -285,8 +285,8 @@
         "class<tor browser>": "",
       },
 
-      "on-scroll-up": "hyprctl dispatch workspace m-1 > /dev/null",
-      "on-scroll-down": "hyprctl dispatch workspace m+1 > /dev/null",
+      "on-scroll-up": "hyprctl dispatch 'hl.dsp.exec_raw(\"workspace m-1\")' > /dev/null",
+      "on-scroll-down": "hyprctl dispatch 'hl.dsp.exec_raw(\"workspace m+1\")' > /dev/null",
       "format-icons": {
 
         "special": "🎁",

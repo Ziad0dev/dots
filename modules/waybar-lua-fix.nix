@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 {
   nixpkgs.overlays = [
@@ -12,9 +17,10 @@
           hash = "sha256-pSbVf9mMWazkaTgNM0X4pfkIS/6AzoAfs7YTS27udOE=";
         };
 
-        mesonFlags =
-          (lib.filter (f: f != "-Dcava=enabled") (old.mesonFlags or [ ]))
-          ++ [ "-Dwwan=disabled" "-Dcava=disabled" ];
+        mesonFlags = (lib.filter (f: f != "-Dcava=enabled") (old.mesonFlags or [ ])) ++ [
+          "-Dwwan=disabled"
+          "-Dcava=disabled"
+        ];
 
         doInstallCheck = false;
       });

@@ -3,18 +3,22 @@
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
-  outputs = { self, nixpkgs }:
+  outputs =
+    { self, nixpkgs }:
     let
       system = "x86_64-linux";
       pkgs = import nixpkgs { inherit system; };
-    in {
+    in
+    {
       devShells.${system}.default = pkgs.mkShell {
         packages = with pkgs; [
 
-          (sbcl.withPackages (ps: with ps; [
-            swank
-            alexandria
-          ]))
+          (sbcl.withPackages (
+            ps: with ps; [
+              swank
+              alexandria
+            ]
+          ))
           rlwrap
         ];
 

@@ -1,4 +1,12 @@
-{ config, pkgs, lib, inputs, username, system, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  inputs,
+  username,
+  system,
+  ...
+}:
 
 let
 
@@ -7,29 +15,29 @@ let
   link = sub: config.lib.file.mkOutOfStoreSymlink "${dotsPath}/config/${sub}";
 in
 {
-  home.username      = username;
+  home.username = username;
   home.homeDirectory = "/home/${username}";
-  home.stateVersion  = "24.05";
+  home.stateVersion = "24.05";
 
   programs.home-manager.enable = true;
 
   home.sessionVariables = {
-    EDITOR   = "nvim";
-    VISUAL   = "nvim";
+    EDITOR = "nvim";
+    VISUAL = "nvim";
     TERMINAL = "ghostty";
-    BROWSER  = "zen";
+    BROWSER = "zen";
     MOZ_ENABLE_WAYLAND = "1";
-    NIXOS_OZONE_WL     = "1";
-    QT_QPA_PLATFORM    = "wayland;xcb";
+    NIXOS_OZONE_WL = "1";
+    QT_QPA_PLATFORM = "wayland;xcb";
     QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
-    SDL_VIDEODRIVER    = "wayland";
+    SDL_VIDEODRIVER = "wayland";
     _JAVA_AWT_WM_NONREPARENTING = "1";
   };
 
   programs.bash.enable = true;
 
   programs.direnv = {
-    enable            = true;
+    enable = true;
     nix-direnv.enable = true;
 
   };
@@ -43,24 +51,24 @@ in
 
     settings = {
       "*" = {
-        AddKeysToAgent      = "yes";
-        ForwardAgent        = false;
-        Compression         = false;
+        AddKeysToAgent = "yes";
+        ForwardAgent = false;
+        Compression = false;
         ServerAliveInterval = 0;
         ServerAliveCountMax = 3;
-        HashKnownHosts      = false;
-        UserKnownHostsFile  = "~/.ssh/known_hosts";
-        ControlMaster       = "no";
-        ControlPath         = "~/.ssh/master-%r@%n:%p";
-        ControlPersist      = "no";
+        HashKnownHosts = false;
+        UserKnownHostsFile = "~/.ssh/known_hosts";
+        ControlMaster = "no";
+        ControlPath = "~/.ssh/master-%r@%n:%p";
+        ControlPersist = "no";
       };
 
       "github.com" = {
-        User           = "git";
-        IdentityFile   = "~/.ssh/id_ed25519";
+        User = "git";
+        IdentityFile = "~/.ssh/id_ed25519";
         IdentitiesOnly = true;
 
-        ControlMaster  = "auto";
+        ControlMaster = "auto";
         ControlPersist = "10m";
       };
     };
@@ -70,29 +78,29 @@ in
     enable = true;
 
     shellAliases = {
-      ll     = "ls -l";
-      la     = "ls -la";
-      edit   = "sudo -e";
+      ll = "ls -l";
+      la = "ls -la";
+      edit = "sudo -e";
     };
 
     shellAbbrs = {
-      update  = "nh os switch";
-      upall   = "nh os switch -u";
+      update = "nh os switch";
+      upall = "nh os switch -u";
       flakeup = "nix flake update --flake /home/${username}/dots";
-      llm     = "sudo systemctl start llama-cpp";
-      fim     = "sudo systemctl start llama-fim";
-      llmoff  = "sudo systemctl stop llama-cpp llama-fim";
-      g       = "git";
-      gst     = "git status";
-      gco     = "git checkout";
-      gp      = "git push";
-      gl      = "git pull";
+      llm = "sudo systemctl start llama-cpp";
+      fim = "sudo systemctl start llama-fim";
+      llmoff = "sudo systemctl stop llama-cpp llama-fim";
+      g = "git";
+      gst = "git status";
+      gco = "git checkout";
+      gp = "git push";
+      gl = "git pull";
 
-      tw      = "typst watch";
-      tc      = "typst compile";
-      tf      = "typstyle -i";
-      lmk     = "latexmk -pdf -pvc -interaction=nonstopmode";
-      lmc     = "latexmk -C";
+      tw = "typst watch";
+      tc = "typst compile";
+      tf = "typstyle -i";
+      lmk = "latexmk -pdf -pvc -interaction=nonstopmode";
+      lmc = "latexmk -C";
     };
 
     functions = {
@@ -111,28 +119,56 @@ in
   };
 
   home.file = {
-    ".config/hypr"      = { source = link "hypr"; };
-    ".config/waybar"    = { source = link "waybar"; };
-    ".config/dunst"     = { source = link "dunst"; };
-    ".config/rofi"      = { source = link "rofi"; };
-    ".config/ghostty"   = { source = link "ghostty"; };
-    ".config/nvim"      = { source = link "nvim"; };
-    ".config/flameshot" = { source = link "flameshot"; };
-    ".config/gammastep" = { source = link "gammastep"; };
-    ".config/ranger"    = { source = link "ranger"; };
-    ".config/yazi"      = { source = link "yazi"; };
-    ".config/broot"     = { source = link "broot"; };
+    ".config/hypr" = {
+      source = link "hypr";
+    };
+    ".config/waybar" = {
+      source = link "waybar";
+    };
+    ".config/dunst" = {
+      source = link "dunst";
+    };
+    ".config/rofi" = {
+      source = link "rofi";
+    };
+    ".config/ghostty" = {
+      source = link "ghostty";
+    };
+    ".config/nvim" = {
+      source = link "nvim";
+    };
+    ".config/flameshot" = {
+      source = link "flameshot";
+    };
+    ".config/gammastep" = {
+      source = link "gammastep";
+    };
+    ".config/ranger" = {
+      source = link "ranger";
+    };
+    ".config/yazi" = {
+      source = link "yazi";
+    };
+    ".config/broot" = {
+      source = link "broot";
+    };
 
-    ".config/rmpc"      = { source = link "rmpc"; };
-    ".config/mpv"       = { source = link "mpv"; };
-    ".config/zen-theme"  = { source = link "zen"; };
+    ".config/rmpc" = {
+      source = link "rmpc";
+    };
+    ".config/mpv" = {
+      source = link "mpv";
+    };
+    ".config/zen-theme" = {
+      source = link "zen";
+    };
 
   };
 
   qt = {
-    enable             = true;
+    enable = true;
     platformTheme.name = "kde";
-    style.name         = "breeze";
+    style.name = "breeze";
   };
 
   imports = [
@@ -152,7 +188,7 @@ in
     discord.krisp.enable = true;
     config = {
       frameless = true;
-     plugins = {
+      plugins = {
         messageLogger.enable = true;
         alwaysTrust.enable = true;
         betterFolders.enable = true;
@@ -172,27 +208,30 @@ in
     };
   };
 
-  home.packages = let
-    beamPkgs = pkgs.beam.packages.erlang_27;
-  in (with pkgs; [
-    cliphist
-    wl-clipboard
-    mpc
-  ]) ++ [
-    beamPkgs.erlang
-    beamPkgs.elixir
-    beamPkgs.elixir-ls
-  ];
+  home.packages =
+    let
+      beamPkgs = pkgs.beam.packages.erlang_27;
+    in
+    (with pkgs; [
+      cliphist
+      wl-clipboard
+      mpc
+    ])
+    ++ [
+      beamPkgs.erlang
+      beamPkgs.elixir
+      beamPkgs.elixir-ls
+    ];
 
   services.cliphist.enable = true;
 
   systemd.user.targets.hyprland-session = {
     Unit = {
-      Description      = "Hyprland session";
-      Documentation    = [ "man:systemd.special(7)" ];
-      BindsTo          = [ "graphical-session.target" ];
-      Wants            = [ "graphical-session-pre.target" ];
-      After            = [ "graphical-session-pre.target" ];
+      Description = "Hyprland session";
+      Documentation = [ "man:systemd.special(7)" ];
+      BindsTo = [ "graphical-session.target" ];
+      Wants = [ "graphical-session-pre.target" ];
+      After = [ "graphical-session-pre.target" ];
       PropagatesStopTo = [ "graphical-session.target" ];
     };
   };
@@ -200,12 +239,12 @@ in
   systemd.user.services.hypridle = {
     Unit = {
       Description = "hypridle";
-      PartOf      = [ "graphical-session.target" ];
-      After       = [ "graphical-session.target" ];
+      PartOf = [ "graphical-session.target" ];
+      After = [ "graphical-session.target" ];
     };
     Service = {
-      ExecStart  = "${pkgs.hypridle}/bin/hypridle";
-      Restart    = "on-failure";
+      ExecStart = "${pkgs.hypridle}/bin/hypridle";
+      Restart = "on-failure";
       RestartSec = 3;
     };
     Install.WantedBy = [ "graphical-session.target" ];
@@ -214,47 +253,58 @@ in
   systemd.user.services.lastfm-secret = {
     Unit = {
       Description = "Materialize the last.fm password from secretspec";
-      PartOf      = [ "graphical-session.target" ];
-      After       = [ "graphical-session.target" ];
-      Before      = [ "mpdscribble.service" ];
+      PartOf = [ "graphical-session.target" ];
+      After = [ "graphical-session.target" ];
+      Before = [ "mpdscribble.service" ];
     };
     Service = {
-      Type             = "oneshot";
-      RemainAfterExit  = true;
+      Type = "oneshot";
+      RemainAfterExit = true;
       WorkingDirectory = "%h/dots";
-      ExecStart = toString (pkgs.writeShellScript "lastfm-secret" ''
-        set -eu
-        umask 077
-        mkdir -p "$HOME/.local/share/secrets"
-        v=$(${pkgs.secretspec}/bin/secretspec get LASTFM_PASSWORD)
-        [ -n "$v" ] || { echo "secretspec returned nothing, refusing to write" >&2; exit 1; }
-        printf '%s' "$v" > "$HOME/.local/share/secrets/mpdscribble"
-      '');
+      ExecStart = toString (
+        pkgs.writeShellScript "lastfm-secret" ''
+          set -eu
+          umask 077
+          mkdir -p "$HOME/.local/share/secrets"
+          v=$(${pkgs.secretspec}/bin/secretspec get LASTFM_PASSWORD)
+          [ -n "$v" ] || { echo "secretspec returned nothing, refusing to write" >&2; exit 1; }
+          printf '%s' "$v" > "$HOME/.local/share/secrets/mpdscribble"
+        ''
+      );
     };
     Install.WantedBy = [ "graphical-session.target" ];
   };
 
   services.udiskie = {
-    enable       = true;
-    automount    = true;
-    notify       = true;
-    tray         = "auto";
+    enable = true;
+    automount = true;
+    notify = true;
+    tray = "auto";
     settings = {
       device_config = [
-        { id_uuid = "6087-5FAB"; ignore = true; }
-        { id_uuid = "2A0B-58D1"; ignore = true; }
-        { id_uuid = "4619-E5D1"; ignore = true; }
+        {
+          id_uuid = "6087-5FAB";
+          ignore = true;
+        }
+        {
+          id_uuid = "2A0B-58D1";
+          ignore = true;
+        }
+        {
+          id_uuid = "4619-E5D1";
+          ignore = true;
+        }
       ];
     };
   };
 
   services.mpd = {
-    enable         = true;
+    enable = true;
 
     musicDirectory = "/mnt/media/music";
     network = {
-      listenAddress   = "127.0.0.1";
-      port            = 6600;
+      listenAddress = "127.0.0.1";
+      port = 6600;
       startWhenNeeded = true;
     };
     extraConfig = ''
@@ -276,7 +326,7 @@ in
       audio_output {
         type "alsa"
         name "DAC bit-perfect"
-        device "hw:CARD=DAC"   # ← adjust after `aplay -l`
+        device "hw:CARD=G30"
         auto_resample "no"
         auto_format "no"
         auto_channels "no"
@@ -289,8 +339,8 @@ in
   systemd.user.services.mpd.Unit.RequiresMountsFor = [ "/mnt/media" ];
 
   services.mpdris2 = {
-    enable        = true;
-    mpd.host      = "127.0.0.1";
+    enable = true;
+    mpd.host = "127.0.0.1";
     notifications = true;
     multimediaKeys = true;
   };
@@ -298,7 +348,7 @@ in
   services.mpdscribble = {
     enable = true;
     endpoints."last.fm" = {
-      username     = "";
+      username = "";
       passwordFile = "${config.home.homeDirectory}/.local/share/secrets/mpdscribble";
     };
   };

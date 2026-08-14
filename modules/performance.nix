@@ -1,12 +1,17 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
 
   cpuProfile = "responsive";
 
   isPassive = cpuProfile == "passive";
-  isMax     = cpuProfile == "max";
-  setsEPP   = cpuProfile == "responsive";
+  isMax = cpuProfile == "max";
+  setsEPP = cpuProfile == "responsive";
 in
 {
 
@@ -67,8 +72,9 @@ in
 
   hardware.nvidia.powerManagement.enable = true;
 
-  powerManagement.cpuFreqGovernor =
-    lib.mkIf (isMax || isPassive) (if isPassive then "schedutil" else "performance");
+  powerManagement.cpuFreqGovernor = lib.mkIf (isMax || isPassive) (
+    if isPassive then "schedutil" else "performance"
+  );
 
   boot.kernelParams = lib.mkIf isPassive [ "intel_pstate=passive" ];
 
@@ -87,8 +93,7 @@ in
     '';
   };
 
-  powerManagement.resumeCommands =
-    lib.mkIf setsEPP "${pkgs.systemd}/bin/systemctl restart cpu-epp.service";
+  powerManagement.resumeCommands = lib.mkIf setsEPP "${pkgs.systemd}/bin/systemctl restart cpu-epp.service";
 
   environment.systemPackages = with pkgs; [
     linuxPackages.cpupower

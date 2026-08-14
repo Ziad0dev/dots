@@ -1,4 +1,9 @@
-{ pkgs, inputs, system, ... }:
+{
+  pkgs,
+  inputs,
+  system,
+  ...
+}:
 
 {
   environment.systemPackages = with pkgs; [
@@ -13,7 +18,8 @@
     mold
     ccache
     bear
-    meson ninja
+    meson
+    ninja
     valgrind
     cppcheck
 
@@ -22,10 +28,12 @@
     ruff
     pyright
 
-    (sbcl.withPackages (ps: with ps; [
-      swank
-      alexandria
-    ]))
+    (sbcl.withPackages (
+      ps: with ps; [
+        swank
+        alexandria
+      ]
+    ))
     rlwrap
   ];
 
