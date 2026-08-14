@@ -223,6 +223,7 @@
     calibre
 
     neovim
+    tmux
     vscode
 
     waybar
