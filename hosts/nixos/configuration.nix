@@ -176,12 +176,6 @@
   };
 
   environment.systemPackages = with pkgs; [
-
-    inputs.zen-browser.packages.${system}.default
-    pkgs.coolercontrol.coolercontrol-gui
-    pkgs.spotify
-    inputs.helium.defaultPackage.${system}
-
     git
     curl
     wget
@@ -189,86 +183,29 @@
     tree
     unzip
     zip
+    neovim
+    # Diagnostics / hardware
     htop
     btop
-    ripgrep
-    fd
-    nicotine-plus
-    gcc
-    gnumake
-    pkg-config
-    podman
-    gparted
-    tauon
-    obs-studio
-    jrnl
-
-    nodejs_22
-
-    go
-    rustup
-    lua
-    cmake
-
-    luarocks
-    chromium
     lm_sensors
-
-    weechat
-    tor
-    tor-browser
-    element-desktop
-    vesktop
-    calibre
-
-    neovim
-    tmux
-    vscode
-
-    waybar
-    dunst
-    haruna
-    mpv
-    qbittorrent
-    rofi
-    ghostty
-    wl-clipboard
-    grim
-    slurp
-    playerctl
-    awww
-    pamixer
-    mpc-qt
-    jujutsu
-    pavucontrol
-    brightnessctl
-    networkmanagerapplet
-    libnotify
-    hypridle
-    hyprlock
-    hyprpolkitagent
-    kdePackages.qt6ct
-
-    ranger
-    yazi
-    broot
-    satty
-    flameshot
-    (flameshot.override { enableWlrSupport = true; })
-    gammastep
-    rmpc
-    exfatprogs
-
     usbutils
+    gparted
+    exfatprogs
+    # Pairs with services.usbmuxd
     libimobiledevice
     ifuse
-
+    hyprpolkitagent
+    # Pairs with programs.coolercontrol
+    coolercontrol.coolercontrol-gui
+    # Container runtime
+    podman
     kdePackages.dolphin
     kdePackages.ark
     kdePackages.kate
     kdePackages.kwallet
     kdePackages.kwalletmanager
     kdePackages.ksystemlog
+    kdePackages.qt6ct
   ];
 
   fonts = {
