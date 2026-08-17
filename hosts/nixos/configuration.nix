@@ -208,7 +208,6 @@
     go
     rustup
     lua
-    fastfetch
     cmake
 
     luarocks
