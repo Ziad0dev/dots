@@ -268,6 +268,9 @@ in
       tmux
       jujutsu
       jrnl
+      nushell
+      xonsh
+      zsh
 
       # ── Downloads / library ───────────────────────────────────────────
       qbittorrent
