@@ -217,15 +217,81 @@ in
       beamPkgs = pkgs.beam.packages.erlang_27;
     in
     (with pkgs; [
+      # ── Wayland session ────────────────────────────────────────────────
+      waybar
+      dunst
+      rofi
+      ghostty
+      hyprlock
+      hypridle
+      awww
       cliphist
       wl-clipboard
+      grim
+      slurp
+      satty
+      (flameshot.override { enableWlrSupport = true; })
+      gammastep
+      brightnessctl
+      libnotify
+      networkmanagerapplet
+
+      # media keys: hyprland binds -> playerctl -> mpdris2 -> mpd
+      playerctl
+
+      # ── Audio ─────────────────────────────────────────────────────────
+      pamixer
+      pavucontrol
       mpc
+      rmpc
+      tauon
+
+      # ── Video / media ─────────────────────────────────────────────────
+      mpv
+      haruna
+      mpc-qt
+      obs-studio
+
+      # ── Browsers / chat ───────────────────────────────────────────────
+      chromium
+      tor
+      tor-browser
+      element-desktop
+      weechat
+
+      # ── Files / TUI ───────────────────────────────────────────────────
+      ripgrep
+      fd
+      ranger
+      yazi
+      broot
       tmux
+      jujutsu
+      jrnl
+
+      # ── Downloads / library ───────────────────────────────────────────
+      qbittorrent
+      nicotine-plus
+      calibre
+      spotify
+
+      # ── Editors / toolchains ──────────────────────────────────────────
+      vscode
+      gcc
+      gnumake
+      pkg-config
+      cmake
+      go
+      nodejs_22
+      lua
+      luarocks
     ])
     ++ [
       beamPkgs.erlang
       beamPkgs.elixir
       beamPkgs.elixir-ls
+      inputs.zen-browser.packages.${system}.default
+      inputs.helium.defaultPackage.${system}
     ];
 
   services.cliphist.enable = true;
