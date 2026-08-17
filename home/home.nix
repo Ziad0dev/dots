@@ -134,6 +134,9 @@ in
     ".config/ghostty" = {
       source = link "ghostty";
     };
+    ".config/tmux" = {
+      source = link "tmux";
+    };
     ".config/nvim" = {
       source = link "nvim";
     };
@@ -179,6 +182,7 @@ in
     ./dev-home.nix
     ./gaming-home.nix
     ./documents.nix
+    ./fastfetch.nix
   ];
 
   programs.nixcord = {
@@ -216,6 +220,7 @@ in
       cliphist
       wl-clipboard
       mpc
+      tmux
     ])
     ++ [
       beamPkgs.erlang
