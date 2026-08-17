@@ -183,6 +183,7 @@ in
     ./gaming-home.nix
     ./documents.nix
     ./fastfetch.nix
+    ./shells.nix
   ];
 
   programs.nixcord = {
@@ -257,6 +258,8 @@ in
       tor
       tor-browser
       element-desktop
+      # vesktop NOT here — programs.nixcord (vesktop.enable = true) installs
+      # its own patched build; listing it again collides in buildEnv.
       weechat
 
       # ── Files / TUI ───────────────────────────────────────────────────
@@ -268,9 +271,6 @@ in
       tmux
       jujutsu
       jrnl
-      nushell
-      xonsh
-      zsh
 
       # ── Downloads / library ───────────────────────────────────────────
       qbittorrent
@@ -279,6 +279,8 @@ in
       spotify
 
       # ── Editors / toolchains ──────────────────────────────────────────
+      # rustup deliberately dropped: it shadows the nix-provided rust in
+      # `nix flake init -t ~/dots#rust` devshells. Use the template instead.
       vscode
       gcc
       gnumake
