@@ -1,8 +1,4 @@
-
-local _theme = os.getenv("HOME") .. "/.local/state/dots/theme/colors.lua"
-local _ok, _rendered = pcall(dofile, _theme)
 local colors = (_ok and _rendered) or require("colors")
-
 hl.monitor({
     output   = "DP-1",
     mode     = "2560x1440@239.97",
@@ -281,3 +277,7 @@ hl.bind(mainMod .. " + Escape", hl.dsp.exec_cmd("loginctl lock-session"))
 
 hl.bind(mainMod .. " + SHIFT + R", hl.dsp.exec_cmd(
     [[sh -c 'systemctl --user reload gsr-replay && notify-send -t 3000 "Replay saved" "last 5 min -> /data/replays"']]))
+
+-- Current theme overrides, loaded last so they win (omarchy does the same
+-- with require_optional.module("omarchy.current.theme.hyprland")).
+dofile(os.getenv("HOME") .. "/.local/state/dots/theme/hyprland.lua")

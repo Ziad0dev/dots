@@ -184,7 +184,6 @@ in
     ./documents.nix
     ./fastfetch.nix
     ./shells.nix
-    ./theming.nix
   ];
 
   programs.nixcord = {
@@ -287,10 +286,12 @@ in
       gcc
       gnumake
       pkg-config
+      xdotool
       cmake
       go
       nodejs_22
       lua
+      tree-sitter
       luarocks
     ])
     ++ [

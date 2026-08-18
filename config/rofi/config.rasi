@@ -14,47 +14,34 @@ configuration {
     disable-history: false;
 }
 
-/* Global Variable Definitions */
+/* Palette comes from the theme (imported at the top of this file).
+   Do NOT hardcode colours here — later definitions win and the theme
+   would silently stop applying, which is exactly what used to happen. */
 * {
-    /* --- Colors --- */
-    /* Renamed variables to avoid keyword conflicts */
-    bg-col:             #161616;
-    bg-col-alpha:       rgba(22,22,22,0.78);
-    bg-col-alt:         #262626;
-    fg-col:             #dde1e6;
-    
-    /* Border color: Changed to transparent as requested */
-    border-col:         transparent; 
-    /* If you want a subtle transparent border instead, use: rgba(57, 57, 57, 0.5) */
+    bg-col-alpha:       @bg-col;
+    bg-col-alt:         @bg-col-light;
+    pink:               @urgent;
+    green:              @ok;
 
-    blue:               #33b1ff;
-    blue-alpha:         rgba(51,177,255,0.12);
-    pink:               #ee5396;
-    green:              #42be65;
-    magenta:            #be95ff;
-
-    /* --- Role Assignments --- */
-    /* Used by windows/elements */
     normal-background:           transparent;
     normal-foreground:           @fg-col;
-    
-    active-background:           @blue-alpha;
-    active-foreground:           @blue;
-    
-    urgent-background:           @pink;
+
+    active-background:           @bg-col-light;
+    active-foreground:           @accent;
+
+    urgent-background:           @urgent;
     urgent-foreground:           @fg-col;
-    
-    /* Fixed: Set alternate background to transparent to remove zebra striping */
+
     alternate-normal-background: transparent;
     alternate-normal-foreground: @fg-col;
-    
-    selected-normal-background:  rgba(38,38,38,0.85);
-    selected-normal-foreground:  @fg-col;
-    
-    selected-urgent-background:  @pink;
+
+    selected-normal-background:  @accent;
+    selected-normal-foreground:  @bg-col;
+
+    selected-urgent-background:  @urgent;
     selected-urgent-foreground:  @bg-col;
-    
-    selected-active-background:  @blue;
+
+    selected-active-background:  @accent;
     selected-active-foreground:  @bg-col;
 
     spacing: 2;
@@ -94,7 +81,7 @@ image-box {
     width: 440px;
     height: 440px;
     border: 3px;
-    border-color: @blue;
+    border-color: @accent;
     border-radius: 5px;
     expand: false;
     background-color: rgba(0,0,0,0.35);
@@ -126,7 +113,7 @@ inputbar {
     children: [ prompt, textbox-prompt-colon, entry ];
     background-color: transparent;
     border: 3px;
-    border-color: @blue-alpha;
+    border-color: @bg-col-light;
     border-radius: 5px;
     margin: 0px 0px 8px 0px;
     padding: 8px 12px;
@@ -137,7 +124,7 @@ textbox-prompt-colon {
     expand: false;
     str: "⸸";
     margin: 0px 8px 0px 0px;
-    text-color: @blue;
+    text-color: @accent;
     font: "URW Gothic Bold 14";
     vertical-align: 0.4;
     horizontal-align: 0.5;
@@ -193,7 +180,7 @@ element.normal.active {
 }
 
 element.selected.normal {
-    background-color: @blue;
+    background-color: @accent;
     text-color: @bg-col;
 }
 
@@ -228,7 +215,7 @@ scrollbar {
     border: 0;
     handle-width: 8px;
     padding: 0;
-    handle-color: @blue;
+    handle-color: @accent;
 }
 
 sidebar {
@@ -246,7 +233,7 @@ button {
 }
 
 button.selected {
-    background-color: @blue;
+    background-color: @accent;
     text-color: @bg-col;
 }
 
@@ -268,7 +255,7 @@ prompt {
     enabled: true;
     padding: 8px;
     spacing: 0;
-    text-color: @blue;
+    text-color: @accent;
     font: "URW Gothic Bold 13";
     vertical-align: 0.5;
     horizontal-align: 0.5;
