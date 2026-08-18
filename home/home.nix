@@ -184,6 +184,7 @@ in
     ./documents.nix
     ./fastfetch.nix
     ./shells.nix
+    ./theming.nix
   ];
 
   programs.nixcord = {

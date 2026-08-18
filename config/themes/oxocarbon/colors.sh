@@ -1,0 +1,32 @@
+# IBM Carbon / oxocarbon — the existing look.
+THEME_MODE=dark
+background=161616
+background_lighter=262626
+foreground=f2f4f8
+inactive_border=393939
+accent=33b1ff
+urgent=ee5396
+ok=42be65
+color0=161616
+color1=ee5396
+color2=42be65
+color3=ffe97b
+color4=33b1ff
+color5=be95ff
+color6=3ddbd9
+color7=dde1e6
+color8=525252
+color9=33b1ff
+color10=56d679
+color11=ffeb99
+color12=78a9ff
+color13=d4bbff
+color14=08bdba
+color15=f2f4f8
+# lock screen
+lock_bg=100000
+lock_accent=8B0000
+lock_check=A30000
+lock_fail=EE5396
+lock_text=FFFFFF
+lock_label="$TIME"
