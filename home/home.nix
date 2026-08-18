@@ -252,6 +252,7 @@ in
       haruna
       mpc-qt
       obs-studio
+      cliamp
 
       # ── Browsers / chat ───────────────────────────────────────────────
       chromium

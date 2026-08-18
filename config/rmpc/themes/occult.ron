@@ -8,12 +8,12 @@
     // ═══════════════════════════════════════════════
     
     default_album_art_path: None,
+    method: kitty,
     show_song_table_header: true,
     draw_borders: true,
     browser_column_widths: [20, 38, 42],
     
     // Colors - Abyssal darkness
-    background_color: "#0a0a0f",
     text_color: "#b0b0b0",
     header_background_color: "#0d0510",
     modal_background_color: "#12081a",
