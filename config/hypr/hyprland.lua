@@ -7,8 +7,9 @@ hl.monitor({
     position = "0x0",
     scale    = 1,
     bitdepth = 10,
-    cm       = "srgb",
-
+    cm       = "hdr",
+    sdrbrightness = 2,
+    sdr_max_luminance = 303,
 })
 
 hl.monitor({output = "HDMI-A-1", mode = "1920x1080@60", position = "auto-right", scale = 1, transform = 3})
