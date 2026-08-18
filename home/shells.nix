@@ -1,22 +1,7 @@
 { pkgs, config, ... }:
 
-# One environment, three interpreters.
 #
-# You cannot merge fish, nushell and xonsh — structured pipelines and inline
-# Python are properties of those LANGUAGES, and fish can't acquire them. What
-# you can share is everything around the language:
-#
-#   starship   one prompt
-#   atuin      one history database (fish history is visible inside nu)
-#   zoxide     one directory-jump database
-#   carapace   one completion engine (nu + xonsh only, see below)
-#   direnv     already shared, configured in home.nix
-#
-# fish stays the login shell. It keeps its abbreviations, and users.users
-# .shell = pkgs.fish stays put — nushell is not POSIX and breaks anything
-# assuming sh-like behaviour.
-#
-# Division of labour:
+# Div:
 #   fish    everything, by default
 #   nu      structured data — `nu` for a session, `nuf` for one-liners
 #   xonsh   Python at the prompt — `xonsh` for a session, `py` for one-liners
@@ -177,14 +162,17 @@
     };
 
     py = {
-      description = "python/xonsh one-liner, stdin available as \$(cat)";
+      # NOTE: no '$' or backticks in a description — home-manager emits it as
+      # --description="..." and fish runs command substitution inside double
+      # quotes, so '$(cat)' here would block the function definition on stdin.
+      description = "xonsh one-liner (shell + python mixed)";
       body = ''
         xonsh -c "$argv"
       '';
     };
 
     pyf = {
-      description = "pure-python one-liner over stdin, lines in `data`";
+      description = "pure-python one-liner over stdin, lines in the data list";
       body = ''
         python3 -c "
 import sys
