@@ -235,8 +235,8 @@ in
       gammastep
       brightnessctl
       libnotify
-      networkmanagerapplet
-
+      networkmanager
+      quickshell
       # media keys: hyprland binds -> playerctl -> mpdris2 -> mpd
       playerctl
 
