@@ -1,5 +1,7 @@
 
-local colors = require("colors")
+local _theme = os.getenv("HOME") .. "/.local/state/dots/theme/colors.lua"
+local _ok, _rendered = pcall(dofile, _theme)
+local colors = (_ok and _rendered) or require("colors")
 
 hl.monitor({
     output   = "DP-1",
