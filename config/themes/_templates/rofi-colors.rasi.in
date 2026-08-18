@@ -1,0 +1,10 @@
+* {
+    bg-col:        #${background};
+    bg-col-light:  #${background_lighter};
+    fg-col:        #${foreground};
+    accent:        #${accent};
+    urgent:        #${urgent};
+    ok:            #${ok};
+    blue:          #${color4};
+    magenta:       #${color5};
+}

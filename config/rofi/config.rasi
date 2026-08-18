@@ -1,4 +1,6 @@
+@import "~/.local/state/dots/theme/rofi-colors.rasi"
 configuration {
+
     modi: "drun,run";
     font: "JetBrainsMono Nerd Font 10";
     show-icons: true;
