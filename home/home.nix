@@ -131,6 +131,9 @@ in
     ".config/rofi" = {
       source = link "rofi";
     };
+    ".config/quickshell" = {
+      source  = link "quickshell";
+    };
     ".config/ghostty" = {
       source = link "ghostty";
     };
@@ -183,7 +186,6 @@ in
     ./gaming-home.nix
     ./documents.nix
     ./fastfetch.nix
-    ./shells.nix
   ];
 
   programs.nixcord = {

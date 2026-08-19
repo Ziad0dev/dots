@@ -173,7 +173,7 @@ hl.bind(mainMod .. " + SHIFT + Q", hl.dsp.window.close())
 
 hl.bind(mainMod .. " + D",         hl.dsp.exec_cmd("rofi -show drun -show-icons"))
 hl.bind(mainMod .. " + SHIFT + D", hl.dsp.exec_cmd("rofi -show run"))
-
+hl.bind(mainMod .. " + CTRL + SHIFT + SPACE", hl.dsp.exec_cmd("qs -c theme-picker"))
 hl.bind(mainMod .. " + SHIFT + C",
     hl.dsp.exec_cmd([[sh -c 'cliphist list | rofi -dmenu -p "clipboard" | cliphist decode | wl-copy']]))
 

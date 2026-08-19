@@ -147,6 +147,7 @@
       "audio"
       "video"
       "input"
+      "libvirtd"
     ];
     shell = pkgs.fish;
   };
