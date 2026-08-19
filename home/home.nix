@@ -186,6 +186,7 @@ in
     ./gaming-home.nix
     ./documents.nix
     ./fastfetch.nix
+    ./quickshell.nix
   ];
 
   programs.nixcord = {
