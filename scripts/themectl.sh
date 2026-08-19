@@ -97,6 +97,54 @@ render_all() {
     done
 }
 
+# Build the ~/.config/omarchy tree the vendored Quickshell Rise shell reads.
+# colors.sh is already a valid colors.toml for its parser, so it is symlinked
+# rather than converted. The shell scans ~/.config/omarchy/themes/* for themes
+# and reads backgrounds from <theme>/backgrounds.
+# ln -sfn into a path that is a real directory creates the link INSIDE it
+# instead of replacing it, so clear non-symlink targets first.
+relink() {
+    [ -L "$2" ] || rm -rf "$2"
+    ln -sfn "$1" "$2"
+}
+
+omarchy_compat() {
+    local current="$1" oroot troot d name pal prev wp bg
+    oroot="${XDG_CONFIG_HOME:-$HOME/.config}/omarchy"
+    troot="$oroot/themes"
+    bg="$HOME/Pictures/wallpapers"
+    mkdir -p "$troot" "$oroot/backgrounds"
+
+    for d in "$THEMES"/*/; do
+        d="${d%/}"
+        name=$(basename "$d")
+        [ "$name" = "_templates" ] && continue
+        pal=$(palette_file "$name") || continue
+
+        mkdir -p "$troot/$name"
+        relink "$pal" "$troot/$name/colors.toml"
+        relink "$bg" "$troot/$name/backgrounds"
+        relink "$bg" "$oroot/backgrounds/$name"
+
+        for prev in "$d/preview.png" "$d/preview.jpg"; do
+            if [ -f "$prev" ]; then
+                relink "$prev" "$troot/$name/preview.png"
+                break
+            fi
+        done
+    done
+
+    mkdir -p "$oroot/current"
+    printf '%s\n' "$current" >"$oroot/current/theme.name"
+    relink "$troot/$current" "$oroot/current/theme"
+
+    if wp=$(theme_wallpaper "$current"); then
+        relink "$wp" "$oroot/current/background"
+    elif wp=$(dots-current-wallpaper 2>/dev/null) && [ -n "$wp" ]; then
+        relink "$wp" "$oroot/current/background"
+    fi
+}
+
 reload_apps() {
     pkill -SIGUSR2 waybar 2>/dev/null || true
     pkill -SIGUSR2 ghostty 2>/dev/null || true
@@ -134,6 +182,7 @@ cmd_set() {
     render_all "$name"
     mkdir -p "$STATE"
     printf '%s\n' "$name" >"$CURRENT"
+    omarchy_compat "$name"
     reload_apps
 
     if wp=$(theme_wallpaper "$name"); then
