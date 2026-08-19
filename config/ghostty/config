@@ -1,3 +1,4 @@
+config-file = ?"~/.local/state/dots/theme/ghostty"
 # Oxcarbon Theme for Ghostty (Black Background Variant)
 # Inspired by IBM Carbon Design System
 term = xterm-ghostty
