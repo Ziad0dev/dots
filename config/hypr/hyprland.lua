@@ -1,4 +1,4 @@
-local colors = (_ok and _rendered) or require("colors")
+local colors = require("colors")
 hl.monitor({
     output   = "DP-1",
     mode     = "2560x1440@239.97",
@@ -78,7 +78,7 @@ hl.config({
         rounding = 0,
 
         active_opacity     = 1.0,
-        inactive_opacity   = 0.95,
+        inactive_opacity   = 1.0,
         fullscreen_opacity = 1.0,
 
         blur = {
@@ -170,9 +170,7 @@ local mainMod = "SUPER"
 hl.bind(mainMod .. " + Return", hl.dsp.exec_cmd("ghostty"))
 
 hl.bind(mainMod .. " + SHIFT + Q", hl.dsp.window.close())
-
-hl.bind(mainMod .. " + D",         hl.dsp.exec_cmd("rofi -show drun -show-icons"))
-hl.bind(mainMod .. " + SHIFT + D", hl.dsp.exec_cmd("rofi -show run"))
+hl.bind(mainMod .. " + D", hl.dsp.exec_cmd("qs -c picker ipc call picker launcher"))
 hl.bind(mainMod .. " + CTRL + SHIFT + SPACE", hl.dsp.exec_cmd("qs -c theme-picker"))
 hl.bind(mainMod .. " + SHIFT + C",
     hl.dsp.exec_cmd([[sh -c 'cliphist list | rofi -dmenu -p "clipboard" | cliphist decode | wl-copy']]))
@@ -193,7 +191,7 @@ hl.bind(mainMod .. " + S", hl.dsp.exec_cmd("hyprctl keyword general:layout maste
 hl.bind(mainMod .. " + W", hl.dsp.exec_cmd("hyprctl keyword general:layout dwindle"))
 hl.bind(mainMod .. " + E",
     hl.dsp.exec_cmd([[env PATH="$HOME/.local/bin:$PATH" bash ~/.config/rofi/scripts/wallpaper-switcher.sh]]))
-
+hl.dsp.exec_cmd("qs -c picker ipc call picker wallpaper")
 hl.bind(mainMod .. " + SHIFT + space", hl.dsp.window.float({ action = "toggle" }))
 
 hl.bind(mainMod .. " + space", hl.dsp.focus({ window = "current_or_last" }))
@@ -265,7 +263,6 @@ hl.on("hyprland.start", function()
         systemctl --user start hyprland-session.target
         systemctl --user start hyprpolkitagent
     ']])
-    hl.exec_cmd("waybar")
     hl.exec_cmd("dunst")
     hl.exec_cmd("awww-daemon")
     hl.exec_cmd("flameshot")
