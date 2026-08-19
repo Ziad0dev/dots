@@ -1,0 +1,8 @@
+hl.config({
+    general = {
+        col = {
+            active_border = { colors = { "rgb(${color0_hex})", "rgb(${color1_hex})" }, angle = 45 },
+            inactive_border = "rgb(${base02_hex})",
+        },
+    },
+})
