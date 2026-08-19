@@ -1,0 +1,18 @@
+[global]
+    frame_color = "${base02}"
+    separator_color = frame
+
+[urgency_low]
+    background = "${background}"
+    foreground = "${base04}"
+    frame_color = "${base02}"
+
+[urgency_normal]
+    background = "${background}"
+    foreground = "${foreground}"
+    frame_color = "${base02}"
+
+[urgency_critical]
+    background = "${color0}"
+    foreground = "${foreground}"
+    frame_color = "${accent}"
