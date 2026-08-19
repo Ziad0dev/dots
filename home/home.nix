@@ -186,8 +186,9 @@ in
     ./gaming-home.nix
     ./documents.nix
     ./fastfetch.nix
-    ./quickshell.nix
+    ./quickshell-rise.nix
     ./theming.nix
+
   ];
 
   programs.nixcord = {
