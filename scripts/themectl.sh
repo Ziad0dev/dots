@@ -98,8 +98,12 @@ render_all() {
 }
 
 reload_apps() {
-    pkill -SIGUSR2 -x waybar 2>/dev/null || true
-    pkill -SIGUSR2 -x ghostty 2>/dev/null || true
+    pkill -SIGUSR2 waybar 2>/dev/null || true
+    pkill -SIGUSR2 ghostty 2>/dev/null || true
+
+    if command -v qs >/dev/null 2>&1; then
+        qs -c picker ipc call picker reload >/dev/null 2>&1 || true
+    fi
 
     if command -v dunstctl >/dev/null 2>&1; then
         dunstctl reload "$HOME/.config/dunst/dunstrc" "$STATE/dunstrc" 2>/dev/null || true

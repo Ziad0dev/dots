@@ -18,11 +18,13 @@ let
     ];
     text = builtins.readFile ../scripts/dots-theme-scan.sh;
   };
+
   setWallpaper = pkgs.writeShellApplication {
     name = "dots-set-wallpaper";
     runtimeInputs = [ pkgs.coreutils ];
     text = builtins.readFile ../scripts/dots-set-wallpaper.sh;
-  };  
+  };
+
   currentWallpaper = pkgs.writeShellApplication {
     name = "dots-current-wallpaper";
     runtimeInputs = with pkgs; [
@@ -41,26 +43,29 @@ let
     text = builtins.readFile ../scripts/dots-picker-palette.sh;
   };
 
-  pickerPath = lib.makeBinPath [
-    pkgs.bash
-    pkgs.coreutils
-    pkgs.findutils
-    pkgs.gawk
-    pkgs.gnused
-    pkgs.imagemagick
+  helpers = [
     themeScan
+    setWallpaper
     currentWallpaper
     pickerPalette
-    setWallpaper
   ];
+
+  pickerPath = lib.makeBinPath (
+    helpers
+    ++ (with pkgs; [
+      bash
+      coreutils
+      findutils
+      gawk
+      gnused
+      imagemagick
+    ])
+  );
 in
 {
-  home.packages = [
+  home.packages = helpers ++ [
     pkgs.imagemagick
-    themeScan
-    currentWallpaper
-    pickerPalette
-    setWallpaper
+    pkgs.material-symbols
   ];
 
   programs.quickshell = {
@@ -77,7 +82,7 @@ in
     Unit.PartOf = [ "hyprland-session.target" ];
     Service = {
       Environment = [
-        "PATH=${pickerPath}:${homeDir}/.nix-profile/bin:/run/wrappers/bin:/run/current-system/sw/bin"
+        "PATH=${pickerPath}:/etc/profiles/per-user/${config.home.username}/bin:${homeDir}/.nix-profile/bin:/run/wrappers/bin:/run/current-system/sw/bin"
       ];
       Slice = "app-graphical.slice";
       RestartSec = 2;

@@ -1,4 +1,3 @@
-config-file = ?"~/.local/state/dots/theme/ghostty"
 # Oxcarbon Theme for Ghostty (Black Background Variant)
 # Inspired by IBM Carbon Design System
 term = xterm-ghostty
@@ -45,3 +44,4 @@ palette = 14=#08bdba
 palette = 15=#f2f4f8
 # kitty-integ
 image-storage-limit = 320000000
+config-file = ?"~/.local/state/dots/theme/ghostty"
