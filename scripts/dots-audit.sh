@@ -17,11 +17,21 @@ else
 fi
 
 sec "git hygiene"
-if [ -n "$(git status --porcelain)" ]; then
-    warn "working tree dirty — the flake only sees tracked files"
-    git status --short | head -10 | sed 's/^/       /'
+staged=$(git diff --cached --name-only | wc -l)
+unstaged=$(git diff --name-only | wc -l)
+if [ "$staged" -gt 0 ] || [ "$unstaged" -gt 0 ]; then
+    ok "$staged staged, $unstaged unstaged (tracked changes are visible to the flake)"
 else
-    ok "working tree clean"
+    ok "nothing pending"
+fi
+
+if ! git config --get core.hooksPath >/dev/null 2>&1; then
+    bad "core.hooksPath unset — scripts/git-hooks/pre-commit never runs"
+fi
+
+loose=$(git count-objects -v | awk '/^count:/ {print $2}')
+if [ "${loose:-0}" -gt 5000 ]; then
+    warn "$loose loose objects; run: git gc --prune=now"
 fi
 if [ -n "$(git ls-files --others --exclude-standard)" ]; then
     bad "untracked files present; 'nh os switch' will not see them"
@@ -63,7 +73,7 @@ if command -v shellcheck >/dev/null 2>&1; then
         fi
     done
 else
-    warn "shellcheck not installed; skipping"
+    warn "shellcheck not installed; add pkgs.shellcheck so this runs before nix does"
 fi
 
 sec "QML brace balance"
@@ -78,8 +88,29 @@ while read -r q; do
 done < <(find config/quickshell -name '*.qml' 2>/dev/null)
 [ "$qbad" = 0 ] && ok "all balanced"
 
-sec "dangling symlinks under ~/.config"
-dang=$(find -L "$HOME/.config" -maxdepth 2 -type l 2>/dev/null | head -10)
+sec "QML js imports resolve"
+ibad=0
+while read -r q; do
+    d=$(dirname "$q")
+    grep -ohE 'import "[^"]+\.js"' "$q" 2>/dev/null | sed 's|import "||;s|"||' | while read -r rel; do
+        [ -f "$d/$rel" ] || echo "$q -> $rel"
+    done
+done < <(find config/quickshell -name '*.qml' 2>/dev/null) >/tmp/.audit-imp
+if [ -s /tmp/.audit-imp ]; then
+    while read -r l; do bad "missing import: $l"; done </tmp/.audit-imp
+    ibad=1
+fi
+rm -f /tmp/.audit-imp
+[ "$ibad" = 0 ] && ok "all resolve"
+
+sec "dangling links this repo owns"
+# Electron apps leave broken SingletonCookie/SingletonLock links by design;
+# only links pointing into the nix store or this repo are ours to worry about
+dang=$(find -L "$HOME/.config" -maxdepth 2 -type l 2>/dev/null \
+    | while read -r l; do
+        tgt=$(readlink "$l")
+        case "$tgt" in /nix/store/*|"$DOTS"/*) echo "$l -> $tgt" ;; esac
+      done | head -10)
 if [ -n "$dang" ]; then
     printf '%s\n' "$dang" | while read -r d; do bad "broken: $d"; done
 else
@@ -94,8 +125,10 @@ done
 [ -f config/quickshell/rise/LICENSE ] && ok "upstream LICENSE retained (required by MIT)"
 
 sec "repo size"
-printf '  %s total, %s in themes\n' "$(du -sh . 2>/dev/null | cut -f1)" \
-    "$(du -sh config/themes 2>/dev/null | cut -f1)"
+printf '  %s total, %s in themes, %s in .git\n' \
+    "$(du -sh . 2>/dev/null | cut -f1)" \
+    "$(du -sh config/themes 2>/dev/null | cut -f1)" \
+    "$(du -sh .git 2>/dev/null | cut -f1)"
 
 sec "flake"
 if command -v nix >/dev/null 2>&1; then
