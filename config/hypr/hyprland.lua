@@ -251,7 +251,6 @@ hl.window_rule({
     match        = { class = "^(org\\.pwmt\\.zathura)$" },
     idle_inhibit = "fullscreen",
 })
-
 hl.on("hyprland.start", function()
 
     hl.exec_cmd([[sh -c '

@@ -125,13 +125,13 @@ Item {
     readonly property string muteCommand:
         "(command -v dots-swayosd-client >/dev/null 2>&1 && dots-swayosd-client --output-volume mute-toggle) || " +
         "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle || " +
-        "pamixer -t"
+        "pamixer -t || pactl set-sink-mute @DEFAULT_SINK@ toggle"
 
     function volumeCommand(steps) {
         var amount = Math.min(100, Math.abs(steps) * 5)
         var up = steps > 0
         return "wpctl set-volume " + (up ? "-l 1.0 " : "") + "@DEFAULT_AUDIO_SINK@ " + amount + "%" + (up ? "+" : "-") + " || " +
-            "pamixer " + (up ? "--increase " : "--decrease ") + amount
+            "pamixer " + (up ? "--increase " : "--decrease ") + amount + " || pactl set-sink-volume @DEFAULT_SINK@ " + (up ? "+" : "-") + amount + "%"
     }
 
     function runPendingVolumeCommand() {

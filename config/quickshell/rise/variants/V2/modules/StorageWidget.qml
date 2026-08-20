@@ -42,12 +42,18 @@ Item {
 
     TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText }
 
+    Process { id: stoTui; command: ["bash", "-c", "hyprctl dispatch exec '[float; size 1100 700; center] ghostty -e yazi /'"] }
+
+
     MouseArea {
+
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         onEntered: tip.show()
         onExited: tip.hide()
-        onClicked: { tip.hide(); root.storageVisible = !root.storageVisible }
+        onClicked: function (e) {
+            if (e.button === Qt.RightButton) { stoTui.running = false; stoTui.running = true; return } tip.hide(); root.storageVisible = !root.storageVisible }
     }
 }

@@ -86,12 +86,18 @@ Item {
 
     TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText }
 
+    Process { id: memTui; command: ["bash", "-c", "hyprctl dispatch exec '[float; size 1200 750; center] ghostty -e btop'"] }
+
+
     MouseArea {
+
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         onEntered: tip.show()
         onExited: { tip.hide() }
-        onClicked: { tip.hide(); root.memVisible = !root.memVisible }
+        onClicked: function (e) {
+            if (e.button === Qt.RightButton) { memTui.running = false; memTui.running = true; return } tip.hide(); root.memVisible = !root.memVisible }
     }
 }

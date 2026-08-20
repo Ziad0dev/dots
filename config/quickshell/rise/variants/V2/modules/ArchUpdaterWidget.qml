@@ -182,7 +182,7 @@ Item {
 
     TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText }
 
-    Process { id: filesProc; command: ["bash", "-c", "dots-files"] }
+    Process { id: filesProc; command: ["bash", "-c", "hyprctl dispatch exec '[float; size 1100 700; center] ghostty -e yazi'"] }
 
     MouseArea {
         id: mouse
