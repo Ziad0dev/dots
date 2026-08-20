@@ -14,7 +14,7 @@ PanelWindow {
     anchors { top: true; bottom: true; left: true; right: true }
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.namespace: "omarchy-weather"
+    WlrLayershell.namespace: "dots-weather"
 
     readonly property int barBottom: 35
     readonly property int gap: 8

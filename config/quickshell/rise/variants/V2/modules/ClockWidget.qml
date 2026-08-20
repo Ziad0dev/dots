@@ -49,7 +49,7 @@ Item {
 
     Process {
         id: tzRunner
-        command: ["bash", "-c", "omarchy-launch-floating-terminal-with-presentation omarchy-tz-select 2>/dev/null"]
+        command: ["bash", "-c", "dots-launch-floating-terminal-with-presentation dots-tz-select 2>/dev/null"]
     }
 
     MouseArea {

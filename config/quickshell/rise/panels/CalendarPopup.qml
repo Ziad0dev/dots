@@ -13,7 +13,7 @@ PanelWindow {
     anchors { top: true; bottom: true; left: true; right: true }
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.namespace: "omarchy-calendar"
+    WlrLayershell.namespace: "dots-calendar"
 
     readonly property int barBottom: 35
     readonly property int gap: 8

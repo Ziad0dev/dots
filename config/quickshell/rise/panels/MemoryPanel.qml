@@ -14,7 +14,7 @@ PanelWindow {
     anchors { top: true; bottom: true; left: true; right: true }
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.namespace: "omarchy-memory"
+    WlrLayershell.namespace: "dots-memory"
 
     readonly property int barBottom: 35
     readonly property int gap: 8
@@ -186,6 +186,6 @@ PanelWindow {
 
     Process {
         id: btopRunner
-        command: ["bash", "-c", "omarchy-launch-floating-terminal-with-presentation 'btop'"]
+        command: ["bash", "-c", "dots-launch-floating-terminal-with-presentation 'btop'"]
     }
 }

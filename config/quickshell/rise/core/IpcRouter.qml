@@ -98,7 +98,7 @@ Item {
     }
 
     IpcHandler {
-        target: "omarchy.system-update"
+        target: "dots.system-update"
         function refresh(): void { router.systemRefresh() }
     }
 
@@ -130,4 +130,9 @@ Item {
             if (router.variantHost.ready) router.flush()
         }
     }
+    IpcHandler {
+        target: "launcher"
+        function toggle(): void { router.invoke("toggleAppLauncher") }
+    }
+
 }

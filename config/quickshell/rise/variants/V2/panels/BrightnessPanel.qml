@@ -3,7 +3,7 @@ import "../modules"
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
-import "../OmarchyPower.js" as OmarchyPower
+import "../DotsPower.js" as DotsPower
 
 PanelWindow {
     id: briPanel
@@ -15,7 +15,7 @@ PanelWindow {
     anchors { top: true; bottom: true; left: true; right: true }
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.namespace: "omarchy-brightness"
+    WlrLayershell.namespace: "dots-brightness"
 
     readonly property int barBottom: root.v2BarHeight
     readonly property int gap: 6
@@ -48,7 +48,7 @@ PanelWindow {
         if (setRunner.running || queuedSetPercent < 0) return
         var p = queuedSetPercent
         queuedSetPercent = -1
-        setRunner.command = ["bash", "-c", OmarchyPower.brightnessSetCmd(p + "%")]
+        setRunner.command = ["bash", "-c", DotsPower.brightnessSetCmd(p + "%")]
         setRunner.running = true
     }
 
@@ -212,7 +212,7 @@ PanelWindow {
 
     Process {
         id: briData
-        command: ["bash", "-c", OmarchyPower.brightnessPercentCmd]
+        command: ["bash", "-c", DotsPower.brightnessPercentCmd]
         running: false
         stdout: StdioCollector {
             onStreamFinished: {
@@ -234,7 +234,7 @@ PanelWindow {
     }
     Process {
         id: upRunner
-        command: ["bash", "-c", OmarchyPower.brightnessSetCmd("+5%")]
+        command: ["bash", "-c", DotsPower.brightnessSetCmd("+5%")]
         onExited: (code) => {
             briPanel.notifyBrightnessError("Brightness up", code)
             briPanel.refresh()
@@ -242,7 +242,7 @@ PanelWindow {
     }
     Process {
         id: downRunner
-        command: ["bash", "-c", OmarchyPower.brightnessSetCmd("5%-")]
+        command: ["bash", "-c", DotsPower.brightnessSetCmd("5%-")]
         onExited: (code) => {
             briPanel.notifyBrightnessError("Brightness down", code)
             briPanel.refresh()

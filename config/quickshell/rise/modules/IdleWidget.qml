@@ -6,7 +6,7 @@ Item {
     id: rootMod
     required property var root
 
-    // "Stay awake" mode active; Theme maps this to the active Omarchy idle backend.
+    // "Stay awake" mode active; Theme maps this to the active NixOS idle backend.
     readonly property bool awake: root.stayAwake
 
     visible: awake
@@ -26,7 +26,7 @@ Item {
 
     Process {
         id: toggleProc
-        command: ["bash", "-c", "if command -v omarchy-toggle-idle >/dev/null 2>&1; then exec omarchy-toggle-idle; fi; exec omarchy toggle idle"]
+        command: ["bash", "-c", "if command -v dots-toggle-idle >/dev/null 2>&1; then exec dots-toggle-idle; fi; exec dots toggle idle"]
         onExited: root.refreshStatusIndicators()
     }
 

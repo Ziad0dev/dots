@@ -14,7 +14,7 @@ Item {
     implicitHeight: 28
 
 
-    readonly property string tooltipText: "Omarchy update available"
+    readonly property string tooltipText: "NixOS rebuild available"
 
     IconText {
         anchors.centerIn: parent
@@ -25,7 +25,7 @@ Item {
 
     Process {
         id: updateProc
-        command: ["bash", "-c", "omarchy-update-available >/dev/null 2>&1 && echo YES || echo NO"]
+        command: ["bash", "-c", "dots-update-available >/dev/null 2>&1 && echo YES || echo NO"]
         running: false
         stdout: StdioCollector {
             onStreamFinished: { rootMod.updateAvailable = this.text.trim() === "YES" }
@@ -38,7 +38,7 @@ Item {
         onTriggered: { updateProc.running = false; updateProc.running = true }
     }
 
-    Process { id: runProc; command: ["bash", "-c", "omarchy-launch-floating-terminal-with-presentation omarchy-update"] }
+    Process { id: runProc; command: ["bash", "-c", "dots-launch-floating-terminal-with-presentation dots-update"] }
 
     TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText }
 

@@ -6,8 +6,8 @@
 #   S|pkg|old|new
 #   A|pkg|old|new
 #
-# The official repo scan is intentionally checkupdates-only. pacman -Qu is not a
-# fresh repository view and must not seed a later privileged pacman -Syu gate.
+# The official repo scan is intentionally dots-updates-only. dots-updates is not a
+# fresh repository view and must not seed a later privileged dots-updates -Syu gate.
 set -euo pipefail
 
 STATE="${QS_ARCH_UPDATE_STATE:-$HOME/.cache/qs-arch-updates.json}"
@@ -20,7 +20,7 @@ fail() {
 
 command -v jq >/dev/null 2>&1 || fail "jq is required"
 command -v sha256sum >/dev/null 2>&1 || fail "sha256sum is required"
-command -v checkupdates >/dev/null 2>&1 || fail "checkupdates is required"
+command -v dots-updates >/dev/null 2>&1 || fail "dots-updates is required"
 
 state_dir="$(dirname "$STATE")"
 mkdir -p "$state_dir"
@@ -38,19 +38,19 @@ aur_tsv="$tmpdir/aur.tsv"
 : > "$aur_tsv"
 
 rc=0
-LC_ALL=C checkupdates >"$system_raw" 2>"$system_err" || rc=$?
+LC_ALL=C dots-updates >"$system_raw" 2>"$system_err" || rc=$?
 case "$rc" in
   0|2) ;;
-  *) fail "checkupdates failed" ;;
+  *) fail "dots-updates failed" ;;
 esac
 
 while IFS= read -r line || [ -n "$line" ]; do
   [ -n "$line" ] || continue
   read -r name old arrow new rest <<< "$line"
   [ -n "${name:-}" ] && [ -n "${old:-}" ] && [ -n "${arrow:-}" ] && [ -n "${new:-}" ] && [ -z "${rest:-}" ] \
-    || fail "malformed checkupdates output"
-  [ "$arrow" = "->" ] || fail "malformed checkupdates output"
-  case "$name" in *[!a-zA-Z0-9@._+-]*) fail "malformed checkupdates output" ;; esac
+    || fail "malformed dots-updates output"
+  [ "$arrow" = "->" ] || fail "malformed dots-updates output"
+  case "$name" in *[!a-zA-Z0-9@._+-]*) fail "malformed dots-updates output" ;; esac
   printf '%s\t%s\t%s\n' "$name" "$old" "$new" >> "$system_tsv"
 done < "$system_raw"
 

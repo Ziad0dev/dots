@@ -108,40 +108,33 @@ relink() {
     ln -sfn "$1" "$2"
 }
 
-omarchy_compat() {
-    local current="$1" oroot troot d name pal prev wp bg
-    oroot="${XDG_CONFIG_HOME:-$HOME/.config}/omarchy"
-    troot="$oroot/themes"
+# State tree the vendored Quickshell Rise shell reads after denix-rise.sh.
+# It wants <root>/theme.name, <root>/theme/colors.sh, <root>/theme/backgrounds
+# and <root>/background.
+shell_compat() {
+    local current="$1" root theme pal wp bg d name
+    root="${XDG_STATE_HOME:-$HOME/.local/state}/dots/shell/current"
+    theme="$root/theme"
     bg="$HOME/Pictures/wallpapers"
-    mkdir -p "$troot" "$oroot/backgrounds"
+    mkdir -p "$theme"
 
-    for d in "$THEMES"/*/; do
-        d="${d%/}"
-        name=$(basename "$d")
-        [ "$name" = "_templates" ] && continue
-        pal=$(palette_file "$name") || continue
+    pal=$(palette_file "$current") || return 0
+    printf '%s\n' "$current" >"$root/theme.name"
+    relink "$pal" "$theme/colors.sh"
+    relink "$bg" "$theme/backgrounds"
 
-        mkdir -p "$troot/$name"
-        relink "$pal" "$troot/$name/colors.toml"
-        relink "$bg" "$troot/$name/backgrounds"
-        relink "$bg" "$oroot/backgrounds/$name"
-
-        for prev in "$d/preview.png" "$d/preview.jpg"; do
-            if [ -f "$prev" ]; then
-                relink "$prev" "$troot/$name/preview.png"
-                break
-            fi
-        done
+    d=$(theme_dir "$current")
+    for name in "$d/preview.png" "$d/preview.jpg"; do
+        if [ -f "$name" ]; then
+            relink "$name" "$theme/preview.png"
+            break
+        fi
     done
 
-    mkdir -p "$oroot/current"
-    printf '%s\n' "$current" >"$oroot/current/theme.name"
-    relink "$troot/$current" "$oroot/current/theme"
-
     if wp=$(theme_wallpaper "$current"); then
-        relink "$wp" "$oroot/current/background"
+        relink "$wp" "$root/background"
     elif wp=$(dots-current-wallpaper 2>/dev/null) && [ -n "$wp" ]; then
-        relink "$wp" "$oroot/current/background"
+        relink "$wp" "$root/background"
     fi
 }
 
@@ -150,7 +143,7 @@ reload_apps() {
     pkill -SIGUSR2 ghostty 2>/dev/null || true
 
     if command -v qs >/dev/null 2>&1; then
-        qs -c picker ipc call picker reload >/dev/null 2>&1 || true
+        qs -c rise ipc call picker reload >/dev/null 2>&1 || true
     fi
 
     if command -v dunstctl >/dev/null 2>&1; then
@@ -182,7 +175,7 @@ cmd_set() {
     render_all "$name"
     mkdir -p "$STATE"
     printf '%s\n' "$name" >"$CURRENT"
-    omarchy_compat "$name"
+    shell_compat "$name"
     reload_apps
 
     if wp=$(theme_wallpaper "$name"); then

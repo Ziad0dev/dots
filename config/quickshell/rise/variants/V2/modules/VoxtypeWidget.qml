@@ -43,8 +43,8 @@ Item {
         onTextChanged: if (rootMod.state !== "recording") opacity = 1.0
     }
 
-    Process { id: modelProc;  command: ["bash", "-c", "omarchy-voxtype-model"] }
-    Process { id: configProc; command: ["bash", "-c", "omarchy-voxtype-config"] }
+    Process { id: modelProc;  command: ["bash", "-c", "dots-voxtype-model"] }
+    Process { id: configProc; command: ["bash", "-c", "dots-voxtype-config"] }
 
     TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText }
 

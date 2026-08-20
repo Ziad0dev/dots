@@ -17,8 +17,8 @@ repo="${1:-${QS_SHELL_REPO:-$HOME/.local/share/quickshell-dots}}"
 bin="$HOME/.local/bin"
 qsbin="$HOME/.config/quickshell/bin"
 units="$HOME/.config/systemd/user"
-theme_hooks="$HOME/.config/omarchy/hooks/theme-set.d"
-post_boot_hooks="$HOME/.config/omarchy/hooks/post-boot.d"
+theme_hooks="$HOME/.local/state/dots/shell/hooks/theme-set.d"
+post_boot_hooks="$HOME/.local/state/dots/shell/hooks/post-boot.d"
 defer_systemd="${QS_SHELL_COMPANION_DEFER_SYSTEMD:-0}"
 require_post_boot_source="${QS_SHELL_REQUIRE_POST_BOOT_SOURCE:-0}"
 
@@ -98,7 +98,7 @@ if [ -f "$repo/scripts/qs-theme-update-check.sh" ]; then
   fi
 fi
 
-# ── Omarchy theme hook coupled to the picker thumbnail cache contract ─
+# ── NixOS theme hook coupled to the picker thumbnail cache contract ─
 if [ -f "$repo/hooks/50-quickshell-bar.sh" ]; then
   put "$repo/hooks/50-quickshell-bar.sh" "$theme_hooks/50-quickshell-bar.sh" 755 || rc=1
 else

@@ -170,7 +170,7 @@ local mainMod = "SUPER"
 hl.bind(mainMod .. " + Return", hl.dsp.exec_cmd("ghostty"))
 
 hl.bind(mainMod .. " + SHIFT + Q", hl.dsp.window.close())
-hl.bind(mainMod .. " + D", hl.dsp.exec_cmd("qs -c picker ipc call picker launcher"))
+hl.bind(mainMod .. " + D", hl.dsp.exec_cmd("qs -c rise ipc call launcher toggle"))
 hl.bind(mainMod .. " + CTRL + SHIFT + SPACE", hl.dsp.exec_cmd("qs -c theme-picker"))
 hl.bind(mainMod .. " + SHIFT + C",
     hl.dsp.exec_cmd([[sh -c 'cliphist list | rofi -dmenu -p "clipboard" | cliphist decode | wl-copy']]))

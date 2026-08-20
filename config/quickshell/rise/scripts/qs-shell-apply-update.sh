@@ -20,7 +20,7 @@
 set -euo pipefail
 
 REPO="${QS_SHELL_REPO:-$HOME/.local/share/quickshell-dots}"
-DEST="${QS_SHELL_DEST:-$HOME/.config/quickshell/bar}"
+DEST="${QS_SHELL_DEST:-$HOME/.config/quickshell/rise}"
 [ "$DEST" != "/" ] && DEST="${DEST%/}"
 STATE_DIR="$HOME/.cache/qs-shell"
 STATE="$STATE_DIR/update-available.json"
@@ -65,7 +65,7 @@ systemd_env_args() {
       QT_QPA_PLATFORM \
       QT_QUICK_CONTROLS_STYLE \
       HYPRLAND_INSTANCE_SIGNATURE \
-      OMARCHY_PATH \
+      DOTS_SHELL_PATH \
       PATH; do
     value="${!name-}"
     [ -n "$value" ] && _args_ref+=("--setenv=$name=$value")

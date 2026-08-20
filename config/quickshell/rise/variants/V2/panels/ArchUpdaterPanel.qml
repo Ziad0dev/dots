@@ -14,7 +14,7 @@ PanelWindow {
     anchors { top: true; bottom: true; left: true; right: true }
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.namespace: "omarchy-arch-updater"
+    WlrLayershell.namespace: "dots-arch-updater"
 
     readonly property int barBottom: root.v2BarHeight
     readonly property int gap: 6
@@ -36,8 +36,8 @@ PanelWindow {
     property string packageUpdateCommand: ""
     property string packageApplyProtocol: ""
     property bool packageBackendProbeResolved: false
-    readonly property bool usesOmarchyUpdater: packageUpdateBackend === "omarchy"
-    readonly property bool packageUpdateBackendAvailable: usesOmarchyUpdater
+    readonly property bool usesNixOSUpdater: packageUpdateBackend === "dots"
+    readonly property bool packageUpdateBackendAvailable: usesNixOSUpdater
         ? packageUpdateCommand !== ""
         : packageUpdateBackend === "arch"
             && packageUpdateCommand !== ""
@@ -81,10 +81,10 @@ PanelWindow {
                 var mode = parts[1]
                 var commandPath = parts[2]
                 var protocol = parts[3]
-                var relationOk = (backend === "omarchy" && (mode === "update" || mode === "cli")
+                var relationOk = (backend === "dots" && (mode === "update" || mode === "cli")
                         && commandPath.indexOf("/") === 0)
                     || (backend === "arch" && mode === "apply" && commandPath.indexOf("/") === 0)
-                    || ((backend === "omarchy-broken" || backend === "unsupported")
+                    || ((backend === "dots-broken" || backend === "unsupported")
                         && mode === "none" && commandPath === "")
                 if (!relationOk || (protocol !== "2" && protocol !== "legacy" && protocol !== "missing"))
                     return
@@ -262,10 +262,10 @@ PanelWindow {
     }
 
     // ── Full-repo update policy ──
-    // AUR packages are never part of a pacman transaction. For official repo
+    // AUR packages are never part of a dots-updates transaction. For official repo
     // packages, the safe boundary is all-or-nothing: if any repo package is not
     // scanned and OK, block the entire system upgrade. Never filter packages out
-    // of pacman's transaction from this UI, because that can create an unsupported
+    // of dots-updates's transaction from this UI, because that can create an unsupported
     // partial upgrade.
     readonly property int repoUpdatePackages: {
         var n = 0, u = root.archUpdates || []
@@ -306,12 +306,12 @@ PanelWindow {
         && repoOkPackages === repoUpdatePackages
         && (root.archGateState === "clean" || root.archGateState === "warn")
         && !root.archGateDegraded
-    // Omarchy owns a broader transaction (system, migrations, AUR, tooling).
+    // NixOS owns a broader transaction (system, migrations, AUR, tooling).
     // Its launcher is intentionally independent from this advisory package gate.
     readonly property bool canUpdate: packageUpdateBackendAvailable
-        && (usesOmarchyUpdater || repoGateAllowsFullUpgrade)
+        && (usesNixOSUpdater || repoGateAllowsFullUpgrade)
     readonly property string repoBlockReason: {
-        if (repoUpdatePackages === 0) return "No pacman updates"
+        if (repoUpdatePackages === 0) return "No dots-updates updates"
         if (!repoScanFresh) return "Repo upgrade blocked: refresh scan"
         if (!repoScanMatchesUpdates) return "Repo upgrade blocked: scan drift"
         if (root.archGateState === "scanning") return "Scanning packages"
@@ -324,7 +324,7 @@ PanelWindow {
     readonly property string repoBlockButtonText: {
         if (packageUpdateBackend === "detecting") return "Detecting updater"
         if (packageUpdateBackend === "probe-failed") return "Updater detection failed"
-        if (packageUpdateBackend === "omarchy-broken") return "Omarchy updater missing"
+        if (packageUpdateBackend === "dots-broken") return "nh not found"
         if (packageUpdateBackend === "unsupported") return "Updater unavailable"
         if (packageUpdateBackend === "arch" && packageApplyProtocol !== "2")
             return "Update shell helper"
@@ -338,8 +338,8 @@ PanelWindow {
         if (repoOkPackages !== repoUpdatePackages) return "Unverified package"
         return archPanel.repoBlockReason
     }
-    readonly property string packageUpdateButtonText: usesOmarchyUpdater
-        ? "Open Omarchy update"
+    readonly property string packageUpdateButtonText: usesNixOSUpdater
+        ? "Open NixOS rebuild"
         : "Full repo upgrade (" + repoUpdatePackages + ")"
     function shellQuote(value) {
         return "'" + String(value).replace(/'/g, "'\"'\"'") + "'"
@@ -389,7 +389,7 @@ PanelWindow {
 
     function launchThemeTerminal(inner) {
         panelUpdateRunner.command = ["bash", "-c",
-            "omarchy-launch-floating-terminal-with-presentation " + shellQuote(inner)]
+            "dots-launch-floating-terminal-with-presentation " + shellQuote(inner)]
         root.archVisible = false
         panelUpdateRunner.running = false
         panelUpdateRunner.running = true
@@ -443,7 +443,7 @@ PanelWindow {
         var slash = value.lastIndexOf("/")
         var base = slash >= 0 ? value.substring(slash + 1) : value
         return base.replace(/\.git$/i, "")
-                   .replace(/^omarchy-/i, "")
+                   .replace(/^dots-/i, "")
                    .replace(/-theme$/i, "")
                    .toLowerCase()
     }
@@ -472,7 +472,7 @@ PanelWindow {
         if (!/^[A-Za-z0-9._-]+$/.test(name || "")) return
         if (!isSupportedThemeRepoUrl(repoUrl)) return
         if (themeNameFromRepoUrl(repoUrl) !== String(name).toLowerCase()) return
-        launchThemeTerminal("set +e; omarchy theme install " + shellQuote(repoUrl) + "; rc=$?; "
+        launchThemeTerminal("set +e; dots theme install " + shellQuote(repoUrl) + "; rc=$?; "
             + "if [ \"$rc\" -eq 0 ]; then " + shellQuote(themeCheckScript)
             + "; fi; exit \"$rc\"")
     }
@@ -516,7 +516,7 @@ PanelWindow {
     }
 
     // Removal is row-specific and gated by inline Remove/Cancel actions before
-    // Omarchy receives the validated theme name.
+    // NixOS receives the validated theme name.
     function removeTheme(name) {
         if (root.themeUpdChecking || removeBusy) return
         if (!/^[A-Za-z0-9._-]+$/.test(name || "")) return
@@ -544,7 +544,7 @@ PanelWindow {
         removeResultCode = -1
         removeResultDetail = ""
         themeRemoveMinimumTimer.restart()
-        themeRemoveProc.command = ["omarchy", "theme", "remove", name]
+        themeRemoveProc.command = ["dots", "theme", "remove", name]
         themeRemoveProc.running = true
     }
 
@@ -575,7 +575,7 @@ PanelWindow {
 
     function viewThemeChanges(name) {
         if (!/^[A-Za-z0-9._-]+$/.test(name)) return
-        var dir = Quickshell.env("HOME") + "/.config/omarchy/themes/" + name
+        var dir = Quickshell.env("HOME") + "/dots/config/themes/" + name
         var git = "git -C " + shellQuote(dir)
                 + " -c core.fsmonitor="
                 + " -c core.hooksPath=/dev/null"
@@ -596,13 +596,13 @@ PanelWindow {
     // disk — no user-controlled string reaches the shell.
     function reapplyCurrentTheme() {
         var nameFile = root.themeNamePath
-        var omarchyPath = root.omarchyInstallRoot || (Quickshell.env("HOME") + "/.local/share/omarchy")
+        var dotsPath = root.dotsShellRoot || (Quickshell.env("HOME") + "/dots/config/quickshell/rise")
         var inner = "n=$(tr -d '[:space:]' < " + shellQuote(nameFile) + "); "
                   + "[ -n \"$n\" ] || { echo 'no current theme'; exit 1; }; "
                   + themedGumConfirmEnv() + " gum confirm " + shellQuote("Re-apply the current theme to pick up its update?")
-                  + " && OMARCHY_PATH=" + shellQuote(omarchyPath) + " omarchy-theme-set \"$n\""
+                  + " && DOTS_SHELL_PATH=" + shellQuote(dotsPath) + " dots-theme-set \"$n\""
         panelUpdateRunner.command = ["bash", "-c",
-            "omarchy-launch-floating-terminal-with-presentation " + shellQuote(inner)]
+            "dots-launch-floating-terminal-with-presentation " + shellQuote(inner)]
         root.archVisible = false
         panelUpdateRunner.running = false
         panelUpdateRunner.running = true
@@ -896,7 +896,7 @@ PanelWindow {
                     return p.join(' <font color="' + hx(root.sumi) + '">·</font> ')
                 }
                 onLinkActivated: Quickshell.execDetached(["bash", "-c",
-                    "omarchy-launch-floating-terminal-with-presentation 'less ~/.local/share/qs-aur-blacklist.txt'"])
+                    "dots-launch-floating-terminal-with-presentation 'less ~/.local/share/qs-aur-blacklist.txt'"])
                 MouseArea {
                     anchors.fill: parent
                     acceptedButtons: Qt.NoButton   // cursor only — the Text handles the link click
@@ -922,7 +922,7 @@ PanelWindow {
                 spacing: 4
                 UiText {
                     width: parent.width * 0.4
-                    text: "Package"
+                    text: "Generation"
                     color: Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.6)
                     font.family: root.mono; font.pixelSize: 10; font.letterSpacing: 1
                 }
@@ -1082,7 +1082,7 @@ PanelWindow {
                     }
                 }
 
-                // Update — Omarchy owns its full pipeline when present; plain Arch
+                // Update — NixOS owns its full pipeline when present; plain Arch
                 // keeps the checked all-or-nothing repository transaction.
                 Rectangle {
                     width: (parent.width - 8 * (archPanel.btnCount - 1)) / archPanel.btnCount
@@ -1110,7 +1110,7 @@ PanelWindow {
                         cursorShape: archPanel.canUpdate ? Qt.PointingHandCursor : Qt.ArrowCursor
                         onClicked: {
                             var command = [archPanel.packageUpdateCommand]
-                            if (archPanel.usesOmarchyUpdater) {
+                            if (archPanel.usesNixOSUpdater) {
                                 if (archPanel.packageUpdateMode === "cli") command.push("update")
                             } else {
                                 command.push(
@@ -1150,7 +1150,7 @@ PanelWindow {
                         onClicked: {
                             // Display-only: list AUR updates, install nothing.
                             panelUpdateRunner.command = ["bash", "-c",
-                                "omarchy-launch-floating-terminal-with-presentation 'echo \"AUR review — no packages are installed by this view.\"; echo; AUR=$(command -v paru || command -v yay || echo yay); \"$AUR\" -Qum; echo; echo \"Review each PKGBUILD before building these manually.\"'"];
+                                "dots-launch-floating-terminal-with-presentation 'echo \"AUR review — no packages are installed by this view.\"; echo; AUR=$(command -v paru || command -v yay || echo yay); \"$AUR\" -Qum; echo; echo \"Review each PKGBUILD before building these manually.\"'"];
                             root.archVisible = false;
                             panelUpdateRunner.running = false;
                             panelUpdateRunner.running = true;

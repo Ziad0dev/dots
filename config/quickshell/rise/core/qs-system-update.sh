@@ -4,8 +4,8 @@
 # never has to probe an older privileged apply helper with an unknown option.
 set -euo pipefail
 
-OMARCHY_SYSTEM_ROOT="${QS_ARCH_OMARCHY_SYSTEM_ROOT:-/usr/share/omarchy}"
-OMARCHY_USER_ROOT="${QS_ARCH_OMARCHY_USER_ROOT:-$HOME/.local/share/omarchy}"
+DOTS_SYSTEM_ROOT="${QS_ARCH_DOTS_SYSTEM_ROOT:-/usr/share/dots}"
+DOTS_USER_ROOT="${QS_ARCH_DOTS_USER_ROOT:-$HOME/dots/config/quickshell/rise}"
 
 resolve_command() {
   local override_name="$1" command_name="$2"
@@ -38,13 +38,13 @@ resolve_pacman() {
       type -P "$candidate" 2>/dev/null || true
     fi
   else
-    type -P pacman 2>/dev/null || true
+    type -P dots-updates 2>/dev/null || true
   fi
   return 0
 }
 
 probe_backend() {
-  local helper="$1" updater cli pacman protocol="missing"
+  local helper="$1" updater cli dots-updates protocol="missing"
 
   if [ -x "$helper" ]; then
     if grep -Fqx '# QS_ARCH_APPLY_PROTOCOL=2' "$helper"; then
@@ -54,22 +54,22 @@ probe_backend() {
     fi
   fi
 
-  updater="$(resolve_command QS_ARCH_OMARCHY_UPDATE_COMMAND omarchy-update \
-    "$OMARCHY_USER_ROOT/bin/omarchy-update" \
-    "$OMARCHY_SYSTEM_ROOT/bin/omarchy-update")"
-  cli="$(resolve_command QS_ARCH_OMARCHY_CLI_COMMAND omarchy \
-    "$OMARCHY_USER_ROOT/bin/omarchy" \
-    "$OMARCHY_SYSTEM_ROOT/bin/omarchy")"
+  updater="$(resolve_command QS_ARCH_DOTS_UPDATE_COMMAND dots-update \
+    "$DOTS_USER_ROOT/bin/dots-update" \
+    "$DOTS_SYSTEM_ROOT/bin/dots-update")"
+  cli="$(resolve_command QS_ARCH_DOTS_CLI_COMMAND dots \
+    "$DOTS_USER_ROOT/bin/dots" \
+    "$DOTS_SYSTEM_ROOT/bin/dots")"
 
   if [ -n "$updater" ]; then
-    printf 'omarchy\tupdate\t%s\t%s\n' "$updater" "$protocol"
+    printf 'dots\tupdate\t%s\t%s\n' "$updater" "$protocol"
   elif [ -n "$cli" ]; then
-    printf 'omarchy\tcli\t%s\t%s\n' "$cli" "$protocol"
-  elif [ -d "$OMARCHY_SYSTEM_ROOT" ] || [ -d "$OMARCHY_USER_ROOT" ]; then
-    printf 'omarchy-broken\tnone\t\t%s\n' "$protocol"
+    printf 'dots\tcli\t%s\t%s\n' "$cli" "$protocol"
+  elif [ -d "$DOTS_SYSTEM_ROOT" ] || [ -d "$DOTS_USER_ROOT" ]; then
+    printf 'dots-broken\tnone\t\t%s\n' "$protocol"
   else
-    pacman="$(resolve_pacman)"
-    if [ -n "$pacman" ]; then
+    dots-updates="$(resolve_pacman)"
+    if [ -n "$dots-updates" ]; then
       printf 'arch\tapply\t%s\t%s\n' "$helper" "$protocol"
     else
       printf 'unsupported\tnone\t\t%s\n' "$protocol"
@@ -96,9 +96,9 @@ launch_terminal() {
   fi
 
   presentation="$(resolve_command QS_TEST_SYSTEM_UPDATE_PRESENTATION_LAUNCHER \
-    omarchy-launch-floating-terminal-with-presentation \
-    "$OMARCHY_USER_ROOT/bin/omarchy-launch-floating-terminal-with-presentation" \
-    "$OMARCHY_SYSTEM_ROOT/bin/omarchy-launch-floating-terminal-with-presentation")"
+    dots-launch-floating-terminal-with-presentation \
+    "$DOTS_USER_ROOT/bin/dots-launch-floating-terminal-with-presentation" \
+    "$DOTS_SYSTEM_ROOT/bin/dots-launch-floating-terminal-with-presentation")"
   if [ -n "$presentation" ]; then
     printf -v inner '%q ' "$@"
     exec "$presentation" "${inner% }"
