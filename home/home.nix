@@ -243,6 +243,7 @@ in
       networkmanager
       # media keys: hyprland binds -> playerctl -> mpdris2 -> mpd
       playerctl
+      shellcheck
 
       # ── Audio ─────────────────────────────────────────────────────────
       pamixer

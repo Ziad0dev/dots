@@ -51,9 +51,11 @@ sub 'OMARCHY_SCREENSHOT_DIR'              'DOTS_SCREENSHOT_DIR'
 sub 'OMARCHY_PATH'                        'DOTS_SHELL_PATH'
 sub 'OMARCHY'                             'DOTS'
 
-if [ -f "$RISE/OmarchyPower.js" ]; then
-    mv -f "$RISE/OmarchyPower.js" "$RISE/DotsPower.js"
-fi
+# both variant trees carry their own copy; renaming only the top-level one
+# leaves V2's BrightnessWidget importing a file that no longer exists
+find "$RISE" -name 'OmarchyPower.js' -type f | while read -r f; do
+    mv -f "$f" "$(dirname "$f")/DotsPower.js"
+done
 
 # ── Arch package manager -> nix ──────────────────────────────────────────
 sub 'checkupdates'                        'dots-updates'
