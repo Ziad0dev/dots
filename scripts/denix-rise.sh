@@ -73,9 +73,32 @@ sub '"Arch Updates"'                      '"NixOS Generations"'
 # so the rewritten path must not gain a /<themeName> suffix
 sub '"/Pictures/wallpapers/" + currentThemeName' '"/Pictures/wallpapers"'
 
+# ── launcher logo ────────────────────────────────────────────────────────
+# The official NixOS wordmark, tinted to the theme accent by the existing
+# logo-tint shader. assets/nixos-logo.svg must be downloaded first:
+#   curl -Lo assets/nixos-logo.svg \
+#     https://brand.nixos.org/logos/nixos-logo-white-flat-white-regular-horizontal-recommended.svg
+for f in "$RISE/modules/LauncherWidget.qml" "$RISE/variants/V2/modules/LauncherWidget.qml"; do
+    [ -f "$f" ] || continue
+    grep -q 'nixosTextLogo' "$f" || sed -i \
+        's|readonly property bool hyprlandLogo:|readonly property bool nixosTextLogo: !logoIconMode \&\& root.launcherLogoText === "nixos"\n    readonly property bool hyprlandLogo:|' "$f"
+    # bob2.png was the "dots" fallback and denix deletes it, so point the
+    # default at the NixOS mark instead of a file that no longer exists
+    # PNG rather than SVG: upstream's own assets are all raster, so qtsvg may
+    # not be in the quickshell closure. 647x192 tight crop of the wordmark.
+    sed -i 's|Qt.resolvedUrl("../assets/bob2.png")|Qt.resolvedUrl("../assets/nixos-logo.png")|g' "$f"
+    sed -i 's|hyprlandLogo ? (948 / 154) : (656 / 192)|hyprlandLogo ? (948 / 154) : (647 / 192)|' "$f"
+done
+
+for th in "$RISE/Theme.qml" "$RISE/variants/V2/Theme.qml"; do
+    [ -f "$th" ] || continue
+    sed -i 's|readonly property var launcherLogoTextOptions: \["dots", "hyprland", "arch", "omacom"\]|readonly property var launcherLogoTextOptions: ["nixos", "hyprland", "arch"]|' "$th"
+done
+
 # ── launcher logo: the bundled wordmark PNG is Omarchy branding ──────────
 # icon mode + the nix glyph avoids shipping someone else's logo
-sub 'property string launcherLogoMode: "text"'   'property string launcherLogoMode: "icon"'
+sub 'property string launcherLogoMode: "icon"'   'property string launcherLogoMode: "text"'
+sub 'property string launcherLogoText: "dots"'   'property string launcherLogoText: "nixos"'
 sub 'property string launcherLogoIcon: "dots"'   'property string launcherLogoIcon: "nix"'
 
 # the bundled nix glyph is a Nerd Font codepoint that moved between NF v2 and
