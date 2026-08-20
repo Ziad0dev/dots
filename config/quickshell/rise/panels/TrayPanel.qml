@@ -14,7 +14,7 @@ PanelWindow {
     anchors { top: true; bottom: true; left: true; right: true }
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.namespace: "omarchy-tray"
+    WlrLayershell.namespace: "dots-tray"
     // no mask → whole overlay is interactive (modal): click-outside + ESC work
 
     readonly property int barBottom: 35

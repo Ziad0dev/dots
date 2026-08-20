@@ -15,7 +15,7 @@ PanelWindow {
     anchors { top: true; bottom: true; left: true; right: true }
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.namespace: "omarchy-mpris"
+    WlrLayershell.namespace: "dots-mpris"
 
     readonly property int barBottom: root.v2BarHeight
     readonly property int gap: 6
@@ -102,7 +102,7 @@ PanelWindow {
 
     FileView {
         id: cavaThemeFile
-        path: root.omarchyCurrentRoot + "/theme/cava_theme"
+        path: root.dotsStateRoot + "/theme/cava_theme"
         watchChanges: true
         printErrors: false
         onFileChanged: reload()

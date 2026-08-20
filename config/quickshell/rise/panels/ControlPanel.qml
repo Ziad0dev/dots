@@ -13,7 +13,7 @@ PanelWindow {
     anchors { top: true; bottom: true; left: true; right: true }
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.namespace: "omarchy-control"
+    WlrLayershell.namespace: "dots-control"
     // no mask → whole overlay is interactive (modal): click-outside + ESC work
 
     readonly property int barBottom: 35
@@ -239,7 +239,7 @@ PanelWindow {
 
             Rectangle { width: parent.width; height: 1; color: root.sep }
 
-            // ── BAR COLOR: compact colors.toml palette ──
+            // ── BAR COLOR: compact colors.sh palette ──
             UiText {
                 text: "BAR COLOR"
                 color: root.sumiHi; font.family: root.mono; font.pixelSize: 10; font.letterSpacing: 1

@@ -1140,13 +1140,13 @@ PanelWindow {
                             || screenRecInd.recording
                             || voxInd.state === "recording"
                             || voxInd.state === "transcribing"
-                            || omarchyUpdateInd.updateAvailable
+                            || dotsUpdateInd.updateAvailable
                             || shellFallbackActive
                         IdleWidget               { id: idleInd;          root: barSlot.root; anchors.verticalCenter: parent.verticalCenter }
                         NotificationSilenceWidget{ id: dndInd;           root: barSlot.root; anchors.verticalCenter: parent.verticalCenter }
                         ScreenRecordWidget       { id: screenRecInd;     root: barSlot.root; anchors.verticalCenter: parent.verticalCenter }
                         VoxtypeWidget            { id: voxInd;           root: barSlot.root; anchors.verticalCenter: parent.verticalCenter }
-                        UpdateWidget             { id: omarchyUpdateInd; root: barSlot.root; anchors.verticalCenter: parent.verticalCenter }
+                        UpdateWidget             { id: dotsUpdateInd; root: barSlot.root; anchors.verticalCenter: parent.verticalCenter }
                         Loader {
                             visible: iconsRow.shellFallbackActive || width > 0.5
                             active: iconsRow.shellFallbackActive

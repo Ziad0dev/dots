@@ -2,10 +2,10 @@
 # QS_ARCH_APPLY_PROTOCOL=2
 # Privileged apply gate for the Quickshell Arch updater.
 #
-# Omarchy owns its complete update transaction, so every detected Omarchy
+# NixOS owns its complete update transaction, so every detected NixOS
 # installation is delegated to its public updater. On plain Arch, refuse to run
-# pacman unless the displayed scan, persisted gate verdict and a fresh post-auth
-# checkupdates scan all describe the same official repo package set.
+# dots-updates unless the displayed scan, persisted gate verdict and a fresh post-auth
+# dots-updates scan all describe the same official repo package set.
 set -euo pipefail
 
 STATE="${QS_ARCH_UPDATE_STATE:-$HOME/.cache/qs-arch-updates.json}"
@@ -52,8 +52,8 @@ confirm_arch_update() {
   esac
 }
 
-OMARCHY_SYSTEM_ROOT="${QS_ARCH_OMARCHY_SYSTEM_ROOT:-/usr/share/omarchy}"
-OMARCHY_USER_ROOT="${QS_ARCH_OMARCHY_USER_ROOT:-$HOME/.local/share/omarchy}"
+DOTS_SYSTEM_ROOT="${QS_ARCH_DOTS_SYSTEM_ROOT:-/usr/share/dots}"
+DOTS_USER_ROOT="${QS_ARCH_DOTS_USER_ROOT:-$HOME/dots/config/quickshell/rise}"
 
 resolve_command() {
   local override_name="$1" command_name="$2"
@@ -86,25 +86,25 @@ resolve_pacman() {
       type -P "$candidate" 2>/dev/null || true
     fi
   else
-    type -P pacman 2>/dev/null || true
+    type -P dots-updates 2>/dev/null || true
   fi
   return 0
 }
 
-OMARCHY_UPDATE_COMMAND="$(resolve_command QS_ARCH_OMARCHY_UPDATE_COMMAND omarchy-update \
-  "$OMARCHY_USER_ROOT/bin/omarchy-update" \
-  "$OMARCHY_SYSTEM_ROOT/bin/omarchy-update")"
-OMARCHY_CLI_COMMAND="$(resolve_command QS_ARCH_OMARCHY_CLI_COMMAND omarchy \
-  "$OMARCHY_USER_ROOT/bin/omarchy" \
-  "$OMARCHY_SYSTEM_ROOT/bin/omarchy")"
+DOTS_UPDATE_COMMAND="$(resolve_command QS_ARCH_DOTS_UPDATE_COMMAND dots-update \
+  "$DOTS_USER_ROOT/bin/dots-update" \
+  "$DOTS_SYSTEM_ROOT/bin/dots-update")"
+DOTS_CLI_COMMAND="$(resolve_command QS_ARCH_DOTS_CLI_COMMAND dots \
+  "$DOTS_USER_ROOT/bin/dots" \
+  "$DOTS_SYSTEM_ROOT/bin/dots")"
 PACMAN_COMMAND="$(resolve_pacman)"
 
-if [ -n "$OMARCHY_UPDATE_COMMAND" ]; then
-  UPDATE_BACKEND="omarchy-update"
-elif [ -n "$OMARCHY_CLI_COMMAND" ]; then
-  UPDATE_BACKEND="omarchy-cli"
-elif [ -d "$OMARCHY_SYSTEM_ROOT" ] || [ -d "$OMARCHY_USER_ROOT" ]; then
-  UPDATE_BACKEND="omarchy-broken"
+if [ -n "$DOTS_UPDATE_COMMAND" ]; then
+  UPDATE_BACKEND="dots-update"
+elif [ -n "$DOTS_CLI_COMMAND" ]; then
+  UPDATE_BACKEND="dots-cli"
+elif [ -d "$DOTS_SYSTEM_ROOT" ] || [ -d "$DOTS_USER_ROOT" ]; then
+  UPDATE_BACKEND="dots-broken"
 elif [ -n "$PACMAN_COMMAND" ]; then
   UPDATE_BACKEND="arch"
 else
@@ -113,7 +113,7 @@ fi
 
 if [ "${1:-}" = "--backend" ]; then
   case "$UPDATE_BACKEND" in
-    omarchy-update|omarchy-cli) printf 'omarchy\n' ;;
+    dots-update|dots-cli) printf 'dots\n' ;;
     *) printf '%s\n' "$UPDATE_BACKEND" ;;
   esac
   exit 0
@@ -128,14 +128,14 @@ case "${1:-}" in
 esac
 
 case "$UPDATE_BACKEND" in
-  omarchy-update)
-    exec "$OMARCHY_UPDATE_COMMAND"
+  dots-update)
+    exec "$DOTS_UPDATE_COMMAND"
     ;;
-  omarchy-cli)
-    exec "$OMARCHY_CLI_COMMAND" update
+  dots-cli)
+    exec "$DOTS_CLI_COMMAND" update
     ;;
-  omarchy-broken)
-    fail "Omarchy is installed but its update command is unavailable"
+  dots-broken)
+    fail "nh is unavailable"
     ;;
   unsupported)
     fail "no supported system update backend was found"
@@ -230,7 +230,7 @@ validate_initial_gate "$scan_id" "$system_hash" "$system_count" "$GATE_STATE" \
   || fail "package gate verdict does not match the checked scan"
 
 if (( CONFIRM_ARCH_UPDATE )); then
-  prompt="Run full repository upgrade for $expected_system_count pacman packages?"
+  prompt="Run full repository upgrade for $expected_system_count dots-updates packages?"
   if (( expected_aur_count > 0 )); then
     prompt+=" $expected_aur_count AUR review packages will be skipped."
   fi
@@ -246,10 +246,10 @@ rescan_state="$tmpdir/rescan.json"
 rescan_gate_state="$tmpdir/rescan-gate.json"
 
 QS_ARCH_UPDATE_STATE="$rescan_state" QS_ARCH_SKIP_AUR=1 "$CHECK_HELPER" >"$tmpdir/rescan.out" \
-  || fail "fresh checkupdates scan failed"
+  || fail "fresh dots-updates scan failed"
 
 rescan_tsv="$(jq -er '[.scanId, .systemHash, (.systemCount | tostring), (.checkedEpoch | tostring)] | @tsv' "$rescan_state" 2>/dev/null)" \
-  || fail "fresh checkupdates scan state is malformed"
+  || fail "fresh dots-updates scan state is malformed"
 IFS=$'\t' read -r rescan_scan_id rescan_hash rescan_count rescan_checked_epoch <<< "$rescan_tsv"
 
 [ "$rescan_hash" = "$system_hash" ] || fail "official repo package set changed; refresh first"
@@ -265,4 +265,4 @@ validate_final_gate "$rescan_scan_id" "$rescan_hash" "$rescan_count" "$rescan_ga
 
 check_age "$rescan_checked_epoch" "fresh package scan"
 
-sudo pacman -Syu
+sudo dots-updates -Syu

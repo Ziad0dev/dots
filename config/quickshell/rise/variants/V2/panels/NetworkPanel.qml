@@ -14,7 +14,7 @@ PanelWindow {
     anchors { top: true; bottom: true; left: true; right: true }
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.namespace: "omarchy-network"
+    WlrLayershell.namespace: "dots-network"
 
     readonly property int barBottom: root.v2BarHeight
     readonly property int gap: 6
@@ -728,7 +728,7 @@ PanelWindow {
             }
 
             // Available / saved profiles. Both views use the native
-            // NetworkManager objects on Omarchy 4 and the iwctl snapshot on
+            // NetworkManager objects on NixOS 4 and the iwctl snapshot on
             // legacy installations.
             Row {
                 width: parent.width
@@ -1169,7 +1169,7 @@ PanelWindow {
                 }
             }
 
-            // NetworkManager (Omarchy 4.0): the iwctl scan/connect don't apply here →
+            // NetworkManager (NixOS 4.0): the iwctl scan/connect don't apply here →
             // show an nmtui shortcut if the Quickshell.Networking adapter is unavailable.
             Rectangle {
                 width: parent.width

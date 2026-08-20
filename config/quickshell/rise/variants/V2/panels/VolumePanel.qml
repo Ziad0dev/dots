@@ -14,7 +14,7 @@ PanelWindow {
     anchors { top: true; bottom: true; left: true; right: true }
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.namespace: "omarchy-volume"
+    WlrLayershell.namespace: "dots-volume"
 
     readonly property int barBottom: root.v2BarHeight
     readonly property int gap: 6
@@ -71,13 +71,13 @@ PanelWindow {
     property bool   audioErrorNotified: false
 
     readonly property string outputMuteCommand:
-        "(command -v omarchy-swayosd-client >/dev/null 2>&1 && omarchy-swayosd-client --output-volume mute-toggle) || " +
+        "(command -v dots-swayosd-client >/dev/null 2>&1 && dots-swayosd-client --output-volume mute-toggle) || " +
         "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle || " +
         "pamixer -t"
 
     readonly property string micMuteCommand:
-        "if command -v omarchy-audio-input-mute >/dev/null 2>&1; then " +
-        "omarchy-audio-input-mute; " +
+        "if command -v dots-audio-input-mute >/dev/null 2>&1; then " +
+        "dots-audio-input-mute; " +
         "else wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle || pamixer --default-source -t; fi"
 
     function shq(s) { return "'" + String(s).replace(/'/g, "'\\''") + "'" }
@@ -555,7 +555,7 @@ PanelWindow {
             volPanel.refreshMicState(code === 0)
         }
     }
-    Process { id: audioRunner;   command: ["bash", "-c", "omarchy-launch-audio"] }
+    Process { id: audioRunner;   command: ["bash", "-c", "dots-launch-audio"] }
     Process {
         id: actProc
         property bool refreshAfterExit: false

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# QS theme-update CHECK — read-only scan for the in-bar theme updater. Omarchy has
+# QS theme-update CHECK — read-only scan for the in-bar theme updater. NixOS has
 # no "which themes are outdated" signal; this provides it for the bar badge/panel
 # and records the exact commits a later apply step is allowed to fast-forward to.
 #
@@ -28,7 +28,7 @@
 # the sweep was cut short — counts are lower bounds, never a fake "all up to date".
 #
 # Env overrides (sandbox tests use these):
-#   QS_THEMES_DIR   themes root      (default ~/.config/omarchy/themes)
+#   QS_THEMES_DIR   themes root      (default ~/dots/config/themes)
 #   QS_THEME_STATE  state json path  (default ~/.cache/qs-theme-updates.json)
 #   QS_THEME_LOCK   lock file path   (default ~/.cache/qs-theme-update.lock)
 #   QS_CURRENT_FILE current theme.name path
@@ -39,15 +39,15 @@
 #   QS_THEME_JOBS           parallel workers     (default 4)
 set -euo pipefail
 
-THEMES_DIR="${QS_THEMES_DIR:-$HOME/.config/omarchy/themes}"
+THEMES_DIR="${QS_THEMES_DIR:-$HOME/dots/config/themes}"
 STATE="${QS_THEME_STATE:-$HOME/.cache/qs-theme-updates.json}"
 LOCK="${QS_THEME_LOCK:-$HOME/.cache/qs-theme-update.lock}"
 if [ -n "${QS_CURRENT_FILE:-}" ]; then
   CURRENT_FILE="$QS_CURRENT_FILE"
-elif command -v omarchy-shell >/dev/null 2>&1 && [ -f "$HOME/.local/state/omarchy/current/theme.name" ]; then
-  CURRENT_FILE="$HOME/.local/state/omarchy/current/theme.name"
+elif command -v dots-shell >/dev/null 2>&1 && [ -f "$HOME/.local/state/dots/current/theme.name" ]; then
+  CURRENT_FILE="$HOME/.local/state/dots/current/theme.name"
 else
-  CURRENT_FILE="$HOME/.config/omarchy/current/theme.name"
+  CURRENT_FILE="$HOME/.local/state/dots/shell/current/theme.name"
 fi
 NET_TIMEOUT="${QS_THEME_TIMEOUT:-10}"
 FETCH_TIMEOUT="${QS_THEME_FETCH_TIMEOUT:-45}"
@@ -222,7 +222,7 @@ check_one() {
 export -f path_is_or_under path_collision_sample check_one
 export NET_TIMEOUT FETCH_TIMEOUT CURRENT_THEME
 
-# ── enumerate themes (omarchy detection rule: non-symlink dir with .git) ──
+# ── enumerate themes (dots detection rule: non-symlink dir with .git) ──
 dirs=()
 for d in "$THEMES_DIR"/*/; do
   [ -d "$d" ] || continue
