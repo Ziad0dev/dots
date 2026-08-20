@@ -143,6 +143,11 @@ case "$CMD" in
         exit 0
         ;;
 
+    dots-files)
+        launch_float yazi
+        exit 0
+        ;;
+
     *)
         exit 0
         ;;

@@ -152,9 +152,6 @@ in
     ".config/ranger" = {
       source = link "ranger";
     };
-    ".config/yazi" = {
-      source = link "yazi";
-    };
     ".config/broot" = {
       source = link "broot";
     };
