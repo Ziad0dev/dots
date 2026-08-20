@@ -188,7 +188,8 @@ in
     ./fastfetch.nix
     ./quickshell-rise.nix
     ./theming.nix
-
+    ./git-hooks.nix
+    ./quickshell-rise.nix
   ];
 
   programs.nixcord = {
