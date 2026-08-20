@@ -153,6 +153,27 @@ if [ -f "$IPC" ] && ! grep -q 'target: "launcher"' "$IPC"; then
     ' "$IPC" >"$IPC.tmp" && mv -f "$IPC.tmp" "$IPC"
 fi
 
+# ── packages widget -> file manager ──────────────────────────────────────
+# The updater panel lists nix generations as if they were packages and can't
+# act on them; the separate Update widget already runs nh os switch. Repoint
+# this one at yazi instead.
+for f in "$RISE/modules/ArchUpdaterWidget.qml" "$RISE/variants/V2/modules/ArchUpdaterWidget.qml"; do
+    [ -f "$f" ] || continue
+    grep -q 'dots-files' "$f" || python3 - "$f" <<'PYEOF'
+import re, sys, pathlib
+p = pathlib.Path(sys.argv[1]); s = p.read_text()
+s = s.replace(
+    "        onClicked: (e) => {\n            tip.hide();",
+    "        onClicked: (e) => {\n            tip.hide();\n            filesProc.running = false; filesProc.running = true;\n            return;",
+    1)
+s = s.replace(
+    "    MouseArea {\n        id: mouse",
+    '    Process { id: filesProc; command: ["bash", "-c", "dots-files"] }\n\n    MouseArea {\n        id: mouse',
+    1)
+p.write_text(s)
+PYEOF
+done
+
 # the widget cache stores the launcher logo choice and overrides the default
 # above, so a stale cache keeps showing the old wordmark
 rm -f "$HOME/.cache/quickshell_widgets" "$HOME/.cache/quickshell_splits"

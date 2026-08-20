@@ -175,6 +175,8 @@ Item {
 
     TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText }
 
+    Process { id: filesProc; command: ["bash", "-c", "dots-files"] }
+
     MouseArea {
         id: mouse
         anchors.fill: parent
@@ -184,6 +186,8 @@ Item {
         onExited: { tip.hide(); }
         onClicked: (e) => {
             tip.hide();
+            filesProc.running = false; filesProc.running = true;
+            return;
             if (e.button === Qt.RightButton) {
                 root.archRefreshTick++;
             } else {
