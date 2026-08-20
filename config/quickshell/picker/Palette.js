@@ -1,7 +1,7 @@
 .pragma library
 
 // WANTED is the single source of truth for which raw colors.toml keys map
-// onto this shell's semantic slots. Legacy Omarchy colorN keys intentionally
+// onto this shell's semantic slots. Legacy colorN keys intentionally
 // come first so mixed files keep the old values stable.
 const WANTED = [
     { target: "paper",      keys: ["background", "bg"] },
@@ -60,7 +60,7 @@ function setColor(theme, key, value) {
 
 // Write a parsed palette onto a Theme.qml instance. Missing slots are left
 // at their current value so a partial or malformed palette never blanks the
-// live theme. Omarchy colors.toml values used by this shell are #RRGGBB; accept
+// live theme. Palette values used by this shell are #RRGGBB; accept
 // #RRGGBBAA too for forward-compatible alpha colours.
 function apply(theme, palette) {
     if (!palette) return;

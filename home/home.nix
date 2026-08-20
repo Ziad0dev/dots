@@ -241,7 +241,6 @@ in
       brightnessctl
       libnotify
       networkmanager
-      quickshell
       # media keys: hyprland binds -> playerctl -> mpdris2 -> mpd
       playerctl
 

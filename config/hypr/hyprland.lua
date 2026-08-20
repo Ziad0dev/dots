@@ -171,7 +171,6 @@ hl.bind(mainMod .. " + Return", hl.dsp.exec_cmd("ghostty"))
 
 hl.bind(mainMod .. " + SHIFT + Q", hl.dsp.window.close())
 hl.bind(mainMod .. " + D", hl.dsp.exec_cmd("qs -c rise ipc call launcher toggle"))
-hl.bind(mainMod .. " + CTRL + SHIFT + SPACE", hl.dsp.exec_cmd("qs -c theme-picker"))
 hl.bind(mainMod .. " + SHIFT + C",
     hl.dsp.exec_cmd([[sh -c 'cliphist list | rofi -dmenu -p "clipboard" | cliphist decode | wl-copy']]))
 
@@ -183,15 +182,13 @@ for key, dir in pairs(focusDirs) do
 end
 
 hl.bind(mainMod .. " + F", hl.dsp.window.fullscreen())
-hl.bind(mainMod .. " + CTRL + SHIFT + SPACE", hl.dsp.exec_cmd("qs -c picker ipc call picker theme"))
-hl.dsp.exec_cmd("qs -c picker ipc call picker wallpaper")
+hl.bind(mainMod .. " + CTRL + SHIFT + SPACE", hl.dsp.exec_cmd("qs -c rise ipc call picker theme"))
 hl.bind(mainMod .. " + SHIFT + T", hl.dsp.exec_cmd("themectl next"))
 hl.bind(mainMod .. " + CTRL + E",  hl.dsp.exec_cmd("themectl bg next"))
 hl.bind(mainMod .. " + S", hl.dsp.exec_cmd("hyprctl keyword general:layout master"))
 hl.bind(mainMod .. " + W", hl.dsp.exec_cmd("hyprctl keyword general:layout dwindle"))
 hl.bind(mainMod .. " + E",
-    hl.dsp.exec_cmd([[env PATH="$HOME/.local/bin:$PATH" bash ~/.config/rofi/scripts/wallpaper-switcher.sh]]))
-hl.dsp.exec_cmd("qs -c picker ipc call picker wallpaper")
+    hl.dsp.exec_cmd([[qs -c rise ipc call picker wallpaper]]))
 hl.bind(mainMod .. " + SHIFT + space", hl.dsp.window.float({ action = "toggle" }))
 
 hl.bind(mainMod .. " + space", hl.dsp.focus({ window = "current_or_last" }))
@@ -278,6 +275,4 @@ hl.bind(mainMod .. " + Escape", hl.dsp.exec_cmd("loginctl lock-session"))
 hl.bind(mainMod .. " + SHIFT + R", hl.dsp.exec_cmd(
     [[sh -c 'systemctl --user reload gsr-replay && notify-send -t 3000 "Replay saved" "last 5 min -> /data/replays"']]))
 
--- Current theme overrides, loaded last so they win (omarchy does the same
--- with require_optional.module("omarchy.current.theme.hyprland"))
-dofile(os.getenv("HOME") .. "/.local/state/dots/theme/hyprland.lua")
+pcall(dofile, os.getenv("HOME") .. "/.local/state/dots/theme/hyprland.lua")

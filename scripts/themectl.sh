@@ -97,10 +97,6 @@ render_all() {
     done
 }
 
-# Build the ~/.config/omarchy tree the vendored Quickshell Rise shell reads.
-# colors.sh is already a valid colors.toml for its parser, so it is symlinked
-# rather than converted. The shell scans ~/.config/omarchy/themes/* for themes
-# and reads backgrounds from <theme>/backgrounds.
 # ln -sfn into a path that is a real directory creates the link INSIDE it
 # instead of replacing it, so clear non-symlink targets first.
 relink() {
