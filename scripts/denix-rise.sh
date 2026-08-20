@@ -1,7 +1,11 @@
 RISE="${1:-$HOME/dots/config/quickshell/rise}"
 [ -d "$RISE" ] || { echo "denix-rise: no such dir: $RISE" >&2; exit 1; }
 
-files() { find "$RISE" \( -name '*.qml' -o -name '*.js' -o -name '*.sh' -o -name '*.json' \) -type f; }
+files() {
+    find "$RISE" -type f \( -name '*.qml' -o -name '*.js' -o -name '*.sh' \
+        -o -name '*.json' -o -name '*.targets' -o -name 'qs-*' \) \
+        -not -path '*/.github/*'
+}
 
 sub() { files | xargs -r sed -i "s|$1|$2|g"; }
 
@@ -80,6 +84,7 @@ files | xargs -r sed -i \
 
 
 # drop the branded image assets entirely
+rm -rf "$RISE/.github" "$RISE/.gitignore"
 rm -f "$RISE/assets/omacom-text.png" "$RISE/assets/bob2.png" "$RISE/assets/bob3.png"
 
 # ── app launcher ─────────────────────────────────────────────────────────
@@ -100,8 +105,11 @@ done
 # expose it on the variant root so IpcRouter.invoke() can reach it
 for vr in "$RISE/VariantRoot.qml" "$RISE/variants/V2/VariantRoot.qml"; do
     [ -f "$vr" ] || continue
-    grep -q 'toggleAppLauncher' "$vr" || sed -i \
-        '0,/^\(\s*\)id: root$/s||\1id: root\n\n\1function toggleAppLauncher() { if (!theme.appLauncherVisible) theme.activateFocusedPopupScreen(); theme.appLauncherVisible = !theme.appLauncherVisible }|' "$vr"
+    if grep -q 'toggleAppLauncher' "$vr"; then
+        sed -i 's|function toggleAppLauncher() {.*}|function toggleAppLauncher() { if (!theme.appLauncherVisible) theme.activateFocusedPopupScreen(); theme.appLauncherVisible = !theme.appLauncherVisible }|' "$vr"
+    else
+        sed -i '0,/^\(\s*\)id: root$/s||\1id: root\n\n\1function toggleAppLauncher() { if (!theme.appLauncherVisible) theme.activateFocusedPopupScreen(); theme.appLauncherVisible = !theme.appLauncherVisible }|' "$vr"
+    fi
 done
 
 # ipc target: qs -c rise ipc call launcher toggle
@@ -123,6 +131,22 @@ fi
 # the widget cache stores the launcher logo choice and overrides the default
 # above, so a stale cache keeps showing the old wordmark
 rm -f "$HOME/.cache/quickshell_widgets" "$HOME/.cache/quickshell_splits"
+
+# ── your own files outside the vendored tree ─────────────────────────────
+DOTS="$(cd "$RISE/../../.." && pwd)"
+if [ -d "$DOTS/config/themes" ]; then
+    sed -i 's|# Auto-converted from Omarchy theme|# base16 palette|' "$DOTS"/config/themes/*/colors.sh
+fi
+if [ -f "$DOTS/config/hypr/hyprland.lua" ]; then
+    sed -i -e '/omarchy does the same/d' -e '/require_optional.module("omarchy/d' \
+        -e 's|-- Current theme overrides, loaded last so they win (|-- Current theme overrides, loaded last so they win.|' \
+        "$DOTS/config/hypr/hyprland.lua"
+fi
+if [ -d "$DOTS/config/quickshell/picker" ]; then
+    sed -i -e 's|Legacy Omarchy colorN keys|Legacy colorN keys|' \
+        -e 's|Omarchy colors.toml values|Palette values|' \
+        "$DOTS"/config/quickshell/picker/*.js
+fi
 
 echo "denix-rise: rewrote $(files | wc -l) files under $RISE"
 echo "remaining mentions: $(grep -ril omarchy "$RISE" 2>/dev/null | wc -l) files"
