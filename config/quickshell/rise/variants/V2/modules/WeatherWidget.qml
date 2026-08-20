@@ -139,7 +139,7 @@ Item {
 
     Process {
         id: clickRunner
-        command: ["bash", "-c", "notify-send -u low \"$(omarchy-weather-status)\""]
+        command: ["bash", "-c", "notify-send -u low \"$(dots-weather-status)\""]
     }
 
     TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText }

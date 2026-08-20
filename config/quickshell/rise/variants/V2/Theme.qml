@@ -9,17 +9,17 @@ Item {
     id: theme
     property var variantHost: null
 
-    property string omarchyCurrentRoot: Quickshell.env("HOME") + "/.config/omarchy/current"
-    property string omarchyInstallRoot: Quickshell.env("HOME") + "/.local/share/omarchy"
-    property bool omarchyCurrentRootResolved: false
-    readonly property string themeNamePath: omarchyCurrentRoot + "/theme.name"
-    readonly property string colorsPath: omarchyCurrentRoot + "/theme/colors.toml"
-    readonly property string currentBackgroundPath: omarchyCurrentRoot + "/background"
-    readonly property string currentBackgroundsPath: omarchyCurrentRoot + "/theme/backgrounds"
+    property string dotsStateRoot: Quickshell.env("HOME") + "/.local/state/dots/shell/current"
+    property string dotsShellRoot: Quickshell.env("HOME") + "/dots/config/quickshell/rise"
+    property bool dotsStateRootResolved: false
+    readonly property string themeNamePath: dotsStateRoot + "/theme.name"
+    readonly property string colorsPath: dotsStateRoot + "/theme/colors.sh"
+    readonly property string currentBackgroundPath: dotsStateRoot + "/background"
+    readonly property string currentBackgroundsPath: dotsStateRoot + "/theme/backgrounds"
     property string currentThemeName: ""
     readonly property string userBackgroundsPath: currentThemeName === ""
         ? ""
-        : Quickshell.env("HOME") + "/.config/omarchy/backgrounds/" + currentThemeName
+        : Quickshell.env("HOME") + "/Pictures/wallpapers"
     readonly property var wallpaperSourcePaths: userBackgroundsPath === ""
         ? [currentBackgroundsPath]
         : [currentBackgroundsPath, userBackgroundsPath]
@@ -32,7 +32,7 @@ Item {
     }
 
     function reloadCurrentThemeFiles() {
-        if (!omarchyCurrentRootResolved) return
+        if (!dotsStateRootResolved) return
         themeReloadDebounce.restart()
     }
 
@@ -1613,25 +1613,25 @@ Item {
     property bool stayAwake: false            // idle lock disabled / stay-awake indicator
     readonly property bool hypridleAwake: stayAwake // compatibility alias for older modules
     property bool _idleBackendChecked: false
-    property bool _idleOmarchyShellBackend: false
-    property bool _idleOmarchyShellSystem: false
-    property bool _omarchyBackendReprobePending: false
-    property int _omarchyBackendRetryIndex: 0
-    readonly property var _omarchyBackendRetryDelays: [2000, 5000, 15000]
-    readonly property string omarchyShellConfigPath: Quickshell.env("HOME") + "/.config/omarchy/shell.json"
-    readonly property string idleStatePath: Quickshell.env("HOME") + "/.local/state/omarchy/indicators/stay-awake"
+    property bool _idleNixOSShellBackend: false
+    property bool _idleNixOSShellSystem: false
+    property bool _dotsBackendReprobePending: false
+    property int _dotsBackendRetryIndex: 0
+    readonly property var _dotsBackendRetryDelays: [2000, 5000, 15000]
+    readonly property string dotsShellConfigPath: Quickshell.env("HOME") + "/.local/state/dots/shell/shell.json"
+    readonly property string idleStatePath: Quickshell.env("HOME") + "/.local/state/dots/indicators/stay-awake"
     property bool notifSilenced: false        // notification do-not-disturb mode
     property bool _notifBackendChecked: false
-    property bool _notifOmarchyShellBackend: false
-    property bool _notifOmarchyShellSystem: false
-    readonly property string notificationsStatePath: Quickshell.env("HOME") + "/.local/state/omarchy/notifications.json"
+    property bool _notifNixOSShellBackend: false
+    property bool _notifNixOSShellSystem: false
+    readonly property string notificationsStatePath: Quickshell.env("HOME") + "/.local/state/dots/notifications.json"
     property bool screenRecording: false
     property int screenRecordingElapsed: 0
     property string _screenRecordingPid: ""
     property string _screenRecordingElapsedProbePid: ""
     property int _screenRecordingBaseElapsed: 0
     property real _screenRecordingBaseMs: 0
-    readonly property string screenRecordingStatePath: "/tmp/omarchy-screenrecord-filename"
+    readonly property string screenRecordingStatePath: "/tmp/dots-screenrecord-filename"
     property bool _recordingRefreshPending: false
     property string voxState: "idle"          // idle/recording/transcribing
     property string voxHint: ""
@@ -1641,7 +1641,7 @@ Item {
 
     function refreshIdleStatus() {
         if (!_idleBackendChecked) return
-        if (_idleOmarchyShellSystem) {
+        if (_idleNixOSShellSystem) {
             idleStateFile.reload()
             return
         }
@@ -1651,44 +1651,44 @@ Item {
         refreshIdleStatus()
         refreshNotificationStatus()
     }
-    function reprobeOmarchyShellBackends() {
+    function reprobeNixOSShellBackends() {
         if (idleBackendProc.running || notifBackendProc.running) {
-            _omarchyBackendReprobePending = true
+            _dotsBackendReprobePending = true
             return
         }
-        _omarchyBackendReprobePending = false
+        _dotsBackendReprobePending = false
         idleBackendProc.running = true
         notifBackendProc.running = true
     }
-    function finishOmarchyBackendReprobe() {
+    function finishNixOSBackendReprobe() {
         if (idleBackendProc.running || notifBackendProc.running) return
-        if (_omarchyBackendReprobePending) {
-            omarchyBackendProbeDebounce.restart()
+        if (_dotsBackendReprobePending) {
+            dotsBackendProbeDebounce.restart()
             return
         }
-        scheduleOmarchyBackendRetry()
+        scheduleNixOSBackendRetry()
     }
-    function omarchyBackendRetryNeeded() {
-        return (_idleOmarchyShellSystem && !_idleOmarchyShellBackend)
-            || (_notifOmarchyShellSystem && !_notifOmarchyShellBackend)
+    function dotsBackendRetryNeeded() {
+        return (_idleNixOSShellSystem && !_idleNixOSShellBackend)
+            || (_notifNixOSShellSystem && !_notifNixOSShellBackend)
     }
-    function scheduleOmarchyBackendRetry() {
-        if (!omarchyBackendRetryNeeded()) {
-            omarchyBackendRetryTimer.stop()
-            _omarchyBackendRetryIndex = 0
+    function scheduleNixOSBackendRetry() {
+        if (!dotsBackendRetryNeeded()) {
+            dotsBackendRetryTimer.stop()
+            _dotsBackendRetryIndex = 0
             return
         }
-        if (omarchyBackendConfirmTimer.running || omarchyBackendRetryTimer.running
-                || _omarchyBackendRetryIndex >= _omarchyBackendRetryDelays.length) return
-        omarchyBackendRetryTimer.interval = _omarchyBackendRetryDelays[_omarchyBackendRetryIndex]
-        _omarchyBackendRetryIndex++
-        omarchyBackendRetryTimer.restart()
+        if (dotsBackendConfirmTimer.running || dotsBackendRetryTimer.running
+                || _dotsBackendRetryIndex >= _dotsBackendRetryDelays.length) return
+        dotsBackendRetryTimer.interval = _dotsBackendRetryDelays[_dotsBackendRetryIndex]
+        _dotsBackendRetryIndex++
+        dotsBackendRetryTimer.restart()
     }
-    function resetOmarchyBackendProbes() {
-        omarchyBackendRetryTimer.stop()
-        _omarchyBackendRetryIndex = 0
-        omarchyBackendProbeDebounce.restart()
-        omarchyBackendConfirmTimer.restart()
+    function resetNixOSBackendProbes() {
+        dotsBackendRetryTimer.stop()
+        _dotsBackendRetryIndex = 0
+        dotsBackendProbeDebounce.restart()
+        dotsBackendConfirmTimer.restart()
     }
     function parseNotificationsState(text) {
         try {
@@ -1700,7 +1700,7 @@ Item {
     }
     function refreshNotificationStatus() {
         if (!_notifBackendChecked) return
-        if (_notifOmarchyShellSystem) {
+        if (_notifNixOSShellSystem) {
             notificationsStateFile.reload()
             return
         }
@@ -1751,89 +1751,89 @@ Item {
 
     Process {
         id: idleBackendProc
-        command: ["bash", "-c", "root=${OMARCHY_PATH:-/usr/share/omarchy}; [[ -f $root/shell/plugins/services/idle/manifest.json ]] || exit 2; command -v omarchy-shell >/dev/null 2>&1 && OMARCHY_PATH=$root omarchy-shell idle status >/dev/null 2>&1"]
+        command: ["bash", "-c", "root=${DOTS_SHELL_PATH:-/usr/share/dots}; [[ -f $root/shell/plugins/services/idle/manifest.json ]] || exit 2; command -v dots-shell >/dev/null 2>&1 && DOTS_SHELL_PATH=$root dots-shell idle status >/dev/null 2>&1"]
         running: true
         onExited: (exitCode) => {
-            theme._idleOmarchyShellSystem = exitCode !== 2
-            theme._idleOmarchyShellBackend = exitCode === 0
+            theme._idleNixOSShellSystem = exitCode !== 2
+            theme._idleNixOSShellBackend = exitCode === 0
             theme._idleBackendChecked = true
             theme.refreshIdleStatus()
-            theme.finishOmarchyBackendReprobe()
+            theme.finishNixOSBackendReprobe()
         }
     }
 
     FileView {
         id: idleStateFile
         path: theme.idleStatePath
-        watchChanges: theme._idleOmarchyShellSystem
+        watchChanges: theme._idleNixOSShellSystem
         printErrors: false
         onFileChanged: idleStateFile.reload()
         onLoaded: {
-            if (theme._idleOmarchyShellSystem) theme.stayAwake = true
+            if (theme._idleNixOSShellSystem) theme.stayAwake = true
         }
         onLoadFailed: {
-            if (theme._idleOmarchyShellSystem) theme.stayAwake = false
+            if (theme._idleNixOSShellSystem) theme.stayAwake = false
         }
     }
 
     Process {
         id: notifBackendProc
-        command: ["bash", "-c", "root=${OMARCHY_PATH:-/usr/share/omarchy}; [[ -f $root/shell/plugins/notifications/manifest.json ]] || exit 2; command -v omarchy-shell >/dev/null 2>&1 && OMARCHY_PATH=$root omarchy-shell notifications ping 2>/dev/null | grep -Fxq ok"]
+        command: ["bash", "-c", "root=${DOTS_SHELL_PATH:-/usr/share/dots}; [[ -f $root/shell/plugins/notifications/manifest.json ]] || exit 2; command -v dots-shell >/dev/null 2>&1 && DOTS_SHELL_PATH=$root dots-shell notifications ping 2>/dev/null | grep -Fxq ok"]
         running: true
         onExited: (exitCode) => {
-            theme._notifOmarchyShellSystem = exitCode !== 2
-            theme._notifOmarchyShellBackend = exitCode === 0
+            theme._notifNixOSShellSystem = exitCode !== 2
+            theme._notifNixOSShellBackend = exitCode === 0
             theme._notifBackendChecked = true
             theme.refreshNotificationStatus()
-            theme.finishOmarchyBackendReprobe()
+            theme.finishNixOSBackendReprobe()
         }
     }
 
     FileView {
         id: notificationsStateFile
         path: theme.notificationsStatePath
-        watchChanges: theme._notifOmarchyShellSystem
+        watchChanges: theme._notifNixOSShellSystem
         printErrors: false
         onFileChanged: notificationsStateFile.reload()
         onLoaded: {
-            if (theme._notifOmarchyShellSystem) theme.parseNotificationsState(notificationsStateFile.text())
+            if (theme._notifNixOSShellSystem) theme.parseNotificationsState(notificationsStateFile.text())
         }
         onLoadFailed: {
-            if (theme._notifOmarchyShellSystem) theme.notifSilenced = false
+            if (theme._notifNixOSShellSystem) theme.notifSilenced = false
         }
     }
 
     Timer {
-        id: omarchyBackendProbeDebounce
+        id: dotsBackendProbeDebounce
         interval: 250
         repeat: false
-        onTriggered: theme.reprobeOmarchyShellBackends()
+        onTriggered: theme.reprobeNixOSShellBackends()
     }
 
     Timer {
-        id: omarchyBackendRetryTimer
+        id: dotsBackendRetryTimer
         repeat: false
-        onTriggered: theme.reprobeOmarchyShellBackends()
+        onTriggered: theme.reprobeNixOSShellBackends()
     }
 
     Timer {
-        id: omarchyBackendConfirmTimer
+        id: dotsBackendConfirmTimer
         interval: 2000
         repeat: false
         onTriggered: {
-            theme._omarchyBackendRetryIndex = Math.max(1, theme._omarchyBackendRetryIndex)
-            theme.reprobeOmarchyShellBackends()
+            theme._dotsBackendRetryIndex = Math.max(1, theme._dotsBackendRetryIndex)
+            theme.reprobeNixOSShellBackends()
         }
     }
 
     FileView {
-        id: omarchyShellConfigFile
-        path: theme.omarchyShellConfigPath
+        id: dotsShellConfigFile
+        path: theme.dotsShellConfigPath
         watchChanges: true
         printErrors: false
         onFileChanged: {
-            omarchyShellConfigFile.reload()
-            theme.resetOmarchyBackendProbes()
+            dotsShellConfigFile.reload()
+            theme.resetNixOSBackendProbes()
         }
     }
 
@@ -1842,20 +1842,20 @@ Item {
         command: ["pgrep", "-x", "hypridle"]
         running: false
         onExited: (exitCode) => {
-            if (!theme._idleOmarchyShellSystem) theme.stayAwake = exitCode !== 0
+            if (!theme._idleNixOSShellSystem) theme.stayAwake = exitCode !== 0
         }
     }
 
     Process {
         id: dndProc
-        command: ["makoctl", "mode"]
+        command: ["dunstctl", "mode"]
         running: false
         onExited: (exitCode) => {
-            if (exitCode !== 0 && !theme._notifOmarchyShellSystem) theme.notifSilenced = false
+            if (exitCode !== 0 && !theme._notifNixOSShellSystem) theme.notifSilenced = false
         }
         stdout: StdioCollector {
             onStreamFinished: {
-                if (!theme._notifOmarchyShellSystem) theme.notifSilenced = this.text.indexOf("do-not-disturb") >= 0
+                if (!theme._notifNixOSShellSystem) theme.notifSilenced = this.text.indexOf("do-not-disturb") >= 0
             }
         }
     }
@@ -1965,7 +1965,7 @@ Item {
     // battery presence (laptop) — drives the Battery indicator tile's visibility (shown only
     // where a battery exists, like Brightness uses hasBacklight). Direct UPower check, event-driven.
     readonly property bool hasBattery: UPower.displayDevice !== null && UPower.displayDevice.isLaptopBattery
-    // NetworkManager active (Omarchy 4.0) → the panel's iwctl scan/connect won't work,
+    // NetworkManager active (NixOS 4.0) → the panel's iwctl scan/connect won't work,
     // so it shows an "open nmtui" button instead of an empty list
     property bool useNM: false
     Process {
@@ -1974,12 +1974,12 @@ Item {
         stdout: StdioCollector { onStreamFinished: theme.useNM = this.text.trim() === "1" }
     }
 
-    // ── wifi/bluetooth settings launchers (Omarchy way, via uwsm-app) ──
-    // iwd (Omarchy 3.8.x) → impala/bluetui through omarchy-launch-*; if NetworkManager
-    // is the active backend (Omarchy 4.0) → nmtui instead. Quattro removed the
+    // ── wifi/bluetooth settings launchers (NixOS way, via uwsm-app) ──
+    // iwd (NixOS 3.8.x) → impala/bluetui through dots-launch-*; if NetworkManager
+    // is the active backend (NixOS 4.0) → nmtui instead. Quattro removed the
     // dedicated Bluetooth launcher; prefer a retained bluetui, then bluetoothctl.
-    readonly property string launchWifiCmd: "if systemctl is-active --quiet NetworkManager 2>/dev/null; then omarchy-launch-or-focus-tui nmtui; else omarchy-launch-wifi; fi"
-    readonly property string launchBtCmd:   "if command -v omarchy-launch-bluetooth >/dev/null 2>&1; then exec omarchy-launch-bluetooth; elif command -v omarchy-launch-or-focus-tui >/dev/null 2>&1; then if command -v bluetui >/dev/null 2>&1; then command -v rfkill >/dev/null 2>&1 && rfkill unblock bluetooth >/dev/null 2>&1 || true; exec omarchy-launch-or-focus-tui bluetui; elif command -v bluetoothctl >/dev/null 2>&1; then command -v rfkill >/dev/null 2>&1 && rfkill unblock bluetooth >/dev/null 2>&1 || true; exec omarchy-launch-or-focus-tui bluetoothctl; fi; fi; command -v notify-send >/dev/null 2>&1 && notify-send -a QS-Shell -u critical 'Bluetooth settings unavailable' 'No supported Bluetooth settings backend was found' || true; exit 0"
+    readonly property string launchWifiCmd: "if systemctl is-active --quiet NetworkManager 2>/dev/null; then dots-launch-or-focus-tui nmtui; else dots-launch-wifi; fi"
+    readonly property string launchBtCmd:   "if command -v dots-launch-bluetooth >/dev/null 2>&1; then exec dots-launch-bluetooth; elif command -v dots-launch-or-focus-tui >/dev/null 2>&1; then if command -v bluetui >/dev/null 2>&1; then command -v rfkill >/dev/null 2>&1 && rfkill unblock bluetooth >/dev/null 2>&1 || true; exec dots-launch-or-focus-tui bluetui; elif command -v bluetoothctl >/dev/null 2>&1; then command -v rfkill >/dev/null 2>&1 && rfkill unblock bluetooth >/dev/null 2>&1 || true; exec dots-launch-or-focus-tui bluetoothctl; fi; fi; command -v notify-send >/dev/null 2>&1 && notify-send -a QS-Shell -u critical 'Bluetooth settings unavailable' 'No supported Bluetooth settings backend was found' || true; exit 0"
     property bool modPower:      false   // default off (toggle in ControlPanel)
     property bool modBluetooth:  false   // default off (toggle in ControlPanel)
     property bool modBrightness: true
@@ -2016,9 +2016,10 @@ Item {
 
     // ── picker visual style (theme/wallpaper/screenshot/video pickers) ──
     property string pickerStyle: "tanzaku"   // "tanzaku", "hearthstone", "carousel"
-    property string launcherLogoMode: "text"     // "text" or "icon"
-    property string launcherLogoText: "omarchy"  // "omarchy", "hyprland", "arch", or "omacom"
-    property string launcherLogoIcon: "omarchy"  // see launcherLogoIconGlyph()
+    property bool appLauncherVisible: false
+    property string launcherLogoMode: "icon"     // "text" or "icon"
+    property string launcherLogoText: "dots"  // "dots", "hyprland", "arch", or "omacom"
+    property string launcherLogoIcon: "nix"  // see launcherLogoIconGlyph()
     property bool   weatherImperial: false   // false = °C / km·h, true = °F / mph
     property bool   clock12h:        false   // false = 24h, true = 12h (AM/PM)
 
@@ -2316,8 +2317,8 @@ Item {
         widgetSaveProc.running = true
     }
 
-    readonly property var launcherLogoTextOptions: ["omarchy", "hyprland", "arch", "omacom"]
-    readonly property var launcherLogoIconOptions: ["omarchy", "hyprland", "arch", "grid", "spark", "power", "dragon", "mark", "nix", "branch", "rebel"]
+    readonly property var launcherLogoTextOptions: ["dots", "hyprland", "arch", "omacom"]
+    readonly property var launcherLogoIconOptions: ["dots", "hyprland", "arch", "grid", "spark", "power", "dragon", "mark", "nix", "branch", "rebel"]
 
     function launcherLogoTextIndex(id) {
         for (var i = 0; i < launcherLogoTextOptions.length; i++)
@@ -2361,7 +2362,7 @@ Item {
         if (icon !== undefined && launcherLogoIconValid(icon)) launcherLogoIcon = icon
     }
     function launcherLogoLabel(id) {
-        if (id === "omarchy") return "Omarchy"
+        if (id === "dots") return "NixOS"
         if (id === "hyprland") return "Hyprland"
         if (id === "arch") return "Arch"
         if (id === "omacom") return "Omacom"
@@ -2373,10 +2374,10 @@ Item {
         if (id === "nix") return "Nix"
         if (id === "branch") return "Branch"
         if (id === "rebel") return "Rebel"
-        return "Omarchy"
+        return "NixOS"
     }
     function launcherLogoIconGlyph(id) {
-        if (id === "omarchy") return String.fromCodePoint(0xE900)
+        if (id === "dots") return String.fromCodePoint(0xE900)
         if (id === "hyprland") return ""
         if (id === "arch") return ""
         if (id === "grid") return ""
@@ -2384,22 +2385,22 @@ Item {
         if (id === "power") return ""
         if (id === "dragon") return "⻯"
         if (id === "mark") return ""
-        if (id === "nix") return ""
+        if (id === "nix") return "ac_unit"
         if (id === "branch") return ""
         if (id === "rebel") return ""
         return String.fromCodePoint(0xE900)
     }
     function launcherLogoIconFont(id) {
-        return id === "omarchy" ? "omarchy" : mono
+        return id === "dots" ? "dots" : (id === "nix" ? "Material Symbols Rounded" : mono)
     }
     function launcherLogoIconSize(id) {
-        if (id === "omarchy") return 15
+        if (id === "dots") return 15
         if (id === "arch") return 17
         if (id === "dragon") return 16
         return 16
     }
     function launcherLogoIconXOffset(id) {
-        if (id === "omarchy") return 0.5
+        if (id === "dots") return 0.5
         if (id === "hyprland") return 0
         if (id === "arch") return 1
         if (id === "grid") return -1
@@ -2412,7 +2413,7 @@ Item {
         return 0
     }
     function launcherLogoIconYOffset(id) {
-        if (id === "omarchy") return 0
+        if (id === "dots") return 0
         if (id === "hyprland") return 0
         if (id === "arch") return 0
         if (id === "mark") return 0.5
@@ -2493,7 +2494,7 @@ Item {
                                 theme.launcherLogoText = parts[wsField + 19]
                             if (parts.length > wsField + 20 && theme.launcherLogoIconValid(parts[wsField + 20]))
                                 theme.launcherLogoIcon = parts[wsField + 20]
-                        } else if (lm === "omarchy" || lm === "hyprland") {
+                        } else if (lm === "dots" || lm === "hyprland") {
                             // Legacy cache field from the first text-logo picker.
                             theme.launcherLogoMode = "text"
                             theme.launcherLogoText = lm
@@ -2928,7 +2929,7 @@ Item {
 
     FileView {
         id: shellInstalledCommitFile
-        path: Quickshell.env("HOME") + "/.config/quickshell/bar/.qsrise-commit"
+        path: Quickshell.env("HOME") + "/.config/quickshell/rise/.qsrise-commit"
         watchChanges: true
         printErrors: false
         onFileChanged: shellInstalledCommitFile.reload()
@@ -3120,21 +3121,21 @@ Item {
     }
 
     Process {
-        id: omarchyCurrentRootProbe
+        id: dotsStateRootProbe
         command: ["bash", "-c",
-            "state=\"$HOME/.local/state/omarchy/current\"; legacy=\"$HOME/.config/omarchy/current\"; " +
-            "if command -v omarchy-shell >/dev/null 2>&1 && [ -d \"$state\" ] && [ -d /usr/share/omarchy ]; then printf '%s\\t%s\\n' \"$state\" /usr/share/omarchy; " +
-            "elif [ -d \"$legacy\" ]; then printf '%s\\t%s\\n' \"$legacy\" \"$HOME/.local/share/omarchy\"; " +
-            "else printf '%s\\t%s\\n' \"$legacy\" \"$HOME/.local/share/omarchy\"; fi"]
+            "state=\"$HOME/.local/state/dots/current\"; legacy=\"$HOME/.local/state/dots/shell/current\"; " +
+            "if command -v dots-shell >/dev/null 2>&1 && [ -d \"$state\" ] && [ -d /usr/share/dots ]; then printf '%s\\t%s\\n' \"$state\" /usr/share/dots; " +
+            "elif [ -d \"$legacy\" ]; then printf '%s\\t%s\\n' \"$legacy\" \"$HOME/dots/config/quickshell/rise\"; " +
+            "else printf '%s\\t%s\\n' \"$legacy\" \"$HOME/dots/config/quickshell/rise\"; fi"]
         running: true
         stdout: StdioCollector {
             onStreamFinished: {
                 var parts = this.text.trim().split("\t")
                 var resolved = parts.length > 0 ? parts[0] : ""
                 var installRoot = parts.length > 1 ? parts[1] : ""
-                if (resolved) theme.omarchyCurrentRoot = resolved
-                if (installRoot) theme.omarchyInstallRoot = installRoot
-                theme.omarchyCurrentRootResolved = true
+                if (resolved) theme.dotsStateRoot = resolved
+                if (installRoot) theme.dotsShellRoot = installRoot
+                theme.dotsStateRootResolved = true
                 currentThemeNameWatcher.reload()
                 theme.reloadCurrentThemeFiles()
             }
@@ -3151,12 +3152,12 @@ Item {
         }
     }
 
-    // Omarchy writes theme.name immediately after the complete theme directory
+    // NixOS writes theme.name immediately after the complete theme directory
     // swap, before its slower application retint commands and final hooks.
     FileView {
         id: currentThemeNameWatcher
         path: theme.themeNamePath
-        watchChanges: theme.omarchyCurrentRootResolved
+        watchChanges: theme.dotsStateRootResolved
         printErrors: false
         onLoaded: {
             theme.setCurrentThemeName(currentThemeNameWatcher.text())

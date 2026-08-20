@@ -59,7 +59,7 @@ Item {
     property int pendingVolumeSteps: 0
 
     readonly property string muteCommand:
-        "(command -v omarchy-swayosd-client >/dev/null 2>&1 && omarchy-swayosd-client --output-volume mute-toggle) || " +
+        "(command -v dots-swayosd-client >/dev/null 2>&1 && dots-swayosd-client --output-volume mute-toggle) || " +
         "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle || " +
         "pamixer -t"
 

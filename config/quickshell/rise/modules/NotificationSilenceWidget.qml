@@ -24,7 +24,7 @@ Item {
 
     Process {
         id: toggleProc
-        command: ["bash", "-c", "if command -v omarchy-toggle-notification-silencing >/dev/null 2>&1; then exec omarchy-toggle-notification-silencing; fi; exec omarchy toggle notification silencing"]
+        command: ["bash", "-c", "if command -v dots-toggle-notification-silencing >/dev/null 2>&1; then exec dots-toggle-notification-silencing; fi; exec dots toggle notification silencing"]
         onExited: root.refreshStatusIndicators()
     }
 

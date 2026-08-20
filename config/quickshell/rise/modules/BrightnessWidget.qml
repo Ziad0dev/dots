@@ -1,7 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import "../OmarchyPower.js" as OmarchyPower
+import "../DotsPower.js" as DotsPower
 
 Item {
     id: rootMod
@@ -128,7 +128,7 @@ Item {
     // detect backlight on startup
     Process {
         id: detectProc
-        command: ["bash", "-c", OmarchyPower.backlightDetectCmd]
+        command: ["bash", "-c", DotsPower.backlightDetectCmd]
         running: true
         stdout: StdioCollector {
             onStreamFinished: {
@@ -144,7 +144,7 @@ Item {
 
     Process {
         id: briProc
-        command: ["bash", "-c", OmarchyPower.brightnessPercentCmd]
+        command: ["bash", "-c", DotsPower.brightnessPercentCmd]
         running: false
         stdout: StdioCollector {
             onStreamFinished: {
@@ -162,7 +162,7 @@ Item {
     Process { id: brightnessErrNotify }
     Process {
         id: briUp
-        command: ["bash", "-c", OmarchyPower.brightnessSetCmd("+5%")]
+        command: ["bash", "-c", DotsPower.brightnessSetCmd("+5%")]
         onExited: (code) => {
             rootMod.notifyBrightnessError("Brightness up", code)
             rootMod.refreshBrightness()
@@ -170,7 +170,7 @@ Item {
     }
     Process {
         id: briDown
-        command: ["bash", "-c", OmarchyPower.brightnessSetCmd("5%-")]
+        command: ["bash", "-c", DotsPower.brightnessSetCmd("5%-")]
         onExited: (code) => {
             rootMod.notifyBrightnessError("Brightness down", code)
             rootMod.refreshBrightness()

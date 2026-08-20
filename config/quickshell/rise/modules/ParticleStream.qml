@@ -181,7 +181,7 @@ Item {
         }
     }
 
-    readonly property string quotesPath8: Quickshell.env("HOME") + "/.config/quickshell/bar/quotes.txt"
+    readonly property string quotesPath8: Quickshell.env("HOME") + "/.config/quickshell/rise/quotes.txt"
     property var quotes8: [
         { q: "THE ONLY WAY TO DO GREAT WORK IS TO LOVE WHAT YOU DO.", a: "STEVE JOBS" }
     ]
@@ -693,7 +693,7 @@ Item {
             pushPulse("win", -1)
         } else if (kind === "monsweep" || kind === "sweep") {
             pushPulse("monsweep", arg === "-1" ? -1 : 1, { life: 5200, gain: 0.82, count: root.maxSweepParticleCount7 })
-        } else if (kind === "pacman" || kind === "packages") {
+        } else if (kind === "dots-updates" || kind === "packages") {
             var parsedN = parseInt(arg || "3")
             var n = isFinite(parsedN) ? Math.max(1, parsedN) : 3
             pushText(n + (n === 1 ? " PACKAGE" : " PACKAGES") + " CHANGED", "PACMAN", 1, "long")
@@ -896,9 +896,9 @@ Item {
         lastNet7 = netMode7
     }
 
-    // Omarchy pushed an update (UpdateWidget's 6h poll flipped to available)
-    readonly property bool upd7: theme.omarchyUpdateAvail === true
-    onUpd7Changed: if (armed7 && upd7) pushText("UPDATE READY", "OMARCHY", 1, "long")
+    // NixOS pushed an update (UpdateWidget's 6h poll flipped to available)
+    readonly property bool upd7: theme.dotsUpdateAvail === true
+    onUpd7Changed: if (armed7 && upd7) pushText("UPDATE READY", "DOTS", 1, "long")
 
     // do-not-disturb toggled
     readonly property bool dnd7: theme.notifSilenced === true
@@ -961,11 +961,11 @@ Item {
         else if (aiOc7 < aiQuotaReset7) aiOcHot = false
     }
 
-    // pacman transaction finished (streaming log tail — no helper script)
+    // dots-updates transaction finished (streaming log tail — no helper script)
     Process {
         id: pacTail
         running: root.active && root.reactorMode7 && root.ownsGlobalHelpers7
-        command: ["bash", "-c", "tail -n 0 -F /var/log/pacman.log 2>/dev/null"]
+        command: ["bash", "-c", "tail -n 0 -F /var/log/dots-updates.log 2>/dev/null"]
         property int pkgN: 0
         onRunningChanged: if (!running) pkgN = 0
         stdout: SplitParser {
@@ -1424,7 +1424,7 @@ Item {
                 //   window open/close  -> subtle clock-side pulse in/out
                 //   monitor focus      -> soft sweep on that bar only
                 //   workspace/fullscreen/theme/config reload/notification/track
-                //   DND/mute/Voxtype/update/pacman -> text swarm
+                //   DND/mute/Voxtype/update/dots-updates -> text swarm
                 //   warning states     -> recurring text while true:
                 //     OFFLINE, BATTERY, AI QUOTA, URGENT.
                 // Event pulses decay; the ambient field keeps a slow idle loop alive.

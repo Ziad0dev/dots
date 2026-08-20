@@ -57,7 +57,7 @@ Item {
 
     // safety: if the check ever hangs (AUR RPC stalls past the timeout), unstick
     // `refreshing` so future refreshes aren't blocked forever
-    // checkupdates can sync a DB over the network + the 30s AUR timeout, so the
+    // dots-updates can sync a DB over the network + the 30s AUR timeout, so the
     // legitimate worst case is well past 45s. Kill the process (not just the flag)
     // so the state is unambiguous if it ever hangs.
     Timer {

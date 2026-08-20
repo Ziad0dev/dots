@@ -5,7 +5,7 @@
 # be reachable from the expected remote-tracking ref after fetch.
 set -euo pipefail
 
-THEMES_DIR="${QS_THEMES_DIR:-$HOME/.config/omarchy/themes}"
+THEMES_DIR="${QS_THEMES_DIR:-$HOME/dots/config/themes}"
 STATE="${QS_THEME_STATE:-$HOME/.cache/qs-theme-updates.json}"
 LOCK="${QS_THEME_LOCK:-$HOME/.cache/qs-theme-update.lock}"
 FETCH_TIMEOUT="${QS_THEME_FETCH_TIMEOUT:-45}"

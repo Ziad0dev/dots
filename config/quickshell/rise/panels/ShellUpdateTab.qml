@@ -123,7 +123,7 @@ Column {
         appendSetenv(cmd, "QT_QPA_PLATFORM", Quickshell.env("QT_QPA_PLATFORM"))
         appendSetenv(cmd, "QT_QUICK_CONTROLS_STYLE", Quickshell.env("QT_QUICK_CONTROLS_STYLE"))
         appendSetenv(cmd, "HYPRLAND_INSTANCE_SIGNATURE", Quickshell.env("HYPRLAND_INSTANCE_SIGNATURE"))
-        appendSetenv(cmd, "OMARCHY_PATH", Quickshell.env("OMARCHY_PATH"))
+        appendSetenv(cmd, "DOTS_SHELL_PATH", Quickshell.env("DOTS_SHELL_PATH"))
         appendSetenv(cmd, "PATH", Quickshell.env("PATH"))
         cmd.push("bash", applyScript)
         shellApplyProc.command = cmd

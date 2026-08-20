@@ -3,7 +3,7 @@ import "../modules"
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
-import "../OmarchyPower.js" as OmarchyPower
+import "../DotsPower.js" as DotsPower
 
 PanelWindow {
     id: batPanel
@@ -15,7 +15,7 @@ PanelWindow {
     anchors { top: true; bottom: true; left: true; right: true }
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.namespace: "omarchy-battery"
+    WlrLayershell.namespace: "dots-battery"
 
     readonly property int barBottom: root.v2BarHeight
     readonly property int gap: 6
@@ -192,7 +192,7 @@ PanelWindow {
 
     Process {
         id: batData
-        command: ["bash", "-c", OmarchyPower.batteryDataCmd]
+        command: ["bash", "-c", DotsPower.batteryDataCmd]
         running: false
         stdout: StdioCollector {
             onStreamFinished: {
@@ -220,5 +220,5 @@ PanelWindow {
         onTriggered: batPanel.refreshBatteryData()
     }
 
-    Process { id: btopRunner; command: ["bash", "-c", "omarchy-launch-floating-terminal-with-presentation 'btop'"] }
+    Process { id: btopRunner; command: ["bash", "-c", "dots-launch-floating-terminal-with-presentation 'btop'"] }
 }

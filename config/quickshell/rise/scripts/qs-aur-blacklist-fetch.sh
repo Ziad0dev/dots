@@ -34,7 +34,7 @@ tmpd="$(mktemp -d)"; trap 'rm -rf "$tmpd"' EXIT
 
 # stdin → normalized package-name tokens. Strips quotes AND backticks (the md
 # mirror wraps the list in a markdown code fence), splits on whitespace/commas,
-# keeps only valid pacman pkgname tokens, dedups.
+# keeps only valid dots-updates pkgname tokens, dedups.
 sanitize() {
   tr -d '\042\047\140' | tr ' \t,' '\n\n\n' \
     | grep -E '^[a-zA-Z0-9][a-zA-Z0-9@._+-]*$' | sort -u

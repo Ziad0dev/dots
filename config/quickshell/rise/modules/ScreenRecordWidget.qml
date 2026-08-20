@@ -59,7 +59,7 @@ Item {
 
     Process {
         id: toggleProc
-        command: ["bash", "-c", "omarchy-capture-screenrecording --stop-recording"]
+        command: ["bash", "-c", "dots-capture-screenrecording --stop-recording"]
         onExited: root.refreshRecordingStatus()
     }
 

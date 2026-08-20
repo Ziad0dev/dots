@@ -6,25 +6,25 @@ launch_float() {
 }
 
 case "$CMD" in
-    omarchy-theme-set)
+    dots-theme-set)
         exec themectl set "$1"
         ;;
-    omarchy-theme-bg-set)
+    dots-theme-bg-set)
         exec themectl bg set "$1"
         ;;
 
-    omarchy-swayosd-client | omarchy-swayosd-brightness)
+    dots-swayosd-client | dots-swayosd-brightness)
         if command -v swayosd-client >/dev/null 2>&1; then
             exec swayosd-client "$@"
         fi
         exit 0
         ;;
 
-    omarchy-audio-input-mute)
+    dots-audio-input-mute)
         exec wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle
         ;;
 
-    omarchy-brightness-display)
+    dots-brightness-display)
         if command -v brightnessctl >/dev/null 2>&1; then
             brightnessctl -m 2>/dev/null | cut -d, -f4 | tr -d '%'
         else
@@ -33,7 +33,7 @@ case "$CMD" in
         exit 0
         ;;
 
-    omarchy-toggle-notification-silencing)
+    dots-toggle-notification-silencing)
         if command -v dunstctl >/dev/null 2>&1; then
             dunstctl set-paused toggle
             dunstctl is-paused
@@ -41,7 +41,7 @@ case "$CMD" in
         exit 0
         ;;
 
-    omarchy-toggle-idle)
+    dots-toggle-idle)
         if pgrep hypridle >/dev/null 2>&1; then
             pkill hypridle
             echo "off"
@@ -52,7 +52,7 @@ case "$CMD" in
         exit 0
         ;;
 
-    omarchy-capture-screenrecording)
+    dots-capture-screenrecording)
         if command -v wf-recorder >/dev/null 2>&1; then
             if pgrep wf-recorder >/dev/null 2>&1; then
                 pkill -INT wf-recorder
@@ -64,47 +64,47 @@ case "$CMD" in
         fi
         exit 0
         ;;
-    omarchy-screenrecord-filename)
+    dots-screenrecord-filename)
         printf '%s/Videos/recording-%s.mp4\n' "$HOME" "$(date +%Y%m%d-%H%M%S)"
         exit 0
         ;;
 
-    omarchy-launch-floating-terminal-with-presentation)
+    dots-launch-floating-terminal-with-presentation)
         launch_float "$@"
         exit 0
         ;;
-    omarchy-launch-or-focus-tui)
+    dots-launch-or-focus-tui)
         launch_float "$@"
         exit 0
         ;;
-    omarchy-launch-wifi)
+    dots-launch-wifi)
         launch_float impala
         exit 0
         ;;
-    omarchy-launch-bluetooth)
+    dots-launch-bluetooth)
         launch_float bluetui
         exit 0
         ;;
-    omarchy-launch-audio)
+    dots-launch-audio)
         launch_float wiremix
         exit 0
         ;;
 
-    omarchy-tz-select)
+    dots-tz-select)
         launch_float "sh -c 'timedatectl list-timezones | fzf | xargs -r sudo timedatectl set-timezone'"
         exit 0
         ;;
 
-    omarchy-hw-display)
+    dots-hw-display)
         launch_float "sh -c 'fastfetch; echo; read -r _'"
         exit 0
         ;;
 
-    omarchy-update)
+    dots-update)
         launch_float "sh -c 'cd ~/dots && nh os switch; echo; echo done - press enter; read -r _'"
         exit 0
         ;;
-    omarchy-update-available)
+    dots-update-available)
         # flake.lock older than a week counts as one pending update
         lock="$HOME/dots/flake.lock"
         if [ -f "$lock" ]; then
@@ -114,23 +114,23 @@ case "$CMD" in
         exit 0
         ;;
 
-    omarchy-weather | omarchy-weather-status)
+    dots-weather | dots-weather-status)
         if command -v curl >/dev/null 2>&1; then
             curl -fs --max-time 3 "https://wttr.in?format=%l:+%c+%t+%w" || true
         fi
         exit 0
         ;;
 
-    omarchy-voxtype-config)
+    dots-voxtype-config)
         launch_float "sh -c 'echo voxtype not installed; read -r _'"
         exit 0
         ;;
-    omarchy-voxtype-model)
+    dots-voxtype-model)
         echo "none"
         exit 0
         ;;
 
-    omarchy-shell)
+    dots-shell)
         case "${1:-}" in
             lock) exec hyprlock ;;
             restart) exec systemctl --user restart quickshell ;;
@@ -138,7 +138,7 @@ case "$CMD" in
         esac
         ;;
 
-    omarchy-launch-editor)
+    dots-launch-editor)
         launch_float nvim
         exit 0
         ;;

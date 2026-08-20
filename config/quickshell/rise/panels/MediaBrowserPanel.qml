@@ -19,7 +19,7 @@ PanelWindow {
     anchors { top: true; bottom: true; left: true; right: true }
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.namespace: "omarchy-media-browser"
+    WlrLayershell.namespace: "dots-media-browser"
     WlrLayershell.keyboardFocus: panel.visible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
     readonly property bool active: root.pickerStyle === "tanzaku" || root.pickerStyle === ""   // default
@@ -103,14 +103,14 @@ PanelWindow {
     function buildScanCmd() {
         if (isVideos) {
             return ["bash", "-c",
-                "D=\"${OMARCHY_SCREENRECORD_DIR:-${XDG_VIDEOS_DIR:-$(xdg-user-dir VIDEOS 2>/dev/null)}}\"; case \"$D\" in \"\"|\"$HOME\") D=\"$HOME/Videos\";; esac; " +
+                "D=\"${DOTS_SCREENRECORD_DIR:-${XDG_VIDEOS_DIR:-$(xdg-user-dir VIDEOS 2>/dev/null)}}\"; case \"$D\" in \"\"|\"$HOME\") D=\"$HOME/Videos\";; esac; " +
                 "find \"$D\" -maxdepth 1 -type f " +
                 "\\( -iname '*.mp4' -o -iname '*.mkv' -o -iname '*.webm' -o -iname '*.mov' -o -iname '*.avi' -o -iname '*.m4v' \\) " +
                 "-printf '%T@\\t%p\\n' 2>/dev/null | sort -rn | head -100 | cut -f2- | " +
                 "while IFS= read -r f; do b=$(basename \"$f\"); printf '%s\\t%s/%s.jpg\\n' \"$f\" \"$HOME/.cache/quickshell-media-thumbs\" \"${b%.*}\"; done"]
         } else {
             return ["bash", "-c",
-                "D=\"${OMARCHY_SCREENSHOT_DIR:-${XDG_PICTURES_DIR:-$(xdg-user-dir PICTURES 2>/dev/null)}}\"; case \"$D\" in \"\"|\"$HOME\") D=\"$HOME/Pictures\";; esac; " +
+                "D=\"${DOTS_SCREENSHOT_DIR:-${XDG_PICTURES_DIR:-$(xdg-user-dir PICTURES 2>/dev/null)}}\"; case \"$D\" in \"\"|\"$HOME\") D=\"$HOME/Pictures\";; esac; " +
                 "find \"$D\" -maxdepth 1 -type f -iname 'screenshot-*.png' " +
                 "-printf '%T@\\t%p\\n' 2>/dev/null | sort -rn | head -100 | cut -f2- | " +
                 "while IFS= read -r f; do k=$(printf '%s' \"$f\" | md5sum | cut -d' ' -f1); m=$(stat -c %Y \"$f\" 2>/dev/null); printf '%s\\t%s/%s-%s.jpg\\n' \"$f\" \"$HOME/.cache/quickshell-img-thumbs\" \"$k\" \"$m\"; done"]

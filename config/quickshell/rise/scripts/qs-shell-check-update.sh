@@ -16,7 +16,7 @@
 set -euo pipefail
 
 REPO="${QS_SHELL_REPO:-$HOME/.local/share/quickshell-dots}"
-DEST="${QS_SHELL_DEST:-$HOME/.config/quickshell/bar}"
+DEST="${QS_SHELL_DEST:-$HOME/.config/quickshell/rise}"
 STATE_DIR="$HOME/.cache/qs-shell"
 STATE="$STATE_DIR/update-available.json"
 SCHEMA_VERSION=5
@@ -91,7 +91,7 @@ git merge-base --is-ancestor "$base_commit" "$target_commit" 2>/dev/null || exit
 
 # Commits the upstream is ahead by that change the deployable payload: THIS
 # integrated payload directory, the companion pieces the post-update hook ships
-# (helper scripts / systemd units), the Omarchy theme hook coupled to the picker
+# (helper scripts / systemd units), the NixOS theme hook coupled to the picker
 # cache contract, or the optional post-boot hook. Docs-only commits stay
 # badge-free.
 payload=("versions/$ver/" "scripts/" "systemd/" "$HOOK_PATH" "$POST_BOOT_HOOK_PATH")

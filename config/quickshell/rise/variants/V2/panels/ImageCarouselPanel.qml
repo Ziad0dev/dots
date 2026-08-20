@@ -19,7 +19,7 @@ PanelWindow {
     anchors { top: true; bottom: true; left: true; right: true }
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.namespace: "omarchy-image-carousel"
+    WlrLayershell.namespace: "dots-image-carousel"
     WlrLayershell.keyboardFocus: panel.visible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
     readonly property bool active: root.pickerStyle === "tanzaku" || root.pickerStyle === ""   // default
@@ -174,7 +174,7 @@ PanelWindow {
                 "HASHCACHE=$HOME/.cache/quickshell-img-thumb-hashes.tsv; touch \"$HASHCACHE\";",
                 "hash_for() { local s=\"$1\" r m key h tmp; r=$(readlink -f \"$s\" 2>/dev/null || printf '%s' \"$s\"); m=$(stat -Lc '%s:%Y:%Z' \"$s\" 2>/dev/null) || return 1; key=\"$r|$m\"; h=$(awk -F '\\t' -v k=\"$key\" '$1 == k { v=$2 } END { print v }' \"$HASHCACHE\" 2>/dev/null); if [ -z \"$h\" ]; then h=$(sha256sum \"$s\" 2>/dev/null | cut -d' ' -f1); [ -n \"$h\" ] || return 1; tmp=\"$HASHCACHE.$$\"; { awk -F '\\t' -v k=\"$key\" '$1 != k' \"$HASHCACHE\" 2>/dev/null; printf '%s\\t%s\\n' \"$key\" \"$h\"; } > \"$tmp\" && mv -f \"$tmp\" \"$HASHCACHE\"; fi; printf '%s' \"$h\"; };",
                 "thumb_for() { local s=\"$1\" k; k=$(hash_for \"$s\") || return 1; printf '%s/%s-512.jpg' \"$D\" \"$k\"; };",
-                "for d in ~/.local/share/omarchy/themes/* ~/.config/omarchy/themes/*; do",
+                "for d in ~/dots/config/themes/* ~/dots/config/themes/*; do",
                 "  [ -d \"$d\" ] || continue;",
                 "  name=$(basename \"$d\");",
                 "  prev=\"\";",
@@ -209,10 +209,10 @@ PanelWindow {
         var path = filtered[selFilt].filePath; if (!path) return
         if (isThemeMode) {
             var name = Model.nameForPath(path)
-            applyThemeProc.command = ["env", "OMARCHY_PATH=" + root.omarchyInstallRoot, "omarchy-theme-set", name]
+            applyThemeProc.command = ["env", "DOTS_SHELL_PATH=" + root.dotsShellRoot, "dots-theme-set", name]
             applyThemeProc.running = false; applyThemeProc.running = true
         } else {
-            applyBgProc.command = ["bash", "-c", "omarchy-theme-bg-set '" + path.replace(/'/g, "'\\''") + "'"]
+            applyBgProc.command = ["bash", "-c", "dots-theme-bg-set '" + path.replace(/'/g, "'\\''") + "'"]
             applyBgProc.running = false; applyBgProc.running = true
         }
         root.imagePickerVisible = false
@@ -323,7 +323,7 @@ PanelWindow {
             "  repo=$(sed -nE 's#^[[:space:]]*url = (.*)$#\\1#p' \"$d/.git/config\" | head -1);" +
             "  author=$(printf '%s' \"$repo\" | sed -nE 's#.*github\\.com[:/]+([^/]+)/.*#\\1#p');" +
             "fi;" +
-            "pal=$(" + paletteReadCmd("\"$d/colors.toml\"") + ");" +
+            "pal=$(" + paletteReadCmd("\"$d/colors.sh\"") + ");" +
             "printf '%s\\t%s\\t%s\\n' \"$author\" \"$repo\" \"$pal\""]
         metaProc.running = false; metaProc.running = true
     }
@@ -376,7 +376,7 @@ PanelWindow {
             "for d in \"$@\"; do repo=''; author='';" +
             "if [ -f \"$d/.git/config\" ]; then repo=$(sed -nE 's#^[[:space:]]*url = (.*)$#\\1#p' \"$d/.git/config\" | head -1);" +
             "author=$(printf '%s' \"$repo\" | sed -nE 's#.*github\\.com[:/]+([^/]+)/.*#\\1#p'); fi;" +
-            "pal=$(" + paletteReadCmd("\"$d/colors.toml\"") + ");" +
+            "pal=$(" + paletteReadCmd("\"$d/colors.sh\"") + ");" +
             "printf '%s\\t%s\\t%s\\t%s\\n' \"$d\" \"$author\" \"$repo\" \"$pal\"; done",
             "warm"].concat(dirs)
         metaWarmProc.running = false; metaWarmProc.running = true

@@ -14,7 +14,7 @@ PanelWindow {
     anchors { top: true; bottom: true; left: true; right: true }
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.namespace: "omarchy-power-profile"
+    WlrLayershell.namespace: "dots-power-profile"
 
     readonly property int barBottom: 35
     readonly property int gap: 8
