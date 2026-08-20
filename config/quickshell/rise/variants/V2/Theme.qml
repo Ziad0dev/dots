@@ -2017,8 +2017,8 @@ Item {
     // ── picker visual style (theme/wallpaper/screenshot/video pickers) ──
     property string pickerStyle: "tanzaku"   // "tanzaku", "hearthstone", "carousel"
     property bool appLauncherVisible: false
-    property string launcherLogoMode: "icon"     // "text" or "icon"
-    property string launcherLogoText: "dots"  // "dots", "hyprland", "arch", or "omacom"
+    property string launcherLogoMode: "text"     // "text" or "icon"
+    property string launcherLogoText: "nixos"  // "dots", "hyprland", "arch", or "omacom"
     property string launcherLogoIcon: "nix"  // see launcherLogoIconGlyph()
     property bool   weatherImperial: false   // false = °C / km·h, true = °F / mph
     property bool   clock12h:        false   // false = 24h, true = 12h (AM/PM)
@@ -2317,7 +2317,7 @@ Item {
         widgetSaveProc.running = true
     }
 
-    readonly property var launcherLogoTextOptions: ["dots", "hyprland", "arch", "omacom"]
+    readonly property var launcherLogoTextOptions: ["nixos", "hyprland", "arch"]
     readonly property var launcherLogoIconOptions: ["dots", "hyprland", "arch", "grid", "spark", "power", "dragon", "mark", "nix", "branch", "rebel"]
 
     function launcherLogoTextIndex(id) {

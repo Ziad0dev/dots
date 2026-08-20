@@ -11,11 +11,12 @@ Item {
 
     readonly property string tooltipText: "Control center"
     readonly property bool logoIconMode: root.launcherLogoMode === "icon"
+    readonly property bool nixosTextLogo: !logoIconMode && root.launcherLogoText === "nixos"
     readonly property bool hyprlandLogo: !logoIconMode && root.launcherLogoText === "hyprland"
     readonly property bool archTextLogo: !logoIconMode && root.launcherLogoText === "arch"
     readonly property bool omacomTextLogo: !logoIconMode && root.launcherLogoText === "omacom"
-    readonly property url logoSource: omacomTextLogo ? Qt.resolvedUrl("../assets/omacom-text.png") : hyprlandLogo ? Qt.resolvedUrl("../assets/bob3.png") : Qt.resolvedUrl("../assets/bob2.png")
-    readonly property real logoAspect: omacomTextLogo ? (550 / 112) : archTextLogo ? (86 / 17) : hyprlandLogo ? (948 / 154) : (656 / 192)
+    readonly property url logoSource: omacomTextLogo ? Qt.resolvedUrl("../assets/omacom-text.png") : hyprlandLogo ? Qt.resolvedUrl("../assets/bob3.png") : Qt.resolvedUrl("../assets/nixos-logo.png")
+    readonly property real logoAspect: omacomTextLogo ? (550 / 112) : archTextLogo ? (86 / 17) : hyprlandLogo ? (948 / 154) : (647 / 192)
     readonly property real logoHeight: logoIconMode ? 18 : hyprlandLogo ? 16 : omacomTextLogo ? 14 : archTextLogo ? 17 : 20
     readonly property real logoPadding: logoIconMode ? 8 : hyprlandLogo ? 10 : omacomTextLogo ? 12 : archTextLogo ? 8 : 12
     readonly property real archWordHeight: 13

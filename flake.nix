@@ -105,6 +105,7 @@
           ./modules/dev-langs.nix
           ./modules/waybar-lua-fix.nix
           ./modules/ananicy-fix.nix
+          ./modules/lockscreen.nix
 
           chaotic.nixosModules.nyx-cache
           chaotic.nixosModules.nyx-overlay
