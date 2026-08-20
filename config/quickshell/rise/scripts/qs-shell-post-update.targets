@@ -13,8 +13,8 @@
 .local/bin/qs-proj
 .config/quickshell/bin/qs-theme-update-check.sh
 .config/quickshell/bin/qs-theme-apply-update.sh
-.config/omarchy/hooks/post-boot.d/quickshell-rise
-.config/omarchy/hooks/theme-set.d/50-quickshell-bar.sh
+.local/state/dots/shell/hooks/post-boot.d/quickshell-rise
+.local/state/dots/shell/hooks/theme-set.d/50-quickshell-bar.sh
 .config/systemd/user/qs-aur-blacklist-fetch.service
 .config/systemd/user/qs-aur-blacklist-fetch.timer
 .config/systemd/user/qs-shell-update-check.service

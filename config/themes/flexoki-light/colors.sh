@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Auto-converted from Omarchy theme
+# base16 palette
 background="#FFFCF0"
 foreground="#100F0F"
 cursor="#100F0F"
