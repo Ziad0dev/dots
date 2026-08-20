@@ -60,12 +60,18 @@ Item {
 
     TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText }
 
+    Process { id: gpuTui; command: ["bash", "-c", "hyprctl dispatch exec '[float; size 1200 750; center] ghostty -e nvtop'"] }
+
+
     MouseArea {
+
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         onEntered: tip.show()
         onExited: tip.hide()
-        onClicked: { tip.hide(); root.gpuVisible = !root.gpuVisible }
+        onClicked: function (e) {
+            if (e.button === Qt.RightButton) { gpuTui.running = false; gpuTui.running = true; return } tip.hide(); root.gpuVisible = !root.gpuVisible }
     }
 }
