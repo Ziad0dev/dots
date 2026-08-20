@@ -89,6 +89,9 @@ Item {
 
     Process { id: clickRunner; command: ["bash", "-c", root.launchBtCmd] }
 
+    Process { id: btTui; command: ["bash", "-c", "hyprctl dispatch exec '[float; size 900 600; center] ghostty -e bluetui'"] }
+
+
     MouseArea {
         anchors.fill: parent
         hoverEnabled: true; cursorShape: Qt.PointingHandCursor
@@ -96,6 +99,7 @@ Item {
         onEntered: tip.show()
         onExited: { tip.hide() }
         onClicked: (e) => {
+            if (e.button === Qt.RightButton) { btTui.running = false; btTui.running = true; return }
             tip.hide()
             if (e.button === Qt.RightButton) { clickRunner.running = false; clickRunner.running = true }
             else root.bluetoothVisible = !root.bluetoothVisible

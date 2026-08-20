@@ -238,6 +238,9 @@ in
       gammastep
       brightnessctl
       libnotify
+      impala
+      bluetui
+      pulseaudio
       networkmanager
       # media keys: hyprland binds -> playerctl -> mpdris2 -> mpd
       playerctl
