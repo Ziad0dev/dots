@@ -27,6 +27,7 @@ let
     "dots-toggle-idle"
     "dots-toggle-notification-silencing"
     "dots-tz-select"
+    "dots-files"
     "dots-update"
     "dots-update-available"
     "dots-voxtype-config"
