@@ -71,7 +71,13 @@ PanelWindow {
 
     function launch() {
         if (sel < 0 || sel >= entries.length) return
-        entries[sel].execute()
+        var e = entries[sel]
+        if (e.command && e.command.length > 0)
+            Quickshell.execDetached({
+                command: ["systemd-run", "--user", "--scope", "--quiet", "--collect", "--"].concat(e.command),
+                workingDirectory: e.workingDirectory
+            })
+        else e.execute()
         close()
     }
 

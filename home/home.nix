@@ -240,7 +240,6 @@ in
       libnotify
       impala
       bluetui
-      pulseaudio
       wiremix
       networkmanager
       # media keys: hyprland binds -> playerctl -> mpdris2 -> mpd
