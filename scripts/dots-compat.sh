@@ -2,7 +2,8 @@ CMD="$(basename "$0")"
 TERM_CMD="${DOTS_TERMINAL:-ghostty}"
 
 launch_float() {
-    "$TERM_CMD" --class=com.dots.float -e sh -c "$*" &
+    systemd-run --user --scope --quiet --collect \
+        -- "$TERM_CMD" --class=com.dots.float -e sh -c "$*" &
 }
 
 case "$CMD" in
