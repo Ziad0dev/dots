@@ -216,9 +216,6 @@ theme_wallpaper() {
 }
 
 cmd_set() {
-    shell_compat "$name"
-    sddm_compat "$name"
-    reload_apps
     local name="$1" wp
     [ -n "$name" ] || die "usage: themectl set <name>"
     [ -d "$(theme_dir "$name")" ] || die "no such theme: $name"
@@ -227,6 +224,7 @@ cmd_set() {
     mkdir -p "$STATE"
     printf '%s\n' "$name" >"$CURRENT"
     shell_compat "$name"
+    sddm_compat "$name"
     reload_apps
 
     if wp=$(theme_wallpaper "$name"); then
