@@ -172,7 +172,21 @@ shell_compat() {
     fi
 }
 
+sddm_compat() {
+    local pal dir="/var/lib/dots-theme"
+    [ -w "$dir" ] || return 0
+    pal=$(palette_file "$1") || return 0
+    # shellcheck source=/dev/null
+    (
+        . "$pal"
+        # shellcheck disable=SC2154
+        printf '{"background":"%s","foreground":"%s","accent":"%s","error":"%s","warn":"%s"}\n' \
+            "$background" "$foreground" "$accent" "$red" "$yellow"
+    ) >"$dir/sddm.json.tmp" && mv -f "$dir/sddm.json.tmp" "$dir/sddm.json"
+}
+
 reload_apps() {
+
     pkill -SIGUSR2 waybar 2>/dev/null || true
     pkill -SIGUSR2 ghostty 2>/dev/null || true
 
@@ -202,6 +216,9 @@ theme_wallpaper() {
 }
 
 cmd_set() {
+    shell_compat "$name"
+    sddm_compat "$name"
+    reload_apps
     local name="$1" wp
     [ -n "$name" ] || die "usage: themectl set <name>"
     [ -d "$(theme_dir "$name")" ] || die "no such theme: $name"

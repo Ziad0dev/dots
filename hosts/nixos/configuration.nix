@@ -70,12 +70,6 @@
 
     package = pkgs.nvidia_cachyos;
   };
-
-  services.displayManager.sddm = {
-    enable = true;
-    wayland.enable = true;
-    theme = "breeze";
-  };
   services.prowlarr = {
     enable = true;
     openFirewall = true;
@@ -106,7 +100,7 @@
       hyprland."org.freedesktop.impl.portal.Secret" = [ "kde" ];
     };
   };
-
+ 
   services.dbus.enable = true;
   security.polkit.enable = true;
 

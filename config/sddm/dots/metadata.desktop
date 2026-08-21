@@ -1,0 +1,11 @@
+[SddmGreeterTheme]
+Name=dots
+Description=Minimal greeter matching the dots theme system
+Author=ziad0dev
+License=MIT
+Type=sddm-theme
+Version=1.0
+Website=https://github.com/Ziad0dev/dots
+Screenshot=
+MainScript=Main.qml
+ConfigFile=theme.conf
