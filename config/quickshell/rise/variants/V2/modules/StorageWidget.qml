@@ -42,7 +42,7 @@ Item {
 
     TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText }
 
-    Process { id: stoTui; command: ["bash", "-c", "hyprctl dispatch exec '[float; size 1100 700; center] ghostty -e yazi /'"] }
+    Process { id: stoTui; command: ["bash", "-c", "ghostty --class=com.dots.float -e yazi /"] }
 
 
     MouseArea {
