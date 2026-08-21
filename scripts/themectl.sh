@@ -187,7 +187,6 @@ sddm_compat() {
 
 reload_apps() {
 
-    pkill -SIGUSR2 waybar 2>/dev/null || true
     pkill -SIGUSR2 ghostty 2>/dev/null || true
 
     if command -v qs >/dev/null 2>&1; then
