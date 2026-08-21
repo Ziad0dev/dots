@@ -249,7 +249,6 @@ Item {
 
     TooltipOverlay { root: theme }
     CalendarPopup { root: theme }
-    ArchUpdaterPanel { root: theme }
     PowerProfilePanel { root: theme }
     MemoryPanel { root: theme }
     CpuPanel { root: theme }

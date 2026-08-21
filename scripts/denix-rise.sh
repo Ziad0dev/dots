@@ -197,11 +197,5 @@ if [ -f "$DOTS/config/hypr/hyprland.lua" ]; then
         -e 's|-- Current theme overrides, loaded last so they win (|-- Current theme overrides, loaded last so they win.|' \
         "$DOTS/config/hypr/hyprland.lua"
 fi
-if [ -d "$DOTS/config/quickshell/picker" ]; then
-    sed -i -e 's|Legacy Omarchy colorN keys|Legacy colorN keys|' \
-        -e 's|Omarchy colors.toml values|Palette values|' \
-        "$DOTS"/config/quickshell/picker/*.js
-fi
-
 echo "denix-rise: rewrote $(files | wc -l) files under $RISE"
 echo "remaining mentions: $(grep -ril omarchy "$RISE" 2>/dev/null | wc -l) files"

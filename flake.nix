@@ -103,7 +103,6 @@
           ./modules/storage.nix
           ./modules/hdr.nix
           ./modules/dev-langs.nix
-          ./modules/waybar-lua-fix.nix
           ./modules/ananicy-fix.nix
           ./modules/lockscreen.nix
 

@@ -109,7 +109,7 @@ Item {
 
     Process { id: clickRunner; command: ["bash", "-c", root.launchBtCmd] }
 
-    Process { id: btTui; command: ["bash", "-c", "ghostty --class=com.dots.float -e bluetui"] }
+    Process { id: btTui; command: ["bash", "-c", "ghostty --class=com.dots.float.sm -e bluetui"] }
 
 
     MouseArea {
