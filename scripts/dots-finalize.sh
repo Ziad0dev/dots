@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Run AFTER scripts/denix-rise.sh. Mutates tracked files in place.
+# Needs: python3, imagemagick (identify).
 set -euo pipefail
 
 # One-shot, idempotent finisher for the Quickshell Rise bar.

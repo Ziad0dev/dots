@@ -56,16 +56,12 @@ case "$CMD" in
     dots-capture-screenrecording)
         case "${1:-}" in
             --save-replay)
-                # the replay buffer is started outside the bar; find it by -r
-                rp=""
-                for q in $(pgrep -f gpu-screen-recorder 2>/dev/null || true); do
-                    args=" $(tr '\0' ' ' < "/proc/$q/cmdline" 2>/dev/null || true) "
-                    case "$args" in *" -r "*) rp="$q"; break ;; esac
-                done
-                if [ -n "$rp" ]; then
-                    kill -USR1 "$rp"
+                # gsr-replay.service is declared in modules/recording.nix and
+                # exposes ExecReload = kill -USR1 $MAINPID
+                if systemctl --user is-active --quiet gsr-replay.service; then
+                    systemctl --user reload gsr-replay.service
                 else
-                    notify-send "Replay" "No replay buffer running" 2>/dev/null || true
+                    notify-send "Replay" "Replay buffer not running" 2>/dev/null || true
                 fi
                 ;;
             --stop)
