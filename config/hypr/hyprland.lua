@@ -171,9 +171,6 @@ hl.bind(mainMod .. " + Return", hl.dsp.exec_cmd("ghostty"))
 
 hl.bind(mainMod .. " + SHIFT + Q", hl.dsp.window.close())
 hl.bind(mainMod .. " + D", hl.dsp.exec_cmd("qs -c rise ipc call launcher toggle"))
-hl.bind(mainMod .. " + SHIFT + C",
-    hl.dsp.exec_cmd([[sh -c 'cliphist list | rofi -dmenu -p "clipboard" | cliphist decode | wl-copy']]))
-
 local focusDirs = { H = "left", L = "right", K = "up", J = "down",
                     left = "left", right = "right", up = "up", down = "down" }
 for key, dir in pairs(focusDirs) do
@@ -239,6 +236,30 @@ hl.bind(mainMod .. " + Print",
 hl.bind(mainMod .. " + SHIFT + E", hl.dsp.exit())
 hl.bind(mainMod .. " + SHIFT + R", hl.dsp.exec_cmd("hyprctl reload"))
 hl.bind(mainMod .. " + CTRL + L",  hl.dsp.exec_cmd("hyprlock"))
+
+hl.window_rule({
+    name   = "dots-float-lg",
+    match  = { class = "^(com\\.dots\\.float\\.lg)$" },
+    float  = true,
+    size   = {1200, 750},
+    center = true,
+})
+
+hl.window_rule({
+    name   = "dots-float-md",
+    match  = { class = "^(com\\.dots\\.float\\.md)$" },
+    float  = true,
+    size   = {1100, 700},
+    center = true,
+})
+
+hl.window_rule({
+    name   = "dots-float-sm",
+    match  = { class = "^(com\\.dots\\.float\\.sm)$" },
+    float  = true,
+    size   = {900, 600},
+    center = true,
+})
 
 hl.window_rule({
     name   = "dots-float-term",

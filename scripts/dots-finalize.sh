@@ -18,7 +18,16 @@ TERM_CMD="${DOTS_TERMINAL:-ghostty}"
 # float it by class instead.
 # ghostty wants --class=VALUE (equals, not space) and validates it as a GTK
 # application id, so it must be dotted. Match it with class:com.dots.float
-float() { printf '%s --class=com.dots.float -e %s' "$TERM_CMD" "$2"; }
+float() {
+    local cls
+    case "$1" in
+        "1200 750") cls=com.dots.float.lg ;;
+        "1100 700") cls=com.dots.float.md ;;
+        "900 600")  cls=com.dots.float.sm ;;
+        *)          cls=com.dots.float    ;;
+    esac
+    printf '%s --class=%s -e %s' "$TERM_CMD" "$cls" "$2"
+}
 
 widgets() {
     for d in "$RISE/modules" "$RISE/variants/V2/modules"; do
@@ -67,7 +76,7 @@ rewire() {
 logo_fix
 
 # file manager on the old packages button
-rewire ArchUpdaterWidget.qml filesProc "$(float '1100 700' yazi)"
+# yazi lives in modules/FilesWidget.qml now; nothing to rewire
 rewire CpuWidget.qml       cpuTui "$(float '1200 750' btop)"
 rewire MemoryWidget.qml    memTui "$(float '1200 750' btop)"
 rewire GpuWidget.qml       gpuTui "$(float '1200 750' nvtop)"
@@ -87,6 +96,16 @@ add_rmb() {
 import sys, pathlib, re
 path, pid, cmd = sys.argv[1], sys.argv[2], sys.argv[3]
 p = pathlib.Path(path); s = p.read_text()
+if 'Process {' in s or True:
+    lines = s.split('\n')
+    if 'import Quickshell.Io' not in s:
+        last = max(i for i, l in enumerate(lines) if l.startswith('import '))
+        add = ['import Quickshell.Io']
+        if not any(l.strip() == 'import Quickshell' for l in lines[:last+1]):
+            add.insert(0, 'import Quickshell')
+        lines[last+1:last+1] = add
+        s = '\n'.join(lines)
+
 if f"id: {pid}" in s:
     sys.exit(0)
 m = re.search(r'^(\s*)MouseArea \{', s, re.M)

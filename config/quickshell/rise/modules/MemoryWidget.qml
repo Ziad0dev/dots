@@ -165,7 +165,7 @@ Item {
 
     TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText }
 
-    Process { id: memTui; command: ["bash", "-c", "ghostty --class=com.dots.float -e btop"] }
+    Process { id: memTui; command: ["bash", "-c", "ghostty --class=com.dots.float.lg -e btop"] }
 
 
     MouseArea {

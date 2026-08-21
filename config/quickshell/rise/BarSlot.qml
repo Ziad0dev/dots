@@ -272,7 +272,7 @@ PanelWindow {
                 anchors.verticalCenter: parent.verticalCenter
                 x: Math.round((parent.width - width) / 2)
                 spacing: 4
-                ArchUpdaterWidget  { root: barSlot.root; anchors.verticalCenter: parent.verticalCenter }
+                FilesWidget  { root: barSlot.root; anchors.verticalCenter: parent.verticalCenter }
                 Row {
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: 2
@@ -291,9 +291,8 @@ PanelWindow {
         Item {
             width: 26
             height: 28
-            ArchUpdaterWidget {
+            FilesWidget {
                 root: barSlot.root
-                preferShell: true
                 anchors.centerIn: parent
             }
         }

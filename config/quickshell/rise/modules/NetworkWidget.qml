@@ -282,7 +282,7 @@ Item {
 
     Process { id: clickRunner; command: ["bash", "-c", root.launchWifiCmd] }
 
-    Process { id: netTui; command: ["bash", "-c", "ghostty --class=com.dots.float -e impala"] }
+    Process { id: netTui; command: ["bash", "-c", "ghostty --class=com.dots.float.sm -e impala"] }
 
 
     MouseArea {

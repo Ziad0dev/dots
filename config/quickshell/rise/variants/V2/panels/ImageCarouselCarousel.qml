@@ -33,6 +33,16 @@ PanelWindow {
     property var  imageArray:    []
     property int  selectedIndex: 0
     property string filterText:  ""
+    property string filterApplied: ""
+    Timer {
+        id: filterDebounce
+        interval: 180
+        onTriggered: {
+            panel.filterApplied = panel.filterText
+            var m = Model.nextSelectedIndexForFilter(panel.imageArray, panel.selectedIndex, panel.filterApplied)
+            if (m >= 0) panel.selectedIndex = m
+        }
+    }
     property string currentImage: ""
     property string loadedMode:   ""
     property int thumbEpoch:      0
@@ -232,24 +242,21 @@ PanelWindow {
         var idx = selectedIndex
         for (var i = 0; i < count; i++) {
             idx = (idx + dir + count) % count
-            if (Model.itemMatches(imageArray, idx, filterText)) { selectedIndex = idx; return }
+            if (Model.itemMatches(imageArray, idx, filterApplied)) { selectedIndex = idx; return }
         }
     }
 
     function currentLabel() {
-        if (imageArray.length === 0 || !Model.itemMatches(imageArray, selectedIndex, filterText)) return filterText ? "No matches" : ""
+        if (imageArray.length === 0 || !Model.itemMatches(imageArray, selectedIndex, filterApplied)) return filterText ? "No matches" : ""
         return Model.labelForPath(imageArray[selectedIndex].filePath)
     }
 
-    function filteredPos(idx)  { return Model.filteredPosition(imageArray, idx, filterText) }
-    function selectedFiltPos() { return Model.selectedFilteredPosition(imageArray, selectedIndex, filterText) }
-    function itemMatches(idx)  { return Model.itemMatches(imageArray, idx, filterText) }
+    function filteredPos(idx)  { return Model.filteredPosition(imageArray, idx, filterApplied) }
+    function selectedFiltPos() { return Model.selectedFilteredPosition(imageArray, selectedIndex, filterApplied) }
+    function itemMatches(idx)  { return Model.itemMatches(imageArray, idx, filterApplied) }
 
     // when typing a filter, jump the focused (main) card to the first match
-    onFilterTextChanged: {
-        var n = Model.nextSelectedIndexForFilter(imageArray, selectedIndex, filterText)
-        if (n >= 0) selectedIndex = n
-    }
+    onFilterTextChanged: filterDebounce.restart()
 
     function shq(s) { return "'" + String(s).replace(/'/g, "'\\''") + "'" }
     function wallpaperFindRoots() {
@@ -505,7 +512,7 @@ PanelWindow {
         }
     }
     Text {
-        visible: root.imagePickerVisible && panel.active && panel.ready && Model.matchCount(panel.imageArray, panel.filterText) === 0
+        visible: root.imagePickerVisible && panel.active && panel.ready && Model.matchCount(panel.imageArray, panel.filterApplied) === 0
         anchors.centerIn: parent
         horizontalAlignment: Text.AlignHCenter
         text: "No matches: " + panel.filterText + "\n\nBackspace to edit, or Esc to clear"
@@ -647,8 +654,8 @@ PanelWindow {
                                 }
                                 retainWhileLoading: true
                                 fillMode: Image.PreserveAspectCrop; asynchronous: true; cache: true; smooth: true
-                                sourceSize.width:  slice.selected ? panel.expandedW : panel.sliceW
-                                sourceSize.height: slice.selected ? panel.expandedH : panel.sliceH
+                                sourceSize.width:  panel.expandedW
+                                sourceSize.height: panel.expandedH
                             }
                             Rectangle {
                                 anchors.fill: parent
