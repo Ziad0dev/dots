@@ -1412,7 +1412,7 @@ Item {
 
     Process {
         id: recordingPidProc
-        command: ["pgrep", "-o", "-f", "^gpu-screen-recorder"]
+        command: ["pgrep", "-o", "-f", "/gpu-screen-recorder( |$)"]
         running: false
         onExited: (exitCode) => {
             if (exitCode !== 0) theme.setScreenRecordingPid("")

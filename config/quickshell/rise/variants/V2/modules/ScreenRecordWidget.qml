@@ -10,8 +10,8 @@ Item {
     readonly property bool recording: root.screenRecording
     readonly property int  elapsed:   root.screenRecordingElapsed   // seconds
 
-    visible: implicitWidth > 0.5
-    implicitWidth: recording ? row.implicitWidth + 6 : 0
+    visible: true
+    implicitWidth: row.implicitWidth + 6
     clip: true
     implicitHeight: 28
 
@@ -23,7 +23,9 @@ Item {
         function pad(n) { return n < 10 ? "0" + n : String(n) }
         return h > 0 ? (h + ":" + pad(m) + ":" + pad(s)) : (pad(m) + ":" + pad(s))
     }
-    readonly property string tooltipText: "Recording · " + elapsedStr + "\nClick to stop"
+    readonly property string tooltipText: recording
+        ? ("Recording · " + elapsedStr + "\nClick to stop and save\nRight-click to save replay clip")
+        : "Click to start recording\nRight-click to save replay clip"
 
     Row {
         id: row
@@ -51,7 +53,8 @@ Item {
         // timer
         UiText {
             anchors.verticalCenter: parent.verticalCenter
-            text: rootMod.elapsedStr
+            text: rootMod.recording ? rootMod.elapsedStr : ""
+            visible: rootMod.recording
             color: rootMod.contentColor
             font.family: root.mono
             font.pixelSize: 11
@@ -60,8 +63,13 @@ Item {
 
     Process {
         id: toggleProc
-        command: ["bash", "-c", "dots-capture-screenrecording --stop-recording"]
+        command: ["bash", "-c", "dots-capture-screenrecording"]
         onExited: root.refreshRecordingStatus()
+    }
+
+    Process {
+        id: replayProc
+        command: ["bash", "-c", "dots-capture-screenrecording --save-replay"]
     }
 
     TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText }
@@ -71,8 +79,13 @@ Item {
         hoverEnabled: true; cursorShape: Qt.PointingHandCursor
         onEntered: tip.show()
         onExited:  { tip.hide() }
-        onClicked: {
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
+        onClicked: function (e) {
             tip.hide()
+            if (e.button === Qt.RightButton) {
+                replayProc.running = false; replayProc.running = true
+                return
+            }
             toggleProc.running = false; toggleProc.running = true
         }
     }
