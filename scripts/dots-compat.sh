@@ -2,7 +2,7 @@ CMD="$(basename "$0")"
 TERM_CMD="${DOTS_TERMINAL:-ghostty}"
 
 launch_float() {
-    hyprctl dispatch exec "[float; size 1000 600; center] $TERM_CMD -e $*" >/dev/null 2>&1 || true
+    "$TERM_CMD" --class=com.dots.float -e sh -c "$*" &
 }
 
 case "$CMD" in
@@ -57,9 +57,7 @@ case "$CMD" in
             if pgrep wf-recorder >/dev/null 2>&1; then
                 pkill -INT wf-recorder
             else
-                hyprctl dispatch exec \
-                    "wf-recorder -f $HOME/Videos/recording-$(date +%Y%m%d-%H%M%S).mp4" \
-                    >/dev/null 2>&1 || true
+                wf-recorder -f "$HOME/Videos/recording-$(date +%Y%m%d-%H%M%S).mp4" &
             fi
         fi
         exit 0
