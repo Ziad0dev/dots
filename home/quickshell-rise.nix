@@ -97,6 +97,7 @@ let
     ++ (with pkgs; [
       bash
       coreutils
+      ffmpegthumbnailer
       findutils
       gawk
       gnugrep
@@ -108,6 +109,7 @@ let
       pulseaudio
       systemd
       wireplumber
+      xdg-user-dirs
     ])
   );
 in
@@ -116,6 +118,7 @@ in
     dotsShims
     pkgs.pulseaudio
     pkgs.wireplumber
+    pkgs.nvtopPackages.nvidia
     pkgs.material-symbols
     pkgs.nerd-fonts.jetbrains-mono
   ];
