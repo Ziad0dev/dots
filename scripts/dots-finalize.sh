@@ -1,3 +1,6 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
 # One-shot, idempotent finisher for the Quickshell Rise bar.
 #   - every shell-out goes straight through hyprctl (no dots-* shim needed)
 #   - logo sized from the asset's real pixel dimensions
