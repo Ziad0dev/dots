@@ -62,7 +62,9 @@ Item {
 
     Process {
         id: toggleProc
-        command: ["bash", "-c", "dots-capture-screenrecording"]
+        command: ["bash", "-c", rootMod.recording
+            ? "dots-capture-screenrecording --stop"
+            : "dots-capture-screenrecording"]
         onExited: root.refreshRecordingStatus()
     }
 

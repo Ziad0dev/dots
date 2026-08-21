@@ -1862,7 +1862,7 @@ Item {
 
     Process {
         id: recordingPidProc
-        command: ["pgrep", "-o", "-f", "/gpu-screen-recorder( |$)"]
+        command: ["bash", "-c", "systemctl --user show dots-gsr.service -p MainPID --value 2>/dev/null | grep -qxE '[1-9][0-9]*' && systemctl --user show dots-gsr.service -p MainPID --value || exit 1"]
         running: false
         onExited: (exitCode) => {
             if (exitCode !== 0) theme.setScreenRecordingPid("")

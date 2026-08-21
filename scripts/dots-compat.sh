@@ -54,35 +54,35 @@ case "$CMD" in
         ;;
 
     dots-capture-screenrecording)
-        # replay and on-demand instances are told apart by the -r flag
-        gsr_find() {
-            for p in $(pgrep -f '/gpu-screen-recorder( |$)' 2>/dev/null); do
-                a=" $(tr '\0' ' ' < "/proc/$p/cmdline" 2>/dev/null) "
-                case "$a" in
-                    *" -r "*) [ "$1" = replay ] && { printf '%s\n' "$p"; return 0; } ;;
-                    *)        [ "$1" = record ] && { printf '%s\n' "$p"; return 0; } ;;
-                esac
-            done
-            return 1
-        }
         case "${1:-}" in
             --save-replay)
-                rp=$(gsr_find replay) \
-                    && kill -USR1 "$rp" \
-                    || notify-send "Replay" "No replay buffer running" 2>/dev/null || true
+                # the replay buffer is started outside the bar; find it by -r
+                rp=""
+                for q in $(pgrep -f gpu-screen-recorder 2>/dev/null || true); do
+                    args=" $(tr '\0' ' ' < "/proc/$q/cmdline" 2>/dev/null || true) "
+                    case "$args" in *" -r "*) rp="$q"; break ;; esac
+                done
+                if [ -n "$rp" ]; then
+                    kill -USR1 "$rp"
+                else
+                    notify-send "Replay" "No replay buffer running" 2>/dev/null || true
+                fi
+                ;;
+            --stop)
+                systemctl --user stop dots-gsr.service 2>/dev/null || true
                 ;;
             *)
-                rec=$(gsr_find record || true)
-                if [ -n "$rec" ]; then
-                    kill -INT "$rec"
-                else
-                    out="$HOME/Videos/recording-$(date +%Y%m%d-%H%M%S).mp4"
-                    mkdir -p "$HOME/Videos"
-                    # shellcheck disable=SC2086
-                    systemd-run --user --scope --quiet --collect \
-                        -- gpu-screen-recorder ${DOTS_GSR_ARGS:--w DP-1 -f 60 -c mp4 -k hevc -q very_high -a default_output} \
-                           -o "$out" &
-                fi
+                out="$HOME/Videos/recording-$(date +%Y%m%d-%H%M%S).mp4"
+                mkdir -p "$HOME/Videos"
+                # a transient UNIT, not a scope: lifetime independent of this
+                # shim, so it survives us exiting. SIGINT lets gsr finalise the
+                # mp4 instead of being SIGTERMed mid-write.
+                # shellcheck disable=SC2086
+                systemd-run --user --unit=dots-gsr --quiet --collect \
+                    --property=KillSignal=SIGINT \
+                    --property=TimeoutStopSec=15 \
+                    -- gpu-screen-recorder ${DOTS_GSR_ARGS:--w DP-1 -f 60 -c mp4 -k hevc -q very_high -a default_output} \
+                       -o "$out"
                 ;;
         esac
         exit 0
