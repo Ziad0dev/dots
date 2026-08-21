@@ -241,6 +241,14 @@ hl.bind(mainMod .. " + SHIFT + R", hl.dsp.exec_cmd("hyprctl reload"))
 hl.bind(mainMod .. " + CTRL + L",  hl.dsp.exec_cmd("hyprlock"))
 
 hl.window_rule({
+    name   = "dots-float-term",
+    match  = { class = "^(com\\.dots\\.float)$" },
+    float  = true,
+    size   = {1200, 750},
+    center = true,
+})
+
+hl.window_rule({
     name    = "zathura-readable",
     match   = { class = "^(org\\.pwmt\\.zathura)$" },
     opacity = "1.0 override 1.0 override 1.0 override",

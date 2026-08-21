@@ -76,6 +76,7 @@ let
       coreutils
       curl
       gnugrep
+      ghostty
       procps
       wireplumber
     ];
@@ -103,6 +104,7 @@ let
       libnotify
       pamixer
       procps
+      pulseaudio
       wireplumber
     ])
   );
@@ -110,6 +112,7 @@ in
 {
   home.packages = helpers ++ [
     dotsShims
+    pkgs.pulseaudio
     pkgs.wireplumber
     pkgs.material-symbols
     pkgs.nerd-fonts.jetbrains-mono
