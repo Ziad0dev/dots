@@ -86,7 +86,7 @@ Item {
 
     TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText }
 
-    Process { id: memTui; command: ["bash", "-c", "hyprctl dispatch exec '[float; size 1200 750; center] ghostty -e btop'"] }
+    Process { id: memTui; command: ["bash", "-c", "ghostty --class=com.dots.float -e btop"] }
 
 
     MouseArea {

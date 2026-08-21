@@ -57,7 +57,7 @@ rewire() {
     for d in $(widgets); do
         [ -f "$d/$file" ] || continue
         if grep -q "id: $pid" "$d/$file"; then
-            sed -i -E "s|Process \{ id: $pid; command: \[[^]]*\] \}|Process { id: $pid; command: [\"bash\", \"-c\", \"$cmd\"] }|" "$d/$file"
+            sed -i -E "s|Process \{ id: $pid; command: \[.*\] \}|Process { id: $pid; command: [\"bash\", \"-c\", \"$cmd\"] }|" "$d/$file"
         fi
     done
 }
@@ -66,6 +66,12 @@ logo_fix
 
 # file manager on the old packages button
 rewire ArchUpdaterWidget.qml filesProc "$(float '1100 700' yazi)"
+rewire CpuWidget.qml       cpuTui "$(float '1200 750' btop)"
+rewire MemoryWidget.qml    memTui "$(float '1200 750' btop)"
+rewire GpuWidget.qml       gpuTui "$(float '1200 750' nvtop)"
+rewire StorageWidget.qml   stoTui "$(float '1100 700' 'yazi /')"
+rewire NetworkWidget.qml   netTui "$(float '900 600' impala)"
+rewire BluetoothWidget.qml btTui  "$(float '900 600' bluetui)"
 
 echo "  buttons: file manager -> yazi"
 

@@ -46,7 +46,7 @@ case "$CMD" in
             pkill hypridle
             echo "off"
         else
-            hyprctl dispatch exec hypridle >/dev/null 2>&1 || true
+            hypridle &
             echo "on"
         fi
         exit 0
@@ -94,7 +94,10 @@ case "$CMD" in
         ;;
 
     dots-hw-display)
-        launch_float "sh -c 'fastfetch; echo; read -r _'"
+        for c in /sys/class/backlight/amdgpu_bl* /sys/class/backlight/intel_backlight \
+                 /sys/class/backlight/acpi_video* /sys/class/backlight/*; do
+            [ -e "$c" ] && { printf '%s\n' "${c##*/}"; break; }
+        done
         exit 0
         ;;
 

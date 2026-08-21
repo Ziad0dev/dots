@@ -60,7 +60,7 @@ Item {
 
     TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText }
 
-    Process { id: gpuTui; command: ["bash", "-c", "hyprctl dispatch exec '[float; size 1200 750; center] ghostty -e nvtop'"] }
+    Process { id: gpuTui; command: ["bash", "-c", "ghostty --class=com.dots.float -e nvtop"] }
 
 
     MouseArea {
