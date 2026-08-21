@@ -122,9 +122,6 @@ in
     ".config/hypr" = {
       source = link "hypr";
     };
-    ".config/waybar" = {
-      source = link "waybar";
-    };
     ".config/dunst" = {
       source = link "dunst";
     };
@@ -183,7 +180,6 @@ in
     ./quickshell-rise.nix
     ./theming.nix
     ./git-hooks.nix
-    ./quickshell-rise.nix
   ];
 
   programs.nixcord = {
