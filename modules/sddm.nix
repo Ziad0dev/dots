@@ -76,7 +76,7 @@ in
     services.displayManager.sddm = {
       enable = true;
       wayland.enable = true;
-      theme = "dots";
+      theme = "kanagawa";
     };
 
     environment.systemPackages = [ greeter ];

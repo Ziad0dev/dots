@@ -30,7 +30,7 @@
   boot.loader.systemd-boot.configurationLimit = 3;
 
   services.flatpak.enable = true;
-
+  dots.sddm.theme = "kanagawa";
   networking.hostName = hostname;
   networking.networkmanager.enable = true;
 
