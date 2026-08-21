@@ -128,9 +128,6 @@ in
     ".config/dunst" = {
       source = link "dunst";
     };
-    ".config/rofi" = {
-      source = link "rofi";
-    };
     ".config/quickshell" = {
       source  = link "quickshell";
     };
@@ -222,9 +219,7 @@ in
     in
     (with pkgs; [
       # ── Wayland session ────────────────────────────────────────────────
-      waybar
       dunst
-      rofi
       ghostty
       hyprlock
       hypridle

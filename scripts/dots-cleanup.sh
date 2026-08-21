@@ -35,11 +35,5 @@ if [ -f "$HL" ]; then
     say "repointed picker IPC at the rise config and dropped waybar autostart"
 fi
 
-echo "== orphaned quickshell config =="
-if [ -d config/quickshell/picker ] && ! grep -rq 'c picker' config/hypr/hyprland.lua home/*.nix 2>/dev/null; then
-    say "config/quickshell/picker is unreferenced now that activeConfig = rise"
-    say "keep as fallback, or: git rm -r config/quickshell/picker"
-fi
-
 echo
 echo "dots-cleanup: done - review with 'git diff', then 'git add -A'"

@@ -1,4 +1,6 @@
 import QtQuick
+import Quickshell
+import Quickshell.Io
 
 Item {
     id: rootMod
@@ -60,7 +62,7 @@ Item {
 
     TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText }
 
-    Process { id: gpuTui; command: ["bash", "-c", "ghostty --class=com.dots.float -e nvtop"] }
+    Process { id: gpuTui; command: ["bash", "-c", "ghostty --class=com.dots.float.lg -e nvtop"] }
 
 
     MouseArea {

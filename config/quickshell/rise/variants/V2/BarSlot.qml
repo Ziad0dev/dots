@@ -925,7 +925,7 @@ PanelWindow {
                 anchors.verticalCenter: parent.verticalCenter
                 x: Math.round((parent.width - width) / 2)
                 spacing: barSlot.root.v2InlineSpacing
-                ArchUpdaterWidget  { id: archWidget; root: barSlot.root; anchors.verticalCenter: parent.verticalCenter }
+                FilesWidget  { id: archWidget; root: barSlot.root; anchors.verticalCenter: parent.verticalCenter }
                 Row {
                     id: statusTrayRow
                     anchors.verticalCenter: parent.verticalCenter
@@ -997,10 +997,9 @@ PanelWindow {
         Item {
             width: 26
             height: 28
-            ArchUpdaterWidget {
+            FilesWidget {
                 root: barSlot.root
                 colorGid: "G8"
-                preferShell: true
                 anchors.centerIn: parent
             }
         }
