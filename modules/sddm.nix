@@ -55,7 +55,7 @@ in
   options.dots.sddm = {
     theme = lib.mkOption {
       type = lib.types.str;
-      default = "oxocarbon";
+      default = "kanagawa";
       description = "Theme under config/themes whose colors.sh is baked into the greeter.";
     };
 
@@ -76,7 +76,8 @@ in
     services.displayManager.sddm = {
       enable = true;
       wayland.enable = true;
-      theme = "kanagawa";
+      theme = lib.mkForce "dots";
+      settings.General.GreeterEnvironment = lib.mkIf cfg.live "QML_XHR_ALLOW_FILE_READ=1";
     };
 
     environment.systemPackages = [ greeter ];
