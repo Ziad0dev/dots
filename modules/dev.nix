@@ -3,6 +3,7 @@
   lib,
   pkgs,
   inputs,
+  username,
   ...
 }:
 
@@ -10,7 +11,7 @@
 
   programs.nh = {
     enable = true;
-    flake = "/home/ziad0dev/dots";
+    flake = "/home/${username}/dots";
     clean = {
       enable = true;
       extraArgs = "--keep 3 --keep-since 4d";
