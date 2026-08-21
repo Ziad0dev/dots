@@ -105,6 +105,8 @@
           ./modules/dev-langs.nix
           ./modules/ananicy-fix.nix
           ./modules/lockscreen.nix
+          ./modules/lockscreen.nix
+          ./modules/sddm.nix
 
           chaotic.nixosModules.nyx-cache
           chaotic.nixosModules.nyx-overlay
