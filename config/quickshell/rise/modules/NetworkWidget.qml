@@ -282,7 +282,7 @@ Item {
 
     Process { id: clickRunner; command: ["bash", "-c", root.launchWifiCmd] }
 
-    Process { id: netTui; command: ["bash", "-c", "hyprctl dispatch exec '[float; size 900 600; center] ghostty -e impala'"] }
+    Process { id: netTui; command: ["bash", "-c", "ghostty --class=com.dots.float -e impala"] }
 
 
     MouseArea {

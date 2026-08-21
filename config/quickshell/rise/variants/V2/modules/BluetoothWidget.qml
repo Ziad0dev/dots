@@ -89,7 +89,7 @@ Item {
 
     Process { id: clickRunner; command: ["bash", "-c", root.launchBtCmd] }
 
-    Process { id: btTui; command: ["bash", "-c", "hyprctl dispatch exec '[float; size 900 600; center] ghostty -e bluetui'"] }
+    Process { id: btTui; command: ["bash", "-c", "ghostty --class=com.dots.float -e bluetui"] }
 
 
     MouseArea {
