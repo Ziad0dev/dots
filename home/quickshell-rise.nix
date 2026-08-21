@@ -78,6 +78,7 @@ let
       gnugrep
       ghostty
       procps
+      systemd
       wireplumber
     ];
     text = builtins.readFile ../scripts/dots-compat.sh;
@@ -105,6 +106,7 @@ let
       pamixer
       procps
       pulseaudio
+      systemd
       wireplumber
     ])
   );
@@ -136,6 +138,7 @@ in
         "DOTS_SHELL_PATH=${dots}/config/quickshell/rise"
       ];
       Slice = "app-graphical.slice";
+      KillMode = "process";
       RestartSec = 2;
     };
   };
