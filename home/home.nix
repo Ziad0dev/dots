@@ -191,6 +191,7 @@ in
       frameless = true;
       plugins = {
         messageLogger.enable = true;
+
         alwaysTrust.enable = true;
         betterFolders.enable = true;
         blurNsfw.enable = true;
@@ -243,6 +244,7 @@ in
       mpc
       rmpc
       tauon
+      easyeffects
 
       # ── Video / media ─────────────────────────────────────────────────
       mpv
