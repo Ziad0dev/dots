@@ -106,7 +106,6 @@
           ./modules/ananicy-fix.nix
           ./modules/lockscreen.nix
           ./modules/sddm.nix
-          ./modules/nvidia-zstd-refs.nix
           chaotic.nixosModules.nyx-cache
           chaotic.nixosModules.nyx-overlay
           chaotic.nixosModules.nyx-registry

@@ -8,6 +8,9 @@
   ...
 }:
 
+let
+  fixZstdRefs = import ../../lib/nvidia-zstd-refs.nix { inherit pkgs; };
+in
 {
   imports = [
 
@@ -68,7 +71,7 @@
     modesetting.enable = true;
     open = true;
 
-    package = pkgs.nvidia_cachyos;
+    package = fixZstdRefs pkgs.nvidia_cachyos;
   };
   services.prowlarr = {
     enable = true;
