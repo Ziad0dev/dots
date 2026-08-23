@@ -42,10 +42,15 @@ sec "nix module wiring"
 for f in home/*.nix modules/*.nix; do
     [ -f "$f" ] || continue
     base="./$(basename "$f")"
-    case "$f" in home/home.nix|modules/*) continue ;; esac
-    if ! grep -qF "$base" home/home.nix 2>/dev/null; then
-        warn "$f is not imported by home/home.nix (dead module?)"
-    fi
+    case "$f" in home/home.nix) continue ;; esac
+    case "$f" in
+        modules/*)
+            grep -qF "./$f" flake.nix 2>/dev/null \
+                || warn "$f is not imported by flake.nix (dead module?)" ;;
+        *)
+            grep -qF "$base" home/home.nix 2>/dev/null \
+                || warn "$f is not imported by home/home.nix (dead module?)" ;;
+    esac
 done
 
 sec "scripts referenced vs present"

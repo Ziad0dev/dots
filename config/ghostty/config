@@ -1,4 +1,4 @@
-# Oxcarbon Theme for Ghostty (Black Background Variant)
+# Oxocarbon Theme for Ghostty (Black Background Variant)
 # Inspired by IBM Carbon Design System
 term = xterm-ghostty
 shell-integration = fish
@@ -10,12 +10,12 @@ keybind = cmd+s=text:\x01\x73
 keybind = cmd+b=text:\x01\x7a
 # aesthet
 background-opacity = 0.85
-background-blur=16 
+background-blur=16
 # typography
 font-size=13
 font-thicken=true
 font-thicken-strength=1
-adjust-cell-height=1 
+adjust-cell-height=1
 # Background and Foreground
 background = 000000
 foreground = f2f4f8
@@ -44,4 +44,4 @@ palette = 14=#08bdba
 palette = 15=#f2f4f8
 # kitty-integ
 image-storage-limit = 320000000
-config-file = ?"~/.local/state/dots/theme/ghostty"
+config-file = ?~/.local/state/dots/theme/ghostty

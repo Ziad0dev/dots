@@ -2,7 +2,7 @@
 # Compatibility shortcut for switching the integrated Quickshell Rise UI.
 set -euo pipefail
 
-BARCTL="${QS_BARCTL:-$HOME/.config/quickshell/bin/qs-barctl}"
+BARCTL="${QS_BARCTL:-$HOME/.config/quickshell/rise/scripts/qs-barctl}"
 [[ -x "$BARCTL" ]] || {
   printf 'qs-proj: controller missing: %s\n' "$BARCTL" >&2
   exit 1

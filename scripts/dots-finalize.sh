@@ -46,7 +46,7 @@ logo_fix() {
         w=$(identify -format '%w' "$png" 2>/dev/null)
         h=$(identify -format '%h' "$png" 2>/dev/null)
     fi
-    [ -n "${w:-}" ] && [ -n "${h:-}" ] || { w=647; h=192; }
+    if [ -z "${w:-}" ] || [ -z "${h:-}" ]; then w=647; h=192; fi
     asp="($w / $h)"
 
     local d
