@@ -24,20 +24,11 @@ Item {
     height: 0
 
     function normalize(value) {
-        var candidate = String(value || "").trim().toLowerCase()
-        return candidate === "v2" ? "v2" : "v1"
+        return "v1"
     }
 
     function loadState() {
-        var current = String(activeVariantFile.text() || "").trim().toLowerCase()
-        var legacy = String(legacyVersionFile.text() || "").trim().toLowerCase()
-
-        if (current === "v1" || current === "v2")
-            committedVariant = current
-        else if (legacy === "v1" || legacy === "v2")
-            committedVariant = legacy
-        else
-            committedVariant = "v1"
+        committedVariant = "v1"
 
         initialized = true
     }
