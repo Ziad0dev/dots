@@ -90,7 +90,8 @@ sub '"/Pictures/wallpapers/" + currentThemeName' '"/Pictures/wallpapers"'
 # logo-tint shader. assets/nixos-logo.svg must be downloaded first:
 #   curl -Lo assets/nixos-logo.svg \
 #     https://brand.nixos.org/logos/nixos-logo-white-flat-white-regular-horizontal-recommended.svg
-for f in "$RISE/modules/LauncherWidget.qml" "$RISE/variants/V2/modules/LauncherWidget.qml"; do
+# shellcheck disable=SC2066  # single-element list since the V2 tree was removed
+for f in "$RISE/modules/LauncherWidget.qml"; do
     [ -f "$f" ] || continue
     grep -q 'nixosTextLogo' "$f" || sed -i \
         's|readonly property bool hyprlandLogo:|readonly property bool nixosTextLogo: !logoIconMode \&\& root.launcherLogoText === "nixos"\n    readonly property bool hyprlandLogo:|' "$f"
@@ -102,7 +103,8 @@ for f in "$RISE/modules/LauncherWidget.qml" "$RISE/variants/V2/modules/LauncherW
     sed -i 's|hyprlandLogo ? (948 / 154) : (656 / 192)|hyprlandLogo ? (948 / 154) : (647 / 192)|' "$f"
 done
 
-for th in "$RISE/Theme.qml" "$RISE/variants/V2/Theme.qml"; do
+# shellcheck disable=SC2066  # single-element list since the V2 tree was removed
+for th in "$RISE/Theme.qml"; do
     [ -f "$th" ] || continue
     sed -i 's|readonly property var launcherLogoTextOptions: \["dots", "hyprland", "arch", "omacom"\]|readonly property var launcherLogoTextOptions: ["nixos", "hyprland", "arch"]|' "$th"
 done
@@ -122,25 +124,28 @@ files | xargs -r sed -i \
 
 # drop the branded image assets entirely
 rm -rf "$RISE/.github" "$RISE/.gitignore"
-rm -f "$RISE/assets/omacom-text.png" "$RISE/assets/bob2.png" "$RISE/assets/bob3.png"
+rm -f "$RISE/assets/omacom-text.png" "$RISE/assets/bob2.png"
 
 # ── app launcher ─────────────────────────────────────────────────────────
 # upstream has no drun (zero DesktopEntries uses); AppLauncher.qml adds one.
 # Mount it in both variant roots and give Theme a visibility property.
-for vr in "$RISE/VariantRoot.qml" "$RISE/variants/V2/VariantRoot.qml"; do
+# shellcheck disable=SC2066  # single-element list since the V2 tree was removed
+for vr in "$RISE/VariantRoot.qml"; do
     [ -f "$vr" ] || continue
     grep -q 'AppLauncher' "$vr" || sed -i \
         's|^\(\s*\)LazyLoader { active: theme.pickerStyle === "carousel";\(.*\)$|\1LazyLoader { active: theme.pickerStyle === "carousel";\2\n\1LazyLoader { active: true; AppLauncher { root: theme } }|' "$vr"
 done
 
-for th in "$RISE/Theme.qml" "$RISE/variants/V2/Theme.qml"; do
+# shellcheck disable=SC2066  # single-element list since the V2 tree was removed
+for th in "$RISE/Theme.qml"; do
     [ -f "$th" ] || continue
     grep -q 'appLauncherVisible' "$th" || sed -i \
         's|^\(\s*\)property string launcherLogoMode:|\1property bool appLauncherVisible: false\n\1property string launcherLogoMode:|' "$th"
 done
 
 # expose it on the variant root so IpcRouter.invoke() can reach it
-for vr in "$RISE/VariantRoot.qml" "$RISE/variants/V2/VariantRoot.qml"; do
+# shellcheck disable=SC2066  # single-element list since the V2 tree was removed
+for vr in "$RISE/VariantRoot.qml"; do
     [ -f "$vr" ] || continue
     if grep -q 'toggleAppLauncher' "$vr"; then
         sed -i 's|function toggleAppLauncher() {.*}|function toggleAppLauncher() { if (!theme.appLauncherVisible) theme.activateFocusedPopupScreen(); theme.appLauncherVisible = !theme.appLauncherVisible }|' "$vr"
@@ -164,27 +169,6 @@ if [ -f "$IPC" ] && ! grep -q 'target: "launcher"' "$IPC"; then
         { print }
     ' "$IPC" >"$IPC.tmp" && mv -f "$IPC.tmp" "$IPC"
 fi
-
-# ── packages widget -> file manager ──────────────────────────────────────
-# The updater panel lists nix generations as if they were packages and can't
-# act on them; the separate Update widget already runs nh os switch. Repoint
-# this one at yazi instead.
-for f in "$RISE/modules/ArchUpdaterWidget.qml" "$RISE/variants/V2/modules/ArchUpdaterWidget.qml"; do
-    [ -f "$f" ] || continue
-    grep -q 'dots-files' "$f" || python3 - "$f" <<'PYEOF'
-import re, sys, pathlib
-p = pathlib.Path(sys.argv[1]); s = p.read_text()
-s = s.replace(
-    "        onClicked: (e) => {\n            tip.hide();",
-    "        onClicked: (e) => {\n            tip.hide();\n            filesProc.running = false; filesProc.running = true;\n            return;",
-    1)
-s = s.replace(
-    "    MouseArea {\n        id: mouse",
-    '    Process { id: filesProc; command: ["bash", "-c", "dots-files"] }\n\n    MouseArea {\n        id: mouse',
-    1)
-p.write_text(s)
-PYEOF
-done
 
 # the widget cache stores the launcher logo choice and overrides the default
 # above, so a stale cache keeps showing the old wordmark
