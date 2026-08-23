@@ -108,15 +108,7 @@ hl.config({
     animations = { enabled = true },
 })
 
-hl.curve("wind",     { type = "bezier", points = { {0.05, 0.9}, {0.1, 1.05}  } })
-hl.curve("winIn",    { type = "bezier", points = { {0.1, 1.1},  {0.1, 1.0}   } })
-hl.curve("winOut",   { type = "bezier", points = { {0.3, -0.3}, {0, 1}       } })
 hl.curve("linear",   { type = "bezier", points = { {0.0, 0.0},  {1.0, 1.0}   } })
-hl.curve("slow",     { type = "bezier", points = { {0, 0.85},   {0.3, 1}     } })
-hl.curve("overshot", { type = "bezier", points = { {0.05, 0.9}, {0.1, 1.1}   } })
-hl.curve("bounce",   { type = "bezier", points = { {1, 1.6},    {0.1, 0.85}  } })
-hl.curve("slingshot", { type = "bezier", points = { {1, -1},     {0.15, 1.25} } })
-hl.curve("nice",     { type = "bezier", points = { {0, 1.9},    {0.5, -1.0} } })
 
 hl.curve("snap",     { type = "bezier", points = { {0.2, 0.9},  {0.3, 1.0}   } })
 

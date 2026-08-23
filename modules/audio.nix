@@ -1,14 +1,5 @@
-{
-  config,
-  lib,
-  pkgs,
-  ...
-}:
+{ ... }:
 
-let
-
-  disableAcpOnUsb = false;
-in
 {
   security.rtkit.enable = true;
 
@@ -46,17 +37,5 @@ in
       };
     };
 
-    wireplumber.extraConfig = lib.mkIf disableAcpOnUsb {
-      "51-usb-no-acp" = {
-        "monitor.alsa.rules" = [
-          {
-            matches = [ { "device.name" = "~alsa_card.usb-.*"; } ];
-            actions.update-props = {
-              "api.alsa.use-acp" = false;
-            };
-          }
-        ];
-      };
-    };
   };
 }
