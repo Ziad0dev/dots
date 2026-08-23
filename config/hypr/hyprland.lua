@@ -115,7 +115,7 @@ hl.curve("linear",   { type = "bezier", points = { {0.0, 0.0},  {1.0, 1.0}   } }
 hl.curve("slow",     { type = "bezier", points = { {0, 0.85},   {0.3, 1}     } })
 hl.curve("overshot", { type = "bezier", points = { {0.05, 0.9}, {0.1, 1.1}   } })
 hl.curve("bounce",   { type = "bezier", points = { {1, 1.6},    {0.1, 0.85}  } })
-hl.curve("sligshot", { type = "bezier", points = { {1, -1},     {0.15, 1.25} } })
+hl.curve("slingshot", { type = "bezier", points = { {1, -1},     {0.15, 1.25} } })
 hl.curve("nice",     { type = "bezier", points = { {0, 1.9},    {0.5, -1.0} } })
 
 hl.curve("snap",     { type = "bezier", points = { {0.2, 0.9},  {0.3, 1.0}   } })
@@ -165,7 +165,7 @@ hl.config({
         animate_mouse_windowdragging = false,
 
         enable_swallow              = true,
-        swallow_regex               = "^(ghostty)$",
+        swallow_regex               = "^(com\\.mitchellh\\.ghostty)$",
         focus_on_activate           = true,
         mouse_move_focuses_monitor  = true,
     },
@@ -188,8 +188,6 @@ hl.bind(mainMod .. " + F", hl.dsp.window.fullscreen())
 hl.bind(mainMod .. " + CTRL + SHIFT + SPACE", hl.dsp.exec_cmd("qs -c rise ipc call picker theme"))
 hl.bind(mainMod .. " + SHIFT + T", hl.dsp.exec_cmd("themectl next"))
 hl.bind(mainMod .. " + CTRL + E",  hl.dsp.exec_cmd("themectl bg next"))
-hl.bind(mainMod .. " + S", hl.dsp.exec_cmd("hyprctl keyword general:layout master"))
-hl.bind(mainMod .. " + W", hl.dsp.exec_cmd("hyprctl keyword general:layout dwindle"))
 hl.bind(mainMod .. " + E",
     hl.dsp.exec_cmd([[qs -c rise ipc call picker wallpaper]]))
 hl.bind(mainMod .. " + SHIFT + space", hl.dsp.window.float({ action = "toggle" }))
@@ -240,7 +238,7 @@ hl.bind(mainMod .. " + Print",
     hl.dsp.exec_cmd([[sh -c 'grim - | wl-copy && notify-send "Screenshot" "Full screen copied to clipboard"']]))
 
 hl.bind(mainMod .. " + SHIFT + E", hl.dsp.exit())
-hl.bind(mainMod .. " + SHIFT + R", hl.dsp.exec_cmd("hyprctl reload"))
+hl.bind(mainMod .. " + CTRL + R", hl.dsp.exec_cmd("hyprctl reload"))
 hl.bind(mainMod .. " + CTRL + L",  hl.dsp.exec_cmd("hyprlock"))
 
 hl.window_rule({

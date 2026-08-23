@@ -23,7 +23,7 @@ PanelWindow {
     property bool powerOpen: false
     property bool wsOpen: false   // Workspaces collapsible inside the WW fly-out
     property bool compactOpen: false
-    readonly property string barctlPath: Quickshell.env("HOME") + "/.config/quickshell/bin/qs-barctl"
+    readonly property string barctlPath: Quickshell.env("HOME") + "/.config/quickshell/rise/scripts/qs-barctl"
 
     function switchBar(version) {
         root.controlVisible = false

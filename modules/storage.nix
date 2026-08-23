@@ -1,4 +1,9 @@
-{ pkgs, ... }:
+{
+  config,
+  pkgs,
+  username,
+  ...
+}:
 
 let
   exfatOpts = [
@@ -6,7 +11,7 @@ let
     "x-systemd.automount"
     "x-systemd.idle-timeout=600"
     "X-mount.mkdir"
-    "uid=1001"
+    "uid=${toString config.users.users.${username}.uid}"
     "gid=100"
     "umask=0022"
     "x-gvfs-show"

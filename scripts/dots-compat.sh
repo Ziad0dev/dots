@@ -43,11 +43,11 @@ case "$CMD" in
         ;;
 
     dots-toggle-idle)
-        if pgrep hypridle >/dev/null 2>&1; then
-            pkill hypridle
+        if systemctl --user is-active --quiet hypridle.service; then
+            systemctl --user stop hypridle.service
             echo "off"
         else
-            hypridle &
+            systemctl --user start hypridle.service
             echo "on"
         fi
         exit 0
@@ -132,6 +132,18 @@ case "$CMD" in
         if [ -f "$lock" ]; then
             age=$(( ( $(date +%s) - $(stat -c %Y "$lock") ) / 86400 ))
             [ "$age" -gt 7 ] && echo 1
+        fi
+        exit 0
+        ;;
+
+    dots-updates)
+        # pending-update count, same signal dots-update-available reports
+        lock="$HOME/dots/flake.lock"
+        if [ -f "$lock" ]; then
+            age=$(( ( $(date +%s) - $(stat -c %Y "$lock") ) / 86400 ))
+            [ "$age" -gt 7 ] && echo 1 || echo 0
+        else
+            echo 0
         fi
         exit 0
         ;;

@@ -44,17 +44,20 @@
     forwardPorts = [
       {
         from = "host";
+        host.address = "127.0.0.1";
         host.port = 2222;
         guest.port = 22;
       }
 
       {
         from = "host";
+        host.address = "127.0.0.1";
         host.port = 5173;
         guest.port = 5173;
       }
       {
         from = "host";
+        host.address = "127.0.0.1";
         host.port = 3000;
         guest.port = 3000;
       }
