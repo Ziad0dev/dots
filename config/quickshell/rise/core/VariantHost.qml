@@ -5,7 +5,6 @@ Item {
 
     required property var stateService
     required property url v1Source
-    required property url v2Source
 
     readonly property var activeItem: variantLoader.item
     readonly property bool ready: phase === "active"
@@ -33,11 +32,11 @@ Item {
     height: 0
 
     function normalize(value) {
-        return String(value || "").trim().toLowerCase() === "v2" ? "v2" : "v1"
+        return "v1"
     }
 
     function sourceFor(variant) {
-        return normalize(variant) === "v2" ? v2Source : v1Source
+        return v1Source
     }
 
     function startInitial() {
@@ -91,9 +90,7 @@ Item {
 
     function targetLoadFailed(reason) {
         var broken = targetVariant
-        var fallback = previousVariant !== ""
-            ? previousVariant
-            : (broken === "v1" ? "v2" : "v1")
+        var fallback = previousVariant !== "" ? previousVariant : "v1"
 
         if (rollbackMode) {
             phase = "failed"
