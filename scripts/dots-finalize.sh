@@ -30,7 +30,8 @@ float() {
 }
 
 widgets() {
-    for d in "$RISE/modules" "$RISE/variants/V2/modules"; do
+    # shellcheck disable=SC2066  # single-element list since the V2 tree was removed
+    for d in "$RISE/modules"; do
         [ -d "$d" ] && printf '%s\n' "$d"
     done
 }
@@ -38,8 +39,7 @@ widgets() {
 # ── 1. logo: derive aspect + height from the actual file ────────────────
 logo_fix() {
     local png w h asp
-    png="$RISE/variants/V2/assets/nixos-logo.png"
-    [ -f "$png" ] || png="$RISE/assets/nixos-logo.png"
+    png="$RISE/assets/nixos-logo.png"
     [ -f "$png" ] || { echo "  logo: asset missing, skipped"; return 0; }
 
     if command -v identify >/dev/null 2>&1; then
