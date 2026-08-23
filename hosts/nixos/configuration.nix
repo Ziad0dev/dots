@@ -79,12 +79,11 @@ in
   };
   services.flaresolverr = {
     enable = true;
-    openFirewall = true;
+    openFirewall = false;
   };
 
   services.desktopManager.plasma6.enable = true;
   programs.coolercontrol.enable = true;
-  services.resolved.enable = true;
 
   programs.hyprland = {
     enable = true;
@@ -103,7 +102,7 @@ in
       hyprland."org.freedesktop.impl.portal.Secret" = [ "kde" ];
     };
   };
- 
+
   services.dbus.enable = true;
   security.polkit.enable = true;
 

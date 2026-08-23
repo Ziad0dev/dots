@@ -32,7 +32,6 @@ let
     "dots-update-available"
     "dots-voxtype-config"
     "dots-voxtype-model"
-    "dots-cli"
     "dots-launch-editor"
     "dots-updates"
     "dots-weather"
@@ -75,6 +74,7 @@ let
     runtimeInputs = with pkgs; [
       coreutils
       curl
+      fzf
       gnugrep
       ghostty
       procps

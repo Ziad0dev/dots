@@ -33,6 +33,9 @@ sub '\.config/omarchy'                    '.local/state/dots/shell'
 # the vendored config lives at quickshell/rise, not quickshell/bar
 sub '\.config/quickshell/bar'             '.config/quickshell/rise'
 
+# upstream ships qs-barctl in scripts/, but references it under bin/
+sub '\.config/quickshell/bin/qs-barctl'  '.config/quickshell/rise/scripts/qs-barctl'
+
 # palettes are shell assignments, not toml
 sub 'colors\.toml'                        'colors.sh'
 

@@ -21,8 +21,6 @@
     hyperfine
     tokei
     nixfmt
-    statix
-    deadnix
     devenv
   ];
 }

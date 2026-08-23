@@ -56,7 +56,7 @@
     ;; END ;;
 
     ;; UI ;;
-    (region (:background oxocarbon-base02)) ;; selction background
+    (region (:background oxocarbon-base02)) ;; selection background
     (highlight (:background oxocarbon-base02)) ;; highlight when hovering over a link etc.
 
     (mode-line (:foreground oxocarbon-fg :background oxocarbon-bg)) ;; modeline

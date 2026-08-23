@@ -126,7 +126,7 @@ in
       source = link "dunst";
     };
     ".config/quickshell" = {
-      source  = link "quickshell";
+      source = link "quickshell";
     };
     ".config/ghostty" = {
       source = link "ghostty";
