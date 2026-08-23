@@ -172,15 +172,7 @@ case "$CMD" in
         esac
         ;;
 
-    dots-launch-editor)
-        launch_float nvim
-        exit 0
-        ;;
 
-    dots-files)
-        launch_float yazi
-        exit 0
-        ;;
 
     *)
         exit 0
