@@ -1,7 +1,0 @@
-
-@import "nebula-loader.css";
-@import "url-bar-tweaks.css";
-
-.tabbrowser-tab .tab-close-button {
-  visibility: collapse !important;
-}
