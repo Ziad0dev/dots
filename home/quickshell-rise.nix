@@ -27,12 +27,10 @@ let
     "dots-toggle-idle"
     "dots-toggle-notification-silencing"
     "dots-tz-select"
-    "dots-files"
     "dots-update"
     "dots-update-available"
     "dots-voxtype-config"
     "dots-voxtype-model"
-    "dots-launch-editor"
     "dots-updates"
     "dots-weather"
     "dots-weather-status"
@@ -50,23 +48,11 @@ let
     text = builtins.readFile ../scripts/dots-current-wallpaper.sh;
   };
 
-  themeScan = pkgs.writeShellApplication {
-    name = "dots-theme-scan";
-    runtimeInputs = with pkgs; [ coreutils gawk gnused imagemagick ];
-    text = builtins.readFile ../scripts/dots-theme-scan.sh;
-  };
 
-  pickerPalette = pkgs.writeShellApplication {
-    name = "dots-picker-palette";
-    runtimeInputs = with pkgs; [ coreutils gnused ];
-    text = builtins.readFile ../scripts/dots-picker-palette.sh;
-  };
 
   helpers = [
     setWallpaper
     currentWallpaper
-    themeScan
-    pickerPalette
   ];
 
   compatBase = pkgs.writeShellApplication {
