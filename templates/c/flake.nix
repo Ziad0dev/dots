@@ -4,38 +4,53 @@
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
   outputs =
-    { self, nixpkgs }:
+    { nixpkgs, ... }:
     let
-      system = "x86_64-linux";
-      pkgs = import nixpkgs { inherit system; };
+      systems = [
+        "x86_64-linux"
+        "aarch64-linux"
+        "aarch64-darwin"
+      ];
+      eachSystem = f: nixpkgs.lib.genAttrs systems (system: f nixpkgs.legacyPackages.${system});
     in
     {
-      devShells.${system}.default =
-        pkgs.mkShell.override
-          {
+      devShells = eachSystem (
+        pkgs:
+        let
+          isLinux = pkgs.stdenv.hostPlatform.isLinux;
+        in
+        {
+          default =
+            pkgs.mkShell.override
+              {
+                stdenv = pkgs.clangStdenv;
+              }
+              {
+                packages =
+                  with pkgs;
+                  [
+                    clang-tools
+                    bear
+                    meson
+                    ninja
+                    cmake
+                    lldb
+                    pkg-config
+                  ]
+                  ++ pkgs.lib.optionals isLinux [
+                    mold
+                    gdb
+                    valgrind
+                  ];
 
-            stdenv = pkgs.clangStdenv;
-          }
-          {
-            packages = with pkgs; [
-              clang-tools
-              mold
-              bear
-              meson
-              ninja
-              cmake
-              gdb
-              lldb
-              valgrind
-              pkg-config
-            ];
+                NIX_CFLAGS_LINK = pkgs.lib.optionalString isLinux "-fuse-ld=mold";
 
-            NIX_CFLAGS_LINK = "-fuse-ld=mold";
-
-            shellHook = ''
-              echo "C/C++ shell — clang $(clang --version | head -1 | grep -o '[0-9.]*' | head -1), mold linked"
-              echo "  bear -- make    regenerate compile_commands.json for clangd"
-            '';
-          };
+                shellHook = ''
+                  echo "C/C++ shell — clang $(clang --version | head -1 | grep -o '[0-9.]*' | head -1)"
+                  echo "  bear -- make    regenerate compile_commands.json for clangd"
+                '';
+              };
+        }
+      );
     };
 }

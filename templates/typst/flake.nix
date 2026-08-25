@@ -17,7 +17,11 @@
       typix,
       ...
     }@inputs:
-    flake-utils.lib.eachDefaultSystem (
+    flake-utils.lib.eachSystem [
+      "x86_64-linux"
+      "aarch64-linux"
+      "aarch64-darwin"
+    ] (
       system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
@@ -60,11 +64,12 @@
             watch-script
           ];
         };
-
-        templates.typst = {
-          path = ./.;
-          description = "Typst document with reproducible typix builds";
-        };
       }
-    );
+    )
+    // {
+      templates.typst = {
+        path = ./.;
+        description = "Typst document with reproducible typix builds";
+      };
+    };
 }

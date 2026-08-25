@@ -140,6 +140,28 @@ if command -v nix >/dev/null 2>&1; then
     if nix flake check --no-build 2>/dev/null; then ok "flake check passed"; else warn "flake check reported problems"; fi
 fi
 
+sec "templates"
+if [ -n "${DOTS_AUDIT_SKIP_TEMPLATES:-}" ]; then
+    warn "skipped (DOTS_AUDIT_SKIP_TEMPLATES set)"
+elif ! command -v nix >/dev/null 2>&1; then
+    warn "nix not on PATH"
+else
+    for t in templates/*/; do
+        n=$(basename "$t")
+        [ -f "$t/flake.nix" ] || continue
+        case "$n" in
+            typst) args="" ;;
+            *) args="--all-systems" ;;
+        esac
+        # shellcheck disable=SC2086
+        if nix flake check $args "./$t" >/dev/null 2>&1; then
+            ok "$n"
+        else
+            bad "$n does not evaluate"
+        fi
+    done
+fi
+
 printf '\n'
 [ "$fail" = 0 ] && echo "dots-audit: clean" || echo "dots-audit: issues found"
 exit 0
