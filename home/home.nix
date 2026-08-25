@@ -29,6 +29,8 @@ in
     SDL_VIDEODRIVER = "wayland";
   };
 
+  xdg.configFile."vesktop/settings/settings.json".enable = false;
+
   xdg.desktopEntries.discord = {
     name = "Discord";
     genericName = "Internet Messenger";
