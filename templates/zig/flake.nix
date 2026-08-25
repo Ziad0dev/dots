@@ -1,11 +1,15 @@
 {
-  description = "Zig devshell — Zig 0.16.0 + matching zls";
+  description = "Zig devshell — pick a matched Zig/zls pair per project";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     zig-overlay.url = "github:mitchellh/zig-overlay";
     zls = {
       url = "github:zigtools/zls/0.16.0";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    zls-edge = {
+      url = "github:zigtools/zls";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -15,18 +19,57 @@
       nixpkgs,
       zig-overlay,
       zls,
+      zls-edge,
       ...
     }:
     let
-      system = "x86_64-linux";
-      pkgs = nixpkgs.legacyPackages.${system};
+      systems = [
+        "x86_64-linux"
+        "aarch64-linux"
+        "aarch64-darwin"
+      ];
+      eachSystem =
+        f:
+        nixpkgs.lib.genAttrs systems (
+          system:
+          f {
+            pkgs = nixpkgs.legacyPackages.${system};
+            zig = zig-overlay.packages.${system};
+            zlsStable = zls.packages.${system}.zls;
+            zlsEdge = zls-edge.packages.${system}.zls;
+          }
+        );
     in
     {
-      devShells.${system}.default = pkgs.mkShell {
-        packages = [
-          zig-overlay.packages.${system}."0.16.0"
-          zls.packages.${system}.zls
-        ];
-      };
+      devShells = eachSystem (
+        {
+          pkgs,
+          zig,
+          zlsStable,
+          zlsEdge,
+        }:
+        {
+          default = pkgs.mkShell {
+            packages = [
+              zig."0.16.0"
+              zlsStable
+            ];
+          };
+
+          edge = pkgs.mkShell {
+            packages = [
+              zig."master-2026-05-25"
+              zlsEdge
+            ];
+          };
+
+          nightly = pkgs.mkShell {
+            packages = [
+              zig.master
+              zlsEdge
+            ];
+          };
+        }
+      );
     };
 }
