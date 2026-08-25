@@ -4,6 +4,7 @@
   inputs = {
 
     chaotic.url = "github:chaotic-cx/nyx/nyxpkgs-unstable";
+    chaotic.inputs.home-manager.follows = "home-manager";
 
     nixpkgs.follows = "chaotic/nixpkgs";
 

@@ -34,7 +34,7 @@ in
   xdg.desktopEntries.discord = {
     name = "Discord";
     genericName = "Internet Messenger";
-    exec = "discord --ozone-platform-hint=auto --enable-features=WaylandWindowDecorations %U";
+    exec = "vesktop --ozone-platform-hint=auto --enable-features=WaylandWindowDecorations %U";
     icon = "discord";
     terminal = false;
     categories = [
@@ -192,6 +192,7 @@ in
     ./fastfetch.nix
     ./quickshell-rise.nix
     ./theming.nix
+    ./ai-usage.nix
     ./git-hooks.nix
   ];
 
