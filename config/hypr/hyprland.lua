@@ -5,12 +5,12 @@ hl.monitor({
     position = "0x0",
     scale    = 1,
     bitdepth = 10,
-    cm = "hdr",
+    supports_hdr = 1,
     supports_wide_color = 1,
     sdrbrightness = 1.0,
     sdrsaturation = 1.0,
     sdr_min_luminance = 0.0011,
-    sdr_max_luminance = 350,
+    sdr_max_luminance = 250,
     min_luminance = 0.0011,
     max_luminance = 800,
     max_avg_luminance = 269,
@@ -28,7 +28,6 @@ hl.env("XDG_SESSION_TYPE", "wayland")
 hl.env("XDG_SESSION_DESKTOP", "Hyprland")
 hl.env("GDK_BACKEND", "wayland,x11")
 hl.env("QT_QPA_PLATFORM", "wayland;xcb")
-hl.env("SDL_VIDEODRIVER", "wayland")
 hl.env("CLUTTER_BACKEND", "wayland")
 hl.env("QT_QPA_PLATFORMTHEME", "kde")
 hl.env("QT_STYLE_OVERRIDE", "Breeze")
@@ -89,8 +88,8 @@ hl.config({
 
         blur = {
             enabled            = true,
-            size               = 6,
-            passes             = 3,
+            size               = 3,
+            passes             = 2,
             new_optimizations  = true,
             xray               = false,
             noise              = 0.02,
