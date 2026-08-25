@@ -3,7 +3,6 @@
 # from any .nix — the committed OUTPUT is what the flake consumes):
 #   1. re-vendor upstream into config/quickshell/rise/
 #   2. scripts/denix-rise.sh      — de-Omarchy rewrite, mounts AppLauncher
-#   3. scripts/dots-finalize.sh   — widget buttons, logo sizing
 #   4. git add -A && nh os switch
 # Needs: python3, imagemagick (identify) on PATH.
 
