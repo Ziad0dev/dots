@@ -190,6 +190,7 @@ in
     config = {
       frameless = true;
       plugins = {
+        anonymiseFileNames.enable = true;
         betterGifAltText.enable = true;
         betterGifPicker.enable = true;
         betterUploadButton.enable = true;
@@ -328,6 +329,7 @@ in
       bluetui
       wiremix
       networkmanager
+      xdg-desktop-portal-hyprland
       # media keys: hyprland binds -> playerctl -> mpdris2 -> mpd
       playerctl
       shellcheck
@@ -344,6 +346,7 @@ in
       mpv
       haruna
       mpc-qt
+      qt6.qtwayland
       obs-studio
       cliamp
 
