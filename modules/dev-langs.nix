@@ -8,7 +8,7 @@
 {
   environment.systemPackages = with pkgs; [
 
-    zigpkgs.master
+    zigpkgs."0.16.0"
     inputs.zls.packages.${system}.zls
 
     clang_multi
