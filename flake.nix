@@ -51,7 +51,7 @@
     };
 
     zls = {
-      url = "github:zigtools/zls";
+      url = "github:zigtools/zls/0.16.0";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -144,7 +144,7 @@
       templates = {
         zig = {
           path = ./templates/zig;
-          description = "Zig (zig-overlay) + zls";
+          description = "Zig 0.16.0 + matching zls";
         };
         rust = {
           path = ./templates/rust;
