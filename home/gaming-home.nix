@@ -1,4 +1,4 @@
-{ ... }:
+{ lib, ... }:
 
 {
   programs.mangohud = {
@@ -18,4 +18,11 @@
       vram = true;
     };
   };
+
+  home.activation.gfnSdlOverride = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    if command -v flatpak >/dev/null 2>&1 \
+      && flatpak info com.nvidia.geforcenow >/dev/null 2>&1; then
+      run flatpak override --user --env=SDL_VIDEODRIVER=x11 com.nvidia.geforcenow || true
+    fi
+  '';
 }
