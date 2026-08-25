@@ -26,12 +26,20 @@ in
     VISUAL = "nvim";
     TERMINAL = "ghostty";
     BROWSER = "zen";
-    MOZ_ENABLE_WAYLAND = "1";
-    NIXOS_OZONE_WL = "1";
-    QT_QPA_PLATFORM = "wayland;xcb";
-    QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
     SDL_VIDEODRIVER = "wayland";
-    _JAVA_AWT_WM_NONREPARENTING = "1";
+  };
+
+  xdg.desktopEntries.discord = {
+    name = "Discord";
+    genericName = "Internet Messenger";
+    exec = "discord --ozone-platform-hint=auto --enable-features=WaylandWindowDecorations %U";
+    icon = "discord";
+    terminal = false;
+    categories = [
+      "Network"
+      "InstantMessaging"
+    ];
+    mimeType = [ "x-scheme-handler/discord" ];
   };
 
   programs.bash.enable = true;
@@ -158,6 +166,9 @@ in
     };
     ".config/zen-theme" = {
       source = link "zen";
+    };
+    ".config/hyprland-preview-share-picker" = {
+      source = link "hyprland-preview-share-picker";
     };
 
   };
@@ -329,7 +340,6 @@ in
       bluetui
       wiremix
       networkmanager
-      xdg-desktop-portal-hyprland
       # media keys: hyprland binds -> playerctl -> mpdris2 -> mpd
       playerctl
       shellcheck
