@@ -8,7 +8,11 @@
 
   outputs =
     { nixpkgs, flake-utils, ... }:
-    flake-utils.lib.eachDefaultSystem (
+    flake-utils.lib.eachSystem [
+      "x86_64-linux"
+      "aarch64-linux"
+      "aarch64-darwin"
+    ] (
       system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
@@ -90,11 +94,12 @@
             echo "latexmk -pvc -pdf ${mainDoc}.tex   # continuous rebuild"
           '';
         };
-
-        templates.latex = {
-          path = ./.;
-          description = "LaTeX document with latexmk and reproducible nix builds";
-        };
       }
-    );
+    )
+    // {
+      templates.latex = {
+        path = ./.;
+        description = "LaTeX document with latexmk and reproducible nix builds";
+      };
+    };
 }

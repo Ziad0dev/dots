@@ -6,19 +6,30 @@
   outputs =
     { nixpkgs, ... }:
     let
-      system = "x86_64-linux";
-      pkgs = nixpkgs.legacyPackages.${system};
-      hs = pkgs.haskellPackages;
+      systems = [
+        "x86_64-linux"
+        "aarch64-linux"
+        "aarch64-darwin"
+      ];
+      eachSystem = f: nixpkgs.lib.genAttrs systems (system: f nixpkgs.legacyPackages.${system});
     in
     {
-      devShells.${system}.default = pkgs.mkShell {
-        packages = [
-          (hs.ghcWithPackages (ps: [
+      devShells = eachSystem (
+        pkgs:
+        let
+          hs = pkgs.haskellPackages;
+        in
+        {
+          default = pkgs.mkShell {
+            packages = [
+              (hs.ghcWithPackages (ps: [
 
-          ]))
-          hs.cabal-install
-          hs.haskell-language-server
-        ];
-      };
+              ]))
+              hs.cabal-install
+              hs.haskell-language-server
+            ];
+          };
+        }
+      );
     };
 }

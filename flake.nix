@@ -144,7 +144,7 @@
       templates = {
         zig = {
           path = ./templates/zig;
-          description = "Zig 0.16.0 + matching zls";
+          description = "Zig — matched zls pairs (default / edge / nightly)";
         };
         rust = {
           path = ./templates/rust;

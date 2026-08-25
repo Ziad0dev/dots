@@ -6,17 +6,28 @@
   outputs =
     { nixpkgs, ... }:
     let
-      system = "x86_64-linux";
-      pkgs = nixpkgs.legacyPackages.${system};
-      beam = pkgs.beam.packages.erlang_27;
+      systems = [
+        "x86_64-linux"
+        "aarch64-linux"
+        "aarch64-darwin"
+      ];
+      eachSystem = f: nixpkgs.lib.genAttrs systems (system: f nixpkgs.legacyPackages.${system});
     in
     {
-      devShells.${system}.default = pkgs.mkShell {
-        packages = [
-          beam.erlang
-          beam.elixir
-          beam.elixir-ls
-        ];
-      };
+      devShells = eachSystem (
+        pkgs:
+        let
+          beam = pkgs.beam.packages.erlang_27;
+        in
+        {
+          default = pkgs.mkShell {
+            packages = [
+              beam.erlang
+              beam.elixir
+              beam.elixir-ls
+            ];
+          };
+        }
+      );
     };
 }
