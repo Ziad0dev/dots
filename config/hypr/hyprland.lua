@@ -297,4 +297,13 @@ hl.bind(mainMod .. " + Escape", hl.dsp.exec_cmd("loginctl lock-session"))
 hl.bind(mainMod .. " + SHIFT + R", hl.dsp.exec_cmd(
     [[sh -c 'systemctl --user reload gsr-replay && notify-send -t 3000 "Replay saved" "last 5 min -> /data/replays"']]))
 
+hl.bind(mainMod .. " + ALT + R", hl.dsp.exec_cmd(
+    [[sh -c 'if systemctl --user is-active --quiet gsr-replay; then
+        systemctl --user stop gsr-replay
+        notify-send -t 3000 "gsr-toggle" "replay buffer disarmed"
+      else
+        systemctl --user start gsr-replay
+        notify-send -t 3000 "gsr-toggle" "replay buffer armed - 5 min rolling"
+      fi']]))
+
 pcall(dofile, os.getenv("HOME") .. "/.local/state/dots/theme/hyprland.lua")
