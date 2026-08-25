@@ -28,7 +28,6 @@ in
   systemd.user.services.gsr-replay = {
     description = "gpu-screen-recorder replay buffer";
 
-    wantedBy = [ "graphical-session.target" ];
     partOf = [ "graphical-session.target" ];
     after = [ "graphical-session.target" ];
 
