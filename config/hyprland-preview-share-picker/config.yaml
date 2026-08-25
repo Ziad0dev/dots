@@ -1,0 +1,30 @@
+stylesheets:
+  - ~/.local/state/dots/theme/share-picker.css
+
+default_page: windows
+
+window:
+  height: 560
+  width: 1100
+
+image:
+  resize_size: 260
+  widget_size: 180
+
+windows:
+  min_per_row: 3
+  max_per_row: 5
+  clicks: 1
+  spacing: 12
+
+outputs:
+  clicks: 1
+  spacing: 6
+  show_label: true
+  respect_output_scaling: true
+
+region:
+  command: slurp -f '%o@%x,%y,%w,%h'
+
+hide_token_restore: false
+debug: false

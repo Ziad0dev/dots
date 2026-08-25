@@ -1,0 +1,109 @@
+* {
+  all: unset;
+  font-family: "JetBrainsMono Nerd Font";
+  font-size: 14px;
+  color: ${foreground};
+}
+
+.window {
+  background-color: ${background};
+  border: solid 2px ${surface};
+  border-radius: 8px;
+  margin: 2px;
+}
+
+tabs {
+  padding: 0.5rem 1rem;
+}
+
+tabs > tab {
+  margin-right: 1rem;
+}
+
+.tab-label {
+  color: ${muted};
+  font-weight: bold;
+  transition: all 0.15s ease;
+}
+
+tabs > tab:checked > .tab-label,
+tabs > tab:active > .tab-label,
+tabs > tab:focus > .tab-label {
+  color: ${accent};
+  text-decoration: underline currentColor;
+}
+
+.page {
+  padding: 1rem;
+}
+
+.image-label {
+  font-size: 12px;
+  color: ${dim};
+  padding: 0.25rem;
+}
+
+flowboxchild > .card,
+button > .card {
+  background-color: ${surface};
+  border: solid 2px ${surface};
+  border-radius: 6px;
+  padding: 5px;
+  transition: all 0.15s ease;
+}
+
+flowboxchild:hover > .card,
+button:hover > .card {
+  border-color: ${muted};
+}
+
+flowboxchild:active > .card,
+flowboxchild:selected > .card,
+button:active > .card,
+button:selected > .card,
+button:focus > .card {
+  border-color: ${accent};
+}
+
+.card-loading {
+  background-color: ${surface};
+  border: solid 2px ${surface};
+  border-radius: 6px;
+  padding: 5px;
+  opacity: 0.4;
+}
+
+.image {
+  border-radius: 4px;
+}
+
+.region-button,
+.restore-button {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+
+.region-button {
+  background-color: ${accent};
+  color: ${background};
+  font-weight: bold;
+}
+
+.region-button:not(:disabled):hover,
+.region-button:not(:disabled):focus {
+  background-color: ${color4};
+}
+
+.region-button:disabled {
+  background-color: ${surface};
+  color: ${dim};
+}
+
+.restore-button {
+  color: ${muted};
+}
+
+.restore-button:hover {
+  color: ${foreground};
+}
