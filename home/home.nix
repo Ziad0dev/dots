@@ -34,7 +34,7 @@ in
   xdg.desktopEntries.discord = {
     name = "Discord";
     genericName = "Internet Messenger";
-    exec = "vesktop --ozone-platform-hint=auto --enable-features=WaylandWindowDecorations %U";
+    exec = "discord --ozone-platform-hint=auto --enable-features=WaylandWindowDecorations %U";
     icon = "discord";
     terminal = false;
     categories = [
@@ -178,7 +178,7 @@ in
   qt = {
     enable = true;
     platformTheme.name = "kde";
-    style.name = "breeze";
+    style.name = "kvantum";
   };
 
   imports = [
@@ -194,6 +194,7 @@ in
     ./theming.nix
     ./ai-usage.nix
     ./git-hooks.nix
+    ./kvantum.nix
   ];
 
   programs.nixcord = {

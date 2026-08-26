@@ -6,7 +6,6 @@ hl.monitor({
     scale    = 1,
     bitdepth = 10,
     cm = "hdr",
-    supports_hdr = 1,
     supports_wide_color = 1,
     sdrbrightness = 1.0,
     sdrsaturation = 1.0,
@@ -18,8 +17,6 @@ hl.monitor({
 })
 
 hl.monitor({output = "HDMI-A-1", mode = "1920x1080@60", position = "auto-right", scale = 1, transform = 3})
-
-hl.config({ render = { cm_auto_hdr = 2, direct_scanout = true } })
 
 hl.monitor({ output = "", mode = "preferred", position = "auto", scale = "auto" })
 
@@ -85,7 +82,6 @@ hl.config({
 
         active_opacity     = 1.0,
         inactive_opacity   = 1,
-        fullscreen_opacity = 1.0,
 
         blur = {
             enabled            = true,
