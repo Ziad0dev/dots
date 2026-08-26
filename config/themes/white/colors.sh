@@ -47,3 +47,5 @@ blue="#1a1a1a"
 magenta="#2e2e2e"
 cyan="#3e3e3e"
 pink="#2e2e2e"
+
+kvantum_theme="KvAdapta"
