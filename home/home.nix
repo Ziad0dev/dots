@@ -175,13 +175,7 @@ in
 
   };
 
-  qt = {
-    enable = true;
-    platformTheme.name = "kde";
-    style.name = "kvantum";
-  };
-
-  imports = [
+   imports = [
     inputs.nix-index-database.homeModules.default
     inputs.nixcord.homeModules.nixcord
     ./emacs.nix
