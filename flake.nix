@@ -112,6 +112,7 @@
           ./modules/ananicy-fix.nix
           ./modules/lockscreen.nix
           ./modules/sddm.nix
+
           chaotic.nixosModules.nyx-cache
           chaotic.nixosModules.nyx-overlay
           chaotic.nixosModules.nyx-registry
