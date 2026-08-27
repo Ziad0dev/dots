@@ -1,0 +1,113 @@
+# Slatewave for btop
+#
+# A Slatewave .theme for btop — slate dashboard, teal/amber/rose graphs.
+# Drop into $BTOP_THEMES_DIR (usually ~/.config/btop/themes) and select
+# in btop's Options menu under "color_theme".
+#
+# Repo: https://github.com/kevinlangleyjr/btop-slatewave
+
+# -----------------------------------------------------------------
+# Surfaces & text
+# -----------------------------------------------------------------
+
+# Main bg — left empty so btop inherits the terminal background.
+# Set to "#1e293b" (slate-800) if you want an opaque slate panel.
+theme[main_bg]=""
+
+# Main text color (slate-200)
+theme[main_fg]="#e2e8f0"
+
+# Title color for boxes (slate-200)
+theme[title]="#e2e8f0"
+
+# Highlight color for keyboard shortcuts (teal-300)
+theme[hi_fg]="#5eead4"
+
+# Background color of selected item in processes box (slate-700)
+theme[selected_bg]="#334155"
+
+# Foreground color of selected item in processes box (teal-300)
+theme[selected_fg]="#5eead4"
+
+# Color of inactive/disabled text (slate-500)
+theme[inactive_fg]="#64748b"
+
+# Graph text color (slate-400) — readout values overlaid on graphs
+theme[graph_text]="#94a3b8"
+
+# Background of meters (the unfilled portion) — slate-700
+theme[meter_bg]="#334155"
+
+# Misc color used in processes box including mini cpu graphs and
+# details memory graph and details status text (teal-300)
+theme[proc_misc]="#5eead4"
+
+# -----------------------------------------------------------------
+# Box outlines
+# -----------------------------------------------------------------
+# All box outlines use slate-600 so the chrome reads as a single
+# coherent grid rather than four separate panels.
+
+theme[cpu_box]="#475569"
+theme[mem_box]="#475569"
+theme[net_box]="#475569"
+theme[proc_box]="#475569"
+
+# Box divider line and small boxes line color (slate-600)
+theme[div_line]="#475569"
+
+# -----------------------------------------------------------------
+# Gradients — every meter and graph uses the same three-stop ramp
+# so the visual language stays consistent across panels:
+#
+#     teal-300 → amber-400 → rose-400
+#     low / cool / idle    →    high / hot / saturated
+#
+# Read it as: more rose = more activity. The same ramp drives temp,
+# cpu, memory used, network throughput, and process activity.
+# -----------------------------------------------------------------
+
+# Temperature graph
+theme[temp_start]="#5eead4"
+theme[temp_mid]="#fbbf24"
+theme[temp_end]="#fb7185"
+
+# CPU graph
+theme[cpu_start]="#5eead4"
+theme[cpu_mid]="#fbbf24"
+theme[cpu_end]="#fb7185"
+
+# Mem/Disk free meter
+theme[free_start]="#5eead4"
+theme[free_mid]="#fbbf24"
+theme[free_end]="#fb7185"
+
+# Mem/Disk cached meter
+theme[cached_start]="#5eead4"
+theme[cached_mid]="#fbbf24"
+theme[cached_end]="#fb7185"
+
+# Mem/Disk available meter
+theme[available_start]="#5eead4"
+theme[available_mid]="#fbbf24"
+theme[available_end]="#fb7185"
+
+# Mem/Disk used meter
+theme[used_start]="#5eead4"
+theme[used_mid]="#fbbf24"
+theme[used_end]="#fb7185"
+
+# Download graph
+theme[download_start]="#5eead4"
+theme[download_mid]="#fbbf24"
+theme[download_end]="#fb7185"
+
+# Upload graph
+theme[upload_start]="#5eead4"
+theme[upload_mid]="#fbbf24"
+theme[upload_end]="#fb7185"
+
+                                                                                                   # Process activity gradient (process box CPU column)
+theme[process_start]="#5eead4"
+theme[process_mid]="#fbbf24"
+theme[process_end]="#fb7185"
