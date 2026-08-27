@@ -184,7 +184,14 @@ sddm_compat() {
             "$background" "$foreground" "$accent" "$red" "$yellow"
     ) >"$dir/sddm.json.tmp" && mv -f "$dir/sddm.json.tmp" "$dir/sddm.json"
 }
-
+kvantum_compat() {
+    local out dir
+    out="$STATE/kvantum.kvconfig"
+    [ -f "$out" ] || return 0
+    dir="${XDG_CONFIG_HOME:-$HOME/.config}/Kvantum/KvGlass#"
+    mkdir -p "$dir"
+    relink "$out" "$dir/KvGlass#.kvconfig"
+}
 reload_apps() {
 
     pkill -SIGUSR2 ghostty 2>/dev/null || true
@@ -224,6 +231,7 @@ cmd_set() {
     printf '%s\n' "$name" >"$CURRENT"
     shell_compat "$name"
     sddm_compat "$name"
+    kvantum_compat "$name"
     reload_apps
 
     if wp=$(theme_wallpaper "$name"); then

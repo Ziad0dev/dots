@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -uo pipefail
+
+if [ -z "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]; then
+    sleep 10
+    exit 0
+fi
+
+socat -U - UNIX-CONNECT:"$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock" 2>/dev/null \
+    | grep -m1 --line-buffered "activelayout>>"
