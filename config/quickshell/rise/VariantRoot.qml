@@ -252,6 +252,7 @@ Item {
     CpuPanel { root: theme }
     AiUsagePanel { root: theme }
     VolumePanel { root: theme }
+    LanguagePanel { root: theme }
     TrayPanel { root: theme }
     NotificationPanel { root: theme }
     NetworkPanel { root: theme }
