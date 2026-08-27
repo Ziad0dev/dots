@@ -167,7 +167,7 @@ Item {
     property bool _barLayoutSyncing: false
 
     readonly property bool anyPopupVisible: calendarVisible || cpuVisible || aiUsageVisible
-        || memVisible || volVisible || controlVisible || networkVisible || bluetoothVisible
+        || memVisible || volVisible || langVisible || controlVisible || networkVisible || bluetoothVisible
         || batteryVisible || brightnessVisible || mprisVisible || weatherVisible
         || workspaceVisible || imagePickerVisible || mediaBrowserVisible || notifVisible
         || powerProfileVisible || archVisible || trayVisible || trayMenuVisible
@@ -365,6 +365,7 @@ Item {
         else if (name === "notif") notifBarX = x
         else if (name === "quickActions") quickActionsBarX = x
         else if (name === "volume") volumeBarX = x
+        else if (name === "language") languageBarX = x
         else if (name === "network") networkBarX = x
         else if (name === "battery") batteryBarX = x
         else if (name === "memory") memoryBarX = x
@@ -423,6 +424,7 @@ Item {
         if (except !== "aiUsageVisible") aiUsageVisible = false
         if (except !== "memVisible") memVisible = false
         if (except !== "volVisible") volVisible = false
+        if (except !== "langVisible") langVisible = false
         if (except !== "controlVisible") controlVisible = false
         if (except !== "networkVisible") networkVisible = false
         if (except !== "bluetoothVisible") bluetoothVisible = false
@@ -1058,6 +1060,10 @@ Item {
     // ── Volume panel state ──
     property bool volVisible: false
     onVolVisibleChanged: popupOpened("volVisible")
+
+    // ── Language panel state ──
+    property bool langVisible: false
+    onLangVisibleChanged: popupOpened("langVisible")
 
     // ── Control center state ──
     property bool controlVisible: false
@@ -2324,6 +2330,7 @@ Item {
 
     // ── slot-aware panel X anchors (center-X of each group; set by BarSlot) ──
     property real volumeBarX:     0
+    property real languageBarX:   0
     property real networkBarX:    0
     property real batteryBarX:    0
     property real memoryBarX:     0

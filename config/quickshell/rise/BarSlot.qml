@@ -273,6 +273,7 @@ PanelWindow {
                 x: Math.round((parent.width - width) / 2)
                 spacing: 4
                 FilesWidget  { root: barSlot.root; anchors.verticalCenter: parent.verticalCenter }
+                LanguageWidget { root: barSlot.root; anchors.verticalCenter: parent.verticalCenter }
                 Row {
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: 2
@@ -934,6 +935,7 @@ PanelWindow {
                 notif:        island.groupX("G3",  0.0),
                 quickActions: island.groupX("G10", 0.5),
                 volume:       island.groupX("G6",  0.5),
+                language:     island.groupX("G3",  0.0),
                 network:      island.groupX("G11", 0.5),
                 battery:      island.groupX("G12", 0.5),
                 memory:       island.groupX("G4",  0.5),
