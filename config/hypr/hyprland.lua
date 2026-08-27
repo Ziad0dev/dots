@@ -282,6 +282,7 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("awww-daemon")
     hl.exec_cmd("flameshot")
     hl.exec_cmd("gammastep")
+    hl.exec_cmd("easyeffects")
 end)
 
 hl.on("hyprland.shutdown", function()
