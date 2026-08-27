@@ -1,15 +1,12 @@
-{ pkgs, ... }:
+{ ... }:
 
 {
-  home.packages = with pkgs; [
-    libsForQt5.qtstyleplugin-kvantum
-    kdePackages.qtstyleplugin-kvantum
-  ];
-
   qt = {
     enable = true;
-    platformTheme.name = "kde";
+    platformTheme.name = "qtct";
     style.name = "kvantum";
+    qt5ctSettings.Appearance.style = "kvantum";
+    qt6ctSettings.Appearance.style = "kvantum";
   };
 
   qt.kvantum = {
