@@ -89,10 +89,12 @@ let
       gnugrep
       gnused
       imagemagick
+      jq
       libnotify
       pamixer
       procps
       pulseaudio
+      socat
       systemd
       wireplumber
       xdg-user-dirs
