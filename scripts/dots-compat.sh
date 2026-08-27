@@ -77,7 +77,7 @@ case "$CMD" in
                 systemd-run --user --unit=dots-gsr --quiet --collect \
                     --property=KillSignal=SIGINT \
                     --property=TimeoutStopSec=15 \
-                    -- gpu-screen-recorder ${DOTS_GSR_ARGS:--w DP-1 -f 60 -c mp4 -k hevc -q very_high -a default_output} \
+                    -- gpu-screen-recorder ${DOTS_GSR_ARGS:--w DP-1 -f 60 -c mp4 -k hevc -q very_high -a default_output|easyeffects_source} \
                        -o "$out"
                 ;;
         esac

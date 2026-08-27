@@ -41,7 +41,7 @@ in
         "-c mp4"
         "-k hevc"
         "-q very_high"
-        "-a default_output"
+        "-a default_output|easyeffects_source"
         "-r 300"
         "-o ${replayDir}"
       ];

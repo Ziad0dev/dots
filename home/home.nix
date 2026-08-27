@@ -349,6 +349,7 @@ in
       rmpc
       tauon
       easyeffects
+      qpwgraph
 
       # ── Video / media ─────────────────────────────────────────────────
       mpv
