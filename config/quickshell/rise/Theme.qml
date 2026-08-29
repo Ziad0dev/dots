@@ -168,7 +168,7 @@ Item {
 
     readonly property bool anyPopupVisible: calendarVisible || cpuVisible || aiUsageVisible
         || memVisible || volVisible || langVisible || controlVisible || networkVisible || bluetoothVisible
-        || batteryVisible || brightnessVisible || mprisVisible || weatherVisible
+        || batteryVisible || brightnessVisible || mprisVisible || weatherVisible || keybindsVisible
         || workspaceVisible || imagePickerVisible || mediaBrowserVisible || notifVisible
         || powerProfileVisible || archVisible || trayVisible || trayMenuVisible
     readonly property bool keyboardPopupVisible: imagePickerVisible || mediaBrowserVisible
@@ -432,6 +432,7 @@ Item {
         if (except !== "brightnessVisible") brightnessVisible = false
         if (except !== "mprisVisible") mprisVisible = false
         if (except !== "weatherVisible") weatherVisible = false
+        if (except !== "keybindsVisible") keybindsVisible = false
         if (except !== "workspaceVisible") workspaceVisible = false
         if (except !== "imagePickerVisible") imagePickerVisible = false
         if (except !== "mediaBrowserVisible") mediaBrowserVisible = false
@@ -1887,6 +1888,8 @@ Item {
     onMprisVisibleChanged: popupOpened("mprisVisible")
     property bool weatherVisible:   false
     onWeatherVisibleChanged: popupOpened("weatherVisible")
+    property bool keybindsVisible:  false
+    onKeybindsVisibleChanged: popupOpened("keybindsVisible")
     property bool workspaceVisible: false
     onWorkspaceVisibleChanged: popupOpened("workspaceVisible")
 

@@ -48,6 +48,9 @@
 
     qemu
     quickemu
+
+    OVMF
+    swtpm
   ];
 
   systemd.tmpfiles.rules = [

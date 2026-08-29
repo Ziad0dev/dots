@@ -474,6 +474,7 @@ PanelWindow {
                 IdleInhibitorWidget { root: barSlot.root; anchors.verticalCenter: parent.verticalCenter }
                 MediaBrowserWidget  { root: barSlot.root; screen: barSlot.screen; anchors.verticalCenter: parent.verticalCenter }
                 ThemeDisplayWidget  { root: barSlot.root; screen: barSlot.screen; anchors.verticalCenter: parent.verticalCenter }
+                KeybindsWidget      { root: barSlot.root; anchors.verticalCenter: parent.verticalCenter }
             }
         }
     }
