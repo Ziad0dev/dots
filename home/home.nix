@@ -322,7 +322,6 @@ in
       # ── Wayland session ────────────────────────────────────────────────
       dunst
       ghostty
-      hyprlock
       hypridle
       awww
       cliphist

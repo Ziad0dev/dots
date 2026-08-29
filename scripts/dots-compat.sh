@@ -166,7 +166,7 @@ case "$CMD" in
 
     dots-shell)
         case "${1:-}" in
-            lock) exec hyprlock ;;
+            lock) exec quickshell -c lock ;;
             restart) exec systemctl --user restart quickshell ;;
             *) exit 0 ;;
         esac
