@@ -225,7 +225,7 @@ hl.bind(mainMod .. " + Print",
 
 hl.bind(mainMod .. " + SHIFT + E", hl.dsp.exit())
 hl.bind(mainMod .. " + CTRL + R", hl.dsp.exec_cmd("hyprctl reload"))
-hl.bind(mainMod .. " + CTRL + L",  hl.dsp.exec_cmd("hyprlock"))
+hl.bind(mainMod .. " + CTRL + L",  hl.dsp.exec_cmd("quickshell -c lock"))
 
 hl.window_rule({
     name   = "dots-float-lg",

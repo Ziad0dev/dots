@@ -261,6 +261,7 @@ Item {
     BrightnessPanel { root: theme }
     MprisPanel { root: theme }
     WeatherPanel { root: theme }
+    KeybindsPanel { root: theme }
     WorkspacePanel { root: theme }
     ControlPanel { root: theme }
     TrayMenu { root: theme }
