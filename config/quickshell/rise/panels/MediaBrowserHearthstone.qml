@@ -45,20 +45,30 @@ PanelWindow {
 
     // ── filtered list ──
     readonly property var filtered: {
-        var out = []
-        for (var i = 0; i < imageArray.length; i++) {
-            if (!Model.itemMatches(imageArray, i, filterText)) continue
+        var out = [], arr = imageArray, ids = Model.matchList(arr, filterText)
+        for (var k = 0; k < ids.length; k++) {
+            var img = arr[ids[k]]
             out.push({
-                idx:      i,
-                filePath: imageArray[i].filePath,
-                thumbnailPath: imageArray[i].thumbnailPath,
-                label:    panel.mediaLabel(imageArray[i].filePath),
+                idx:      ids[k],
+                filePath: img.filePath,
+                thumbnailPath: img.thumbnailPath,
+                label:    panel.mediaLabel(img.filePath),
                 isVideo:  panel.isVideos
             })
         }
         return out
     }
     onFilteredChanged: if (selFilt >= filtered.length) selFilt = Math.max(0, filtered.length - 1)
+
+    // ── windowed view ──
+    readonly property int winRadius: maxVisible + 8
+    readonly property int winCount:  Math.min(filtered.length, 2 * winRadius + 1)
+    readonly property int winStart:  Math.max(0, Math.min(selFilt - winRadius, filtered.length - winCount))
+    function absForSlot(slot) {
+        var n = panel.winCount; if (n <= 0) return -1
+        var s = panel.winStart
+        return s + ((slot - s) % n + n) % n
+    }
 
     readonly property string currentLabel:
         (filtered.length > 0 && selFilt >= 0 && selFilt < filtered.length)
@@ -283,9 +293,15 @@ PanelWindow {
         anchors.fill: parent
         enabled: panel.visible
         onClicked: root.mediaBrowserVisible = false
+        property real wheelAcc: 0
         onWheel: function(wheel) {
             if (!panel.ready) return
-            panel.moveSel(wheel.angleDelta.y < 0 ? 1 : -1)
+            var d = wheel.angleDelta.y
+            if (d === 0) return
+            if ((d > 0) !== (wheelAcc >= 0)) wheelAcc = 0
+            wheelAcc += d
+            while (wheelAcc >=  120) { wheelAcc -= 120; panel.moveSel(-1) }
+            while (wheelAcc <= -120) { wheelAcc += 120; panel.moveSel(1) }
         }
     }
 
@@ -381,13 +397,14 @@ PanelWindow {
         }
 
         Repeater {
-            model: panel.filtered.length
+            model: panel.winCount
 
             delegate: Item {
                 id: card
                 required property int index
-                readonly property var  entry:   panel.filtered[index] || null
-                readonly property int  relIdx:  index - panel.selFilt
+                readonly property int  absIdx:  panel.absForSlot(index)
+                readonly property var  entry:   panel.filtered[absIdx] || null
+                readonly property int  relIdx:  absIdx - panel.selFilt
                 readonly property bool focused: relIdx === 0
                 readonly property bool nearby:  Math.abs(relIdx) <= panel.maxVisible
                 readonly property real dim: focused ? 0.0 : Math.min(0.62, 0.30 + Math.abs(relIdx) * 0.05)
@@ -412,10 +429,10 @@ PanelWindow {
                 z: focused ? 1000 : 500 - Math.min(Math.abs(relIdx), 40)
                 opacity: panel.dealT
 
-                Behavior on x        { NumberAnimation { duration: 240; easing.type: Easing.OutCubic } }
-                Behavior on y        { NumberAnimation { duration: 240; easing.type: Easing.OutCubic } }
-                Behavior on rotation { NumberAnimation { duration: 240; easing.type: Easing.OutCubic } }
-                Behavior on scale    { NumberAnimation { duration: 240; easing.type: Easing.OutCubic } }
+                Behavior on x        { enabled: card.nearby; NumberAnimation { duration: 240; easing.type: Easing.OutCubic } }
+                Behavior on y        { enabled: card.nearby; NumberAnimation { duration: 240; easing.type: Easing.OutCubic } }
+                Behavior on rotation { enabled: card.nearby; NumberAnimation { duration: 240; easing.type: Easing.OutCubic } }
+                Behavior on scale    { enabled: card.nearby; NumberAnimation { duration: 240; easing.type: Easing.OutCubic } }
 
                 // photo/poster (raster) — edges hidden behind the passepartout
                 Item {
@@ -437,7 +454,7 @@ PanelWindow {
                                 }
                             }
                         }
-                        fillMode: Image.PreserveAspectCrop; asynchronous: true; cache: false; smooth: true
+                        fillMode: Image.PreserveAspectCrop; asynchronous: true; cache: true; smooth: true
                         sourceSize.width:  panel.cardW * 2
                         sourceSize.height: panel.cardH * 2
                     }
@@ -516,7 +533,7 @@ PanelWindow {
 
                 MouseArea {
                     anchors.fill: parent; cursorShape: Qt.PointingHandCursor
-                    onClicked: card.focused ? panel.openSelected() : (panel.selFilt = index)
+                    onClicked: card.focused ? panel.openSelected() : (panel.selFilt = card.absIdx)
                 }
             }
         }

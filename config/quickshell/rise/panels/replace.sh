@@ -7,8 +7,6 @@ if [ -z "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]; then
 fi
 
 sock="$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock"
-[ -S "$sock" ] || { sleep 10; exit 0; }
-
 fifo=$(mktemp -u)
 mkfifo "$fifo"
 socat -U - UNIX-CONNECT:"$sock" > "$fifo" 2>/dev/null &

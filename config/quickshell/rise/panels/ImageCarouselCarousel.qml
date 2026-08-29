@@ -255,6 +255,18 @@ PanelWindow {
     function selectedFiltPos() { return Model.selectedFilteredPosition(imageArray, selectedIndex, filterApplied) }
     function itemMatches(idx)  { return Model.itemMatches(imageArray, idx, filterApplied) }
 
+    // ── windowed view ──
+    readonly property var  matchIds:  Model.matchList(imageArray, filterApplied)
+    readonly property int  selPos:    Model.selectedFilteredPosition(imageArray, selectedIndex, filterApplied)
+    readonly property int  winRadius: 22
+    readonly property int  winCount:  Math.min(matchIds.length, 2 * winRadius + 1)
+    readonly property int  winStart:  Math.max(0, Math.min(selPos - winRadius, matchIds.length - winCount))
+    function absForSlot(slot) {
+        var n = panel.winCount; if (n <= 0) return -1
+        var s = panel.winStart
+        return s + ((slot - s) % n + n) % n
+    }
+
     // when typing a filter, jump the focused (main) card to the first match
     onFilterTextChanged: filterDebounce.restart()
 
@@ -485,9 +497,15 @@ PanelWindow {
         anchors.fill: parent
         enabled: panel.visible
         onClicked: root.imagePickerVisible = false
+        property real wheelAcc: 0
         onWheel: function(wheel) {
             if (!panel.ready) return
-            panel.selectAdjacent(wheel.angleDelta.y < 0 ? 1 : -1)
+            var d = wheel.angleDelta.y
+            if (d === 0) return
+            if ((d > 0) !== (wheelAcc >= 0)) wheelAcc = 0
+            wheelAcc += d
+            while (wheelAcc >=  120) { wheelAcc -= 120; panel.selectAdjacent(-1) }
+            while (wheelAcc <= -120) { wheelAcc += 120; panel.selectAdjacent(1) }
         }
     }
 
@@ -565,16 +583,18 @@ PanelWindow {
         }
 
         Repeater {
-            model: panel.imageArray.length
+            model: panel.winCount
 
             delegate: Item {
                 id: slice
                 required property int index
 
-                readonly property var  imgData:    panel.imageArray[index]
-                readonly property bool matched:    panel.itemMatches(index)
-                readonly property int  relIdx:     panel.filteredPos(index) - panel.selectedFiltPos()
-                readonly property bool selected:   matched && index === panel.selectedIndex
+                readonly property int  absPos:     panel.absForSlot(index)
+                readonly property int  srcIdx:     (absPos >= 0 && absPos < panel.matchIds.length) ? panel.matchIds[absPos] : -1
+                readonly property var  imgData:    srcIdx >= 0 ? panel.imageArray[srcIdx] : null
+                readonly property bool matched:    srcIdx >= 0
+                readonly property int  relIdx:     absPos - panel.selPos
+                readonly property bool selected:   matched && srcIdx === panel.selectedIndex
                 readonly property bool nearby:     matched && Math.abs(relIdx) <= 14
 
                 // shared 512px thumbnail cache. The scan/warm worker owns path
@@ -590,9 +610,9 @@ PanelWindow {
                 height: selected ? panel.expandedH : panel.sliceH
                 z: selected ? 100 : 50 - Math.min(Math.abs(relIdx), 40)
 
-                Behavior on x     { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
-                Behavior on y     { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
-                Behavior on width { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
+                Behavior on x     { enabled: slice.nearby; NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
+                Behavior on y     { enabled: slice.nearby; NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
+                Behavior on width { enabled: slice.nearby; NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
 
                 readonly property real skAbs:    Math.abs(panel.skew)
                 readonly property real topLeft:  panel.skew >= 0 ? skAbs : 0
@@ -682,7 +702,7 @@ PanelWindow {
 
                         MouseArea {
                             anchors.fill: parent; cursorShape: Qt.PointingHandCursor
-                            onClicked: slice.selected ? panel.applySelected() : (panel.selectedIndex = index)
+                            onClicked: slice.selected ? panel.applySelected() : (panel.selectedIndex = slice.srcIdx)
                         }
                     }
                 }
