@@ -404,6 +404,7 @@ in
       beamPkgs.elixir-ls
       inputs.zen-browser.packages.${system}.default
       inputs.helium.defaultPackage.${system}
+      inputs.vm-curator.packages.${system}.default
     ];
 
   services.cliphist.enable = true;
