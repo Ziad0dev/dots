@@ -118,6 +118,7 @@
           ./modules/hdr.nix
           ./modules/dev-langs.nix
           ./modules/ananicy-fix.nix
+          ./modules/osd.nix
           ./modules/lockscreen.nix
           ./modules/sddm.nix
 

@@ -1,0 +1,7 @@
+{
+  "name": "notifications",
+  "version": "1",
+  "provider": "dunst",
+  "state": "~/.local/state/dots/notifications.json",
+  "verbs": ["ping", "status", "toggle"]
+}
