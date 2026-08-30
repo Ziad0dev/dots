@@ -1,0 +1,7 @@
+{
+  "name": "idle",
+  "version": "1",
+  "provider": "hypridle",
+  "state": "~/.local/state/dots/indicators/stay-awake",
+  "verbs": ["status", "toggle"]
+}
