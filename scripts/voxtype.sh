@@ -30,7 +30,24 @@ model_label() {
 }
 
 set_phase() { printf '%s' "$1" >"$PHASE"; }
-get_phase() { if [ -s "$PHASE" ]; then cat "$PHASE"; else printf 'idle'; fi; }
+
+rec_alive() {
+    local pid
+    pid=$(cat "$PIDF" 2>/dev/null) || return 1
+    [ -n "$pid" ] || return 1
+    kill -0 "$pid" 2>/dev/null
+}
+
+get_phase() {
+    local p="idle"
+    [ -s "$PHASE" ] && p=$(cat "$PHASE")
+    if [ "$p" = "recording" ] && ! rec_alive; then
+        rm -f "$PIDF"
+        set_phase idle
+        p="idle"
+    fi
+    printf '%s' "$p"
+}
 
 emit_text() {
     local text="$1"
@@ -45,6 +62,7 @@ emit_text() {
 }
 
 start_rec() {
+    if rec_alive; then kill "$(cat "$PIDF")" 2>/dev/null; sleep 0.2; fi
     rm -f "$WAV"
     pw-record --rate 16000 --channels 1 --format s16 "$WAV" &
     echo $! >"$PIDF"

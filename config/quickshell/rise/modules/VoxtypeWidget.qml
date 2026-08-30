@@ -10,34 +10,56 @@ Item {
     readonly property string hint:  root.voxHint
     readonly property bool   hasVoxtype: root.voxAvailable
 
-    readonly property string displayIcon: {
-        if (state === "recording")    return "\uE029"   // mic
-        if (state === "transcribing") return "\uE65F"   // auto_awesome
-        return ""
-    }
+    readonly property bool recording:    state === "recording"
+    readonly property bool transcribing: state === "transcribing"
+    readonly property bool showing:      recording || transcribing
 
-    visible: displayIcon !== ""
-    implicitWidth: visible ? 20 : 0
+    readonly property string label: recording ? "REC" : (transcribing ? "···" : "")
+    readonly property color  tone:  recording ? root.color01 : root.ink
+
+    visible: showing
+    implicitWidth: showing ? root.evenW(body.implicitWidth + 10) : 0
     implicitHeight: 28
 
+    readonly property string tooltipText: hint !== "" ? hint : (recording ? "Voxtype recording" : "Voxtype transcribing")
 
-    readonly property string tooltipText: hint !== "" ? hint : (state === "recording" ? "Voxtype recording" : "Voxtype transcribing")
+    Rectangle {
+        anchors.fill: parent
+        anchors.topMargin: 5
+        anchors.bottomMargin: 5
+        radius: height / 2
+        color: rootMod.recording ? Qt.rgba(rootMod.tone.r, rootMod.tone.g, rootMod.tone.b, 0.16) : "transparent"
+        visible: rootMod.showing
+    }
 
-    IconText {
-        id: ico
+    Row {
+        id: body
         anchors.centerIn: parent
-        text: rootMod.displayIcon
-        color: rootMod.state === "recording" ? root.seal : root.ink
-        font.pixelSize: 14
+        spacing: 5
 
-        // pulse while recording
-        SequentialAnimation on opacity {
-            running: rootMod.state === "recording"
-            loops: Animation.Infinite
-            NumberAnimation { to: 0.35; duration: 600; easing.type: Easing.InOutSine }
-            NumberAnimation { to: 1.0;  duration: 600; easing.type: Easing.InOutSine }
+        Rectangle {
+            id: dot
+            anchors.verticalCenter: parent.verticalCenter
+            width: 7; height: 7; radius: 3.5
+            color: rootMod.tone
+            visible: rootMod.recording
+
+            SequentialAnimation on opacity {
+                running: rootMod.recording
+                loops: Animation.Infinite
+                NumberAnimation { to: 0.25; duration: 600; easing.type: Easing.InOutSine }
+                NumberAnimation { to: 1.0;  duration: 600; easing.type: Easing.InOutSine }
+            }
         }
-        onTextChanged: if (rootMod.state !== "recording") opacity = 1.0
+
+        UiText {
+            anchors.verticalCenter: parent.verticalCenter
+            text: rootMod.label
+            color: rootMod.tone
+            font.family: rootMod.root.mono
+            font.pixelSize: 11
+            font.bold: rootMod.recording
+        }
     }
 
     Process { id: modelProc;  command: ["bash", "-c", "dots-voxtype-model"] }
