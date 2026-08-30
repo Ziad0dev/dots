@@ -212,7 +212,7 @@ in
     hyprpolkitagent
     # Pairs with programs.coolercontrol
     coolercontrol.coolercontrol-gui
-    inputs.dvr-patched.packages.${pkgs.system}.default
+    inputs.dvr-patched.packages.${system}.default
     # Container runtime
     podman
     kdePackages.dolphin
