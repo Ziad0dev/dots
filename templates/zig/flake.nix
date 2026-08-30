@@ -3,7 +3,10 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    zig-overlay.url = "github:mitchellh/zig-overlay";
+    zig-overlay = {
+      url = "github:mitchellh/zig-overlay";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     zls = {
       url = "github:zigtools/zls/0.16.0";
       inputs.nixpkgs.follows = "nixpkgs";
