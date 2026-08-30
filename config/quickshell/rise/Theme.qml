@@ -1177,6 +1177,7 @@ Item {
     readonly property var _dotsBackendRetryDelays: [2000, 5000, 15000]
     readonly property string dotsShellConfigPath: Quickshell.env("HOME") + "/.local/state/dots/shell/shell.json"
     readonly property string idleStatePath: Quickshell.env("HOME") + "/.local/state/dots/indicators/stay-awake"
+    readonly property string voxPhasePath: Quickshell.env("HOME") + "/.local/state/dots/voxtype/phase"
     property bool notifSilenced: false        // notification do-not-disturb mode
     property bool _notifBackendChecked: false
     property bool _notifNixOSShellBackend: false
@@ -1317,6 +1318,23 @@ Item {
             theme.refreshIdleStatus()
             theme.finishNixOSBackendReprobe()
         }
+    }
+
+    FileView {
+        id: voxPhaseFile
+        path: theme.voxPhasePath
+        watchChanges: true
+        printErrors: false
+        onFileChanged: voxPhaseFile.reload()
+        onLoaded: {
+            var p = voxPhaseFile.text().trim()
+            if (p !== "recording" && p !== "transcribing" && p !== "idle") return
+            if (p === theme.voxState) return
+            theme.voxState = p
+            theme.voxAvailable = true
+            theme.refreshVoxtypeStatus()
+        }
+        onLoadFailed: {}
     }
 
     FileView {
