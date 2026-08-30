@@ -37,7 +37,10 @@ case "$CMD" in
     dots-toggle-notification-silencing)
         if command -v dunstctl >/dev/null 2>&1; then
             dunstctl set-paused toggle
-            dunstctl is-paused
+            paused=$(dunstctl is-paused)
+            mkdir -p "$HOME/.local/state/dots"
+            printf '{"dnd":%s}\n' "$paused" >"$HOME/.local/state/dots/notifications.json"
+            printf '%s\n' "$paused"
         fi
         exit 0
         ;;
@@ -156,18 +159,37 @@ case "$CMD" in
         ;;
 
     dots-voxtype-config)
-        launch_float "sh -c 'echo voxtype not installed; read -r _'"
+        launch_float "sh -c 'voxtype models | fzf --prompt=\"whisper model > \" | xargs -r voxtype set-model'"
         exit 0
         ;;
     dots-voxtype-model)
-        echo "none"
-        exit 0
+        exec voxtype model
         ;;
 
     dots-shell)
         case "${1:-}" in
-            lock) exec quickshell -c lock ;;
+            lock)    exec quickshell -c lock ;;
             restart) exec systemctl --user restart quickshell ;;
+            notifications)
+                case "${2:-}" in
+                    ping) echo ok ;;
+                    status)
+                        command -v dunstctl >/dev/null 2>&1 || exit 1
+                        printf '{"dnd":%s}\n' "$(dunstctl is-paused)"
+                        ;;
+                    *) exit 1 ;;
+                esac
+                exit 0
+                ;;
+            idle)
+                case "${2:-}" in
+                    status)
+                        systemctl --user is-active --quiet hypridle.service && echo on || echo off
+                        ;;
+                    *) exit 1 ;;
+                esac
+                exit 0
+                ;;
             *) exit 0 ;;
         esac
         ;;
