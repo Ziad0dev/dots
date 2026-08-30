@@ -51,15 +51,14 @@ Item {
     }
 
     function switchTo(index) {
-        if (index < 0 || index >= layouts.length || !lang._deviceName) return
-        switchProc.command = ["hyprctl", "switchxkblayout", lang._deviceName, String(index)]
+        if (index < 0 || index >= layouts.length) return
+        switchProc.command = ["hyprctl", "switchxkblayout", "all", String(index)]
         switchProc.running = false
         switchProc.running = true
     }
 
     function cycle(step) {
-        if (!lang._deviceName) return
-        switchProc.command = ["hyprctl", "switchxkblayout", lang._deviceName, step > 0 ? "next" : "prev"]
+        switchProc.command = ["hyprctl", "switchxkblayout", "all", step > 0 ? "next" : "prev"]
         switchProc.running = false
         switchProc.running = true
     }
