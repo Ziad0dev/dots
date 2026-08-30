@@ -22,6 +22,10 @@
       url = "github:hyprwm/Hyprland";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    dvr-patched = {
+      url = "git+https://git.sljusard.com/sljusard/dvr-patched-flake.git";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     hyprland-preview-share-picker = {
       url = "git+https://github.com/WhySoBad/hyprland-preview-share-picker?submodules=1";
@@ -101,7 +105,6 @@
           ./modules/gaming.nix
           ./modules/llm.nix
           ./modules/ollama.nix
-          ./modules/davinci.nix
           ./modules/audio.nix
           ./modules/dev.nix
           ./modules/gaming-extras.nix

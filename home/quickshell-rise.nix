@@ -5,6 +5,20 @@
   ...
 }:
 let
+  thumbPrune = pkgs.writeShellApplication {
+    name = "dots-thumb-prune";
+    runtimeInputs = [ pkgs.coreutils pkgs.findutils ];
+    text = ''
+      D="$HOME/.cache/quickshell-img-thumbs"
+      H="$HOME/.cache/quickshell-img-thumb-hashes.tsv"
+      [ -d "$D" ] && find "$D" -type f -name '*-512.jpg' -atime +30 -delete || true
+      if [ -f "$H" ]; then
+        awk -F '\t' '{ i = index($0, "\t"); k = substr($0, 1, i-1); if (!(k in seen)) o[++n] = k; seen[k] = substr($0, i+1) } END { for (j = 1; j <= n; j++) print o[j] "\t" seen[o[j]] }' "$H" > "$H.t" && mv -f "$H.t" "$H"
+      fi
+      rm -f "$HOME/.cache/quickshell-theme-picker"/*.tmp 2>/dev/null || true
+    '';
+  };
+
   homeDir = config.home.homeDirectory;
   dots = "${homeDir}/dots";
 
@@ -130,7 +144,28 @@ in
       ];
       Slice = "app-graphical.slice";
       KillMode = "process";
+      ExecStopPost = [
+        "-${pkgs.procps}/bin/pkill -f ${dots}/config/quickshell/rise/scripts/"
+      ];
       RestartSec = 2;
     };
+  };
+
+  systemd.user.services.dots-thumb-prune = {
+    Unit.Description = "Prune quickshell picker thumbnail caches";
+    Service = {
+      Type = "oneshot";
+      ExecStart = "${thumbPrune}/bin/dots-thumb-prune";
+    };
+  };
+
+  systemd.user.timers.dots-thumb-prune = {
+    Unit.Description = "Weekly quickshell thumbnail cache prune";
+    Timer = {
+      OnCalendar = "weekly";
+      Persistent = true;
+      RandomizedDelaySec = "1h";
+    };
+    Install.WantedBy = [ "timers.target" ];
   };
 }
