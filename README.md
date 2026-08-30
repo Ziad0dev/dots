@@ -44,5 +44,28 @@ hosts/        per-host hardware + configuration
 modules/      system config, one file per concern
 home/         home-manager
 config/       app config, symlinked live into ~/.config
+flakes/       curated tool sets, usable standalone
 scripts/      helpers
 ```
+
+## Tool flakes
+
+`flakes/infosec` and `flakes/maths` group packages into named sets. The
+home-manager modules are wired into `home/home.nix`; everything else is
+meant to be ephemeral:
+
+```sh
+nix develop ~/dots/flakes/infosec#web -c fish
+nix develop ~/dots/flakes/maths#mathlib -c fish
+```
+
+They are standalone flakes, so they also work off a machine that is not
+this one:
+
+```sh
+nix develop 'github:Ziad0dev/dots?dir=flakes/infosec#binary'
+```
+
+`nix run ./flakes/infosec#audit` lists names that no longer resolve in
+nixpkgs. Sets live in `names.nix`, one string per attribute path;
+anything that stops resolving is dropped rather than breaking eval.

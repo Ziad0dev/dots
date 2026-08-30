@@ -187,6 +187,8 @@ in
    imports = [
     inputs.nix-index-database.homeModules.default
     inputs.nixcord.homeModules.nixcord
+    (import ../flakes/infosec/module.nix { target = "home"; })
+    (import ../flakes/maths/module.nix { target = "home"; })
     ./emacs.nix
     ./virt-home.nix
     ./dev-home.nix
@@ -199,6 +201,16 @@ in
     ./git-hooks.nix
     ./kvantum.nix
   ];
+
+  zi.infosec = {
+    enable = true;
+    sets = [ "core" ];
+  };
+
+  zi.maths = {
+    enable = true;
+    sets = [ "core" ];
+  };
 
   programs.nixcord = {
     enable = true;
