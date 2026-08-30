@@ -175,6 +175,6 @@ case "$CMD" in
 
 
     *)
-        exit 0
+        exit 127
         ;;
 esac
