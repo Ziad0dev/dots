@@ -178,36 +178,9 @@ PanelWindow {
 
     function buildScanCmd() {
         if (isThemeMode) {
-            return ["bash", "-c", [
-                "shopt -s nullglob nocaseglob;",
-                "CACHE=$HOME/.cache/quickshell-theme-picker; mkdir -p \"$CACHE\";",
-                "D=$HOME/.cache/quickshell-img-thumbs; mkdir -p \"$D\";",
-                "HASHCACHE=$HOME/.cache/quickshell-img-thumb-hashes.tsv; touch \"$HASHCACHE\";",
-                "hash_for() { local s=\"$1\" r m key h tmp; r=$(readlink -f \"$s\" 2>/dev/null || printf '%s' \"$s\"); m=$(stat -Lc '%s:%Y:%Z' \"$s\" 2>/dev/null) || return 1; key=\"$r|$m\"; h=$(awk -F '\\t' -v k=\"$key\" '$1 == k { v=$2 } END { print v }' \"$HASHCACHE\" 2>/dev/null); if [ -z \"$h\" ]; then h=$(sha256sum \"$s\" 2>/dev/null | cut -d' ' -f1); [ -n \"$h\" ] || return 1; tmp=\"$HASHCACHE.$$\"; { awk -F '\\t' -v k=\"$key\" '$1 != k' \"$HASHCACHE\" 2>/dev/null; printf '%s\\t%s\\n' \"$key\" \"$h\"; } > \"$tmp\" && mv -f \"$tmp\" \"$HASHCACHE\"; fi; printf '%s' \"$h\"; };",
-                "thumb_for() { local s=\"$1\" k; k=$(hash_for \"$s\") || return 1; printf '%s/%s-512.jpg' \"$D\" \"$k\"; };",
-                "for d in ~/dots/config/themes/* ~/dots/config/themes/*; do",
-                "  [ -d \"$d\" ] || continue;",
-                "  name=$(basename \"$d\");",
-                "  prev=\"\";",
-                "  for c in \"$d\"/preview.png \"$d\"/preview.jpg \"$d\"/preview.jpeg; do [ -f \"$c\" ] && { prev=\"$c\"; break; }; done;",
-                "  if [ -z \"$prev\" ]; then bgs=(\"$d\"/backgrounds/*.jpg \"$d\"/backgrounds/*.jpeg \"$d\"/backgrounds/*.png \"$d\"/backgrounds/*.webp); prev=\"${bgs[0]}\"; fi;",
-                "  [ -z \"$prev\" ] && continue;",
-                "  ext=\"${prev##*.}\"; link=\"$CACHE/$name.$ext\";",
-                "  [ -L \"$link\" ] || ln -sf \"$prev\" \"$link\";",
-                "  thumb=$(thumb_for \"$link\") || continue;",
-                "  printf '%s\\t%s\\t%s\\n' \"$link\" \"$thumb\" \"$d\";",
-                "done | sort -u"
-            ].join(" ")]
+            return ["bash", "-c", "D=$HOME/.cache/quickshell-img-thumbs; mkdir -p \"$D\"; HASHCACHE=$HOME/.cache/quickshell-img-thumb-hashes.tsv; touch \"$HASHCACHE\"; TL=$(mktemp); TK=$(mktemp); TM=$(mktemp); TD=$(mktemp); TW=$(mktemp); trap 'rm -f \"$TL\" \"$TK\" \"$TM\" \"$TD\" \"$TW\" \"$TK.hit\" \"$TM.sha\"' EXIT; thumbs_for_list() { : > \"$TK.hit\"; [ -s \"$TL\" ] || return 0; paste \"$TL\" <(xargs -r -d '\\n' -a \"$TL\" readlink -f --) <(xargs -r -d '\\n' -a \"$TL\" stat -Lc '%s:%Y:%Z' --) > \"$TK\"; : > \"$TM\"; awk -F '\\t' -v HC=\"$HASHCACHE\" -v MISS=\"$TM\" 'BEGIN { while ((getline l < HC) > 0) { i = index(l, \"\\t\"); if (i) h[substr(l, 1, i-1)] = substr(l, i+1) } close(HC) } { k = $2 \"|\" $3; if (k in h) print $1 \"\\t\" h[k]; else print $1 \"\\t\" k > MISS }' \"$TK\" > \"$TK.hit\"; [ -s \"$TM\" ] || return 0; cut -f1 \"$TM\" | xargs -r -d '\\n' sha256sum -- 2>/dev/null | sed 's/^\\([0-9a-f]*\\)  /\\1\\t/' | awk -F '\\t' '{ s[$2] = $1 } END { for (p in s) print p \"\\t\" s[p] }' > \"$TM.sha\"; awk -F '\\t' 'NR == FNR { s[$1] = $2; next } ($1 in s) { print $2 \"\\t\" s[$1] }' \"$TM.sha\" \"$TM\" >> \"$HASHCACHE\"; awk -F '\\t' 'NR == FNR { s[$1] = $2; next } ($1 in s) { print $1 \"\\t\" s[$1] }' \"$TM.sha\" \"$TM\" >> \"$TK.hit\"; }; CACHE=$HOME/.cache/quickshell-theme-picker; mkdir -p \"$CACHE\"; shopt -s nullglob nocaseglob; : > \"$TL\"; : > \"$TD\"; for d in ~/dots/config/themes/*; do [ -d \"$d\" ] || continue; name=$(basename \"$d\"); prev=\"\"; for c in \"$d\"/preview.png \"$d\"/preview.jpg \"$d\"/preview.jpeg; do [ -f \"$c\" ] && { prev=\"$c\"; break; }; done; if [ -z \"$prev\" ]; then bgs=(\"$d\"/backgrounds/*.jpg \"$d\"/backgrounds/*.jpeg \"$d\"/backgrounds/*.png \"$d\"/backgrounds/*.webp); prev=\"${bgs[0]}\"; fi; [ -z \"$prev\" ] && continue; ext=\"${prev##*.}\"; link=\"$CACHE/$name.$ext\"; [ -L \"$link\" ] || ln -sf \"$prev\" \"$link\"; printf '%s\\n' \"$link\" >> \"$TL\"; printf '%s\\t%s\\n' \"$link\" \"$d\" >> \"$TD\"; done; thumbs_for_list; awk -F '\\t' -v D=\"$D\" 'NR == FNR { dir[$1] = $2; next } $2 != \"\" { print $1 \"\\t\" D \"/\" $2 \"-512.jpg\" \"\\t\" dir[$1] }' \"$TD\" \"$TK.hit\" | sort -u"]
         } else {
-            return ["bash", "-c", [
-                "D=$HOME/.cache/quickshell-img-thumbs; mkdir -p \"$D\";",
-                "HASHCACHE=$HOME/.cache/quickshell-img-thumb-hashes.tsv; touch \"$HASHCACHE\";",
-                "hash_for() { local s=\"$1\" r m key h tmp; r=$(readlink -f \"$s\" 2>/dev/null || printf '%s' \"$s\"); m=$(stat -Lc '%s:%Y:%Z' \"$s\" 2>/dev/null) || return 1; key=\"$r|$m\"; h=$(awk -F '\\t' -v k=\"$key\" '$1 == k { v=$2 } END { print v }' \"$HASHCACHE\" 2>/dev/null); if [ -z \"$h\" ]; then h=$(sha256sum \"$s\" 2>/dev/null | cut -d' ' -f1); [ -n \"$h\" ] || return 1; tmp=\"$HASHCACHE.$$\"; { awk -F '\\t' -v k=\"$key\" '$1 != k' \"$HASHCACHE\" 2>/dev/null; printf '%s\\t%s\\n' \"$key\" \"$h\"; } > \"$tmp\" && mv -f \"$tmp\" \"$HASHCACHE\"; fi; printf '%s' \"$h\"; };",
-                "thumb_for() { local s=\"$1\" k; k=$(hash_for \"$s\") || return 1; printf '%s/%s-512.jpg' \"$D\" \"$k\"; };",
-                "find -L " + wallpaperFindRoots() + " -maxdepth 1 -type f " +
-                "\\( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' -o -iname '*.bmp' -o -iname '*.gif' \\) " +
-                "2>/dev/null | sort | while IFS= read -r f; do thumb=$(thumb_for \"$f\") || continue; printf '%s\\t%s\\n' \"$f\" \"$thumb\"; done"
-            ].join(" ")]
+            return ["bash", "-c", "D=$HOME/.cache/quickshell-img-thumbs; mkdir -p \"$D\"; HASHCACHE=$HOME/.cache/quickshell-img-thumb-hashes.tsv; touch \"$HASHCACHE\"; TL=$(mktemp); TK=$(mktemp); TM=$(mktemp); TD=$(mktemp); TW=$(mktemp); trap 'rm -f \"$TL\" \"$TK\" \"$TM\" \"$TD\" \"$TW\" \"$TK.hit\" \"$TM.sha\"' EXIT; thumbs_for_list() { : > \"$TK.hit\"; [ -s \"$TL\" ] || return 0; paste \"$TL\" <(xargs -r -d '\\n' -a \"$TL\" readlink -f --) <(xargs -r -d '\\n' -a \"$TL\" stat -Lc '%s:%Y:%Z' --) > \"$TK\"; : > \"$TM\"; awk -F '\\t' -v HC=\"$HASHCACHE\" -v MISS=\"$TM\" 'BEGIN { while ((getline l < HC) > 0) { i = index(l, \"\\t\"); if (i) h[substr(l, 1, i-1)] = substr(l, i+1) } close(HC) } { k = $2 \"|\" $3; if (k in h) print $1 \"\\t\" h[k]; else print $1 \"\\t\" k > MISS }' \"$TK\" > \"$TK.hit\"; [ -s \"$TM\" ] || return 0; cut -f1 \"$TM\" | xargs -r -d '\\n' sha256sum -- 2>/dev/null | sed 's/^\\([0-9a-f]*\\)  /\\1\\t/' | awk -F '\\t' '{ s[$2] = $1 } END { for (p in s) print p \"\\t\" s[p] }' > \"$TM.sha\"; awk -F '\\t' 'NR == FNR { s[$1] = $2; next } ($1 in s) { print $2 \"\\t\" s[$1] }' \"$TM.sha\" \"$TM\" >> \"$HASHCACHE\"; awk -F '\\t' 'NR == FNR { s[$1] = $2; next } ($1 in s) { print $1 \"\\t\" s[$1] }' \"$TM.sha\" \"$TM\" >> \"$TK.hit\"; }; find -L " + wallpaperFindRoots() + " -maxdepth 1 -type f \\( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' -o -iname '*.bmp' -o -iname '*.gif' \\) 2>/dev/null | sort > \"$TL\"; thumbs_for_list; sort \"$TK.hit\" | awk -F '\\t' -v D=\"$D\" '$2 != \"\" { print $1 \"\\t\" D \"/\" $2 \"-512.jpg\" }'"]
         }
     }
 
@@ -277,13 +250,7 @@ PanelWindow {
     function warmCommand(srcs, niceLevel) {
         var nice = niceLevel === 10 ? 10 : 19
         return ["bash", "-c",
-            "D=$HOME/.cache/quickshell-img-thumbs; mkdir -p \"$D\"; command -v magick >/dev/null 2>&1 || exit 0; " +
-            "HASHCACHE=$HOME/.cache/quickshell-img-thumb-hashes.tsv; touch \"$HASHCACHE\"; " +
-            "tmp=$(mktemp); trap 'rm -f \"$tmp\"' EXIT; " +
-            "hash_for() { local s=\"$1\" r m key h t; r=$(readlink -f \"$s\" 2>/dev/null || printf '%s' \"$s\"); m=$(stat -Lc '%s:%Y:%Z' \"$s\" 2>/dev/null) || return 1; key=\"$r|$m\"; h=$(awk -F '\\t' -v k=\"$key\" '$1 == k { v=$2 } END { print v }' \"$HASHCACHE\" 2>/dev/null); if [ -z \"$h\" ]; then h=$(sha256sum \"$s\" 2>/dev/null | cut -d' ' -f1); [ -n \"$h\" ] || return 1; t=\"$HASHCACHE.$$\"; { awk -F '\\t' -v k=\"$key\" '$1 != k' \"$HASHCACHE\" 2>/dev/null; printf '%s\\t%s\\n' \"$key\" \"$h\"; } > \"$t\" && mv -f \"$t\" \"$HASHCACHE\"; fi; printf '%s' \"$h\"; }; " +
-            "for s in \"$@\"; do k=$(hash_for \"$s\") || continue; " +
-            "o=\"$D/$k-512.jpg\"; [ -s \"$o\" ] && continue; printf '%s\\n%s\\n' \"$s\" \"$o\" >> \"$tmp\"; done; " +
-            "if [ -s \"$tmp\" ]; then nice -n " + nice + " xargs -d '\\n' -P 3 -n 2 sh -c 'magick -define jpeg:size=1024x1024 \"$0[0]\" -auto-orient -strip -thumbnail 512x512^ -quality 82 \"$1\" >/dev/null 2>&1 || true; [ -s \"$1\" ] && printf \"%s\\n\" \"$1\"; exit 0' < \"$tmp\"; fi",
+            "command -v magick >/dev/null 2>&1 || exit 0; D=$HOME/.cache/quickshell-img-thumbs; mkdir -p \"$D\"; HASHCACHE=$HOME/.cache/quickshell-img-thumb-hashes.tsv; touch \"$HASHCACHE\"; TL=$(mktemp); TK=$(mktemp); TM=$(mktemp); TD=$(mktemp); TW=$(mktemp); trap 'rm -f \"$TL\" \"$TK\" \"$TM\" \"$TD\" \"$TW\" \"$TK.hit\" \"$TM.sha\"' EXIT; thumbs_for_list() { : > \"$TK.hit\"; [ -s \"$TL\" ] || return 0; paste \"$TL\" <(xargs -r -d '\\n' -a \"$TL\" readlink -f --) <(xargs -r -d '\\n' -a \"$TL\" stat -Lc '%s:%Y:%Z' --) > \"$TK\"; : > \"$TM\"; awk -F '\\t' -v HC=\"$HASHCACHE\" -v MISS=\"$TM\" 'BEGIN { while ((getline l < HC) > 0) { i = index(l, \"\\t\"); if (i) h[substr(l, 1, i-1)] = substr(l, i+1) } close(HC) } { k = $2 \"|\" $3; if (k in h) print $1 \"\\t\" h[k]; else print $1 \"\\t\" k > MISS }' \"$TK\" > \"$TK.hit\"; [ -s \"$TM\" ] || return 0; cut -f1 \"$TM\" | xargs -r -d '\\n' sha256sum -- 2>/dev/null | sed 's/^\\([0-9a-f]*\\)  /\\1\\t/' | awk -F '\\t' '{ s[$2] = $1 } END { for (p in s) print p \"\\t\" s[p] }' > \"$TM.sha\"; awk -F '\\t' 'NR == FNR { s[$1] = $2; next } ($1 in s) { print $2 \"\\t\" s[$1] }' \"$TM.sha\" \"$TM\" >> \"$HASHCACHE\"; awk -F '\\t' 'NR == FNR { s[$1] = $2; next } ($1 in s) { print $1 \"\\t\" s[$1] }' \"$TM.sha\" \"$TM\" >> \"$TK.hit\"; }; printf '%s\\n' \"$@\" > \"$TL\"; thumbs_for_list; while IFS=$'\\t' read -r s k; do [ -n \"$k\" ] || continue; o=\"$D/$k-512.jpg\"; [ -s \"$o\" ] || printf '%s\\n%s\\n' \"$s\" \"$o\" >> \"$TW\"; done < \"$TK.hit\"; if [ -s \"$TW\" ]; then nice -n " + nice + " xargs -d '\\n' -P 3 -n 2 sh -c 'magick -define jpeg:size=1024x1024 \"$0[0]\" -auto-orient -strip -thumbnail 512x512^ -quality 82 \"$1\" >/dev/null 2>&1 || true; [ -s \"$1\" ] && printf \"%s\\n\" \"$1\"; exit 0' < \"$TW\"; fi",
             "warm"].concat(srcs)
     }
     function startWarm(proc, srcs, niceLevel) {

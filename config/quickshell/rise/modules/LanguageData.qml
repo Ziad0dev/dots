@@ -20,6 +20,7 @@ Item {
           aliases: ["german", "deutsch", "de"] }
     ]
 
+    property bool   watch: true
     property int    activeIndex: 0
     readonly property string activeLabel: layouts[activeIndex].label
     readonly property string device: _deviceName
@@ -73,8 +74,10 @@ Item {
                 lang._deviceName = (lines[0] || "").trim()
                 var idx = lang.matchLayout(lines[1])
                 if (idx !== -1) lang.activeIndex = idx
-                waitProc.running = false
-                waitProc.running = true
+                if (lang.watch) {
+                    waitProc.running = false
+                    waitProc.running = true
+                }
             }
         }
     }

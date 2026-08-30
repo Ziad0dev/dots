@@ -19,7 +19,7 @@ PanelWindow {
     readonly property int barBottom: 35
     readonly property int gap: 8
 
-    LanguageData { id: lang }
+    LanguageData { id: lang; watch: false }
 
     property real reveal: root.langVisible ? 1 : 0
     Behavior on reveal {
