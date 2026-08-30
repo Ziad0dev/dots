@@ -33,9 +33,7 @@ let
     "dots-launch-or-focus-tui"
     "dots-launch-wifi"
     "dots-screenrecord-filename"
-    "dots-shell"
-    "dots-swayosd-brightness"
-    "dots-swayosd-client"
+    "dots-shell" 
     "dots-theme-bg-set"
     "dots-theme-set"
     "dots-toggle-idle"
@@ -46,8 +44,6 @@ let
     "dots-voxtype-config"
     "dots-voxtype-model"
     "dots-updates"
-    "dots-weather"
-    "dots-weather-status"
   ];
 
   setWallpaper = pkgs.writeShellApplication {
