@@ -46,6 +46,8 @@ let
     "dots-voxtype-config"
     "dots-voxtype-model"
     "dots-updates"
+    "dots-weather"
+    "dots-weather-status"
   ];
 
   setWallpaper = pkgs.writeShellApplication {

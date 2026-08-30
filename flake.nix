@@ -59,11 +59,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    typix = {
-      url = "github:loqusion/typix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     vm-curator = {
       url = "github:mroboff/vm-curator";
       inputs.nixpkgs.follows = "nixpkgs";
