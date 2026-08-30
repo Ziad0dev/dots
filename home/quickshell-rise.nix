@@ -62,6 +62,21 @@ let
 
 
 
+  voxtype = pkgs.writeShellApplication {
+    name = "voxtype";
+    runtimeInputs = with pkgs; [
+      coreutils
+      findutils
+      gnugrep
+      gnused
+      libnotify
+      pipewire
+      wl-clipboard
+      wtype
+    ];
+    text = builtins.readFile ../scripts/voxtype.sh;
+  };
+
   helpers = [
     setWallpaper
     currentWallpaper
@@ -115,6 +130,8 @@ let
 in
 {
   home.packages = helpers ++ [
+    voxtype
+    pkgs.wtype
     dotsShims
     pkgs.pulseaudio
     pkgs.wireplumber
@@ -165,5 +182,19 @@ in
       RandomizedDelaySec = "1h";
     };
     Install.WantedBy = [ "timers.target" ];
+  };
+
+  systemd.user.services.swayosd = {
+    Unit = {
+      Description = "swayosd-server";
+      PartOf = [ "hyprland-session.target" ];
+      After = [ "hyprland-session.target" ];
+    };
+    Service = {
+      ExecStart = "${pkgs.swayosd}/bin/swayosd-server";
+      Restart = "on-failure";
+      RestartSec = 2;
+    };
+    Install.WantedBy = [ "hyprland-session.target" ];
   };
 }

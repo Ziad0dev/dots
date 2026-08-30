@@ -428,6 +428,8 @@ in
     };
     Service = {
       ExecStart = "${pkgs.hypridle}/bin/hypridle";
+      ExecStartPost = "${pkgs.bash}/bin/sh -c 'rm -f %S/dots/indicators/stay-awake'";
+      ExecStopPost = "${pkgs.bash}/bin/sh -c 'mkdir -p %S/dots/indicators && touch %S/dots/indicators/stay-awake'";
       Restart = "on-failure";
       RestartSec = 3;
     };
