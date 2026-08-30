@@ -34,6 +34,8 @@ let
     "dots-launch-wifi"
     "dots-screenrecord-filename"
     "dots-shell" 
+    "dots-swayosd-brightness"
+    "dots-swayosd-client"
     "dots-theme-bg-set"
     "dots-theme-set"
     "dots-toggle-idle"
