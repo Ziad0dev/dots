@@ -30,7 +30,7 @@ in
 
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-  boot.loader.systemd-boot.configurationLimit = 3;
+  boot.loader.systemd-boot.configurationLimit = 10;
 
   services.flatpak.enable = true;
   dots.sddm.theme = "kanagawa";
@@ -212,6 +212,7 @@ in
     hyprpolkitagent
     # Pairs with programs.coolercontrol
     coolercontrol.coolercontrol-gui
+    inputs.dvr-patched.packages.${pkgs.system}.default
     # Container runtime
     podman
     kdePackages.dolphin

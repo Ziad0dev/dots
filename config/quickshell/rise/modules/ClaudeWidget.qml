@@ -132,30 +132,20 @@ Item {
 
     // ── process detection ──
     Process {
-        id: detectClaude
-        command: ["bash", "-c", "pgrep -x claude >/dev/null 2>&1 && echo 1 || echo 0"]
-        stdout: StdioCollector { onStreamFinished: { rootMod.clActive = (this.text.trim() === "1") } }
-    }
-    Process {
-        id: detectCodex
-        // exact process-name match (comm == "codex") so the cache readers / poller
-        // (python codex-usage, bash on codex-usage.json) never count as "active";
-        // drop the short-lived `codex … app-server` our own backend spawns
-        command: ["bash", "-c", "pgrep -xa codex 2>/dev/null | grep -vq app-server && echo 1 || echo 0"]
-        stdout: StdioCollector { onStreamFinished: { rootMod.cxActive = (this.text.trim() === "1") } }
-    }
-    Process {
-        id: detectOpenCode
-        command: ["bash", "-c", "ps -eo args | grep -E '(^|/| )opencode( |$)|opencode-ai' | grep -vE 'grep|opencode-usage' >/dev/null && echo 1 || echo 0"]
-        stdout: StdioCollector { onStreamFinished: { rootMod.ocActive = (this.text.trim() === "1") } }
+        id: detectAll
+        command: ["bash", "-c", "c=0; x=0; o=0; while read -r pid comm args; do case $comm in claude) c=1 ;; codex) case $args in *app-server*) ;; *) x=1 ;; esac ;; esac; case $args in *opencode-usage*|*grep*) ;; *opencode-ai*|*/opencode\ *|opencode\ *|*/opencode|opencode) o=1 ;; esac; done < <(ps -eo pid=,comm=,args=); printf '%s%s%s' \"$c\" \"$x\" \"$o\""]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                var t = String(this.text || "").trim()
+                rootMod.clActive = t.charAt(0) === "1"
+                rootMod.cxActive = t.charAt(1) === "1"
+                rootMod.ocActive = t.charAt(2) === "1"
+            }
+        }
     }
     Timer {
         interval: 5000; running: root.modClaude || root.aiUsageVisible; repeat: true; triggeredOnStart: true
-        onTriggered: {
-            detectClaude.running = false; detectClaude.running = true
-            detectCodex.running = false;  detectCodex.running = true
-            detectOpenCode.running = false; detectOpenCode.running = true
-        }
+        onTriggered: { detectAll.running = false; detectAll.running = true }
     }
 
     // ── background pill ──
