@@ -169,7 +169,7 @@ for key, dir in pairs(focusDirs) do
     hl.bind(mainMod .. " + " .. key,              hl.dsp.focus({ direction = dir }))
     hl.bind(mainMod .. " + SHIFT + " .. key,      hl.dsp.window.move({ direction = dir }))
 end
-
+hl.bind(mainMod .. " + V", hl.dsp.exec_cmd("voxtype toggle"))
 hl.bind(mainMod .. " + F", hl.dsp.window.fullscreen())
 hl.bind(mainMod .. " + CTRL + SHIFT + SPACE", hl.dsp.exec_cmd("qs -c rise ipc call picker theme"))
 hl.bind(mainMod .. " + SHIFT + T", hl.dsp.exec_cmd("themectl next"))
