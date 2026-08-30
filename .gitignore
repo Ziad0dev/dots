@@ -4,4 +4,4 @@ result-*
 __pycache__/
 *.pyc
 *.back
-
+.direnv/
