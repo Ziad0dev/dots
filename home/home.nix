@@ -135,6 +135,15 @@ in
     ".config/dunst" = {
       source = link "dunst";
     };
+    ".config/btop" = {
+      source = link "btop";
+    };
+    ".config/Kvantum/KvGlass" = {
+      source = link "kvantum/KvGlass";
+    };
+    ".config/Kvantum/Glass-Kv" = {
+      source = link "kvantum/Glass-Kv";
+    };
     ".config/quickshell" = {
       source = link "quickshell";
     };

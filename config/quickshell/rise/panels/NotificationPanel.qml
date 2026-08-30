@@ -20,17 +20,17 @@ PanelWindow {
     readonly property int gap: 8
 
     // ── quickshell-owned notification history ────────────────────────────────
-    // Mako's history is capped (default max-history 5), so polling it and
+    // dunst's history is capped, so polling it and
     // REPLACING our list each time loses everything older. Instead we MERGE each
     // poll into our own retained history (capped 50) and persist it, so entries
-    // survive both mako dropping them and a quickshell restart.
+    // survive both dunst dropping them and a quickshell restart.
     //
-    // Identity: mako ids are a per-session counter that RESETS on a mako restart,
+    // Identity: dunst ids are a per-session counter that RESETS on a dunst restart,
     // so a bare id is ambiguous across restarts. We derive a session token
-    // (boot-id + mako pid + proc start-time) once per poll; when it changes we
+    // (boot-id + dunst pid + proc start-time) once per poll; when it changes we
     // bump `generation`, and every entry is keyed "generation:id". Old entries
     // (gen 0) and reused new ids (gen 1) therefore never collide. The bare id is
-    // used ONLY for makoctl dismiss/invoke operations.
+    // used ONLY for dunstctl history-rm/history-pop operations.
 
     property var recent: []             // [{key,id,gen,appName,summary,body,firstSeen,active}]
     property var dismissed: ({})         // composite-key -> true (persisted)
@@ -98,9 +98,9 @@ PanelWindow {
 
     // pid-guarded: with an empty pid, /proc//stat collapses to /proc/stat (a
     // multi-line file) and awk would inject raw newlines into the token → broken
-    // JSON. So build the token ONLY when mako's pid is known; else token="" (the
+    // JSON. So build the token ONLY when dunst's pid is known; else token="" (the
     // merge then keeps the current generation untouched — a safe no-op).
-    readonly property string pollScript: "pid=$(pidof mako 2>/dev/null | awk '{print $1}'); if [ -n \"$pid\" ]; then bid=$(cat /proc/sys/kernel/random/boot_id 2>/dev/null); st=$(awk '{print $22}' /proc/$pid/stat 2>/dev/null); tok=\"$bid-$pid-$st\"; else tok=\"\"; fi; lst=$(makoctl list -j 2>/dev/null); [ -z \"$lst\" ] && lst='[]'; his=$(makoctl history -j 2>/dev/null); [ -z \"$his\" ] && his='[]'; printf '{\"token\":\"%s\",\"list\":%s,\"history\":%s}' \"$tok\" \"$lst\" \"$his\""
+    readonly property string pollScript: "pid=$(busctl --user call org.freedesktop.DBus /org/freedesktop/DBus org.freedesktop.DBus GetConnectionUnixProcessID s org.freedesktop.Notifications 2>/dev/null | awk '{print $2}'); if [ -n \"$pid\" ]; then bid=$(cat /proc/sys/kernel/random/boot_id 2>/dev/null); st=$(awk '{print $22}' /proc/$pid/stat 2>/dev/null); tok=\"$bid-$pid-$st\"; else tok=\"\"; fi; his=$(dunstctl history 2>/dev/null | jq -c '[.data[0][] | {id: .id.data, app_name: (.appname.data // \"\"), summary: (.summary.data // \"\"), body: (.body.data // \"\")}]' 2>/dev/null); [ -z \"$his\" ] && his='[]'; printf '{\"token\":\"%s\",\"list\":[],\"history\":%s}' \"$tok\" \"$his\""
 
     Process {
         id: pollProc
@@ -187,7 +187,7 @@ PanelWindow {
 
     // ── actions ──
     Process { id: actionProc; command: ["bash", "-c", "true"] }
-    function runMako(cmd) {
+    function runNotif(cmd) {
         actionProc.command = ["bash", "-c", cmd + " 2>/dev/null || true"]
         actionProc.running = false; actionProc.running = true
     }
@@ -198,7 +198,7 @@ PanelWindow {
         nd[entry.key] = true
         notifPanel.dismissed = nd                // reassign → bindings update
         var id = parseInt(entry.id)              // normalize before it touches a shell
-        if (entry.active && id > 0) notifPanel.runMako("makoctl dismiss -h -n " + id)
+        if (id > 0) notifPanel.runNotif("dunstctl history-rm " + id)
         notifPanel.saveCache()
     }
 
@@ -208,20 +208,19 @@ PanelWindow {
         for (var i = 0; i < notifPanel.recent.length; i++) nd[notifPanel.recent[i].key] = true
         notifPanel.dismissed = nd
         notifPanel.recent = []                   // clear own history; re-merged entries stay dismissed-filtered
-        notifPanel.runMako("makoctl dismiss -h --all")   // -h: don't re-add to mako history (next poll won't re-see them)
+        notifPanel.runNotif("dunstctl close-all; dunstctl history-clear")
         notifPanel.saveCache()
     }
 
     function openNotification(entry) {
         var id = parseInt(entry.id)              // normalize before it touches a shell
-        if (entry.active && id > 0) notifPanel.runMako("makoctl invoke -n " + id)
-        // history/cache-only entries are no longer active → do nothing (never `restore`)
+        if (id > 0) notifPanel.runNotif("dunstctl history-pop " + id)
         root.notifVisible = false
     }
 
     // ── poll cadence: fast while open, much slower when closed.
     // Opening the panel still triggers an immediate refresh below; the closed
-    // cadence only keeps the badge/history roughly warm without parsing mako
+    // cadence only keeps the badge/history roughly warm without parsing dunst
     // JSON every few seconds in idle.
     Timer {
         interval: notifPanel.visible ? 1500 : 10000
@@ -376,7 +375,7 @@ PanelWindow {
                                 }
                             }
 
-                            // click body → focus the app (only if still active in mako)
+                            // click body → redisplay via dunstctl history-pop
                             MouseArea {
                                 id: entryMa
                                 anchors.fill: parent

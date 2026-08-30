@@ -858,7 +858,7 @@ Item {
         }
     }
 
-    // new notification (the bar's mako poll counts up) → fetch newest, show
+    // new notification (the bar's dunst poll counts up) → fetch newest, show
     // message left of the clock and its source right of it
     readonly property int notifC: theme.notifCount === undefined ? 0 : theme.notifCount
     property int lastNotifC: -1
@@ -869,7 +869,7 @@ Item {
     }
     Process {
         id: notifFetch
-        command: ["bash", "-c", "makoctl list -j 2>/dev/null | jq -c '.[0] // empty' 2>/dev/null"]
+        command: ["bash", "-c", "dunstctl history 2>/dev/null | jq -c '(.data[0] | max_by(.timestamp.data)) as $n | if $n then {summary: ($n.summary.data // \"\"), body: ($n.body.data // \"\"), app_name: ($n.appname.data // \"\")} else empty end' 2>/dev/null"]
         stdout: StdioCollector {
             onStreamFinished: {
                 var d
