@@ -98,12 +98,22 @@ in
       hyprpicker
       awww
       cliphist
+      bemoji
+      fuzzel
       wl-clipboard
       wtype
       grim
       slurp
       satty
-      (tesseract.override { enableLanguages = [ "eng" "swe" "ara" "fra" "deu" ]; })
+      (tesseract.override {
+        enableLanguages = [
+          "eng"
+          "swe"
+          "ara"
+          "fra"
+          "deu"
+        ];
+      })
       zbar
       (flameshot.override { enableWlrSupport = true; })
       gammastep
@@ -123,6 +133,7 @@ in
       easyeffects
       qpwgraph
 
+      imv
       mpv
       haruna
       mpc-qt
@@ -209,8 +220,8 @@ in
   };
 
   services.pass-secret-service = {
-     enable = true;
-     storePath = "${config.home.homeDirectory}/.password-store";
+    enable = true;
+    storePath = "${config.home.homeDirectory}/.password-store";
   };
   services.udiskie = {
     enable = true;

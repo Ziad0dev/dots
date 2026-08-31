@@ -38,6 +38,7 @@
   ];
 
   systemd.services.ollama = {
+    wantedBy = lib.mkForce [ ];
     unitConfig.RequiresMountsFor = "/data";
     after = [ "data.mount" ];
   };

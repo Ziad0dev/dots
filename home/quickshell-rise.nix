@@ -7,7 +7,10 @@
 let
   thumbPrune = pkgs.writeShellApplication {
     name = "dots-thumb-prune";
-    runtimeInputs = [ pkgs.coreutils pkgs.findutils ];
+    runtimeInputs = [
+      pkgs.coreutils
+      pkgs.findutils
+    ];
     text = ''
       D="$HOME/.cache/quickshell-img-thumbs"
       H="$HOME/.cache/quickshell-img-thumb-hashes.tsv"
@@ -33,7 +36,7 @@ let
     "dots-launch-or-focus-tui"
     "dots-launch-wifi"
     "dots-screenrecord-filename"
-    "dots-shell" 
+    "dots-shell"
     "dots-swayosd-brightness"
     "dots-swayosd-client"
     "dots-theme-bg-set"
@@ -58,11 +61,12 @@ let
 
   currentWallpaper = pkgs.writeShellApplication {
     name = "dots-current-wallpaper";
-    runtimeInputs = with pkgs; [ coreutils gnused ];
+    runtimeInputs = with pkgs; [
+      coreutils
+      gnused
+    ];
     text = builtins.readFile ../scripts/dots-current-wallpaper.sh;
   };
-
-
 
   voxtype = pkgs.writeShellApplication {
     name = "voxtype";

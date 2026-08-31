@@ -106,6 +106,7 @@
 
       desktopModules = [
         ./modules/quality.nix
+        ./modules/backup.nix
         ./modules/virt.nix
         ./modules/gaming.nix
         ./modules/llm.nix

@@ -54,28 +54,67 @@ in
           string = "─";
           outputColor = mauve;
         }
-        { type = "os"; key = "  os"; }
-        { type = "kernel"; key = "  kernel"; format = "{release}"; }
-        { type = "wm"; key = "  wm"; }
-        { type = "shell"; key = "  shell"; }
-        { type = "terminal"; key = "  term"; }
-        { type = "uptime"; key = "  uptime"; }
+        {
+          type = "os";
+          key = "  os";
+        }
+        {
+          type = "kernel";
+          key = "  kernel";
+          format = "{release}";
+        }
+        {
+          type = "wm";
+          key = "  wm";
+        }
+        {
+          type = "shell";
+          key = "  shell";
+        }
+        {
+          type = "terminal";
+          key = "  term";
+        }
+        {
+          type = "uptime";
+          key = "  uptime";
+        }
         {
           type = "separator";
           string = "─";
           outputColor = mauve;
         }
-        { type = "cpu"; key = "  cpu"; }
-        { type = "gpu"; key = "  gpu"; format = "{name}"; }
-        { type = "memory"; key = "  mem"; }
-        { type = "swap"; key = "  swap"; }
-        { type = "disk"; key = "  disk"; folders = "/"; }
+        {
+          type = "cpu";
+          key = "  cpu";
+        }
+        {
+          type = "gpu";
+          key = "  gpu";
+          format = "{name}";
+        }
+        {
+          type = "memory";
+          key = "  mem";
+        }
+        {
+          type = "swap";
+          key = "  swap";
+        }
+        {
+          type = "disk";
+          key = "  disk";
+          folders = "/";
+        }
         {
           type = "separator";
           string = "─";
           outputColor = mauve;
         }
-        { type = "colors"; symbol = "circle"; }
+        {
+          type = "colors";
+          symbol = "circle";
+        }
         "break"
       ];
     };

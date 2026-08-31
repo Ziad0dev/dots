@@ -9,7 +9,6 @@
     trusted-users = [ "@wheel" ];
     keep-outputs = true;
     keep-derivations = true;
-    warn-dirty = false;
     substituters = [ "https://nix-community.cachix.org" ];
     trusted-public-keys = [
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
@@ -32,6 +31,16 @@
   services.locate = {
     enable = true;
     package = pkgs.plocate;
+    prunePaths = [
+      "/tmp"
+      "/var/tmp"
+      "/var/cache"
+      "/var/lib/docker"
+      "/var/lib/libvirt"
+      "/nix/store"
+      "/mnt"
+      "/data"
+    ];
   };
 
   programs.gamemode.settings = {
@@ -39,6 +48,20 @@
       renice = 10;
       inhibit_screensaver = 1;
     };
+  };
+
+  services.smartd = {
+    enable = true;
+    autodetect = true;
+    notifications.wall.enable = true;
+  };
+
+  services.fwupd.enable = true;
+
+  services.avahi = {
+    enable = true;
+    nssmdns4 = true;
+    openFirewall = true;
   };
 
 }

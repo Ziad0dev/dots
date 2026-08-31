@@ -3,57 +3,94 @@
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
-  outputs = { self, nixpkgs }:
+  outputs =
+    { self, nixpkgs }:
     let
       inherit (nixpkgs) lib;
-      systems = [ "x86_64-linux" "aarch64-linux" "aarch64-darwin" ];
+      systems = [
+        "x86_64-linux"
+        "aarch64-linux"
+        "aarch64-darwin"
+      ];
 
-      each = f: lib.genAttrs systems (system:
-        f (import nixpkgs {
-          inherit system;
-          config.allowUnfree = true;
-        }));
+      each =
+        f:
+        lib.genAttrs systems (
+          system:
+          f (
+            import nixpkgs {
+              inherit system;
+              config.allowUnfree = true;
+            }
+          )
+        );
 
-      load = pkgs: import ./packages.nix { inherit (pkgs) lib; inherit pkgs; };
+      load =
+        pkgs:
+        import ./packages.nix {
+          inherit (pkgs) lib;
+          inherit pkgs;
+        };
     in
     {
-      packages = each (pkgs:
+      packages = each (
+        pkgs:
         let
           p = load pkgs;
-          env = name: paths: pkgs.buildEnv {
-            name = "maths-${name}";
-            inherit paths;
-            ignoreCollisions = true;
-          };
-          report = pkgs.writeText "maths-missing" (lib.concatStringsSep "\n"
-            (lib.mapAttrsToList
-              (n: ms: "${n}: ${if ms == [ ] then "ok" else lib.concatStringsSep " " ms}")
-              p.missing));
+          env =
+            name: paths:
+            pkgs.buildEnv {
+              name = "maths-${name}";
+              inherit paths;
+              ignoreCollisions = true;
+            };
+          report = pkgs.writeText "maths-missing" (
+            lib.concatStringsSep "\n" (
+              lib.mapAttrsToList (
+                n: ms: "${n}: ${if ms == [ ] then "ok" else lib.concatStringsSep " " ms}"
+              ) p.missing
+            )
+          );
         in
-        lib.mapAttrs env p.sets // {
+        lib.mapAttrs env p.sets
+        // {
           default = env "core" p.sets.core;
           all = env "all" (lib.concatLists (builtins.attrValues p.sets));
           audit = pkgs.writeShellScriptBin "maths-audit" "cat ${report}";
-        });
+        }
+      );
 
-      devShells = each (pkgs:
+      devShells = each (
+        pkgs:
         let
           p = load pkgs;
-          shell = name: paths: pkgs.mkShellNoCC {
-            name = "maths-${name}";
-            packages = paths;
-          };
+          shell =
+            name: paths:
+            pkgs.mkShellNoCC {
+              name = "maths-${name}";
+              packages = paths;
+            };
         in
-        lib.mapAttrs shell p.sets // {
+        lib.mapAttrs shell p.sets
+        // {
           default = shell "core" p.sets.core;
           all = shell "all" (lib.concatLists (builtins.attrValues p.sets));
 
           mathlib = pkgs.mkShellNoCC {
             name = "maths-mathlib";
-            packages = p.sets.lean ++ [ pkgs.git pkgs.curl pkgs.cacert ];
-            LD_LIBRARY_PATH = lib.makeLibraryPath [ pkgs.stdenv.cc.cc.lib pkgs.gmp pkgs.zlib ];
+            packages = p.sets.lean ++ [
+              pkgs.git
+              pkgs.curl
+              pkgs.cacert
+            ];
+            LD_LIBRARY_PATH = lib.makeLibraryPath [
+              pkgs.stdenv.cc.cc.lib
+              pkgs.gmp
+              pkgs.zlib
+            ];
           };
-        });
+        }
+      );
 
       apps = lib.genAttrs systems (system: {
         audit = {
