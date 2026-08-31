@@ -131,6 +131,11 @@ Item {
         }
     }
     IpcHandler {
+        target: "overview"
+        function toggle(): void { router.invoke("toggleOverview") }
+    }
+
+    IpcHandler {
         target: "launcher"
         function toggle(): void { router.invoke("toggleAppLauncher") }
     }

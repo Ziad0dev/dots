@@ -5,6 +5,7 @@ import Quickshell
 Item {
     id: rootMod
     required property var root
+    readonly property bool hasArchAssets: false
 
     implicitWidth: logoContentWidth + logoPadding
     implicitHeight: 28
@@ -149,7 +150,7 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 width: rootMod.archWordArchWidth
                 height: rootMod.archWordHeight
-                source: Qt.resolvedUrl("../assets/arch-header-arch.png")
+                source: rootMod.hasArchAssets ? Qt.resolvedUrl("../assets/arch-header-arch.png") : ""
                 fillMode: Image.PreserveAspectFit
                 cache: false
                 smooth: true
@@ -169,7 +170,7 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 width: rootMod.archWordLinuxWidth
                 height: rootMod.archWordHeight
-                source: Qt.resolvedUrl("../assets/arch-header-linux.png")
+                source: rootMod.hasArchAssets ? Qt.resolvedUrl("../assets/arch-header-linux.png") : ""
                 fillMode: Image.PreserveAspectFit
                 cache: false
                 smooth: true

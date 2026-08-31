@@ -222,10 +222,7 @@ in
     inputs.dvr-patched.packages.${system}.default
     # Container runtime
     podman
-    kdePackages.dolphin
     kdePackages.ark
-    kdePackages.kate
-    kdePackages.ksystemlog
     kdePackages.qt6ct
   ]);
 
