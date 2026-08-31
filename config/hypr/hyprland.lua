@@ -387,3 +387,5 @@ for _, d in ipairs({ "left", "right", "up", "down" }) do
 end
 
 hl.bind(mainMod .. " + N", hl.dsp.exec_cmd("dots-nightlight toggle"))
+hl.bind(mainMod .. " + A", hl.dsp.exec_cmd("qs -c rise ipc call overview toggle"))
+hl.bind(mainMod .. " + SHIFT + S", hl.dsp.exec_cmd("flameshot gui"))

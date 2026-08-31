@@ -1961,6 +1961,9 @@ Item {
             onStreamFinished: { theme.hyprUsesLua = (this.text.trim() === "lua") }
         }
     }
+    property bool overviewVisible: false
+    onOverviewVisibleChanged: popupOpened("overviewVisible")
+
     function gotoWorkspace(id) {
         if (hyprUsesLua)
             Hyprland.dispatch("hl.dsp.focus({ workspace = " + id + " })")

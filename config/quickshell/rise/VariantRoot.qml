@@ -13,6 +13,8 @@ import "panels"
 Item {
     id: root
 
+    function toggleOverview() { if (!theme.overviewVisible) theme.activateFocusedPopupScreen(); theme.overviewVisible = !theme.overviewVisible }
+
     function toggleAppLauncher() { if (!theme.appLauncherVisible) theme.activateFocusedPopupScreen(); theme.appLauncherVisible = !theme.appLauncherVisible }
 
     required property var variantHost
@@ -263,6 +265,7 @@ Item {
     WeatherPanel { root: theme }
     KeybindsPanel { root: theme }
     WorkspacePanel { root: theme }
+    LazyLoader { active: true; OverviewPanel { root: theme } }
     ControlPanel { root: theme }
     TrayMenu { root: theme }
 
