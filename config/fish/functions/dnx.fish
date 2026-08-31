@@ -1,0 +1,1 @@
+/nix/store/41nv1my9s7glswvily20886azyvyq4ls-home-manager-files/.config/fish/functions/dnx.fish
