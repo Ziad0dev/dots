@@ -208,6 +208,10 @@ in
     Install.WantedBy = [ "graphical-session.target" ];
   };
 
+  services.pass-secret-service = {
+     enable = true;
+     storePath = "${config.home.homeDirectory}/.password-store";
+  };
   services.udiskie = {
     enable = true;
     automount = true;
