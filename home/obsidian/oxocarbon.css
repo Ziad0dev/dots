@@ -1,0 +1,141 @@
+.theme-dark {
+  --ox-base00: #161616;
+  --ox-base01: #262626;
+  --ox-base02: #393939;
+  --ox-base03: #525252;
+  --ox-base04: #dde1e6;
+  --ox-base05: #f2f4f8;
+  --ox-base06: #ffffff;
+  --ox-teal: #08bdba;
+  --ox-cyan: #3ddbd9;
+  --ox-indigo: #78a9ff;
+  --ox-pink: #ee5396;
+  --ox-blue: #33b1ff;
+  --ox-rose: #ff7eb6;
+  --ox-green: #42be65;
+  --ox-purple: #be95ff;
+  --ox-sky: #82cfff;
+  --ox-yellow: #ffe97b;
+
+  --base-00: var(--ox-base00);
+  --base-05: var(--ox-base01);
+  --base-10: var(--ox-base01);
+  --base-20: var(--ox-base02);
+  --base-25: var(--ox-base02);
+  --base-30: var(--ox-base03);
+  --base-35: var(--ox-base03);
+  --base-40: var(--ox-base03);
+  --base-50: #6f6f6f;
+  --base-60: #8d8d8d;
+  --base-70: var(--ox-base04);
+  --base-100: var(--ox-base05);
+
+  --accent-h: 336;
+  --accent-s: 84%;
+  --accent-l: 63%;
+
+  --background-primary: var(--ox-base00);
+  --background-primary-alt: var(--ox-base01);
+  --background-secondary: #101010;
+  --background-secondary-alt: var(--ox-base01);
+  --background-modifier-border: var(--ox-base02);
+  --background-modifier-border-hover: var(--ox-base03);
+  --background-modifier-border-focus: var(--ox-pink);
+  --background-modifier-hover: var(--ox-base01);
+  --background-modifier-active-hover: var(--ox-base02);
+  --background-modifier-form-field: var(--ox-base01);
+  --background-modifier-error: #62181f;
+  --background-modifier-error-hover: #7a1f28;
+  --background-modifier-success: #1d3a26;
+
+  --text-normal: var(--ox-base05);
+  --text-muted: #8d8d8d;
+  --text-faint: var(--ox-base03);
+  --text-on-accent: var(--ox-base00);
+  --text-accent: var(--ox-pink);
+  --text-accent-hover: var(--ox-rose);
+  --text-selection: rgba(238, 83, 150, 0.24);
+  --text-highlight-bg: rgba(255, 233, 123, 0.28);
+  --text-error: var(--ox-pink);
+  --text-success: var(--ox-green);
+
+  --interactive-normal: var(--ox-base01);
+  --interactive-hover: var(--ox-base02);
+  --interactive-accent: var(--ox-pink);
+  --interactive-accent-hover: var(--ox-rose);
+
+  --link-color: var(--ox-blue);
+  --link-color-hover: var(--ox-sky);
+  --link-unresolved-color: var(--ox-base03);
+  --link-external-color: var(--ox-purple);
+  --link-external-color-hover: var(--ox-sky);
+  --tag-color: var(--ox-cyan);
+  --tag-background: rgba(61, 219, 217, 0.12);
+
+  --h1-color: var(--ox-pink);
+  --h2-color: var(--ox-purple);
+  --h3-color: var(--ox-blue);
+  --h4-color: var(--ox-cyan);
+  --h5-color: var(--ox-green);
+  --h6-color: var(--ox-base04);
+
+  --code-normal: var(--ox-cyan);
+  --code-background: var(--ox-base01);
+  --code-comment: var(--ox-base03);
+  --code-function: var(--ox-purple);
+  --code-keyword: var(--ox-pink);
+  --code-string: var(--ox-green);
+  --code-value: var(--ox-blue);
+  --code-property: var(--ox-sky);
+  --code-tag: var(--ox-pink);
+  --code-operator: var(--ox-rose);
+
+  --blockquote-border-color: var(--ox-purple);
+  --hr-color: var(--ox-base02);
+  --divider-color: var(--ox-base02);
+  --scrollbar-thumb-bg: var(--ox-base02);
+  --scrollbar-active-thumb-bg: var(--ox-base03);
+
+  --graph-line: var(--ox-base02);
+  --graph-node: var(--ox-base04);
+  --graph-node-focused: var(--ox-pink);
+  --graph-node-tag: var(--ox-cyan);
+  --graph-node-attachment: var(--ox-purple);
+
+  --canvas-color: 25, 25, 25;
+  --canvas-dot-pattern: var(--ox-base02);
+
+  --callout-info: var(--ox-blue);
+  --callout-todo: var(--ox-sky);
+  --callout-tip: var(--ox-cyan);
+  --callout-success: var(--ox-green);
+  --callout-question: var(--ox-yellow);
+  --callout-warning: var(--ox-yellow);
+  --callout-fail: var(--ox-pink);
+  --callout-error: var(--ox-pink);
+  --callout-bug: var(--ox-rose);
+  --callout-example: var(--ox-purple);
+  --callout-quote: var(--ox-base03);
+}
+
+.theme-dark .titlebar,
+.theme-dark .workspace-ribbon,
+.theme-dark .status-bar {
+  background-color: #101010;
+}
+
+.theme-dark .cm-s-obsidian .cm-inline-code,
+.theme-dark .markdown-rendered code {
+  color: var(--ox-cyan);
+  background-color: var(--ox-base01);
+}
+
+.theme-dark .nav-file-title.is-active,
+.theme-dark .tree-item-self.is-active {
+  background-color: var(--ox-base01) !important;
+  box-shadow: inset 2px 0 0 0 var(--ox-pink);
+}
+
+.theme-dark .cm-active.cm-line {
+  background-color: rgba(38, 38, 38, 0.5);
+}
