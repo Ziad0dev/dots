@@ -13,6 +13,8 @@ import "panels"
 Item {
     id: root
 
+    function toggleOpenRouter() { if (!theme.openRouterVisible) theme.activateFocusedPopupScreen(); theme.openRouterVisible = !theme.openRouterVisible }
+
     function toggleOverview() { if (!theme.overviewVisible) theme.activateFocusedPopupScreen(); theme.overviewVisible = !theme.overviewVisible }
 
     function toggleAppLauncher() { if (!theme.appLauncherVisible) theme.activateFocusedPopupScreen(); theme.appLauncherVisible = !theme.appLauncherVisible }
@@ -253,6 +255,7 @@ Item {
     MemoryPanel { root: theme }
     CpuPanel { root: theme }
     AiUsagePanel { root: theme }
+    LazyLoader { active: theme.openRouterVisible; OpenRouterPanel { root: theme } }
     VolumePanel { root: theme }
     LanguagePanel { root: theme }
     TrayPanel { root: theme }
