@@ -136,20 +136,19 @@ in
         lmk = "latexmk -pdf -pvc -interaction=nonstopmode";
         lmc = "latexmk -C";
       };
-
-      functions = {
-        dnx = {
-          description = "Transcode video to DNxHR HQ for DaVinci Resolve";
-          body = ''
-            for f in $argv
-              ffmpeg -n -i $f -c:v dnxhd -profile:v dnxhr_hq -c:a pcm_s16le \
-                -pix_fmt yuv422p (path change-extension mov $f)
+        interactiveShellInit = ''
+            fish_vi_key_bindings
+             # Auto-attach to a main tmux session
+                if not set -q TMUX; and type -q tmux
+                   tmux new-session -A -s main
+                end
+          '';
+            shellInit = ''
+            if test -z "$SSH_AUTH_SOCK"; or test -z "$SSH_CONNECTION"
+              set -x SSH_AUTH_SOCK "$XDG_RUNTIME_DIR/ssh-agent"
             end
           '';
-        };
-      };
-
-      interactiveShellInit = "fish_vi_key_bindings";
+      
     };
 
     home.file = {
