@@ -177,7 +177,7 @@
 
   xdg.desktopEntries.obsidian = {
     name = "Obsidian";
-    exec = "obsidian --ozone-platform-hint=auto --enable-features=WaylandWindowDecorations %U";
+    exec = "obsidian --password-store=gnome-libsecret --ozone-platform-hint=auto --enable-features=WaylandWindowDecorations %U";
     icon = "obsidian";
     terminal = false;
     categories = [
