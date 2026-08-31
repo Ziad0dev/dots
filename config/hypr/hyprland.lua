@@ -310,7 +310,6 @@ hl.on("hyprland.start", function()
     ']])
     hl.exec_cmd("dunst")
     hl.exec_cmd("awww-daemon")
-    hl.exec_cmd("gammastep")
 end)
 
 hl.on("hyprland.shutdown", function()
@@ -332,3 +331,59 @@ hl.bind(mainMod .. " + ALT + R", hl.dsp.exec_cmd(
       fi']]))
 
 pcall(dofile, os.getenv("HOME") .. "/.local/state/dots/theme/hyprland.lua")
+
+
+local monitors = {}
+for _, m in ipairs({
+    { output = "DP-1",     mode = "2560x1440@239.97", position = "0x0",        scale = 1, bitdepth = 10, cm = "hdr",
+      supports_wide_color = 1, sdrbrightness = 1.0, sdrsaturation = 1.0,
+      sdr_min_luminance = 0.0011, sdr_max_luminance = 350,
+      min_luminance = 0.0011, max_luminance = 800, max_avg_luminance = 269 },
+    { output = "HDMI-A-1", mode = "1920x1080@60",     position = "auto-right", scale = 1, transform = 3 },
+}) do monitors[m.output] = m end
+
+local function reapply_monitors()
+    for _, m in ipairs(hl.get_monitors()) do
+        local profile = monitors[m.name]
+        if profile then
+            hl.monitor(profile)
+        else
+            hl.monitor({ output = m.name, mode = "preferred", position = "auto", scale = "auto" })
+        end
+    end
+end
+
+hl.on("monitor.added", function(m)
+    reapply_monitors()
+    hl.notification.create({ text = "Monitor connected: " .. m.name, timeout = 3000, icon = "ok" })
+end)
+
+hl.on("monitor.removed", function(m)
+    hl.notification.create({ text = "Monitor disconnected: " .. m.name, timeout = 3000, icon = "hint" })
+end)
+
+local function launch_or_focus(class, cmd)
+    return function()
+        local wins = hl.get_windows({ class = class })
+        if wins and #wins > 0 then
+            hl.dispatch(hl.dsp.focus({ window = wins[1].address }))
+        else
+            hl.exec_cmd(cmd)
+        end
+    end
+end
+
+hl.bind(mainMod .. " + B", launch_or_focus("zen",      "zen"))
+hl.bind(mainMod .. " + O", launch_or_focus("obsidian", "obsidian"))
+hl.bind(mainMod .. " + C", launch_or_focus("vesktop",  "vesktop"))
+
+hl.bind(mainMod .. " + G",           hl.dsp.group.toggle())
+hl.bind(mainMod .. " + ALT + L",     hl.dsp.group.next())
+hl.bind(mainMod .. " + ALT + H",     hl.dsp.group.prev())
+hl.bind(mainMod .. " + SHIFT + G",   hl.dsp.window.move({ out_of_group = true }))
+for _, d in ipairs({ "left", "right", "up", "down" }) do
+    hl.bind(mainMod .. " + ALT + SHIFT + " .. d:sub(1, 1):upper(),
+            hl.dsp.window.move({ into_or_create_group = d }))
+end
+
+hl.bind(mainMod .. " + N", hl.dsp.exec_cmd("dots-nightlight toggle"))

@@ -5,6 +5,26 @@
   ...
 }:
 let
+  nightlight = pkgs.writeShellApplication {
+    name = "dots-nightlight";
+    runtimeInputs = [
+      pkgs.procps
+      pkgs.gammastep
+      pkgs.libnotify
+    ];
+    text = ''
+      state="''${XDG_STATE_HOME:-$HOME/.local/state}/dots/indicators"
+      mkdir -p "$state"
+      flag="$state/nightlight"
+      case "''${1:-toggle}" in
+        status) [ -e "$flag" ] && echo on || echo off ;;
+        on)  pkill -x gammastep || true; gammastep >/dev/null 2>&1 & touch "$flag" ;;
+        off) pkill -x gammastep || true; rm -f "$flag" ;;
+        *)   if [ -e "$flag" ]; then "$0" off; else "$0" on; fi ;;
+      esac
+    '';
+  };
+
   thumbPrune = pkgs.writeShellApplication {
     name = "dots-thumb-prune";
     runtimeInputs = [
@@ -136,6 +156,7 @@ let
 in
 {
   home.packages = helpers ++ [
+    nightlight
     voxtype
     pkgs.wtype
     dotsShims
