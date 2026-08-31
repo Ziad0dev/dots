@@ -156,7 +156,10 @@ in
   };
   programs.fish.enable = true;
 
-  nixpkgs.overlays = [ inputs.zig-overlay.overlays.default ];
+  nixpkgs.overlays = [
+    inputs.zig-overlay.overlays.default
+    inputs.obsidian-extensions.overlays.default
+  ];
   nixpkgs.config.allowUnfree = true;
 
   nix = {

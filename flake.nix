@@ -1,5 +1,5 @@
 {
-  description = "NixOS — KDE Plasma 6 + Hyprland + dotfiles";
+  description = "dots — NixOS, nix-darwin, and standalone home-manager";
 
   inputs = {
 
@@ -7,6 +7,11 @@
     chaotic.inputs.home-manager.follows = "home-manager";
 
     nixpkgs.follows = "chaotic/nixpkgs";
+
+    nix-darwin = {
+      url = "github:nix-darwin/nix-darwin/master";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     helium = {
       url = "github:FKouhai/helium2nix/main";
@@ -22,6 +27,7 @@
       url = "github:hyprwm/Hyprland";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
     dvr-patched = {
       url = "git+https://git.sljusard.com/sljusard/dvr-patched-flake.git";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -49,6 +55,11 @@
       inputs.nixpkgs-nixcord.follows = "nixpkgs";
     };
 
+    obsidian-extensions = {
+      url = "github:karaolidis/nix-obsidian-extensions";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     zig-overlay = {
       url = "github:mitchellh/zig-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -71,80 +82,113 @@
       self,
       nixpkgs,
       home-manager,
-      hyprland,
-      zen-browser,
       chaotic,
       ...
     }:
     let
-      system = "x86_64-linux";
-      hostname = "nixos";
+      inherit (nixpkgs) lib;
+      mk = import ./lib/mk.nix { inherit inputs lib; };
+
+      systems = [
+        "x86_64-linux"
+        "aarch64-linux"
+        "aarch64-darwin"
+      ];
+      forAll = lib.genAttrs systems;
+
       username = "ziad0dev";
+
+      chaoticModules = [
+        chaotic.nixosModules.nyx-cache
+        chaotic.nixosModules.nyx-overlay
+        chaotic.nixosModules.nyx-registry
+      ];
+
+      desktopModules = [
+        ./modules/quality.nix
+        ./modules/virt.nix
+        ./modules/gaming.nix
+        ./modules/llm.nix
+        ./modules/ollama.nix
+        ./modules/audio.nix
+        ./modules/dev.nix
+        ./modules/gaming-extras.nix
+        ./modules/recording.nix
+        ./modules/media.nix
+        ./modules/mullvad.nix
+        ./modules/media-extras.nix
+        ./modules/performance.nix
+        ./modules/secrets.nix
+        ./modules/storage.nix
+        ./modules/hdr.nix
+        ./modules/dev-langs.nix
+        ./modules/ananicy-fix.nix
+        ./modules/osd.nix
+        ./modules/lockscreen.nix
+        ./modules/sddm.nix
+      ];
     in
     {
-      nixosConfigurations.${hostname} = nixpkgs.lib.nixosSystem {
-        inherit system;
-        specialArgs = {
-          inherit
-            inputs
-            username
-            hostname
-            system
-            ;
+      nixosConfigurations = {
+
+        nixos = mk.nixos {
+          inherit username;
+          hostname = "nixos";
+          system = "x86_64-linux";
+          profile = "desktop";
+          modules = [
+            ./hosts/nixos/hardware-configuration.nix
+            ./hosts/nixos/configuration.nix
+          ]
+          ++ desktopModules
+          ++ chaoticModules;
         };
 
-        modules = [
-          ./hosts/nixos/hardware-configuration.nix
-          ./hosts/nixos/configuration.nix
-          ./modules/virt.nix
-          ./modules/gaming.nix
-          ./modules/llm.nix
-          ./modules/ollama.nix
-          ./modules/audio.nix
-          ./modules/dev.nix
-          ./modules/gaming-extras.nix
-          ./modules/recording.nix
-          ./modules/media.nix
-          ./modules/mullvad.nix
-          ./modules/media-extras.nix
-          ./modules/performance.nix
-          ./modules/secrets.nix
-          ./modules/storage.nix
-          ./modules/hdr.nix
-          ./modules/dev-langs.nix
-          ./modules/ananicy-fix.nix
-          ./modules/osd.nix
-          ./modules/lockscreen.nix
-          ./modules/sddm.nix
-
-          chaotic.nixosModules.nyx-cache
-          chaotic.nixosModules.nyx-overlay
-          chaotic.nixosModules.nyx-registry
-
-          home-manager.nixosModules.home-manager
-          {
-            home-manager.useGlobalPkgs = true;
-            home-manager.useUserPackages = true;
-
-            home-manager.backupFileExtension = "backup";
-            home-manager.extraSpecialArgs = { inherit inputs username system; };
-            home-manager.users.${username} = import ./home/home.nix;
-          }
-        ];
-      };
-
-      nixosConfigurations.claude-vm = nixpkgs.lib.nixosSystem {
-        inherit system;
-        specialArgs = {
-          inherit inputs system;
-          username = "dev";
+        claude-vm = mk.nixos {
           hostname = "claude-vm";
+          username = "dev";
+          system = "x86_64-linux";
+          home = false;
+          modules = [ ./hosts/claude-vm ];
         };
-
-        modules = [ ./hosts/claude-vm ];
       };
 
-      formatter.${system} = nixpkgs.legacyPackages.${system}.nixfmt-tree;
+      darwinConfigurations.mac = mk.darwin {
+        inherit username;
+        hostname = "mac";
+        system = "aarch64-darwin";
+        profile = "desktop";
+        modules = [ ./hosts/darwin ];
+      };
+
+      homeConfigurations = {
+
+        "${username}@mac" = mk.home {
+          inherit username;
+          system = "aarch64-darwin";
+          profile = "desktop";
+        };
+
+        "${username}@linux" = mk.home {
+          inherit username;
+          system = "x86_64-linux";
+          profile = "minimal";
+        };
+
+        "${username}@linux-desktop" = mk.home {
+          inherit username;
+          system = "x86_64-linux";
+          profile = "desktop";
+        };
+
+        "${username}@aarch64-linux" = mk.home {
+          inherit username;
+          system = "aarch64-linux";
+          profile = "minimal";
+        };
+      };
+
+      formatter = forAll (system: nixpkgs.legacyPackages.${system}.nixfmt-tree);
 
       templates = {
         zig = {
@@ -177,7 +221,7 @@
         };
         typst = {
           path = ./templates/typst;
-          description = "Typst + typix reproducible builds";
+          description = "Typst reproducible builds";
         };
         latex = {
           path = ./templates/latex;
