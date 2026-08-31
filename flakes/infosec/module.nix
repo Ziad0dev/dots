@@ -1,5 +1,10 @@
 { target }:
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   cfg = config.zi.infosec;
   p = import ./packages.nix { inherit lib pkgs; };
@@ -21,7 +26,6 @@ in
   };
 
   config = lib.mkIf cfg.enable (
-    if target == "nixos" then { environment.systemPackages = chosen; }
-    else { home.packages = chosen; }
+    if target == "nixos" then { environment.systemPackages = chosen; } else { home.packages = chosen; }
   );
 }

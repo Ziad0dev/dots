@@ -21,35 +21,38 @@ let
   ];
   varlist = lib.concatMapStrings (k: "\${${k}}") keys;
 
-  greeter = pkgs.runCommand "sddm-theme-dots" {
-    nativeBuildInputs = [
-      pkgs.gettext
-      pkgs.imagemagick
-    ];
-  } ''
-    dir="$out/share/sddm/themes/dots"
-    mkdir -p "$dir"
-    cp ${src}/Main.qml ${src}/metadata.desktop "$dir/"
+  greeter =
+    pkgs.runCommand "sddm-theme-dots"
+      {
+        nativeBuildInputs = [
+          pkgs.gettext
+          pkgs.imagemagick
+        ];
+      }
+      ''
+        dir="$out/share/sddm/themes/dots"
+        mkdir -p "$dir"
+        cp ${src}/Main.qml ${src}/metadata.desktop "$dir/"
 
-    set -a
-    . ${themeDir}/colors.sh
-    set +a
+        set -a
+        . ${themeDir}/colors.sh
+        set +a
 
-    envsubst '${varlist}' <${src}/theme.conf.in >"$dir/theme.conf"
+        envsubst '${varlist}' <${src}/theme.conf.in >"$dir/theme.conf"
 
-    if magick ${logoSrc} -alpha extract -background "$accent" -alpha shape "$dir/logo.png"; then
-      echo "logo=logo.png" >>"$dir/theme.conf"
-    fi
+        if magick ${logoSrc} -alpha extract -background "$accent" -alpha shape "$dir/logo.png"; then
+          echo "logo=logo.png" >>"$dir/theme.conf"
+        fi
 
-    ${lib.optionalString cfg.wallpaper ''
-      for f in ${themeDir}/wallpaper.*; do
-        [ -f "$f" ] || continue
-        magick "$f" -resize 2560x -blur 0x18 -modulate 45 "$dir/wallpaper.jpg"
-        echo "wallpaper=wallpaper.jpg" >>"$dir/theme.conf"
-        break
-      done
-    ''}
-  '';
+        ${lib.optionalString cfg.wallpaper ''
+          for f in ${themeDir}/wallpaper.*; do
+            [ -f "$f" ] || continue
+            magick "$f" -resize 2560x -blur 0x18 -modulate 45 "$dir/wallpaper.jpg"
+            echo "wallpaper=wallpaper.jpg" >>"$dir/theme.conf"
+            break
+          done
+        ''}
+      '';
 in
 {
   options.dots.sddm = {

@@ -78,11 +78,10 @@ in
     openFirewall = true;
   };
   services.flaresolverr = {
-    enable = true;
+    enable = false;
     openFirewall = false;
   };
 
-  services.desktopManager.plasma6.enable = true;
   programs.coolercontrol.enable = true;
 
   programs.hyprland = {
@@ -97,15 +96,20 @@ in
     # Do NOT put xdg-desktop-portal-hyprland here — programs.hyprland already provides it
     extraPortals = with pkgs; [
       xdg-desktop-portal-gtk
-      kdePackages.xdg-desktop-portal-kde
     ];
     config = {
-      common.default = [ "hyprland" "gtk" ];
+      common.default = [
+        "hyprland"
+        "gtk"
+      ];
       hyprland = {
-        default = [ "hyprland" "gtk" ];
+        default = [
+          "hyprland"
+          "gtk"
+        ];
         "org.freedesktop.impl.portal.ScreenCast" = [ "hyprland" ];
         "org.freedesktop.impl.portal.Screenshot" = [ "hyprland" ];
-        "org.freedesktop.impl.portal.Secret" = [ "kde" ];
+        "org.freedesktop.impl.portal.Secret" = [ "gtk" ];
       };
     };
   };
@@ -135,7 +139,7 @@ in
 
   virtualisation.docker = {
     enable = true;
-    enableOnBoot = true;
+    enableOnBoot = false;
   };
 
   users.users.${username} = {
@@ -221,8 +225,6 @@ in
     kdePackages.dolphin
     kdePackages.ark
     kdePackages.kate
-    kdePackages.kwallet
-    kdePackages.kwalletmanager
     kdePackages.ksystemlog
     kdePackages.qt6ct
   ]);
