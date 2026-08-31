@@ -1961,6 +1961,9 @@ Item {
             onStreamFinished: { theme.hyprUsesLua = (this.text.trim() === "lua") }
         }
     }
+    property bool openRouterVisible: false
+    onOpenRouterVisibleChanged: popupOpened("openRouterVisible")
+
     property bool overviewVisible: false
     onOverviewVisibleChanged: popupOpened("overviewVisible")
 
