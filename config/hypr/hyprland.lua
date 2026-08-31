@@ -388,4 +388,5 @@ end
 
 hl.bind(mainMod .. " + N", hl.dsp.exec_cmd("dots-nightlight toggle"))
 hl.bind(mainMod .. " + A", hl.dsp.exec_cmd("qs -c rise ipc call overview toggle"))
+hl.bind(mainMod .. " + SHIFT + O", hl.dsp.exec_cmd("qs -c rise ipc call openrouter toggle"))
 hl.bind(mainMod .. " + SHIFT + S", hl.dsp.exec_cmd("flameshot gui"))
