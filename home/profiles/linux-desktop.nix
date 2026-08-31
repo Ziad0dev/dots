@@ -154,7 +154,6 @@ in
       calibre
       spotify
 
-      vscode
       gcc
       xdotool
     ])
@@ -166,6 +165,32 @@ in
       inputs.helium.defaultPackage.${system}
       inputs.vm-curator.packages.${system}.default
     ];
+
+  programs.vscode = {
+    enable = true;
+    mutableExtensionsDir = true;
+
+    profiles.default.extensions = with pkgs.vscode-extensions; [
+      jnoortheen.nix-ide
+      ms-python.python
+      ms-python.vscode-pylance
+      rust-lang.rust-analyzer
+      ziglang.vscode-zig
+      tamasfe.even-better-toml
+      pkief.material-icon-theme
+      usernamehw.errorlens
+      eamodio.gitlens
+      mkhl.direnv
+      vscodevim.vim
+    ];
+
+    profiles.default.keybindings = [
+      {
+        key = "ctrl+shift+t";
+        command = "workbench.action.terminal.toggleTerminal";
+      }
+    ];
+  };
 
   services.cliphist.enable = true;
 
