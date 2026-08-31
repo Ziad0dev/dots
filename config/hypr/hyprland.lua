@@ -192,7 +192,13 @@ end
 
 hl.bind(mainMod .. " + TAB",          hl.dsp.focus({ workspace = "e+1" }))
 hl.bind(mainMod .. " + SHIFT + TAB",  hl.dsp.focus({ workspace = "e-1" }))
+hl.bind(mainMod .. " + CTRL + Z", function()
+    hl.config({ cursor = { zoom_factor = (hl.get_config("cursor.zoom_factor") or 1) + 1 } })
+end)
 
+hl.bind(mainMod .. " + CTRL + ALT + Z", function()
+    hl.config({ cursor = { zoom_factor = 1 } })
+end)
 hl.bind(mainMod .. " + mouse:272",  hl.dsp.window.drag(),   { mouse = true })
 hl.bind(mainMod .. " + mouse:273",  hl.dsp.window.resize(), { mouse = true })
 hl.bind(mainMod .. " + mouse_down", hl.dsp.focus({ workspace = "e+1" }))
