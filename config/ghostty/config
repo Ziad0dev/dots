@@ -45,3 +45,4 @@ palette = 15=#f2f4f8
 # kitty-integ
 image-storage-limit = 320000000
 config-file = ?~/.local/state/dots/theme/ghostty
+command = tmux new-session -A -s main

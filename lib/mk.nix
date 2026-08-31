@@ -58,7 +58,14 @@ in
         modules
         ++ lib.optionals home [
           inputs.home-manager.nixosModules.home-manager
-          (hmShared { inherit username system profile homeModule; })
+          (hmShared {
+            inherit
+              username
+              system
+              profile
+              homeModule
+              ;
+          })
         ];
     };
 
@@ -84,7 +91,14 @@ in
       };
       modules = modules ++ [
         inputs.home-manager.darwinModules.home-manager
-        (hmShared { inherit username system profile homeModule; })
+        (hmShared {
+          inherit
+            username
+            system
+            profile
+            homeModule
+            ;
+        })
       ];
     };
 
@@ -107,10 +121,11 @@ in
           profile
           ;
       };
-      modules =
-        [ ../home/home.nix ]
-        ++ modules
-        ++ lib.optional (repoPath != null) { dots.repoPath = repoPath; }
-        ++ lib.optional (homeDirectory != null) { home.homeDirectory = homeDirectory; };
+      modules = [
+        ../home/home.nix
+      ]
+      ++ modules
+      ++ lib.optional (repoPath != null) { dots.repoPath = repoPath; }
+      ++ lib.optional (homeDirectory != null) { home.homeDirectory = homeDirectory; };
     };
 }

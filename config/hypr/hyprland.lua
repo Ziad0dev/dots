@@ -27,15 +27,14 @@ hl.env("XDG_SESSION_DESKTOP", "Hyprland")
 hl.env("GDK_BACKEND", "wayland,x11")
 hl.env("QT_QPA_PLATFORM", "wayland;xcb")
 hl.env("CLUTTER_BACKEND", "wayland")
-hl.env("QT_QPA_PLATFORMTHEME", "kde")
-hl.env("QT_STYLE_OVERRIDE", "Breeze")
+hl.env("QT_QPA_PLATFORMTHEME", "qt6ct")
 
 hl.config({
     input = {
         kb_layout  = "us,se,ara,fr,de",
         kb_variant = "",
         kb_model   = "",
-        kb_options = "grp:alt_shift_toggle",
+        kb_options = "grp:rctrl_toggle,compose:caps",
         kb_rules   = "",
 
         follow_mouse  = 1,
@@ -48,6 +47,10 @@ hl.config({
             drag_lock            = true,
         },
 
+        repeat_rate   = 40,
+        repeat_delay  = 250,
+        numlock_by_default = true,
+
         sensitivity   = 0,
         accel_profile = "flat",
     },
@@ -56,6 +59,20 @@ hl.config({
 
         no_hardware_cursors = false,
         use_cpu_buffer      = true,
+        hide_on_key_press   = true,
+        warp_on_change_workspace = 1,
+    },
+
+    binds = {
+        hide_special_on_workspace_change = true,
+    },
+
+    xwayland = {
+        force_zero_scaling = true,
+    },
+
+    ecosystem = {
+        no_update_news = true,
     },
 })
 
@@ -155,6 +172,10 @@ hl.config({
         swallow_regex               = "^(com\\.mitchellh\\.ghostty)$",
         focus_on_activate           = true,
         mouse_move_focuses_monitor  = true,
+
+        allow_session_lock_restore  = true,
+        anr_missed_pings            = 3,
+        initial_workspace_tracking  = 0,
     },
 })
 
@@ -171,6 +192,8 @@ for key, dir in pairs(focusDirs) do
     hl.bind(mainMod .. " + SHIFT + " .. key,      hl.dsp.window.move({ direction = dir }))
 end
 hl.bind(mainMod .. " + V", hl.dsp.exec_cmd("voxtype toggle"))
+hl.bind(mainMod .. " + SHIFT + V", hl.dsp.exec_cmd([[sh -c 'cliphist list | fuzzel --dmenu | cliphist decode | wl-copy']]))
+hl.bind(mainMod .. " + period", hl.dsp.exec_cmd("bemoji -n -t"))
 hl.bind(mainMod .. " + F", hl.dsp.window.fullscreen())
 hl.bind(mainMod .. " + CTRL + SHIFT + SPACE", hl.dsp.exec_cmd("qs -c rise ipc call picker theme"))
 hl.bind(mainMod .. " + SHIFT + T", hl.dsp.exec_cmd("themectl next"))
@@ -287,9 +310,7 @@ hl.on("hyprland.start", function()
     ']])
     hl.exec_cmd("dunst")
     hl.exec_cmd("awww-daemon")
-    hl.exec_cmd("flameshot")
     hl.exec_cmd("gammastep")
-    hl.exec_cmd("easyeffects")
 end)
 
 hl.on("hyprland.shutdown", function()

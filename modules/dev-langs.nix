@@ -11,6 +11,9 @@
     zigpkgs."0.16.0"
     inputs.zls.packages.${system}.zls
 
+    nixd
+    lua-language-server
+
     clang_multi
     clang-tools
     lldb
