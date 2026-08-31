@@ -29,6 +29,19 @@ return {
     opts = {
       adapters = {
         http = {
+          ["openrouter"] = function()
+            return require("codecompanion.adapters").extend("openai_compatible", {
+              env = {
+                url = "https://openrouter.ai/api/v1",
+                api_key = "cmd:secretspec get OPENROUTER_API_KEY",
+                chat_url = "/chat/completions",
+              },
+              schema = {
+                model = { default = "anthropic/claude-sonnet-4.5" },
+              },
+            })
+          end,
+
           ["llama-server"] = function()
             return require("codecompanion.adapters").extend("openai_compatible", {
               env = {
@@ -45,9 +58,9 @@ return {
       },
 
       interactions = {
-        chat = { adapter = "llama-server" },
+        chat = { adapter = "openrouter" },
         inline = { adapter = "llama-server" },
-        cmd = { adapter = "llama-server" },
+        cmd = { adapter = "openrouter" },
       },
     },
   },

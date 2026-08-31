@@ -192,6 +192,14 @@ kvantum_compat() {
     mkdir -p "$dir"
     relink "$out" "$dir/KvGlass#.kvconfig"
 }
+vscode_compat() {
+    local out dir
+    out="$STATE/vscode-settings.json"
+    [ -f "$out" ] || return 0
+    dir="${XDG_CONFIG_HOME:-$HOME/.config}/Code/User"
+    mkdir -p "$dir"
+    relink "$out" "$dir/settings.json"
+}
 reload_apps() {
 
     pkill -SIGUSR2 ghostty 2>/dev/null || true
@@ -232,6 +240,7 @@ cmd_set() {
     shell_compat "$name"
     sddm_compat "$name"
     kvantum_compat "$name"
+    vscode_compat "$name"
     reload_apps
 
     if wp=$(theme_wallpaper "$name"); then
