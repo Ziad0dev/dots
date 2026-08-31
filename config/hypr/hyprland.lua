@@ -100,6 +100,7 @@ hl.config({
     },
 
     animations = { enabled = true },
+    render = { direct_scanout = 1 },
 })
 
 hl.curve("linear",   { type = "bezier", points = { {0.0, 0.0},  {1.0, 1.0}   } })
