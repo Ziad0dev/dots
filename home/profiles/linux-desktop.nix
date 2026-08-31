@@ -134,6 +134,8 @@ in
       qpwgraph
 
       imv
+      nemo
+      lnav
       mpv
       haruna
       mpc-qt
@@ -190,31 +192,6 @@ in
       ExecStopPost = "${pkgs.bash}/bin/sh -c 'mkdir -p %S/dots/indicators && touch %S/dots/indicators/stay-awake'";
       Restart = "on-failure";
       RestartSec = 3;
-    };
-    Install.WantedBy = [ "graphical-session.target" ];
-  };
-
-  systemd.user.services.lastfm-secret = {
-    Unit = {
-      Description = "Materialize the last.fm password from secretspec";
-      PartOf = [ "graphical-session.target" ];
-      After = [ "graphical-session.target" ];
-      Before = [ "mpdscribble.service" ];
-    };
-    Service = {
-      Type = "oneshot";
-      RemainAfterExit = true;
-      WorkingDirectory = config.dots.repoPath;
-      ExecStart = toString (
-        pkgs.writeShellScript "lastfm-secret" ''
-          set -eu
-          umask 077
-          mkdir -p "$HOME/.local/share/secrets"
-          v=$(${pkgs.secretspec}/bin/secretspec get LASTFM_PASSWORD)
-          [ -n "$v" ] || { echo "secretspec returned nothing, refusing to write" >&2; exit 1; }
-          printf '%s' "$v" > "$HOME/.local/share/secrets/mpdscribble"
-        ''
-      );
     };
     Install.WantedBy = [ "graphical-session.target" ];
   };
@@ -285,11 +262,4 @@ in
     multimediaKeys = true;
   };
 
-  services.mpdscribble = {
-    enable = true;
-    endpoints."last.fm" = {
-      username = "";
-      passwordFile = "${config.home.homeDirectory}/.local/share/secrets/mpdscribble";
-    };
-  };
 }

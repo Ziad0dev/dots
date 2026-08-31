@@ -6,7 +6,7 @@ Item {
     id: rootMod
     required property var root
     property string colorGid: "G3"
-    readonly property color contentColor: root.widgetContentColor(colorGid, root.ink)
+    readonly property color contentColor: root.ink
 
     implicitWidth: 26
     implicitHeight: 28
