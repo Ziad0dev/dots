@@ -56,12 +56,10 @@ in
 
   dconf.settings."org/gnome/desktop/interface".color-scheme = "prefer-dark";
 
-  xdg.configFile."vesktop/settings/settings.json".enable = false;
-
   xdg.desktopEntries.discord = {
     name = "Discord";
     genericName = "Internet Messenger";
-    exec = "discord --ozone-platform-hint=auto --enable-features=WaylandWindowDecorations %U";
+    exec = "discord --ozone-platform-hint=auto --enable-features=WaylandWindowDecorations --disable-gpu-compositing %U";
     icon = "discord";
     terminal = false;
     categories = [
