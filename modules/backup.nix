@@ -1,4 +1,4 @@
-{ username, ... }:
+{ pkgs, username, ... }:
 
 {
   services.restic.backups.home = {
@@ -15,6 +15,15 @@
       "/home/${username}/.local/share/containers"
       "/home/${username}/.local/state/nix"
       "/home/${username}/Downloads"
+      "/home/${username}/.local/share/flatpak"
+      "/home/${username}/.local/share/umu"
+      "/home/${username}/.local/share/baloo"
+      "/home/${username}/.config/heroic"
+      "**/Cache"
+      "**/CachedData"
+      "**/Code Cache"
+      "**/GPUCache"
+      "**/ShaderCache"
       "**/node_modules"
       "**/.direnv"
       "**/target"
@@ -45,4 +54,6 @@
       IOSchedulingClass = "idle";
     };
   };
+
+  environment.systemPackages = [ pkgs.restic ];
 }

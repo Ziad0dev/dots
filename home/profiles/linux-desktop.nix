@@ -142,6 +142,7 @@ in
       qt6.qtwayland
       obs-studio
       cliamp
+      wlopm
 
       chromium
       tor
