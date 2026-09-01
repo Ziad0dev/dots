@@ -6,6 +6,9 @@
     vesktop.enable = true;
     discord.vencord.enable = true;
     discord.krisp.enable = true;
+
+    userPlugins.bigFileUpload = "github:ScattrdBlade/bigFileUpload/837e9efe85ce026063a13ef7fef12e96b3a0aa18";
+
     config = {
       frameless = true;
       plugins = {
@@ -121,6 +124,23 @@
         xsOverlay.enable = true;
         youtubeAdblock.enable = true;
       };
+    };
+    extraConfig.plugins.BigFileUpload = {
+      enable = true;
+      fileUploader = "Litterbox";
+      litterboxTime = "72h";
+      respectNitroLimit = "Yes";
+      nitroType = "none";
+      disableFallbacks = "No";
+      autoSend = "No";
+      autoFormat = "Yes";
+      useNotifications = "No";
+      useEmbedsVideo = "Yes";
+      embedService = "x266";
+      dragAndDropEnabled = "Yes";
+      pasteEnabled = "Yes";
+      uploadTimeout = "300000";
+      loggingLevel = "errors";
     };
   };
 }
