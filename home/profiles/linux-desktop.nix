@@ -150,7 +150,6 @@ in
       element-desktop
       weechat
 
-      qbittorrent
       nicotine-plus
       calibre
       spotify
