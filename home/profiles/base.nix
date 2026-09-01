@@ -28,6 +28,7 @@ in
     ../dev-home.nix
     ../fastfetch.nix
     ../git-hooks.nix
+    ../yazi.nix
     (import ../../flakes/infosec/module.nix { target = "home"; })
     (import ../../flakes/maths/module.nix { target = "home"; })
   ];
@@ -163,7 +164,6 @@ in
     home.packages = with pkgs; [
       ripgrep
       fd
-      yazi
       broot
       ranger
       tmux
