@@ -43,6 +43,7 @@ flake.nix     hostname, username, host outputs
 hosts/        per-host hardware + configuration
 modules/      system config, one file per concern
 home/         home-manager
+lib/          shared helpers
 config/       app config, symlinked live into ~/.config
 flakes/       curated tool sets, usable standalone
 scripts/      helpers
@@ -58,9 +59,6 @@ meant to be ephemeral:
 nix develop ~/dots/flakes/infosec#web -c fish
 nix develop ~/dots/flakes/maths#mathlib -c fish
 ```
-
-They are standalone flakes, so they also work off a machine that is not
-this one:
 
 ```sh
 nix develop 'github:Ziad0dev/dots?dir=flakes/infosec#binary'

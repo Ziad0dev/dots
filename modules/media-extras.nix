@@ -2,6 +2,7 @@
 
 let
   mediaRoot = "/mnt/media";
+  hardening = import ../lib/hardening.nix;
 in
 {
 
@@ -13,7 +14,10 @@ in
     openFirewall = false;
   };
 
-  systemd.services.audiobookshelf.unitConfig.RequiresMountsFor = [ mediaRoot ];
+  systemd.services.audiobookshelf = {
+    unitConfig.RequiresMountsFor = [ mediaRoot ];
+    serviceConfig = hardening;
+  };
 
   services.calibre-web = {
     enable = true;
