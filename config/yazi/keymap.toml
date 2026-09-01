@@ -1,0 +1,37 @@
+#:schema https://yazi-rs.github.io/schemas/keymap.json
+
+[mgr]
+prepend_keymap = [
+	{ on = "l",       run = "plugin smart-enter",           desc = "Enter dir or open file" },
+	{ on = "<Enter>", run = "plugin smart-enter",           desc = "Enter dir or open file" },
+	{ on = "f",       run = "plugin smart-filter",          desc = "Smart filter" },
+	{ on = "F",       run = "plugin jump-to-char",          desc = "Jump to char" },
+	{ on = "T",       run = "plugin toggle-pane max-preview", desc = "Maximise preview" },
+	{ on = "<C-h>",   run = "plugin toggle-pane min-parent",  desc = "Collapse parent pane" },
+	{ on = "M",       run = "plugin mount",                 desc = "Mount manager" },
+	{ on = "<C-r>",   run = "plugin restore",               desc = "Restore from trash" },
+	{ on = "x",       run = "plugin ouch zip",              desc = "Compress selection" },
+
+	{ on = "!",     run = 'shell "$SHELL" --block',                                  desc = "Shell here" },
+	{ on = "<C-t>", run = 'shell --orphan -- ghostty --working-directory="$PWD"',    desc = "Terminal here" },
+	{ on = "<C-g>", run = 'shell --block -- lazygit',                                desc = "lazygit" },
+	{ on = "<C-n>", run = 'shell --orphan -- nvim %s',                               desc = "Detached nvim" },
+
+	{ on = [ "u", "c" ], run = "plugin chmod",     desc = "chmod selection" },
+	{ on = [ "u", "d" ], run = "plugin diff",      desc = "Diff against yanked" },
+
+	{ on = [ "g", "h" ], run = "cd ~",                     desc = "Home" },
+	{ on = [ "g", "d" ], run = "cd ~/dots",                desc = "dots" },
+	{ on = [ "g", "c" ], run = "cd ~/.config",             desc = "Config" },
+	{ on = [ "g", "D" ], run = "cd ~/Downloads",           desc = "Downloads" },
+	{ on = [ "g", "p" ], run = "cd ~/Pictures",            desc = "Pictures" },
+	{ on = [ "g", "w" ], run = "cd ~/Pictures/wallpapers", desc = "Wallpapers" },
+	{ on = [ "g", "m" ], run = "cd /mnt/media",            desc = "Media drive" },
+	{ on = [ "g", "u" ], run = "cd /mnt/media/music",      desc = "Music" },
+	{ on = [ "g", "b" ], run = "cd /mnt/backup",           desc = "Backup drive" },
+	{ on = [ "g", "v" ], run = "cd /data/vms",             desc = "VMs" },
+	{ on = [ "g", "g" ], run = "cd /data/games",           desc = "Games" },
+	{ on = [ "g", "M" ], run = "cd /data/models",          desc = "Models" },
+	{ on = [ "g", "t" ], run = "cd /tmp",                  desc = "tmp" },
+	{ on = [ "g", "r" ], run = 'shell -- ya emit cd "$(git rev-parse --show-toplevel)"', desc = "Repo root" },
+]
