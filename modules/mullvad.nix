@@ -9,11 +9,11 @@
 {
 
   services.mullvad-vpn = {
-    enable = true;
+    enable = false;
 
-    gui.enable = true;
+    gui.enable = false;
   };
 
-  services.resolved.enable = true;
+  services.resolved.enable = false;
 
 }

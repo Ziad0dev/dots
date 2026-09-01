@@ -75,11 +75,11 @@ in
   };
   services.prowlarr = {
     enable = true;
-    openFirewall = true;
+    openFirewall = false;
   };
   services.flaresolverr = {
     enable = true;
-    openFirewall = true;
+    openFirewall = false;
   };
 
   programs.coolercontrol.enable = true;

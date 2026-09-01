@@ -44,6 +44,11 @@
       inputs.home-manager.follows = "home-manager";
     };
 
+    vpn-confinement = {
+      url = "github:Maroka-chan/VPN-Confinement";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     nix-index-database = {
       url = "github:nix-community/nix-index-database";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -105,6 +110,9 @@
       ];
 
       desktopModules = [
+        inputs.vpn-confinement.nixosModules.default
+        ./modules/lan.nix
+        ./modules/vpn.nix
         ./modules/quality.nix
         ./modules/backup.nix
         ./modules/virt.nix
