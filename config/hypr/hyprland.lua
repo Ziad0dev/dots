@@ -102,7 +102,7 @@ hl.config({
 
         blur = {
             enabled            = true,
-            size               = 5,
+            size               = 3,
             passes             = 2,
             new_optimizations  = true,
             xray               = false,
@@ -300,6 +300,41 @@ hl.window_rule({
     match        = { class = "^(org\\.pwmt\\.zathura)$" },
     idle_inhibit = "fullscreen",
 })
+hl.window_rule({
+    name  = "sysmon-place",
+    match = { class = "^(dev\\.dots\\.sysmon)$" },
+    workspace = "2 silent",
+})
+
+hl.window_rule({
+    match = { class = "^(dev\\.dots\\.sysmon)$" },
+    no_initial_focus = true,
+})
+
+hl.window_rule({
+    name  = "zen-place",
+    match = { class = "^(zen-beta)$" },
+    workspace = "1",
+})
+
+hl.window_rule({
+    name  = "discord-place",
+    match = { class = "^(discord)$" },
+    workspace = "10 silent",
+})
+
+hl.window_rule({
+    name  = "spotify-place",
+    match = { class = "^(spotify)$" },
+    workspace = "10 silent",
+})
+
+hl.window_rule({
+    name  = "qbittorrent-place",
+    match = { class = "^(org\\.qbittorrent\\.qBittorrent)$" },
+    workspace = "3 silent",
+})
+
 hl.on("hyprland.start", function()
 
     hl.exec_cmd([[sh -c '
@@ -310,6 +345,15 @@ hl.on("hyprland.start", function()
     ']])
     hl.exec_cmd("dunst")
     hl.exec_cmd("awww-daemon")
+
+    hl.exec_cmd("zen")
+    hl.exec_cmd([[sh -c 'sleep 2; ghostty']])
+    hl.exec_cmd([[sh -c 'tmux has-session -t sysmon 2>/dev/null || tmux new-session -d -s sysmon btop \; split-window -v ", nvtop"; ghostty --class=dev.dots.sysmon -e tmux attach -t sysmon']])
+    hl.exec_cmd("vesktop")
+    hl.exec_cmd("spotify")
+    hl.exec_cmd("mullvad-vpn")
+    hl.exec_cmd("qbittorrent")
+    hl.exec_cmd([[easyeffects --gapplication-service]])
 end)
 
 hl.on("hyprland.shutdown", function()
@@ -373,9 +417,9 @@ local function launch_or_focus(class, cmd)
     end
 end
 
-hl.bind(mainMod .. " + B", launch_or_focus("zen",      "zen"))
+hl.bind(mainMod .. " + B", launch_or_focus("zen-beta", "zen"))
 hl.bind(mainMod .. " + O", launch_or_focus("obsidian", "obsidian"))
-hl.bind(mainMod .. " + C", launch_or_focus("vesktop",  "vesktop"))
+hl.bind(mainMod .. " + C", launch_or_focus("discord",  "vesktop"))
 
 hl.bind(mainMod .. " + G",           hl.dsp.group.toggle())
 hl.bind(mainMod .. " + ALT + L",     hl.dsp.group.next())
