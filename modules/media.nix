@@ -78,7 +78,7 @@ in
       "iocharset=utf8"
       "nofail"
       "noatime"
-      "x-gvfs-hide"
+      "x-gvfs-show"
     ];
   };
 
