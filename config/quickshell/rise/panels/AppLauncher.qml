@@ -72,12 +72,10 @@ PanelWindow {
     function launch() {
         if (sel < 0 || sel >= entries.length) return
         var e = entries[sel]
-        if (e.command && e.command.length > 0)
-            Quickshell.execDetached({
-                command: ["systemd-run", "--user", "--scope", "--quiet", "--collect", "--"].concat(e.command),
-                workingDirectory: e.workingDirectory
-            })
-        else e.execute()
+
+        // Just use the DesktopEntry's own execute().
+        // systemd-run --scope breaks Flatpaks (Tauon, etc.) on NixOS.
+        e.execute()
         close()
     }
 
