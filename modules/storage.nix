@@ -6,15 +6,24 @@
 }:
 
 let
-  exfatOpts = [
+  baseOpts = [
     "nofail"
     "x-systemd.automount"
     "x-systemd.idle-timeout=600"
     "X-mount.mkdir"
+    "x-gvfs-show"
+  ];
+
+  exfatOpts = baseOpts ++ [
     "uid=${toString config.users.users.${username}.uid}"
     "gid=100"
     "umask=0022"
-    "x-gvfs-show"
+  ];
+
+  backupOpts = baseOpts ++ [
+    "uid=0"
+    "gid=0"
+    "umask=0077"
   ];
 in
 {
@@ -22,7 +31,7 @@ in
   fileSystems."/mnt/backup" = {
     device = "/dev/disk/by-uuid/6087-5FAB";
     fsType = "exfat";
-    options = exfatOpts;
+    options = backupOpts;
   };
 
   fileSystems."/mnt/newvolume" = {

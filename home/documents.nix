@@ -102,7 +102,7 @@ in
       "x-scheme-handler/http" = [ "zen-beta.desktop" ];
       "x-scheme-handler/https" = [ "zen-beta.desktop" ];
       "text/html" = [ "zen-beta.desktop" ];
-      "x-scheme-handler/discord" = [ "vesktop.desktop" ];
+      "x-scheme-handler/discord" = [ "discord.desktop" ];
     };
   };
 
