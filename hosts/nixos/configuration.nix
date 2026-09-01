@@ -78,8 +78,8 @@ in
     openFirewall = true;
   };
   services.flaresolverr = {
-    enable = false;
-    openFirewall = false;
+    enable = true;
+    openFirewall = true;
   };
 
   programs.coolercontrol.enable = true;
