@@ -59,7 +59,7 @@ in
   xdg.desktopEntries.discord = {
     name = "Discord";
     genericName = "Internet Messenger";
-    exec = "discord --ozone-platform-hint=auto --enable-features=WaylandWindowDecorations --disable-gpu-compositing %U";
+    exec = "discord --enable-features=WaylandWindowDecorations %U";
     icon = "discord";
     terminal = false;
     categories = [
