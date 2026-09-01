@@ -1,4 +1,9 @@
-{ lib, pkgs, username, ... }:
+{
+  lib,
+  pkgs,
+  username,
+  ...
+}:
 
 {
 
@@ -6,7 +11,7 @@
   nix.daemonIOSchedClass = "idle";
 
   nix.settings = {
-    trusted-users = [ "@wheel" ];
+    trusted-users = [ username ];
     keep-outputs = true;
     keep-derivations = true;
     substituters = [ "https://nix-community.cachix.org" ];
