@@ -48,6 +48,8 @@ in
       BitTorrent.Session = {
         DefaultSavePath = "${mediaRoot}/.incoming";
         TempPathEnabled = false;
+        DiskIOType = "SimplePreadPwrite";
+        UseUPnP = false;
       };
     };
   };
@@ -58,6 +60,7 @@ in
       vpnNamespace = "wg";
     };
     unitConfig.RequiresMountsFor = [ mediaRoot ];
+    serviceConfig.MemoryHigh = "2G";
   };
 
   systemd.services.prowlarr = {
