@@ -1,13 +1,12 @@
 # Oxocarbon Theme for Ghostty (Black Background Variant)
 # Inspired by IBM Carbon Design System
 term = xterm-ghostty
+gtk-single-instance = false
 shell-integration = fish
 window-padding-x = 4
 window-padding-y = 2
-# tmux integration - send save-buffer command
-keybind = cmd+s=text:\x01\x73
-# tmux prefix to toggle zoom on current pane
-keybind = cmd+b=text:\x01\x7a
+keybind = ctrl+shift+s=text:\x60\x73
+keybind = ctrl+shift+z=text:\x60\x7a
 # aesthet
 background-opacity = 0.85
 background-blur=16
@@ -45,4 +44,3 @@ palette = 15=#f2f4f8
 # kitty-integ
 image-storage-limit = 320000000
 config-file = ?~/.local/state/dots/theme/ghostty
-command = tmux new-session -A -s main
