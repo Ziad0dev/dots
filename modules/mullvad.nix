@@ -3,8 +3,8 @@
 {
 
   services.mullvad-vpn = {
-    enable = false;
-    gui.enable = false;
+    enable = true;
+    gui.enable = true;
   };
 
   services.resolved = {
