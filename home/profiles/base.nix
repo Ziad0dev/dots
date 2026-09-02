@@ -179,6 +179,7 @@ in
       luarocks
       tree-sitter
       ffmpeg
+      foot
       yt-dlp
       imagemagick
     ];
