@@ -66,30 +66,15 @@ Item {
     property real barH2: 0.08
     property real barH3: 0.08
 
-    // bounce sequences — regular animations with explicit target, no PVS conflict
-    SequentialAnimation {
-        id: anim1
-        running: rootMod.visible && rootMod.playing && !rootMod.fullMode; loops: Animation.Infinite   // don't animate the EQ while the widget is hidden (toggle off)
-        NumberAnimation { target: rootMod; property: "barH1"; to: 0.85; duration: 220; easing.type: Easing.InOutSine }
-        NumberAnimation { target: rootMod; property: "barH1"; to: 0.18; duration: 300; easing.type: Easing.InOutSine }
-        NumberAnimation { target: rootMod; property: "barH1"; to: 0.70; duration: 260; easing.type: Easing.InOutSine }
-        NumberAnimation { target: rootMod; property: "barH1"; to: 0.10; duration: 280; easing.type: Easing.InOutSine }
-    }
-    SequentialAnimation {
-        id: anim2
-        running: rootMod.visible && rootMod.playing && !rootMod.fullMode; loops: Animation.Infinite
-        NumberAnimation { target: rootMod; property: "barH2"; to: 0.45; duration: 310; easing.type: Easing.InOutSine }
-        NumberAnimation { target: rootMod; property: "barH2"; to: 0.92; duration: 280; easing.type: Easing.InOutSine }
-        NumberAnimation { target: rootMod; property: "barH2"; to: 0.28; duration: 340; easing.type: Easing.InOutSine }
-        NumberAnimation { target: rootMod; property: "barH2"; to: 0.65; duration: 290; easing.type: Easing.InOutSine }
-    }
-    SequentialAnimation {
-        id: anim3
-        running: rootMod.visible && rootMod.playing && !rootMod.fullMode; loops: Animation.Infinite
-        NumberAnimation { target: rootMod; property: "barH3"; to: 0.60; duration: 380; easing.type: Easing.InOutSine }
-        NumberAnimation { target: rootMod; property: "barH3"; to: 0.12; duration: 320; easing.type: Easing.InOutSine }
-        NumberAnimation { target: rootMod; property: "barH3"; to: 0.95; duration: 350; easing.type: Easing.InOutSine }
-        NumberAnimation { target: rootMod; property: "barH3"; to: 0.32; duration: 400; easing.type: Easing.InOutSine }
+    Timer {
+        running: rootMod.visible && rootMod.playing && !rootMod.fullMode
+        interval: 50
+        repeat: true
+        onTriggered: {
+            rootMod.barH1 = 0.10 + Math.random() * 0.80
+            rootMod.barH2 = 0.10 + Math.random() * 0.80
+            rootMod.barH3 = 0.10 + Math.random() * 0.80
+        }
     }
 
     // drop bars to rest when paused
