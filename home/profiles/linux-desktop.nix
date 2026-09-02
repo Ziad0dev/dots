@@ -26,7 +26,7 @@ in
   ];
 
   home.sessionVariables = {
-    BROWSER = "zen";
+    BROWSER = "zen-beta";
     SDL_VIDEODRIVER = "wayland";
   };
 
