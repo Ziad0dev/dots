@@ -20,6 +20,12 @@ hl.monitor({output = "HDMI-A-1", mode = "1920x1080@60", position = "auto-right",
 
 hl.monitor({ output = "", mode = "preferred", position = "auto", scale = "auto" })
 
+for i = 1, 8 do
+    hl.workspace_rule({ workspace = tostring(i), monitor = "DP-1", default = (i == 1) })
+end
+hl.workspace_rule({ workspace = "10", monitor = "DP-1" })
+hl.workspace_rule({ workspace = "9", monitor = "HDMI-A-1", persistent = true, default = true })
+
 hl.env("XCURSOR_SIZE", "24")
 hl.env("XDG_CURRENT_DESKTOP", "Hyprland")
 hl.env("XDG_SESSION_TYPE", "wayland")
@@ -303,7 +309,7 @@ hl.window_rule({
 hl.window_rule({
     name  = "sysmon-place",
     match = { class = "^(dev\\.dots\\.sysmon)$" },
-    workspace = "2 silent",
+    workspace = "9 silent",
 })
 
 hl.window_rule({
@@ -312,19 +318,25 @@ hl.window_rule({
 })
 
 hl.window_rule({
-    name  = "zen-place",
+    name  = "zen",
     match = { class = "^(zen-beta)$" },
     workspace = "1",
 })
 
 hl.window_rule({
-    name  = "discord-place",
+    name  = "sideterm",
+    match = { class = "^(dev\\.dots\\.sideterm)$" },
+    workspace = "1 silent",
+})
+
+hl.window_rule({
+    name  = "discord",
     match = { class = "^(discord)$" },
     workspace = "10 silent",
 })
 
 hl.window_rule({
-    name  = "spotify-place",
+    name  = "spotify",
     match = { class = "^(spotify)$" },
     workspace = "10 silent",
 })
@@ -346,14 +358,18 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("dunst")
     hl.exec_cmd("awww-daemon")
 
-    hl.exec_cmd("zen")
-    hl.exec_cmd([[sh -c 'sleep 2; ghostty']])
-    hl.exec_cmd([[sh -c 'tmux has-session -t sysmon 2>/dev/null || tmux new-session -d -s sysmon btop \; split-window -v ", nvtop"; ghostty --class=dev.dots.sysmon -e tmux attach -t sysmon']])
-    hl.exec_cmd("vesktop")
+    hl.exec_cmd("zen-beta")
+    hl.exec_cmd([[sh -c 'sleep 2; ghostty --class=dev.dots.sideterm']])
+    hl.exec_cmd([[sh -c '
+        tmux has-session -t sysmon 2>/dev/null || {
+            tmux new-session -d -s sysmon -n sysmon btop
+            tmux split-window -v -t sysmon:sysmon nvtop
+        }
+        ghostty --class=dev.dots.sysmon -e tmux attach -t sysmon']])
+    hl.exec_cmd("discord")
     hl.exec_cmd("spotify")
     hl.exec_cmd("mullvad-vpn")
-    hl.exec_cmd("qbittorrent")
-    hl.exec_cmd([[easyeffects --gapplication-service]])
+    hl.exec_cmd("easyeffects")
 end)
 
 hl.on("hyprland.shutdown", function()
