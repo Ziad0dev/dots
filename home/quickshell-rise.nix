@@ -24,6 +24,18 @@ let
       esac
     '';
   };
+      vpn = pkgs.writeShellApplication {
+    name = "dots-vpn";
+    runtimeInputs = [ pkgs.mullvad ];
+    text = ''
+      case "''${1:-toggle}" in
+        status) mullvad status | grep -qi "^Connected" && echo on || echo off ;;
+        on)  mullvad connect ;;
+        off) mullvad disconnect ;;
+        *)   if mullvad status | grep -qi "^Connected"; then mullvad disconnect; else mullvad connect; fi ;;
+      esac
+    '';
+  };
 
   thumbPrune = pkgs.writeShellApplication {
     name = "dots-thumb-prune";
@@ -157,6 +169,7 @@ in
 {
   home.packages = helpers ++ [
     nightlight
+    vpn
     voxtype
     pkgs.wtype
     dotsShims

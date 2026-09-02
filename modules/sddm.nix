@@ -73,14 +73,28 @@ in
       default = true;
       description = "Let themectl override greeter colours via /var/lib/dots-theme/sddm.json.";
     };
+
+    compositor = lib.mkOption {
+      type = lib.types.enum [ "kwin" "weston" ];
+      default = "kwin";
+      description = "Compositor the greeter runs under. weston uses --shell=kiosk and lights only one output.";
+    };
   };
 
   config = {
     services.displayManager.sddm = {
       enable = true;
-      wayland.enable = true;
+      wayland = {
+        enable = true;
+        inherit (cfg) compositor;
+      };
       theme = lib.mkForce "dots";
-      settings.General.GreeterEnvironment = lib.mkIf cfg.live "QML_XHR_ALLOW_FILE_READ=1";
+      settings.General.GreeterEnvironment = lib.mkForce (
+        lib.concatStringsSep "," (
+          lib.optional (cfg.compositor == "kwin") "QT_WAYLAND_SHELL_INTEGRATION=layer-shell"
+          ++ lib.optional cfg.live "QML_XHR_ALLOW_FILE_READ=1"
+        )
+      );
     };
 
     environment.systemPackages = [ greeter ];

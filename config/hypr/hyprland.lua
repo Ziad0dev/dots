@@ -364,9 +364,8 @@ hl.on("hyprland.start", function()
             tmux split-window -v -t sysmon:sysmon "nvtop || exec fish"
         }
         ghostty --class=dev.dots.sysmon -e tmux new-session -A -s sysmon']])
-    hl.exec_cmd("vesktop")
+    hl.exec_cmd("discord")
     hl.exec_cmd("spotify")
-    hl.exec_cmd("mullvad-vpn")
     hl.exec_cmd("easyeffects --gapplication-service")
 end)
 
@@ -424,7 +423,7 @@ end
 
 hl.bind(mainMod .. " + B", launch_or_focus("zen-beta", "zen-beta"))
 hl.bind(mainMod .. " + O", launch_or_focus("obsidian", "obsidian"))
-hl.bind(mainMod .. " + C", launch_or_focus("discord",  "vesktop"))
+hl.bind(mainMod .. " + C", launch_or_focus("discord",  "discord"))
 
 hl.bind(mainMod .. " + G",           hl.dsp.group.toggle())
 hl.bind(mainMod .. " + ALT + L",     hl.dsp.group.next())

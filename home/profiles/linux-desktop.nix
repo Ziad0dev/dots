@@ -144,7 +144,6 @@ in
 
       chromium
       tor
-      mullvad-vpn
       tor-browser
       element-desktop
       weechat
