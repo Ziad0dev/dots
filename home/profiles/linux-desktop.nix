@@ -145,6 +145,8 @@ in
       chromium
       tor
       tor-browser
+      slack
+      teamspeak6-client
       element-desktop
       weechat
 
