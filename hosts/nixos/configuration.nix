@@ -70,7 +70,7 @@ in
   hardware.nvidia = {
     modesetting.enable = true;
     open = true;
-
+    nvidiaPersistenced = true;
     package = fixZstdRefs pkgs.nvidia_cachyos;
   };
   services.prowlarr = {
