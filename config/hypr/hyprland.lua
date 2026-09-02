@@ -1,22 +1,19 @@
 local colors = require("colors")
-hl.monitor({
-    output   = "DP-1",
-    mode     = "2560x1440@239.97",
-    position = "0x0",
-    scale    = 1,
-    bitdepth = 10,
-    cm = "hdr",
-    supports_wide_color = 1,
-    sdrbrightness = 1.0,
-    sdrsaturation = 1.0,
-    sdr_min_luminance = 0.0011,
-    sdr_max_luminance = 350,
-    min_luminance = 0.0011,
-    max_luminance = 800,
-    max_avg_luminance = 269,
-})
 
-hl.monitor({output = "HDMI-A-1", mode = "1920x1080@60", position = "auto-right", scale = 1, transform = 3})
+local monitorProfiles = {
+    { output = "DP-1",     mode = "2560x1440@239.97", position = "0x0",        scale = 1,
+      bitdepth = 10, cm = "hdr", supports_wide_color = 1,
+      sdrbrightness = 1.0, sdrsaturation = 1.0,
+      sdr_min_luminance = 0.0011, sdr_max_luminance = 350,
+      min_luminance = 0.0011, max_luminance = 800, max_avg_luminance = 269 },
+    { output = "HDMI-A-1", mode = "1920x1080@60",     position = "auto-right", scale = 1, transform = 3 },
+}
+
+local monitors = {}
+for _, m in ipairs(monitorProfiles) do
+    monitors[m.output] = m
+    hl.monitor(m)
+end
 
 hl.monitor({ output = "", mode = "preferred", position = "auto", scale = "auto" })
 
@@ -188,6 +185,7 @@ hl.config({
 local mainMod = "SUPER"
 
 hl.bind(mainMod .. " + Return", hl.dsp.exec_cmd("ghostty"))
+hl.bind(mainMod .. " + SHIFT + Return", hl.dsp.exec_cmd("ghostty -e tmux new-session -A -s main"))
 
 hl.bind(mainMod .. " + SHIFT + Q", hl.dsp.window.close())
 hl.bind(mainMod .. " + D", hl.dsp.exec_cmd("qs -c rise ipc call launcher toggle"))
@@ -362,14 +360,14 @@ hl.on("hyprland.start", function()
     hl.exec_cmd([[sh -c 'sleep 2; ghostty --class=dev.dots.sideterm']])
     hl.exec_cmd([[sh -c '
         tmux has-session -t sysmon 2>/dev/null || {
-            tmux new-session -d -s sysmon -n sysmon btop
-            tmux split-window -v -t sysmon:sysmon nvtop
+            tmux new-session -d -s sysmon -n sysmon "btop || exec fish"
+            tmux split-window -v -t sysmon:sysmon "nvtop || exec fish"
         }
-        ghostty --class=dev.dots.sysmon -e tmux attach -t sysmon']])
-    hl.exec_cmd("discord")
+        ghostty --class=dev.dots.sysmon -e tmux new-session -A -s sysmon']])
+    hl.exec_cmd("vesktop")
     hl.exec_cmd("spotify")
     hl.exec_cmd("mullvad-vpn")
-    hl.exec_cmd("easyeffects")
+    hl.exec_cmd("easyeffects --gapplication-service")
 end)
 
 hl.on("hyprland.shutdown", function()
@@ -392,15 +390,6 @@ hl.bind(mainMod .. " + ALT + R", hl.dsp.exec_cmd(
 
 pcall(dofile, os.getenv("HOME") .. "/.local/state/dots/theme/hyprland.lua")
 
-
-local monitors = {}
-for _, m in ipairs({
-    { output = "DP-1",     mode = "2560x1440@239.97", position = "0x0",        scale = 1, bitdepth = 10, cm = "hdr",
-      supports_wide_color = 1, sdrbrightness = 1.0, sdrsaturation = 1.0,
-      sdr_min_luminance = 0.0011, sdr_max_luminance = 350,
-      min_luminance = 0.0011, max_luminance = 800, max_avg_luminance = 269 },
-    { output = "HDMI-A-1", mode = "1920x1080@60",     position = "auto-right", scale = 1, transform = 3 },
-}) do monitors[m.output] = m end
 
 local function reapply_monitors()
     for _, m in ipairs(hl.get_monitors()) do
@@ -433,7 +422,7 @@ local function launch_or_focus(class, cmd)
     end
 end
 
-hl.bind(mainMod .. " + B", launch_or_focus("zen-beta", "zen"))
+hl.bind(mainMod .. " + B", launch_or_focus("zen-beta", "zen-beta"))
 hl.bind(mainMod .. " + O", launch_or_focus("obsidian", "obsidian"))
 hl.bind(mainMod .. " + C", launch_or_focus("discord",  "vesktop"))
 
