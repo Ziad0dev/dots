@@ -50,6 +50,9 @@ in
         TempPathEnabled = false;
         DiskIOType = "SimplePreadPwrite";
         UseUPnP = false;
+        MaxRatio = 2;
+        MaxRatioAction = 1;
+        GlobalMaxSeedingMinutes = 1440;
       };
     };
   };
