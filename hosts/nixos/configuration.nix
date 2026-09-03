@@ -32,7 +32,6 @@ in
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.systemd-boot.configurationLimit = 10;
 
-  services.flatpak.enable = true;
   dots.sddm.theme = "kanagawa";
   networking.hostName = hostname;
   networking.networkmanager.enable = true;
@@ -253,7 +252,6 @@ in
   };
 
   programs.git.enable = true;
-  programs.nix-ld.enable = true;
   programs.dconf.enable = true;
 
   system.stateVersion = "24.05";
