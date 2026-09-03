@@ -74,6 +74,7 @@ in
   fileSystems.${mediaRoot} = {
     device = "/dev/disk/by-uuid/2A0B-58D1";
     fsType = "exfat";
+    noCheck = true;
     options = [
 
       "uid=${toString config.users.users.${username}.uid}"
