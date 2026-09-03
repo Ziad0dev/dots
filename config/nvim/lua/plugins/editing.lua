@@ -24,6 +24,7 @@ return {
     event = "VeryLazy",
     opts = {
       preset = "modern",
+      disable = { ft = { "snacks_dashboard" } },
       spec = {
         { "<leader>f", group = "find" },
         { "<leader>h", group = "git hunks" },
@@ -36,7 +37,6 @@ return {
         { "<leader>r", group = "rename/refactor" },
         { "<leader>d", group = "document (tex/typst)" },
         { "<leader>u", group = "ui" },
-        { "<leader>y", group = "yazi" },
       },
     },
   },

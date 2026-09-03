@@ -41,7 +41,7 @@ return {
           m("gd", function() Snacks.picker.lsp_definitions() end, "Definition")
           m("gD", vim.lsp.buf.declaration, "Declaration")
           m("gi", function() Snacks.picker.lsp_implementations() end, "Implementation")
-          m("gr", function() Snacks.picker.lsp_references() end, "References")
+          m("gR", function() Snacks.picker.lsp_references() end, "References")
           m("gy", function() Snacks.picker.lsp_type_definitions() end, "Type definition")
           m("K", vim.lsp.buf.hover, "Hover")
           m("<leader>rn", vim.lsp.buf.rename, "Rename")
