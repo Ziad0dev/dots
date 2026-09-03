@@ -1,4 +1,3 @@
-
 return {
   {
     "neovim/nvim-lspconfig",
@@ -26,13 +25,24 @@ return {
       vim.api.nvim_create_autocmd("LspAttach", {
         group = vim.api.nvim_create_augroup("reaper_lsp_attach", { clear = true }),
         callback = function(ev)
+          local client = vim.lsp.get_client_by_id(ev.data.client_id)
+
+          if client and client.name == "ruff" then
+            client.server_capabilities.hoverProvider = false
+          end
+
+          if client and client:supports_method("textDocument/inlayHint") then
+            pcall(vim.lsp.inlay_hint.enable, true, { bufnr = ev.buf })
+          end
+
           local function m(keys, fn, desc)
             vim.keymap.set("n", keys, fn, { buffer = ev.buf, desc = "LSP: " .. desc })
           end
-          m("gd", vim.lsp.buf.definition, "Definition")
+          m("gd", function() Snacks.picker.lsp_definitions() end, "Definition")
           m("gD", vim.lsp.buf.declaration, "Declaration")
-          m("gi", vim.lsp.buf.implementation, "Implementation")
-          m("gr", vim.lsp.buf.references, "References")
+          m("gi", function() Snacks.picker.lsp_implementations() end, "Implementation")
+          m("gr", function() Snacks.picker.lsp_references() end, "References")
+          m("gy", function() Snacks.picker.lsp_type_definitions() end, "Type definition")
           m("K", vim.lsp.buf.hover, "Hover")
           m("<leader>rn", vim.lsp.buf.rename, "Rename")
           m("<leader>ca", vim.lsp.buf.code_action, "Code action")
@@ -43,9 +53,31 @@ return {
       vim.lsp.config("lua_ls", {
         settings = {
           Lua = {
-            diagnostics = { globals = { "vim" } },
+            diagnostics = { globals = { "vim", "Snacks" } },
             workspace = { checkThirdParty = false },
+            hint = { enable = true },
             telemetry = { enable = false },
+          },
+        },
+      })
+
+      vim.lsp.config("nixd", {
+        settings = {
+          nixd = {
+            formatting = { command = { "nixfmt" } },
+            nixpkgs = { expr = "import <nixpkgs> { }" },
+          },
+        },
+      })
+
+      vim.lsp.config("pyright", {
+        settings = {
+          pyright = { disableOrganizeImports = true },
+          python = {
+            analysis = {
+              ignore = { "*" },
+              typeCheckingMode = "standard",
+            },
           },
         },
       })
@@ -66,6 +98,15 @@ return {
             build = { onSave = false, forwardSearchAfter = false },
             chktex = { onOpenAndSave = true, onEdit = false },
             diagnosticsDelay = 300,
+          },
+        },
+      })
+
+      vim.lsp.config("rust_analyzer", {
+        settings = {
+          ["rust-analyzer"] = {
+            checkOnSave = { command = "clippy" },
+            inlayHints = { closureReturnTypeHints = { enable = "with_block" } },
           },
         },
       })
