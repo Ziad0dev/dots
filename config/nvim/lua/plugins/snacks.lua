@@ -1,14 +1,17 @@
 return {
   {
     "folke/snacks.nvim",
-    priority = 900,
+    priority = 1000,
     lazy = false,
     opts = {
       bigfile = { enabled = true },
+      image = { enabled = true },
       quickfile = { enabled = true },
       input = { enabled = true },
       notifier = { enabled = true, timeout = 2500 },
       scroll = { enabled = true },
+      scope = { enabled = true },
+      statuscolumn = { enabled = true },
       words = { enabled = true },
       indent = {
         enabled = true,
@@ -18,6 +21,7 @@ return {
       picker = {
         enabled = true,
         ui_select = true,
+        db = { sqlite3_path = vim.env.LIBSQLITE3 },
         layout = { preset = "telescope" },
         sources = {
           explorer = {

@@ -57,7 +57,7 @@ return {
     keys = {
       { "<leader>y", "<cmd>Yazi<cr>", desc = "Yazi at current file" },
       { "<leader>Y", "<cmd>Yazi cwd<cr>", desc = "Yazi in cwd" },
-      { "<leader>yr", "<cmd>Yazi toggle<cr>", desc = "Resume last yazi" },
+      { "<leader>fy", "<cmd>Yazi toggle<cr>", desc = "Resume last yazi" },
     },
     opts = {
       open_for_directories = false,

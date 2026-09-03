@@ -3,6 +3,10 @@ vim.g.maplocalleader = " "
 
 local opt = vim.opt
 
+if vim.env.NVIM_LUA_CPATH then
+  package.cpath = package.cpath .. ";" .. vim.env.NVIM_LUA_CPATH
+end
+
 opt.number = true
 opt.relativenumber = true
 opt.mouse = "a"

@@ -60,6 +60,12 @@ in
       EDITOR = "nvim";
       VISUAL = "nvim";
       TERMINAL = "ghostty";
+      LIBSQLITE3 = "${pkgs.sqlite.out}/lib/libsqlite3.so";
+      NVIM_LUA_CPATH =
+        let
+          luaEnv = pkgs.neovim-unwrapped.lua;
+        in
+        luaEnv.pkgs.getLuaCPath luaEnv.pkgs.jsregexp;
     };
 
     programs.bash.enable = true;
@@ -179,7 +185,12 @@ in
       luarocks
       tree-sitter
       ffmpeg
+      ghostscript
+      sqlite
+      mermaid-cli
       foot
+      trashy
+      psmisc 
       yt-dlp
       imagemagick
     ];
