@@ -75,7 +75,10 @@ in
     };
 
     compositor = lib.mkOption {
-      type = lib.types.enum [ "kwin" "weston" ];
+      type = lib.types.enum [
+        "kwin"
+        "weston"
+      ];
       default = "kwin";
       description = "Compositor the greeter runs under. weston uses --shell=kiosk and lights only one output.";
     };

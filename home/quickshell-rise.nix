@@ -24,7 +24,7 @@ let
       esac
     '';
   };
-      vpn = pkgs.writeShellApplication {
+  vpn = pkgs.writeShellApplication {
     name = "dots-vpn";
     runtimeInputs = [ pkgs.mullvad ];
     text = ''

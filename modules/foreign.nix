@@ -113,8 +113,6 @@ in
     libraries = runtimeLibs pkgs;
   };
 
-  services.flatpak.enable = true;
-
   environment.systemPackages = [
     fhs
     pkgs.distrobox
