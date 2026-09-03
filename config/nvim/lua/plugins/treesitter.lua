@@ -42,7 +42,6 @@ return {
         "gitignore",
       })
 
-      -- start unfolded so files aren't "empty"
       vim.opt.foldlevel = 99
       vim.opt.foldlevelstart = 99
 
@@ -62,9 +61,8 @@ return {
             return
           end
 
-          -- optional folds (start open via foldlevel above)
-          vim.wo.foldexpr = "v:lua.vim.treesitter.foldexpr()"
-          vim.wo.foldmethod = "expr"
+          vim.wo[0][0].foldexpr = "v:lua.vim.treesitter.foldexpr()"
+          vim.wo[0][0].foldmethod = "expr"
 
           pcall(function()
             vim.bo[args.buf].indentexpr =

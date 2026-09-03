@@ -5,6 +5,7 @@ return {
 
     lazy = false,
     init = function()
+      vim.g.vimtex_mappings_disable = { n = { "K" } }
       vim.g.vimtex_view_method = "zathura"
       vim.g.vimtex_view_automatic = 1
       vim.g.vimtex_view_forward_search_on_start = 1

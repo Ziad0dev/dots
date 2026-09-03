@@ -1,4 +1,3 @@
-
 local map = vim.keymap.set
 
 map("i", "jk", "<Esc>", { desc = "Exit insert mode" })
@@ -16,7 +15,6 @@ map("n", "<C-Right>", "<cmd>vertical resize +2<cr>", { desc = "Increase window w
 
 map("n", "<S-h>", "<cmd>bprevious<cr>", { desc = "Prev buffer" })
 map("n", "<S-l>", "<cmd>bnext<cr>", { desc = "Next buffer" })
-map("n", "<leader>bd", "<cmd>bdelete<cr>", { desc = "Delete buffer" })
 
 map("n", "<A-j>", "<cmd>m .+1<cr>==", { desc = "Move line down" })
 map("n", "<A-k>", "<cmd>m .-2<cr>==", { desc = "Move line up" })
@@ -26,11 +24,22 @@ map("v", "<A-k>", ":m '<-2<cr>gv=gv", { desc = "Move selection up" })
 map("v", "<", "<gv")
 map("v", ">", ">gv")
 
+map("n", "n", "nzzzv", { desc = "Next search result (centred)" })
+map("n", "N", "Nzzzv", { desc = "Prev search result (centred)" })
+
 map("n", "<Esc>", "<cmd>nohlsearch<cr>", { desc = "Clear search highlight" })
 
 map("n", "<C-s>", "<cmd>w<cr>", { desc = "Save file" })
 map("n", "<leader>qq", "<cmd>qa<cr>", { desc = "Quit all" })
 
-map("n", "[d", vim.diagnostic.goto_prev, { desc = "Prev diagnostic" })
-map("n", "]d", vim.diagnostic.goto_next, { desc = "Next diagnostic" })
+map("n", "[d", function() vim.diagnostic.jump({ count = -1, float = true }) end, { desc = "Prev diagnostic" })
+map("n", "]d", function() vim.diagnostic.jump({ count = 1, float = true }) end, { desc = "Next diagnostic" })
 map("n", "<leader>cd", vim.diagnostic.open_float, { desc = "Line diagnostics" })
+
+map("n", "<leader>uh", function()
+  vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({}))
+end, { desc = "Toggle inlay hints" })
+map("n", "<leader>uw", function()
+  vim.opt_local.wrap = not vim.wo.wrap
+end, { desc = "Toggle wrap" })
+map("n", "<leader>ut", "<cmd>DotsThemeToggleTransparency<cr>", { desc = "Toggle transparency" })
