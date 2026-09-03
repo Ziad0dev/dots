@@ -5,7 +5,7 @@
   ...
 }:
 let
-  scripts = "${config.home.homeDirectory}/dots/config/quickshell/rise/scripts";
+  scripts = "${config.dots.repoPath}/config/quickshell/rise/scripts";
 
   refresh = pkgs.writeShellScript "dots-ai-usage" ''
     for s in claude-usage codex-usage opencode-usage; do

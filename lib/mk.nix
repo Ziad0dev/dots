@@ -1,7 +1,10 @@
 { inputs, lib }:
 
 let
-  overlays = [ inputs.zig-overlay.overlays.default ];
+  overlays = [
+    inputs.zig-overlay.overlays.default
+    inputs.obsidian-extensions.overlays.default
+  ];
 
   mkPkgs =
     system:

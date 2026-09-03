@@ -8,6 +8,11 @@
 
 let
 
+  hardening = import ../lib/hardening.nix // {
+    ProtectSystem = "full";
+    ReadWritePaths = [ mediaRoot ];
+  };
+
   mediaRoot = "/mnt/media";
 
   mediaGid = 3000;
@@ -93,6 +98,7 @@ in
   };
 
   systemd.services.radarr.unitConfig.RequiresMountsFor = [ mediaRoot ];
+  systemd.services.radarr.serviceConfig = hardening;
 
   services.sonarr = {
     enable = true;
@@ -101,13 +107,19 @@ in
   };
 
   systemd.services.sonarr.unitConfig.RequiresMountsFor = [ mediaRoot ];
+  systemd.services.sonarr.serviceConfig = hardening;
 
   services.tailscale = {
     enable = true;
     openFirewall = true;
   };
 
-  networking.firewall.trustedInterfaces = [ "tailscale0" ];
+  networking.firewall.interfaces.tailscale0.allowedTCPPorts = [
+    8081
+    8096
+    8920
+    9696
+  ];
 
   environment.systemPackages = with pkgs; [
     jellyfin-ffmpeg

@@ -22,12 +22,21 @@ if grep -rn "hyprctl dispatch" --include="*.conf" --include="*.jsonc" --include=
 fi
 
 # 3. Full eval — catches duplicate attrs, bad option names, type errors.
+#    Evaluating only the nixos host let a broken homeConfigurations output sit
+#    unnoticed, so every output that builds an activation package is checked.
 if command -v nix >/dev/null; then
-    echo "pre-commit: evaluating configuration..."
-    nix eval --no-warn-dirty .#nixosConfigurations.nixos.config.system.build.toplevel.drvPath \
-        >/dev/null 2>/tmp/pre-commit-eval.log || {
-        echo "pre-commit: EVAL FAILED — see /tmp/pre-commit-eval.log"
-        tail -15 /tmp/pre-commit-eval.log; fail=1; }
+    for out in \
+        "nixosConfigurations.nixos.config.system.build.toplevel" \
+        "nixosConfigurations.claude-vm.config.system.build.toplevel" \
+        "homeConfigurations.\"$(whoami)@linux\".activationPackage" \
+        "homeConfigurations.\"$(whoami)@linux-desktop\".activationPackage"
+    do
+        echo "pre-commit: evaluating $out"
+        nix eval --no-warn-dirty ".#${out}.drvPath" \
+            >/dev/null 2>/tmp/pre-commit-eval.log || {
+            echo "pre-commit: EVAL FAILED for $out — see /tmp/pre-commit-eval.log"
+            tail -15 /tmp/pre-commit-eval.log; fail=1; }
+    done
 fi
 
 # 4. Lint. statix reads statix.toml (repeated_keys / empty_pattern disabled —

@@ -18,7 +18,7 @@ in
         # real image. width/height are terminal CELLS — 22x11 keeps it beside
         # the text instead of dominating the window.
         type = "kitty";
-        source = "${config.home.homeDirectory}/dots/config/quickshell/rise/assets/nixos-logo.png";
+        source = "${config.dots.repoPath}/config/quickshell/rise/assets/nixos-logo.png";
         width = 22;
         height = 11;
         preserveAspectRatio = true;

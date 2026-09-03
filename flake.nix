@@ -135,6 +135,7 @@
         ./modules/lockscreen.nix
         ./modules/sddm.nix
         ./modules/foreign.nix
+        ./modules/flatpak.nix
       ];
     in
     {
