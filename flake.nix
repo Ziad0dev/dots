@@ -134,6 +134,7 @@
         ./modules/osd.nix
         ./modules/lockscreen.nix
         ./modules/sddm.nix
+        ./modules/foreign.nix
       ];
     in
     {
