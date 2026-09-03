@@ -84,6 +84,7 @@ in
       "nofail"
       "noatime"
       "x-gvfs-show"
+      "x-systemd.automount"
     ];
   };
 

@@ -1,4 +1,4 @@
-{ ... }:
+{ pkgs, ... }:
 
 let
   hardening = import ../lib/hardening.nix;
@@ -80,5 +80,6 @@ in
       enable = true;
       vpnNamespace = "wg";
     };
+    serviceConfig.ExecStartPre = "${pkgs.bash}/bin/bash -c 'until ${pkgs.getent}/bin/getent hosts mullvad.net >/dev/null 2>&1; do sleep 2; done'";
   };
 }
