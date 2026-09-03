@@ -50,10 +50,7 @@ in
     LC_TIME = "en_US.UTF-8";
   };
 
-  services.xserver = {
-    enable = true;
-    xkb.layout = "us";
-  };
+  services.xserver.xkb.layout = "us";
 
   zramSwap = {
     enable = true;
