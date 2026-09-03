@@ -28,6 +28,7 @@ in
   home.sessionVariables = {
     BROWSER = "zen-beta";
     SDL_VIDEODRIVER = "wayland";
+    DOCKER_HOST = "unix:///run/user/1001/docker.sock";
   };
 
   home.pointerCursor = {
