@@ -1,22 +1,4 @@
-
 return {
-
-  {
-    "folke/zen-mode.nvim",
-    cmd = "ZenMode",
-    dependencies = { "folke/twilight.nvim" },
-    keys = {
-      { "<leader>tz", "<cmd>ZenMode<cr>", desc = "Zen mode" },
-    },
-    opts = {
-      window = { width = 90, options = { number = false, relativenumber = false } },
-      plugins = {
-        twilight = { enabled = true },
-        gitsigns = { enabled = false },
-      },
-    },
-  },
-
   {
     "stevearc/aerial.nvim",
     cmd = { "AerialToggle", "AerialOpen" },

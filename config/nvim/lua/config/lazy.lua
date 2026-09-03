@@ -1,4 +1,3 @@
-
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
@@ -21,14 +20,15 @@ require("lazy").setup({
     { import = "plugins" },
   },
   rocks = { enabled = false },
-  install = { colorscheme = { "oxocarbon" } },
-  checker = { enabled = true, notify = false },
+  install = { colorscheme = { "dots", "habamax" } },
+  checker = { enabled = true, notify = false, frequency = 604800 },
   change_detection = { notify = false },
   ui = { border = "rounded" },
   performance = {
     rtp = {
       disabled_plugins = {
-        "gzip", "tarPlugin", "tohtml", "tutor", "zipPlugin", "netrwPlugin",
+        "gzip", "tarPlugin", "tohtml", "tutor", "zipPlugin",
+        "netrwPlugin", "rplugin", "spellfile", "matchit",
       },
     },
   },
