@@ -32,12 +32,14 @@ in
   fileSystems."/mnt/backup" = {
     device = "/dev/disk/by-uuid/6087-5FAB";
     fsType = "exfat";
+    noCheck = true;
     options = backupOpts;
   };
 
   fileSystems."/mnt/newvolume" = {
     device = "/dev/disk/by-uuid/4619-E5D1";
     fsType = "exfat";
+    noCheck = true;
     options = exfatOpts;
   };
 
