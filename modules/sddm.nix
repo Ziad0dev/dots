@@ -8,6 +8,10 @@
 let
   cfg = config.dots.sddm;
 
+  cursorPackage = pkgs.bibata-cursors;
+  cursorName = "Bibata-Modern-Classic";
+  cursorSize = 24;
+
   src = ../config/sddm/dots;
   themeDir = ../config/themes + "/${cfg.theme}";
   logoSrc = ../config/quickshell/rise/assets/nixos-logo.png;
@@ -94,13 +98,21 @@ in
       theme = lib.mkForce "dots";
       settings.General.GreeterEnvironment = lib.mkForce (
         lib.concatStringsSep "," (
-          lib.optional (cfg.compositor == "kwin") "QT_WAYLAND_SHELL_INTEGRATION=layer-shell"
+          [
+            "XCURSOR_THEME=${cursorName}"
+            "XCURSOR_SIZE=${toString cursorSize}"
+            "XCURSOR_PATH=/run/current-system/sw/share/icons"
+          ]
+          ++ lib.optional (cfg.compositor == "kwin") "QT_WAYLAND_SHELL_INTEGRATION=layer-shell"
           ++ lib.optional cfg.live "QML_XHR_ALLOW_FILE_READ=1"
         )
       );
     };
 
-    environment.systemPackages = [ greeter ];
+    environment.systemPackages = [
+      greeter
+      cursorPackage
+    ];
 
     systemd.tmpfiles.rules = lib.mkIf cfg.live [
       "d /var/lib/dots-theme 0755 ${username} users -"
