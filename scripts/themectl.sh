@@ -12,7 +12,7 @@ base00 base01 base02 base03 base04 base05 base06 base07
 base08 base09 base0A base0B base0C base0D base0E base0F
 red green yellow blue magenta cyan pink"
 
-DERIVED_KEYS="dim muted surface wallpaper logo"
+DERIVED_KEYS="dim muted surface"
 
 mix() {
     local a="${1#\#}" b="${2#\#}" w="$3" i ca cb r out="#"
@@ -62,39 +62,6 @@ cmd_current() {
     fi
 }
 
-current_wallpaper_path() {
-    local wp
-    if wp=$(theme_wallpaper "$1"); then
-        printf '%s' "$wp"
-        return 0
-    fi
-    dots-current-wallpaper 2>/dev/null || true
-}
-
-# hyprlock cannot tint an image, so bake a per-theme copy of the NixOS mark
-tinted_logo() {
-    local name="$1" src out accent pal
-    src="$DOTS/config/quickshell/rise/assets/nixos-logo.png"
-    out="${XDG_CACHE_HOME:-$HOME/.cache}/dots-logo-$name.png"
-    mkdir -p "$(dirname "$out")"
-    [ -f "$src" ] || return 0
-    command -v magick >/dev/null 2>&1 || { printf '%s' "$src"; return 0; }
-
-    pal=$(palette_file "$name") || { printf '%s' "$src"; return 0; }
-    if [ -f "$out" ] && [ "$out" -nt "$pal" ]; then
-        printf '%s' "$out"
-        return 0
-    fi
-    accent=$(sed -nE 's/^[[:space:]]*(export[[:space:]]+)?accent[[:space:]]*=[[:space:]]*"?(#[0-9A-Fa-f]{6})"?.*/\2/p' "$pal" | head -n1)
-    [ -n "$accent" ] || accent="#ffffff"
-
-    if magick "$src" -alpha extract -background "$accent" -alpha shape "$out" 2>/dev/null; then
-        printf '%s' "$out"
-    else
-        printf '%s' "$src"
-    fi
-}
-
 render_all() {
     local name="$1" pal t out varlist k
     pal=$(palette_file "$name") || die "no colors.sh or theme.sh in theme '$name'"
@@ -110,11 +77,6 @@ render_all() {
         (
             set -a
             . "$pal"
-            # hyprlock needs concrete paths, not palette entries
-            # shellcheck disable=SC2034
-            wallpaper=$(current_wallpaper_path "$name")
-            # shellcheck disable=SC2034
-            logo=$(tinted_logo "$name")
             # shellcheck disable=SC2154,SC2034  # palette vars come from the sourced colors.sh
             dim=$(mix "$foreground" "$background" 35)
             # shellcheck disable=SC2034
