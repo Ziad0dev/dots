@@ -3,14 +3,28 @@
 let
   hardening = import ../lib/hardening.nix;
 
+  wgConfig = "/etc/wireguard/mullvad.conf";
+  mullvadDns = "100.64.0.7";
+
   webPort = 8081;
   torrentPort = 51413;
   mediaRoot = "/mnt/media";
 in
 {
+  systemd.services.wg-dns = {
+    description = "Pin the Mullvad resolver in the WireGuard config";
+    wantedBy = [ "wg.service" ];
+    before = [ "wg.service" ];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      ExecStart = "${pkgs.gnused}/bin/sed -i 's|^DNS = .*|DNS = ${mullvadDns}|' ${wgConfig}";
+    };
+  };
+
   vpnNamespaces.wg = {
     enable = true;
-    wireguardConfigFile = "/etc/wireguard/mullvad.conf";
+    wireguardConfigFile = wgConfig;
     accessibleFrom = [ "192.168.86.0/24" ];
     portMappings = [
       {
