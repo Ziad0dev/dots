@@ -146,6 +146,7 @@ in
       tor
       tor-browser
       slack
+      signal-desktop
       teamspeak6-client
       element-desktop
       weechat
