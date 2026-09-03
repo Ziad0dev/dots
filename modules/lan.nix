@@ -6,9 +6,7 @@ in
   networking.firewall.interfaces.${lanInterface} = {
     allowedTCPPorts = [
       8096
-      8081
       8920
-      9696
     ];
   };
 }

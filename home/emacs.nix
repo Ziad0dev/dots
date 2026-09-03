@@ -25,6 +25,6 @@
   };
 
   xdg.configFile."emacs/init.el".source =
-    config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/dots/config/emacs/init.el";
+    config.lib.file.mkOutOfStoreSymlink "${config.dots.repoPath}/config/emacs/init.el";
 
 }

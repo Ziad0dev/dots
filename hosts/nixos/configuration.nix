@@ -30,7 +30,7 @@ in
 
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-  boot.loader.systemd-boot.configurationLimit = 10;
+  boot.loader.systemd-boot.configurationLimit = 3;
 
   dots.sddm.theme = "kanagawa";
   networking.hostName = hostname;
@@ -81,6 +81,30 @@ in
     openFirewall = false;
   };
 
+  systemd.services.flaresolverr.serviceConfig = {
+    NoNewPrivileges = true;
+    PrivateTmp = true;
+    ProtectHome = true;
+    ProtectSystem = "strict";
+    ProtectKernelTunables = true;
+    ProtectKernelModules = true;
+    ProtectKernelLogs = true;
+    ProtectControlGroups = true;
+    ProtectClock = true;
+    ProtectHostname = true;
+    ProtectProc = "invisible";
+    RestrictRealtime = true;
+    RestrictSUIDSGID = true;
+    LockPersonality = true;
+    SystemCallArchitectures = "native";
+    RestrictAddressFamilies = [
+      "AF_INET"
+      "AF_INET6"
+      "AF_UNIX"
+      "AF_NETLINK"
+    ];
+  };
+
   programs.coolercontrol.enable = true;
 
   programs.hyprland = {
@@ -118,8 +142,11 @@ in
 
   security.polkit.extraConfig = ''
     polkit.addRule(function(action, subject) {
-      if (action.id.indexOf("org.freedesktop.udisks2.") === 0 &&
-          subject.local && subject.active) {
+      if (subject.local && subject.active &&
+          (action.id == "org.freedesktop.udisks2.filesystem-mount" ||
+           action.id == "org.freedesktop.udisks2.filesystem-unmount-others" ||
+           action.id == "org.freedesktop.udisks2.eject-media" ||
+           action.id == "org.freedesktop.udisks2.power-off-drive")) {
         return polkit.Result.YES;
       }
     });
@@ -139,6 +166,10 @@ in
   virtualisation.docker = {
     enable = true;
     enableOnBoot = false;
+    rootless = {
+      enable = true;
+      setSocketVariable = true;
+    };
   };
 
   users.users.${username} = {
@@ -149,7 +180,6 @@ in
     extraGroups = [
       "wheel"
       "networkmanager"
-      "docker"
       "audio"
       "video"
       "input"
@@ -165,14 +195,14 @@ in
   ];
   nixpkgs.config.allowUnfree = true;
 
+  nix.optimise.automatic = true;
+
   nix = {
     settings = {
       experimental-features = [
         "nix-command"
         "flakes"
       ];
-      auto-optimise-store = true;
-
       substituters = [
         "https://cache.nixos.org"
         "https://hyprland.cachix.org"

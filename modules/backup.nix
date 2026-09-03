@@ -44,6 +44,8 @@
       "--keep-weekly 4"
       "--keep-monthly 6"
     ];
+
+    checkOpts = [ "--read-data-subset=5%" ];
   };
 
   systemd.services.restic-backups-home = {
@@ -52,8 +54,13 @@
     serviceConfig = {
       Nice = 19;
       IOSchedulingClass = "idle";
+      ExecStartPre = [
+        "${pkgs.coreutils}/bin/test -s /etc/restic/password"
+      ];
     };
   };
+
+  systemd.tmpfiles.rules = [ "d /etc/restic 0700 root root -" ];
 
   environment.systemPackages = [ pkgs.restic ];
 }

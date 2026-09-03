@@ -5,12 +5,11 @@
   ...
 }:
 let
-  dots = "${config.home.homeDirectory}/dots";
+  dots = config.dots.repoPath;
 in
 {
   home.packages = with pkgs; [
     deadnix
-    shellcheck
     statix
   ];
 
