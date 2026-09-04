@@ -48,8 +48,18 @@ in
       name = "adw-gtk3-dark";
     };
     iconTheme = {
-      package = pkgs.papirus-icon-theme;
-      name = "Papirus-Dark";
+      package = pkgs.candy-icons.overrideAttrs (prev: {
+        postInstall = (prev.postInstall or "") + ''
+          for f in "$out"/share/icons/*/index.theme; do
+            if grep -q '^Inherits=' "$f"; then
+              sed -i 's|^Inherits=.*|Inherits=Papirus-Dark,Adwaita,hicolor|' "$f"
+            else
+              sed -i '/^\[Icon Theme\]/a Inherits=Papirus-Dark,Adwaita,hicolor' "$f"
+            fi
+          done
+        '';
+      });
+      name = "candy-icons";
     };
     gtk3.extraConfig.gtk-application-prefer-dark-theme = 1;
     gtk4.theme = null;
@@ -92,6 +102,9 @@ in
       beamPkgs = pkgs.beam.packages.erlang_27;
     in
     (with pkgs; [
+      adwaita-icon-theme
+      hicolor-icon-theme
+      papirus-icon-theme
       dunst
       ghostty
       hypridle
