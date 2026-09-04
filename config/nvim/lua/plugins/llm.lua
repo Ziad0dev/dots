@@ -6,7 +6,6 @@ return {
     init = function()
       vim.g.llama_config = {
 
-        endpoint = "http://127.0.0.1:8012/infill",
         endpoint_fim = "http://127.0.0.1:8012/infill",
         auto_fim = true,
         show_info = 0,
