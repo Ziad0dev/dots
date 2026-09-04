@@ -165,6 +165,7 @@ in
       ".config/btop".source = link "btop";
       ".config/broot".source = link "broot";
       ".config/ranger".source = link "ranger";
+      ".gnupg/gpg-agent.conf".text = "allow-preset-passphrase\n";
     };
 
     home.packages = with pkgs; [
