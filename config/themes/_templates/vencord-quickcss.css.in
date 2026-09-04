@@ -1,0 +1,295 @@
+:root,
+html,
+body,
+[class*="theme-"] {
+  --dots-bg: ${background};
+  --dots-sunken: color-mix(in srgb, black 22%, ${background});
+  --dots-hover: ${dim}16;
+  --dots-active: ${accent}24;
+  --dots-line: ${dim}26;
+
+  --primary-100: color-mix(in srgb, ${foreground} 100%, ${background}) !important;
+  --primary-130: color-mix(in srgb, ${foreground} 96%, ${background}) !important;
+  --primary-160: color-mix(in srgb, ${foreground} 92%, ${background}) !important;
+  --primary-200: color-mix(in srgb, ${foreground} 88%, ${background}) !important;
+  --primary-230: color-mix(in srgb, ${foreground} 84%, ${background}) !important;
+  --primary-260: color-mix(in srgb, ${foreground} 80%, ${background}) !important;
+  --primary-300: color-mix(in srgb, ${foreground} 75%, ${background}) !important;
+  --primary-330: color-mix(in srgb, ${foreground} 71%, ${background}) !important;
+  --primary-360: color-mix(in srgb, ${foreground} 68%, ${background}) !important;
+  --primary-400: color-mix(in srgb, ${foreground} 62%, ${background}) !important;
+  --primary-430: color-mix(in srgb, ${foreground} 59%, ${background}) !important;
+  --primary-460: color-mix(in srgb, ${foreground} 55%, ${background}) !important;
+  --primary-500: color-mix(in srgb, ${foreground} 50%, ${background}) !important;
+  --primary-530: color-mix(in srgb, ${foreground} 46%, ${background}) !important;
+  --primary-560: color-mix(in srgb, ${foreground} 42%, ${background}) !important;
+  --primary-600: color-mix(in srgb, ${foreground} 38%, ${background}) !important;
+  --primary-630: color-mix(in srgb, ${foreground} 34%, ${background}) !important;
+  --primary-645: color-mix(in srgb, ${foreground} 32%, ${background}) !important;
+  --primary-660: color-mix(in srgb, ${foreground} 30%, ${background}) !important;
+  --primary-700: color-mix(in srgb, ${foreground} 25%, ${background}) !important;
+  --primary-730: color-mix(in srgb, ${foreground} 21%, ${background}) !important;
+  --primary-745: color-mix(in srgb, ${foreground} 19%, ${background}) !important;
+  --primary-760: color-mix(in srgb, ${foreground} 18%, ${background}) !important;
+  --primary-800: color-mix(in srgb, ${foreground} 12%, ${background}) !important;
+  --primary-830: color-mix(in srgb, ${foreground} 9%, ${background}) !important;
+  --primary-845: color-mix(in srgb, ${foreground} 7%, ${background}) !important;
+  --primary-860: color-mix(in srgb, ${foreground} 5%, ${background}) !important;
+  --primary-900: color-mix(in srgb, ${foreground} 0%, ${background}) !important;
+
+  --brand-100: color-mix(in srgb, ${accent} 60%, ${background}) !important;
+  --brand-130: color-mix(in srgb, ${accent} 63%, ${background}) !important;
+  --brand-160: color-mix(in srgb, ${accent} 66%, ${background}) !important;
+  --brand-200: color-mix(in srgb, ${accent} 70%, ${background}) !important;
+  --brand-230: color-mix(in srgb, ${accent} 73%, ${background}) !important;
+  --brand-260: color-mix(in srgb, ${accent} 76%, ${background}) !important;
+  --brand-300: color-mix(in srgb, ${accent} 80%, ${background}) !important;
+  --brand-330: color-mix(in srgb, ${accent} 83%, ${background}) !important;
+  --brand-360: color-mix(in srgb, ${accent} 86%, ${background}) !important;
+  --brand-400: color-mix(in srgb, ${accent} 90%, ${background}) !important;
+  --brand-430: color-mix(in srgb, ${accent} 93%, ${background}) !important;
+  --brand-460: color-mix(in srgb, ${accent} 96%, ${background}) !important;
+  --brand-500: color-mix(in srgb, ${accent} 100%, ${background}) !important;
+  --brand-530: color-mix(in srgb, ${accent} 97%, ${background}) !important;
+  --brand-560: color-mix(in srgb, ${accent} 94%, ${background}) !important;
+  --brand-600: color-mix(in srgb, ${accent} 90%, ${background}) !important;
+  --brand-630: color-mix(in srgb, ${accent} 87%, ${background}) !important;
+  --brand-660: color-mix(in srgb, ${accent} 84%, ${background}) !important;
+  --brand-700: color-mix(in srgb, ${accent} 80%, ${background}) !important;
+  --brand-730: color-mix(in srgb, ${accent} 77%, ${background}) !important;
+  --brand-760: color-mix(in srgb, ${accent} 74%, ${background}) !important;
+  --brand-800: color-mix(in srgb, ${accent} 70%, ${background}) !important;
+
+  --background-primary: var(--dots-bg) !important;
+  --background-secondary: var(--dots-bg) !important;
+  --background-secondary-alt: var(--dots-bg) !important;
+  --background-tertiary: var(--dots-bg) !important;
+  --background-accent: var(--dots-bg) !important;
+  --background-floating: var(--dots-bg) !important;
+  --background-nested-floating: var(--dots-bg) !important;
+  --background-mobile-primary: var(--dots-bg) !important;
+  --background-mobile-secondary: var(--dots-bg) !important;
+  --bg-base-primary: var(--dots-bg) !important;
+  --bg-base-secondary: var(--dots-bg) !important;
+  --bg-base-tertiary: var(--dots-bg) !important;
+  --bg-surface-overlay: var(--dots-bg) !important;
+  --bg-surface-raised: var(--dots-bg) !important;
+  --bg-overlay-app-frame: var(--dots-bg) !important;
+  --bg-overlay-chat: var(--dots-bg) !important;
+  --bg-overlay-home: var(--dots-bg) !important;
+  --bg-overlay-floating: var(--dots-bg) !important;
+  --bg-overlay-1: var(--dots-bg) !important;
+  --bg-overlay-2: var(--dots-bg) !important;
+  --bg-overlay-3: var(--dots-bg) !important;
+  --bg-overlay-4: var(--dots-bg) !important;
+  --bg-overlay-5: var(--dots-bg) !important;
+  --bg-overlay-6: var(--dots-bg) !important;
+  --home-background: var(--dots-bg) !important;
+  --modal-background: var(--dots-bg) !important;
+  --modal-footer-background: var(--dots-bg) !important;
+  --chat-background: var(--dots-bg) !important;
+  --chat-input-container-background: var(--dots-bg) !important;
+  --activity-card-background: var(--dots-sunken) !important;
+  --deprecated-panel-background: var(--dots-bg) !important;
+  --deprecated-quickswitcher-input-background: var(--dots-bg) !important;
+  --channeltextarea-background: var(--dots-sunken) !important;
+  --input-background: var(--dots-sunken) !important;
+  --button-secondary-background: var(--dots-sunken) !important;
+
+  --background-message-hover: ${dim}10 !important;
+  --background-modifier-hover: var(--dots-hover) !important;
+  --background-modifier-active: var(--dots-active) !important;
+  --background-modifier-selected: var(--dots-active) !important;
+  --background-modifier-accent: var(--dots-line) !important;
+  --bg-mod-faint: transparent !important;
+  --bg-mod-subtle: ${dim}12 !important;
+  --bg-mod-strong: var(--dots-active) !important;
+  --bg-overlay-hover: ${dim}16 !important;
+  --bg-overlay-selected: var(--dots-active) !important;
+  --bg-overlay-active: var(--dots-active) !important;
+  --background-mentioned: ${accent}14 !important;
+  --background-mentioned-hover: ${accent}20 !important;
+
+  --elevation-low: inset 0 -1px 0 0 var(--dots-line) !important;
+  --elevation-medium: 0 2px 10px rgba(0, 0, 0, 0.4) !important;
+  --elevation-high: 0 8px 24px rgba(0, 0, 0, 0.55) !important;
+  --border-faint: var(--dots-line) !important;
+  --border-subtle: var(--dots-line) !important;
+  --border-strong: ${dim}44 !important;
+  --chat-border: var(--dots-line) !important;
+
+  --text-normal: ${foreground} !important;
+  --text-default: ${foreground} !important;
+  --text-primary: ${foreground} !important;
+  --text-secondary: ${dim} !important;
+  --text-tertiary: ${muted} !important;
+  --text-muted: ${dim} !important;
+  --text-link: ${accent} !important;
+  --text-brand: ${accent} !important;
+  --text-positive: ${green} !important;
+  --text-warning: ${yellow} !important;
+  --text-danger: ${red} !important;
+  --content-primary: ${foreground} !important;
+  --content-secondary: ${dim} !important;
+  --header-primary: ${foreground} !important;
+  --header-secondary: ${dim} !important;
+  --icon-primary: ${foreground} !important;
+  --icon-secondary: ${dim} !important;
+  --icon-tertiary: ${muted} !important;
+  --channels-default: ${dim} !important;
+  --channel-icon: ${muted} !important;
+  --channel-text-area-placeholder: ${muted} !important;
+  --interactive-normal: ${foreground} !important;
+  --interactive-hover: ${accent} !important;
+  --interactive-active: ${accent} !important;
+  --interactive-muted: ${muted} !important;
+
+  --brand-experiment: ${accent} !important;
+  --brand-experiment-360: ${accent} !important;
+  --brand-experiment-500: ${accent} !important;
+  --brand-experiment-560: ${accent} !important;
+  --brand-experiment-600: ${accent} !important;
+  --button-filled-brand-background: ${accent} !important;
+  --button-filled-brand-background-hover: color-mix(in srgb, ${accent} 80%, ${foreground}) !important;
+  --button-filled-brand-text: ${background} !important;
+  --control-brand-foreground: ${accent} !important;
+  --focus-primary: ${accent} !important;
+  --mention-foreground: ${accent} !important;
+  --mention-background: ${accent}20 !important;
+  --status-danger: ${red} !important;
+  --status-warning: ${yellow} !important;
+  --status-positive: ${green} !important;
+  --info-help-background: ${accent}14 !important;
+  --info-help-foreground: ${accent} !important;
+  --scrollbar-thin-thumb: ${dim}55 !important;
+  --scrollbar-thin-track: transparent !important;
+  --scrollbar-auto-thumb: ${dim}55 !important;
+  --scrollbar-auto-track: transparent !important;
+  --guild-boosting-pink: ${magenta} !important;
+}
+
+[class*="appMount"],
+[class*="app-"],
+[class*="baseLayer"],
+[class*="bg_"],
+[class*="chatContent"],
+[class*="messagesWrapper"],
+[class*="chat_"],
+[class*="content_"],
+[class*="page_"],
+[class*="guilds_"],
+[class*="guildsWrapper"],
+[class*="sidebar_"],
+[class*="sidebarList"],
+[class*="membersWrap"],
+[class*="members_"],
+[class*="panels_"],
+[class*="title_"],
+[class*="upperContainer"],
+[class*="nowPlayingColumn"],
+[class*="container_"] > [class*="scroller_"] {
+  background-color: var(--dots-bg) !important;
+}
+
+[class*="sidebar_"],
+[class*="membersWrap"],
+[class*="guilds_"] {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+[class*="title_"],
+[class*="upperContainer"] {
+  box-shadow: inset 0 -1px 0 0 var(--dots-line) !important;
+  border-bottom: none !important;
+}
+
+[class*="channelTextArea"],
+[class*="scrollableContainer"] {
+  background-color: var(--dots-sunken) !important;
+}
+
+[class*="separator"],
+[class*="divider"] {
+  border-color: var(--dots-line) !important;
+  background-color: var(--dots-line) !important;
+}
+
+code,
+.hljs,
+[class*="markup_"] code {
+  background: var(--dots-sunken) !important;
+  color: ${foreground} !important;
+  border-color: var(--dots-line) !important;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: ${dim}55 !important;
+  border-color: transparent !important;
+}
+
+::selection {
+  background: ${accent}44 !important;
+  color: ${foreground} !important;
+}
+
+[class*="member_"],
+[class*="memberInner"],
+[class*="nameAndDecorators"],
+[class*="roleColor"],
+[class*="activityText"] {
+  background-color: transparent !important;
+}
+
+[class*="nameplate"],
+[class*="Nameplate"],
+[class*="memberBackground"],
+[class*="decorationBackground"] {
+  background: none !important;
+  background-image: none !important;
+  background-color: transparent !important;
+  mask-image: none !important;
+}
+
+[class*="animatedContainer"],
+[class*="header_"] [class*="banner"],
+[class*="guildHeader"],
+[class*="headerContent"],
+[class*="toolbar_"],
+[class*="titleBar"],
+[class*="wordmark"],
+[class*="typeWindows"] {
+  background-color: ${background} !important;
+  background-image: none !important;
+}
+
+[class*="membersWrap"] *,
+[class*="memberList"] *,
+[class*="privateChannels"] * {
+  background-image: none !important;
+}
+
+[class*="membersWrap"] [class*="member_"],
+[class*="membersWrap"] [class*="memberInner"],
+[class*="membersWrap"] [class*="layout_"],
+[class*="membersWrap"] [class*="content_"],
+[class*="membersWrap"] [class*="nameAndDecorators"],
+[class*="membersWrap"] [class*="username"],
+[class*="membersWrap"] [class*="roleColor"],
+[class*="membersWrap"] [class*="avatar"],
+[class*="membersWrap"] [class*="container_"] {
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
+[class*="membersWrap"] [class*="layout_"]:hover,
+[class*="membersWrap"] [class*="member_"]:hover {
+  background-color: ${dim}16 !important;
+}
+
+[class*="username"],
+[class*="nameAndDecorators"],
+[class*="headerText"] [class*="username"] {
+  background-color: transparent !important;
+  background-image: none !important;
+}

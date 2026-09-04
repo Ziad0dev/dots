@@ -3,6 +3,10 @@ vim.g.maplocalleader = " "
 
 local opt = vim.opt
 
+if vim.env.NVIM_LUA_PATH then
+  package.path = package.path .. ";" .. vim.env.NVIM_LUA_PATH
+end
+
 if vim.env.NVIM_LUA_CPATH then
   package.cpath = package.cpath .. ";" .. vim.env.NVIM_LUA_CPATH
 end

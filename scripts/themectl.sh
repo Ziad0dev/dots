@@ -162,12 +162,31 @@ vscode_compat() {
     mkdir -p "$dir"
     relink "$out" "$dir/settings.json"
 }
+gtk_compat() {
+    local out d
+    out="$STATE/gtk.css"
+    [ -f "$out" ] || return 0
+    for d in "${XDG_CONFIG_HOME:-$HOME/.config}/gtk-3.0" "${XDG_CONFIG_HOME:-$HOME/.config}/gtk-4.0"; do
+        mkdir -p "$d"
+        cp -f "$out" "$d/gtk.css"
+    done
+}
 reload_apps() {
 
     pkill -SIGUSR2 ghostty 2>/dev/null || true
 
     if command -v qs >/dev/null 2>&1; then
         qs -c rise ipc call picker reload >/dev/null 2>&1 || true
+    fi
+
+
+    if command -v gsettings >/dev/null 2>&1; then
+        local t
+        t=$(gsettings get org.gnome.desktop.interface gtk-theme 2>/dev/null | tr -d "'")
+        if [ -n "$t" ]; then
+            gsettings set org.gnome.desktop.interface gtk-theme "" >/dev/null 2>&1 || true
+            gsettings set org.gnome.desktop.interface gtk-theme "$t" >/dev/null 2>&1 || true
+        fi
     fi
 
     if command -v dunstctl >/dev/null 2>&1; then

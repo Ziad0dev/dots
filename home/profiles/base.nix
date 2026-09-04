@@ -66,6 +66,11 @@ in
           luaEnv = pkgs.neovim-unwrapped.lua;
         in
         luaEnv.pkgs.getLuaCPath luaEnv.pkgs.jsregexp;
+       NVIM_LUA_PATH =
+        let
+          luaEnv = pkgs.neovim-unwrapped.lua;
+        in
+        luaEnv.pkgs.getLuaPath luaEnv.pkgs.jsregexp;
     };
 
     programs.bash.enable = true;

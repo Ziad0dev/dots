@@ -105,7 +105,7 @@ hl.config({
 
         blur = {
             enabled            = true,
-            size               = 3,
+            size               = 6,
             passes             = 2,
             new_optimizations  = true,
             xray               = false,
@@ -291,6 +291,12 @@ hl.window_rule({
     float  = true,
     size   = {1200, 750},
     center = true,
+})
+
+hl.window_rule({
+    name    = "discord-translucent",
+    match   = { class = "^(discord)$" },
+    opacity = 0.98,
 })
 
 hl.window_rule({
