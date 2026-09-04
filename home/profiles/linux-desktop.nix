@@ -23,6 +23,7 @@ in
     ../ai-usage.nix
     ../kvantum.nix
     ../obsidian.nix
+    ../spicetify.nix
   ];
 
   home.sessionVariables = {
@@ -154,7 +155,7 @@ in
 
       nicotine-plus
       calibre
-      spotify
+      gallery-dl
 
       gcc
       xdotool
