@@ -176,7 +176,7 @@ reload_apps() {
     pkill -SIGUSR2 ghostty 2>/dev/null || true
 
     if command -v qs >/dev/null 2>&1; then
-        qs -c rise ipc call picker reload >/dev/null 2>&1 || true
+        qs -c rise ipc call theme reload >/dev/null 2>&1 || true
     fi
 
 
