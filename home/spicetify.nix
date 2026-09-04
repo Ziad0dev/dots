@@ -5,7 +5,7 @@
   ...
 }:
 let
-  theme = "kanagawa";
+  theme = "oxocarbon";
 
   palette =
     let
@@ -27,6 +27,8 @@ in
 
   programs.spicetify = {
     enable = true;
+
+    theme = spicePkgs.themes.dribbblish;
 
     enabledExtensions = with spicePkgs.extensions; [
       hidePodcasts

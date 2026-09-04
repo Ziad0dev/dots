@@ -105,7 +105,7 @@ hl.config({
 
         blur = {
             enabled            = true,
-            size               = 6,
+            size               = 8,
             passes             = 2,
             new_optimizations  = true,
             xray               = false,
@@ -296,7 +296,13 @@ hl.window_rule({
 hl.window_rule({
     name    = "discord-translucent",
     match   = { class = "^(discord)$" },
-    opacity = 0.98,
+    opacity = "0.98",
+})
+
+hl.window_rule({
+    name    = "spotify-translucent",
+    match   = { class = "^(spotify)$" },
+    opacity = "0.98",
 })
 
 hl.window_rule({
