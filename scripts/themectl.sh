@@ -171,6 +171,17 @@ gtk_compat() {
         cp -f "$out" "$d/gtk.css"
     done
 }
+vencord_compat() {
+    local out dst
+    out="$STATE/vencord-quickcss.css"
+    dst="${XDG_CONFIG_HOME:-$HOME/.config}/Vencord/settings/quickCss.css"
+    [ -f "$out" ] || return 0
+    [ -d "${dst%/*}" ] || return 0
+    if [ -L "$dst" ]; then
+        rm -f "$dst"
+    fi
+    cp -f "$out" "$dst" || return 0
+}
 reload_apps() {
 
     pkill -SIGUSR2 ghostty 2>/dev/null || true
@@ -222,6 +233,8 @@ cmd_set() {
     sddm_compat "$name"
     kvantum_compat "$name"
     vscode_compat "$name"
+    gtk_compat
+    vencord_compat
     reload_apps
 
     if wp=$(theme_wallpaper "$name"); then

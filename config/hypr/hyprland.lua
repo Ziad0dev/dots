@@ -252,6 +252,7 @@ hl.bind("XF86AudioMute",
     hl.dsp.exec_cmd([[sh -c 'pactl set-sink-mute @DEFAULT_SINK@ toggle && notify-send "Volume" "Toggled"']]),
     { locked = true })
 
+hl.bind(mainMod .. " + S", hl.dsp.exec_cmd("flameshot gui"))
 hl.bind("Print",
     hl.dsp.exec_cmd([[sh -c 'grim -g "$(slurp)" - | satty --filename - --fullscreen --output-filename ~/Pictures/screenshot-$(date +%Y%m%d-%H%M%S).png']]))
 hl.bind(mainMod .. " + Print",
@@ -259,7 +260,7 @@ hl.bind(mainMod .. " + Print",
 
 hl.bind(mainMod .. " + SHIFT + E", hl.dsp.exit())
 hl.bind(mainMod .. " + CTRL + R", hl.dsp.exec_cmd("hyprctl reload"))
-hl.bind(mainMod .. " + CTRL + L",  hl.dsp.exec_cmd("quickshell -c lock"))
+hl.bind(mainMod .. " + CTRL + L",  hl.dsp.exec_cmd("loginctl lock-session"))
 
 hl.window_rule({
     name   = "dots-float-lg",
@@ -294,36 +295,38 @@ hl.window_rule({
 })
 
 hl.window_rule({
-    name    = "discord-translucent",
-    match   = { class = "^(discord)$" },
-    opacity = "0.98",
+    name  = "flameshot",
+    match = { class = "^(flameshot)$" },
+    float = true,
+    pin   = true,
 })
 
 hl.window_rule({
-    name    = "spotify-translucent",
-    match   = { class = "^(spotify)$" },
-    opacity = "0.98",
+    name      = "discord",
+    match     = { class = "^(discord)$" },
+    opacity   = "0.98",
+    workspace = "10 silent",
 })
 
 hl.window_rule({
-    name    = "zathura-readable",
-    match   = { class = "^(org\\.pwmt\\.zathura)$" },
-    opacity = "1.0 override 1.0 override 1.0 override",
-    no_blur = true,
+    name      = "spotify",
+    match     = { class = "^(spotify)$" },
+    opacity   = "0.98",
+    workspace = "10 silent",
 })
 
 hl.window_rule({
+    name         = "zathura",
     match        = { class = "^(org\\.pwmt\\.zathura)$" },
+    opacity      = "1.0 override 1.0 override 1.0 override",
+    no_blur      = true,
     idle_inhibit = "fullscreen",
 })
-hl.window_rule({
-    name  = "sysmon-place",
-    match = { class = "^(dev\\.dots\\.sysmon)$" },
-    workspace = "9 silent",
-})
 
 hl.window_rule({
-    match = { class = "^(dev\\.dots\\.sysmon)$" },
+    name             = "sysmon",
+    match            = { class = "^(dev\\.dots\\.sysmon)$" },
+    workspace        = "9 silent",
     no_initial_focus = true,
 })
 
@@ -337,18 +340,6 @@ hl.window_rule({
     name  = "sideterm",
     match = { class = "^(dev\\.dots\\.sideterm)$" },
     workspace = "1 silent",
-})
-
-hl.window_rule({
-    name  = "discord",
-    match = { class = "^(discord)$" },
-    workspace = "10 silent",
-})
-
-hl.window_rule({
-    name  = "spotify",
-    match = { class = "^(spotify)$" },
-    workspace = "10 silent",
 })
 
 hl.window_rule({
@@ -449,4 +440,3 @@ end
 hl.bind(mainMod .. " + N", hl.dsp.exec_cmd("dots-nightlight toggle"))
 hl.bind(mainMod .. " + A", hl.dsp.exec_cmd("qs -c rise ipc call overview toggle"))
 hl.bind(mainMod .. " + SHIFT + O", hl.dsp.exec_cmd("qs -c rise ipc call openrouter toggle"))
-hl.bind(mainMod .. " + SHIFT + S", hl.dsp.exec_cmd("flameshot gui"))
