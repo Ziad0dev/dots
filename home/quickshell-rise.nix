@@ -8,19 +8,20 @@ let
   nightlight = pkgs.writeShellApplication {
     name = "dots-nightlight";
     runtimeInputs = [
-      pkgs.procps
-      pkgs.gammastep
+      pkgs.systemd
       pkgs.libnotify
     ];
     text = ''
-      state="''${XDG_STATE_HOME:-$HOME/.local/state}/dots/indicators"
-      mkdir -p "$state"
-      flag="$state/nightlight"
+      unit="dots-gammastep.service"
       case "''${1:-toggle}" in
-        status) [ -e "$flag" ] && echo on || echo off ;;
-        on)  pkill -x gammastep || true; gammastep >/dev/null 2>&1 & touch "$flag" ;;
-        off) pkill -x gammastep || true; rm -f "$flag" ;;
-        *)   if [ -e "$flag" ]; then "$0" off; else "$0" on; fi ;;
+        status) systemctl --user is-active --quiet "$unit" && echo on || echo off ;;
+        on)     systemctl --user start "$unit" ;;
+        off)    systemctl --user stop "$unit" ;;
+        *)      if systemctl --user is-active --quiet "$unit"; then
+                  systemctl --user stop "$unit"
+                else
+                  systemctl --user start "$unit"
+                fi ;;
       esac
     '';
   };
@@ -242,5 +243,21 @@ in
       RestartSec = 2;
     };
     Install.WantedBy = [ "hyprland-session.target" ];
+  };
+
+  systemd.user.services.dots-gammastep = {
+    Unit = {
+      Description = "gammastep night light";
+      PartOf = [ "hyprland-session.target" ];
+      After = [ "hyprland-session.target" ];
+    };
+    Service = {
+      ExecStartPre = "${pkgs.coreutils}/bin/mkdir -p %S/dots/indicators";
+      ExecStart = "${pkgs.gammastep}/bin/gammastep -c %h/.config/gammastep/config -t 2700:2700";
+      ExecStartPost = "${pkgs.coreutils}/bin/touch %S/dots/indicators/nightlight";
+      ExecStopPost = "-${pkgs.coreutils}/bin/rm -f %S/dots/indicators/nightlight";
+      Restart = "on-failure";
+      RestartSec = 2;
+    };
   };
 }

@@ -140,6 +140,7 @@
         ./modules/sddm.nix
         ./modules/foreign.nix
         ./modules/flatpak.nix
+        ./modules/hello-page.nix
       ];
     in
     {

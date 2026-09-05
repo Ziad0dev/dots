@@ -220,7 +220,7 @@ case "$CMD" in
         ;;
 
     dots-qbt)
-        qbt="http://127.0.0.1:8081"
+        qbt="http://192.168.15.1:8081"
         info=$(curl -fs --max-time 2 "$qbt/api/v2/transfer/info" 2>/dev/null) || true
         if [ -z "${info:-}" ]; then
             printf 'off\n'
