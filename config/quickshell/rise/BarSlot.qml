@@ -478,10 +478,14 @@ PanelWindow {
                 MediaBrowserWidget  { root: barSlot.root; screen: barSlot.screen; anchors.verticalCenter: parent.verticalCenter }
                 ThemeDisplayWidget  { root: barSlot.root; screen: barSlot.screen; anchors.verticalCenter: parent.verticalCenter }
                 KeybindsWidget      { root: barSlot.root; anchors.verticalCenter: parent.verticalCenter }
+                LlmWidget           { root: barSlot.root; anchors.verticalCenter: parent.verticalCenter }
+                QbtWidget           { root: barSlot.root; anchors.verticalCenter: parent.verticalCenter }
             }
         }
     }
     Component { id: compNetwork;    NetworkWidget      { root: barSlot.root } }
+    Component { id: compGpu;        GpuWidget          { root: barSlot.root } }
+    Component { id: compMounts;     MountsWidget       { root: barSlot.root } }
     Component { id: compPower;      PowerProfileWidget { root: barSlot.root } }
     Component { id: compBattery;    BatteryWidget      { root: barSlot.root } }
     Component { id: compBrightness; BrightnessWidget   { root: barSlot.root } }
@@ -492,7 +496,7 @@ PanelWindow {
         "G4": compMem, "G5": compCpu, "G6": compVol, "G7": compClaude,
         "G8": compCenter,
         "G9": compMpris, "G10": compQuick, "G11": compNetwork,
-        "G12": compBattery, "G13": compBrightness, "G14": compPower, "G15": compBluetooth
+        "G12": compGpu, "G13": compMounts, "G14": compPower, "G15": compBluetooth
     })
 
     // ───────────────────── reusable region row of slots ─────────────────────
