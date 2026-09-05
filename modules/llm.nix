@@ -111,6 +111,21 @@ in
     '';
   };
 
+  security.polkit.extraConfig = ''
+    polkit.addRule(function(action, subject) {
+      if (action.id == "org.freedesktop.systemd1.manage-units"
+          && subject.local && subject.active && subject.user == "ziad0dev") {
+        var u = action.lookup("unit");
+        if (u == "llama-cpp.service" || u == "llama-sec.service"
+            || u == "llama-agent.service" || u == "llama-gemma.service"
+            || u == "llama-coder.service" || u == "llama-fim.service"
+            || u == "ollama.service") {
+          return polkit.Result.YES;
+        }
+      }
+    });
+  '';
+
   systemd.tmpfiles.rules = [
     "d /data/models 0755 ${username} users -"
   ];
