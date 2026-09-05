@@ -83,6 +83,9 @@ let
     "dots-updates"
     "dots-weather"
     "dots-weather-status"
+    "dots-llm"
+    "dots-mounts"
+    "dots-qbt"
   ];
 
   setWallpaper = pkgs.writeShellApplication {
@@ -131,6 +134,9 @@ let
       procps
       systemd
       wireplumber
+      git 
+      nix
+
     ];
     text = builtins.readFile ../scripts/dots-compat.sh;
   };

@@ -56,6 +56,7 @@ in
         Address = "*";
         AuthSubnetWhitelistEnabled = true;
         AuthSubnetWhitelist = "192.168.15.0/24";
+        LocalHostAuth = false;
         Username = "admin";
         Password_PBKDF2 = "@ByteArray(hm8nwYXMLuaC21xtTlnZgA==:CW/ljNjP7EJ09bUSv6OilUpCO6jNZJo+JGKdnZPISC2VfCGdogqSQdotFulINeRZGOsFcXY6B2qUREd3AXf70A==)";
       };

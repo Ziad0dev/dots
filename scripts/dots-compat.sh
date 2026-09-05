@@ -141,13 +141,96 @@ case "$CMD" in
 
     dots-updates)
         # pending-update count, same signal dots-update-available reports
-        lock="$HOME/dots/flake.lock"
-        if [ -f "$lock" ]; then
-            age=$(( ( $(date +%s) - $(stat -c %Y "$lock") ) / 86400 ))
-            [ "$age" -gt 7 ] && echo 1 || echo 0
-        else
-            echo 0
+        cache="${XDG_CACHE_HOME:-$HOME/.cache}/dots-updates"
+        if [ -f "$cache" ] && [ "$(( $(date +%s) - $(stat -c %Y "$cache") ))" -lt 3600 ]; then
+            cat "$cache"
+            exit 0
         fi
+        locked=$(nix flake metadata "$HOME/dots" --json 2>/dev/null \
+            | jq -r '.locks.nodes.chaotic.locked.rev // empty') || true
+        remote=$(git ls-remote https://github.com/chaotic-cx/nyx HEAD 2>/dev/null | cut -f1) || true
+        if [ -n "${locked:-}" ] && [ -n "${remote:-}" ] && [ "$locked" != "$remote" ]; then
+            printf '1\n' >"$cache"
+        else
+            printf '0\n' >"$cache"
+        fi
+        cat "$cache"
+        exit 0
+        ;;
+
+    dots-mounts)
+        # names of declared mounts that are not currently healthy; empty = all ok
+        bad=""
+        for m in /data /mnt/media /mnt/backup /mnt/newvolume; do
+            unit=$(systemd-escape -p --suffix=mount "$m" 2>/dev/null) || continue
+            auto="${unit%.mount}.automount"
+            if [ "$(systemctl show -p LoadState --value "$auto" 2>/dev/null)" = "loaded" ]; then
+                watch="$auto"
+            else
+                watch="$unit"
+            fi
+            if systemctl is-failed --quiet "$unit" 2>/dev/null \
+                || ! systemctl is-active --quiet "$watch" 2>/dev/null; then
+                bad="$bad ${m##*/}"
+            fi
+        done
+        printf '%s\n' "${bad# }"
+        exit 0
+        ;;
+
+    dots-llm)
+        llm_units="llama-cpp llama-sec llama-agent llama-gemma llama-coder llama-fim ollama"
+        llm_active=""
+        for u in $llm_units; do
+            if systemctl is-active --quiet "$u.service" 2>/dev/null; then
+                llm_active="$u"
+                break
+            fi
+        done
+        case "${1:-status}" in
+            status)
+                printf '%s\n' "${llm_active:-none}"
+                ;;
+            off)
+                for u in $llm_units; do
+                    systemctl stop "$u.service" >/dev/null 2>&1 || true
+                done
+                ;;
+            next)
+                target=""
+                if [ -n "$llm_active" ]; then
+                    seen=0
+                    for u in $llm_units; do
+                        if [ "$seen" = 1 ]; then
+                            target="$u"
+                            seen=2
+                            break
+                        fi
+                        [ "$u" = "$llm_active" ] && seen=1
+                    done
+                fi
+                [ -n "$target" ] || target="llama-cpp"
+                if [ -n "$llm_active" ] && [ "$llm_active" != "$target" ]; then
+                    systemctl stop "$llm_active.service" >/dev/null 2>&1 || true
+                fi
+                systemctl start "$target.service" >/dev/null 2>&1 || true
+                ;;
+        esac
+        exit 0
+        ;;
+
+    dots-qbt)
+        qbt="http://127.0.0.1:8081"
+        info=$(curl -fs --max-time 2 "$qbt/api/v2/transfer/info" 2>/dev/null) || true
+        if [ -z "${info:-}" ]; then
+            printf 'off\n'
+            exit 0
+        fi
+        dl=$(printf '%s' "$info" | jq -r '.dl_info_speed // 0') || dl=0
+        up=$(printf '%s' "$info" | jq -r '.up_info_speed // 0') || up=0
+        n=$(curl -fs --max-time 2 "$qbt/api/v2/torrents/info?filter=downloading" 2>/dev/null \
+            | jq -r 'length' 2>/dev/null) || true
+        printf '%s %s %s\n' "${n:-0}" "$dl" "$up"
         exit 0
         ;;
 
