@@ -95,7 +95,7 @@ Item {
     Process {
         id: openUi
         command: ["bash", "-c",
-                  "systemd-run --user --scope --quiet --collect -- xdg-open http://127.0.0.1:8081"]
+                  "systemd-run --user --scope --quiet --collect -- xdg-open http://192.168.15.1:8081"]
     }
 
     MouseArea {
