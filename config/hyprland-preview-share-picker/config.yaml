@@ -1,5 +1,5 @@
-stylesheets:
-  - ~/.local/state/dots/theme/share-picker.css
+#stylesheets:
+#  - ~/.local/state/dots/theme/share-picker.css
 
 default_page: windows
 
@@ -27,4 +27,4 @@ region:
   command: slurp -f '%o@%x,%y,%w,%h'
 
 hide_token_restore: false
-debug: false
+debug: true

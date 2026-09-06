@@ -64,12 +64,11 @@ in
     max-free = 8 * 1024 * 1024 * 1024;
   };
 
-  services.journald.extraConfig = ''
-    SystemMaxUse=512M
-    SystemMaxFileSize=64M
-    MaxRetentionSec=1month
-  '';
-
+  services.journald.settings.Journal = {
+    SystemMaxUse = "512M";
+    SystemMaxFileSize = "64M";
+    MaxRetentionSec = "1month";
+  };
   hardware.nvidia.powerManagement.enable = true;
 
   powerManagement.cpuFreqGovernor = lib.mkIf (isMax || isPassive) (
