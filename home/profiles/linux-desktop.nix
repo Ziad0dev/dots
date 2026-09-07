@@ -160,6 +160,8 @@ in
       chromium
       tor
       tor-browser
+      feather
+      sparrow
       slack
       signal-desktop
       teamspeak6-client
@@ -207,7 +209,7 @@ in
       }
     ];
   };
-
+  
   services.cliphist.enable = true;
 
   systemd.user.targets.hyprland-session = {

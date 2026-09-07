@@ -135,7 +135,7 @@ let
       procps
       systemd
       wireplumber
-      git 
+      git
       nix
 
     ];
