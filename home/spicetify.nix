@@ -29,7 +29,7 @@ in
   programs.spicetify = {
     enable = true;
 
-    theme = spicePkgs.themes.dribbblish;
+    theme = spicePkgs.themes.starryNight;
 
     enabledExtensions = with spicePkgs.extensions; [
       hidePodcasts
