@@ -1,11 +1,12 @@
 {
+  config,
   pkgs,
   inputs,
   lib,
   ...
 }:
 let
-  theme = "oxocarbon";
+  theme = config.dots.theme;
 
   palette =
     let

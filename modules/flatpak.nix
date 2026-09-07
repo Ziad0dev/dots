@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ lib, pkgs, ... }:
 
 let
   remotes = {
@@ -19,6 +19,8 @@ let
     "flathub org.texstudio.TeXstudio"
   ];
 
+  appIds = map (p: lib.last (lib.splitString " " p)) packages;
+
   reconcile = pkgs.writeShellScript "flatpak-reconcile" ''
     set -eu
     ${builtins.concatStringsSep "\n" (
@@ -29,6 +31,16 @@ let
     ${builtins.concatStringsSep "\n" (
       map (p: "flatpak install --user -y --noninteractive ${p}") packages
     )}
+
+    declared="${builtins.concatStringsSep " " appIds}"
+    flatpak list --user --app --columns=application | while read -r id; do
+      [ -n "$id" ] || continue
+      case " $declared " in
+        *" $id "*) ;;
+        *) flatpak uninstall --user -y --noninteractive "$id" || true ;;
+      esac
+    done
+    flatpak uninstall --user -y --unused --noninteractive || true
   '';
 in
 {
