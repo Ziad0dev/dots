@@ -66,7 +66,7 @@ in
           luaEnv = pkgs.neovim-unwrapped.lua;
         in
         luaEnv.pkgs.getLuaCPath luaEnv.pkgs.jsregexp;
-       NVIM_LUA_PATH =
+      NVIM_LUA_PATH =
         let
           luaEnv = pkgs.neovim-unwrapped.lua;
         in
@@ -196,7 +196,7 @@ in
       mermaid-cli
       foot
       trashy
-      psmisc 
+      psmisc
       yt-dlp
       imagemagick
     ];

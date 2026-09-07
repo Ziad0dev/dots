@@ -69,6 +69,8 @@ in
     nvidiaPersistenced = true;
     package = fixZstdRefs pkgs.nvidia_cachyos;
   };
+  services.lact.enable = true;
+  
   services.prowlarr = {
     enable = true;
     openFirewall = false;
@@ -103,6 +105,7 @@ in
   };
 
   programs.coolercontrol.enable = true;
+  programs.corefreq.enable = true;
 
   programs.hyprland = {
     enable = true;

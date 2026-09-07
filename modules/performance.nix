@@ -12,6 +12,9 @@ let
   isPassive = cpuProfile == "passive";
   isMax = cpuProfile == "max";
   setsEPP = cpuProfile == "responsive";
+
+  pl1Watts = 65;
+  pl2Watts = 117;
 in
 {
 
@@ -87,6 +90,22 @@ in
     script = ''
       for f in /sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference; do
         [ -w "$f" ] && echo performance > "$f"
+      done
+      exit 0
+    '';
+  };
+
+  systemd.services.cpu-power-limit = {
+    description = "Set RAPL package power limits";
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+    };
+    script = ''
+      for d in /sys/class/powercap/intel-rapl:0 /sys/class/powercap/intel-rapl-mmio:0; do
+        [ -w "$d/constraint_0_power_limit_uw" ] && echo ${toString (pl1Watts * 1000000)} > "$d/constraint_0_power_limit_uw"
+        [ -w "$d/constraint_1_power_limit_uw" ] && echo ${toString (pl2Watts * 1000000)} > "$d/constraint_1_power_limit_uw"
       done
       exit 0
     '';
