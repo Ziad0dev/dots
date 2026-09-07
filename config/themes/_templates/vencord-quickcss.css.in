@@ -187,6 +187,11 @@ body,
 [class*="title_"],
 [class*="upperContainer"],
 [class*="nowPlayingColumn"],
+[class*="username"],
+[class*="roleColor"],
+[class*="membersWrap"] [class*="roleColor"] {
+  color: ${foreground} !important;
+}
 [class*="container_"] > [class*="scroller_"] {
   background-color: var(--dots-bg) !important;
 }

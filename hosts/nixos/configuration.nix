@@ -39,7 +39,7 @@ in
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.systemd-boot.configurationLimit = 3;
 
-  dots.sddm.theme = "kanagawa";
+  dots.sddm.theme = config.home-manager.users.${username}.dots.theme;
   networking.hostName = hostname;
   networking.networkmanager.enable = true;
 

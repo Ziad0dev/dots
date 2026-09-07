@@ -137,6 +137,7 @@ in
       wiremix
       networkmanager
       playerctl
+      glow
 
       pamixer
       pavucontrol
