@@ -39,6 +39,12 @@ in
     description = "Absolute path of the checked-out dots repo on this machine.";
   };
 
+  options.dots.theme = lib.mkOption {
+    type = lib.types.str;
+    default = "oxocarbon";
+    description = "Theme under config/themes baked into anything that cannot follow themectl at runtime.";
+  };
+
   config = {
     home.username = username;
     home.homeDirectory = lib.mkDefault homeDir;

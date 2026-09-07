@@ -3,10 +3,19 @@
 let
   hardening = import ../lib/hardening.nix;
 
+  browserHardening = (removeAttrs hardening [
+    "CapabilityBoundingSet"
+    "PrivateDevices"
+    "RestrictNamespaces"
+  ]) // { ProtectSystem = "strict"; };
+
   wgConfig = "/etc/wireguard/mullvad.conf";
   mullvadDns = "100.64.0.7";
 
+  lanSubnet = "192.168.86.0/24";
+
   webPort = 8081;
+  indexerPort = 9696;
   torrentPort = 51413;
   mediaRoot = "/mnt/media";
 in
@@ -25,15 +34,15 @@ in
   vpnNamespaces.wg = {
     enable = true;
     wireguardConfigFile = wgConfig;
-    accessibleFrom = [ "192.168.86.0/24" ];
+    accessibleFrom = [ lanSubnet ];
     portMappings = [
       {
         from = webPort;
         to = webPort;
       }
       {
-        from = 9696;
-        to = 9696;
+        from = indexerPort;
+        to = indexerPort;
       }
     ];
   };
@@ -55,7 +64,7 @@ in
       Preferences.WebUI = {
         Address = "*";
         AuthSubnetWhitelistEnabled = true;
-        AuthSubnetWhitelist = "192.168.15.0/24";
+        AuthSubnetWhitelist = lanSubnet;
         LocalHostAuth = false;
         Username = "admin";
         Password_PBKDF2 = "@ByteArray(hm8nwYXMLuaC21xtTlnZgA==:CW/ljNjP7EJ09bUSv6OilUpCO6jNZJo+JGKdnZPISC2VfCGdogqSQdotFulINeRZGOsFcXY6B2qUREd3AXf70A==)";
@@ -81,6 +90,11 @@ in
     serviceConfig.MemoryHigh = "2G";
   };
 
+  services.prowlarr = {
+    enable = true;
+    openFirewall = false;
+  };
+
   systemd.services.prowlarr = {
     vpnConfinement = {
       enable = true;
@@ -89,12 +103,19 @@ in
     serviceConfig = hardening;
   };
 
+  services.flaresolverr = {
+    enable = true;
+    openFirewall = false;
+  };
+
   systemd.services.flaresolverr = {
     environment.HOST = "127.0.0.1";
     vpnConfinement = {
       enable = true;
       vpnNamespace = "wg";
     };
-    serviceConfig.ExecStartPre = "${pkgs.bash}/bin/bash -c 'until ${pkgs.getent}/bin/getent hosts mullvad.net >/dev/null 2>&1; do sleep 2; done'";
+    serviceConfig = browserHardening // {
+      ExecStartPre = "${pkgs.bash}/bin/bash -c 'until ${pkgs.getent}/bin/getent hosts mullvad.net >/dev/null 2>&1; do sleep 2; done'";
+    };
   };
 }

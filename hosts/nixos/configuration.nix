@@ -28,6 +28,13 @@ in
     AllowSuspendThenHibernate = "no";
   };
 
+  systemd.targets = {
+    sleep.enable = false;
+    suspend.enable = false;
+    hibernate.enable = false;
+    hybrid-sleep.enable = false;
+  };
+
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.systemd-boot.configurationLimit = 3;
@@ -71,41 +78,7 @@ in
   };
   services.lact.enable = true;
   
-  services.prowlarr = {
-    enable = true;
-    openFirewall = false;
-  };
-  services.flaresolverr = {
-    enable = true;
-    openFirewall = false;
-  };
-
-  systemd.services.flaresolverr.serviceConfig = {
-    NoNewPrivileges = true;
-    PrivateTmp = true;
-    ProtectHome = true;
-    ProtectSystem = "strict";
-    ProtectKernelTunables = true;
-    ProtectKernelModules = true;
-    ProtectKernelLogs = true;
-    ProtectControlGroups = true;
-    ProtectClock = true;
-    ProtectHostname = true;
-    ProtectProc = "invisible";
-    RestrictRealtime = true;
-    RestrictSUIDSGID = true;
-    LockPersonality = true;
-    SystemCallArchitectures = "native";
-    RestrictAddressFamilies = [
-      "AF_INET"
-      "AF_INET6"
-      "AF_UNIX"
-      "AF_NETLINK"
-    ];
-  };
-
   programs.coolercontrol.enable = true;
-  programs.corefreq.enable = true;
 
   programs.hyprland = {
     enable = true;
@@ -189,10 +162,7 @@ in
   };
   programs.fish.enable = true;
 
-  nixpkgs.overlays = [
-    inputs.zig-overlay.overlays.default
-    inputs.obsidian-extensions.overlays.default
-  ];
+  nixpkgs.overlays = import ../../lib/overlays.nix { inherit inputs; };
   nixpkgs.config.allowUnfree = true;
 
   nix.optimise.automatic = true;

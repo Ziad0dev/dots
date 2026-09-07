@@ -114,7 +114,7 @@ in
   security.polkit.extraConfig = ''
     polkit.addRule(function(action, subject) {
       if (action.id == "org.freedesktop.systemd1.manage-units"
-          && subject.local && subject.active && subject.user == "ziad0dev") {
+          && subject.local && subject.active && subject.user == "${username}") {
         var u = action.lookup("unit");
         if (u == "llama-cpp.service" || u == "llama-sec.service"
             || u == "llama-agent.service" || u == "llama-gemma.service"

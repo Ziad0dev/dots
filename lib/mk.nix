@@ -1,10 +1,7 @@
 { inputs, lib }:
 
 let
-  overlays = [
-    inputs.zig-overlay.overlays.default
-    inputs.obsidian-extensions.overlays.default
-  ];
+  overlays = import ./overlays.nix { inherit inputs; };
 
   mkPkgs =
     system:
