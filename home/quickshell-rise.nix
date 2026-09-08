@@ -231,6 +231,9 @@ in
     Install.WantedBy = [ "timers.target" ];
   };
 
+  xdg.configFile."swayosd/style.css".source =
+    config.lib.file.mkOutOfStoreSymlink "${config.xdg.stateHome}/dots/theme/swayosd.css";
+
   systemd.user.services.swayosd = {
     Unit = {
       Description = "swayosd-server";
