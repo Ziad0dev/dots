@@ -44,6 +44,9 @@ in
     };
   };
 
+  # tailscaled reports "started" well before it can accept commands, so wait for
+  # it to actually answer. no ExecStop: the serve config lives in tailscaled
+  # state and tearing it down on every restart is what breaks the page.
   systemd.services.hello-page-serve = {
     description = "publish the page to the tailnet";
     wantedBy = [ "multi-user.target" ];
@@ -55,9 +58,25 @@ in
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
-      ExecStart = "${pkgs.tailscale}/bin/tailscale serve --bg --https 443 http://127.0.0.1:${toString port}";
-      ExecStop = "${pkgs.tailscale}/bin/tailscale serve --https=443 off";
+      ExecStart = pkgs.writeShellScript "hello-page-serve" ''
+        i=0
+        while [ $i -lt 60 ]; do
+          if ${pkgs.tailscale}/bin/tailscale status --json >/dev/null 2>&1; then
+            exec ${pkgs.tailscale}/bin/tailscale serve --bg --https 443 http://127.0.0.1:${toString port}
+          fi
+          ${pkgs.coreutils}/bin/sleep 2
+          i=$((i + 1))
+        done
+        echo "tailscaled never became ready" >&2
+        exit 1
+      '';
     };
   };
 
+  systemd.targets = {
+    sleep.enable = false;
+    suspend.enable = false;
+    hibernate.enable = false;
+    hybrid-sleep.enable = false;
+  };
 }
