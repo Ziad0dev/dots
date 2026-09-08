@@ -75,7 +75,7 @@ in
         DiskIOType = "SimplePreadPwrite";
         UseUPnP = false;
         MaxRatio = 2;
-        MaxRatioAction = 1;
+        MaxRatioAction = 0;
         GlobalMaxSeedingMinutes = 1440;
       };
     };
