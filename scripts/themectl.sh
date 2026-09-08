@@ -207,6 +207,10 @@ reload_apps() {
     if command -v hyprctl >/dev/null 2>&1; then
         hyprctl reload >/dev/null 2>&1 || true
     fi
+
+    if command -v systemctl >/dev/null 2>&1; then
+        systemctl --user try-restart swayosd.service 2>/dev/null || true
+    fi
 }
 
 theme_wallpaper() {

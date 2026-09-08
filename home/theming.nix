@@ -9,6 +9,7 @@ let
       gnugrep
       gnused
       procps
+      systemd
     ];
     text = builtins.readFile ../scripts/themectl.sh;
   };

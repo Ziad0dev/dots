@@ -166,17 +166,24 @@ in
         };
       };
 
-      interactiveShellInit = "fish_vi_key_bindings";
+      interactiveShellInit = ''
+        fish_vi_key_bindings
+        set -l __dots_fzf "${config.xdg.stateHome}/dots/theme/fzf.fish"
+        test -r $__dots_fzf; and source $__dots_fzf
+      '';
     };
 
     home.file = {
       ".config/nvim".source = link "nvim";
       ".config/ghostty".source = link "ghostty";
       ".config/tmux".source = link "tmux";
-      ".config/btop".source = link "btop";
       ".config/broot".source = link "broot";
       ".config/ranger".source = link "ranger";
       ".gnupg/gpg-agent.conf".text = "allow-preset-passphrase\n";
+
+      ".config/btop/btop.conf".source = link "btop/btop.conf";
+       ".config/btop/themes/dots.theme".source =
+        config.lib.file.mkOutOfStoreSymlink "${config.xdg.stateHome}/dots/theme/btop.theme";
     };
 
     home.packages = with pkgs; [
