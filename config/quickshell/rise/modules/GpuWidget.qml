@@ -12,11 +12,11 @@ Item {
     opacity: root.modGpu ? 1 : 0
     Behavior on opacity { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
 
-    property int percent: 0
-    property int memUsedMiB: 0
-    property int memTotalMiB: 0
-    property int tempC: 0
-    property bool ok: false
+    readonly property int percent: root.gpuPercent
+    readonly property int memUsedMiB: root.gpuMemoryUsedMiB
+    readonly property int memTotalMiB: root.gpuMemoryTotalMiB
+    readonly property int tempC: root.gpuTemperatureC
+    readonly property bool ok: root.gpuAvailable
 
     readonly property real memUsedGiB: memUsedMiB / 1024
     readonly property real memTotalGiB: memTotalMiB / 1024
@@ -28,34 +28,7 @@ Item {
         ? percent + "% · " + memUsedGiB.toFixed(1) + "/" + memTotalGiB.toFixed(1) + " GiB · " + tempC + "°C"
         : "GPU: no data"
 
-    Process {
-        id: query
-        command: ["nvidia-smi",
-                  "--query-gpu=utilization.gpu,memory.used,memory.total,temperature.gpu",
-                  "--format=csv,noheader,nounits"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                var parts = String(this.text || "").trim().split("\n")[0].split(",")
-                if (parts.length < 4) { rootMod.ok = false; return }
-                var u = parseInt(parts[0]), mu = parseInt(parts[1])
-                var mt = parseInt(parts[2]), t = parseInt(parts[3])
-                if (isNaN(u) || isNaN(mu) || isNaN(mt)) { rootMod.ok = false; return }
-                rootMod.percent = Math.max(0, Math.min(100, u))
-                rootMod.memUsedMiB = mu
-                rootMod.memTotalMiB = mt
-                rootMod.tempC = isNaN(t) ? 0 : t
-                rootMod.ok = true
-            }
-        }
-    }
-
-    Timer {
-        interval: root.modGpu ? 6000 : 30000
-        running: true
-        repeat: true
-        triggeredOnStart: true
-        onTriggered: query.running = true
-    }
+    // sampler removed: Theme.qml owns gpu telemetry
 
     Rectangle {
         x: 0
@@ -115,8 +88,12 @@ Item {
         onExited: tip.hide()
         onClicked: function (e) {
             tip.hide()
-            gpuTui.running = false
-            gpuTui.running = true
+            if (e.button === Qt.RightButton) {
+                gpuTui.running = false
+                gpuTui.running = true
+                return
+            }
+            root.gpuVisible = !root.gpuVisible
         }
     }
 }

@@ -202,12 +202,12 @@ PanelWindow {
         },
         splitAll: function () {
             island.leftSplits     = [true, true, true, true, true, true]
-            island.rightSplits    = [true, true, true, true, true, true]
+            island.rightSplits    = [true, true, true, true, true, true, true, true]
             island.boundarySplits = [true, true]
         },
         mergeAll: function () {
             island.leftSplits     = [false, false, false, false, false, false]
-            island.rightSplits    = [false, false, false, false, false, false]
+            island.rightSplits    = [false, false, false, false, false, false, false, false]
             island.boundarySplits = [false, false]
             barSlot.root.barAnim  = 0
         },
@@ -485,6 +485,8 @@ PanelWindow {
     }
     Component { id: compNetwork;    NetworkWidget      { root: barSlot.root } }
     Component { id: compGpu;        GpuWidget          { root: barSlot.root } }
+    Component { id: compCpuTemp;    CpuTemperatureWidget { root: barSlot.root } }
+    Component { id: compStorage;    StorageWidget        { root: barSlot.root } }
     Component { id: compMounts;     MountsWidget       { root: barSlot.root } }
     Component { id: compPower;      PowerProfileWidget { root: barSlot.root } }
     Component { id: compBattery;    BatteryWidget      { root: barSlot.root } }
@@ -496,7 +498,8 @@ PanelWindow {
         "G4": compMem, "G5": compCpu, "G6": compVol, "G7": compClaude,
         "G8": compCenter,
         "G9": compMpris, "G10": compQuick, "G11": compNetwork,
-        "G12": compGpu, "G13": compMounts, "G14": compPower, "G15": compBluetooth
+        "G12": compGpu, "G13": compMounts, "G14": compPower, "G15": compBluetooth,
+        "G16": compCpuTemp, "G17": compStorage
     })
 
     // ───────────────────── reusable region row of slots ─────────────────────
@@ -666,7 +669,7 @@ PanelWindow {
 
         // ── split state (positional, per within-region gap) ──
         property var leftSplits:  [false, false, false, false, false, false]   // gaps in leftModel
-        property var rightSplits: [false, false, false, false, false, false]   // gaps in rightModel
+        property var rightSplits: [false, false, false, false, false, false, false, false]   // gaps in rightModel
         property var boundarySplits: [false, false]   // [left↔center, center↔right]
 
         readonly property real lcBoundaryX: leftRowItem.x + leftRowItem.width + 9    // just right of Claude
@@ -889,6 +892,7 @@ PanelWindow {
             ListElement { gid: "G9" }  ListElement { gid: "G10" } ListElement { gid: "G11" }
             ListElement { gid: "G14" } ListElement { gid: "G12" } ListElement { gid: "G13" }
             ListElement { gid: "G15" }
+            ListElement { gid: "G16" } ListElement { gid: "G17" }
         }
 
         SlotRow {
@@ -948,6 +952,9 @@ PanelWindow {
                 battery:      island.groupX("G12", 0.5),
                 memory:       island.groupX("G4",  0.5),
                 cpu:          island.groupX("G5",  0.5),
+                gpu:          island.groupX("G12", 0.5),
+                thermal:      island.groupX("G16", 0.5),
+                storage:      island.groupX("G17", 0.5),
                 ai:           island.groupX("G7",  0.5),
                 workspace:    island.groupX("G2",  0.5),
                 arch:         island.groupX("G3",  0.5),
