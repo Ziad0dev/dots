@@ -6,6 +6,7 @@ import "../modules"
 PanelWindow {
     id: ctrlPanel
     required property var root
+    property string colorGid: ""
 
     screen: root.activePopupScreen
 
@@ -537,6 +538,111 @@ PanelWindow {
                 Tile { width: root.evenW((wwCol.width - 8) / 2); label: "Volume";      active: root.modVolume;  onActivated: root.modVolume = !root.modVolume }
                 Tile { width: root.evenW((wwCol.width - 8) / 2); label: "Now playing"; active: root.modMpris;   onActivated: root.modMpris = !root.modMpris }
                 Tile { width: root.evenW((wwCol.width - 8) / 2); label: "Battery";     visible: root.hasBattery; active: true; enabled: false }
+                Tile { width: root.evenW((wwCol.width - 8) / 2); label: "Storage";      active: root.modStorage;        onActivated: root.modStorage = !root.modStorage }
+                Tile { width: root.evenW((wwCol.width - 8) / 2); label: "CPU temp";     active: root.modCpuTemperature; onActivated: root.modCpuTemperature = !root.modCpuTemperature }
+            }
+            Rectangle { width: parent.width; height: 1; color: root.sep }
+
+            UiText {
+                text: "WIDGET COLOR"
+                color: root.sumiHi; font.family: root.mono; font.pixelSize: 10; font.letterSpacing: 1
+            }
+
+            Grid {
+                width: parent.width
+                columns: 3
+                columnSpacing: 6
+                rowSpacing: 6
+
+                Repeater {
+                    model: [
+                        { gid: "G1",  name: "Launch" },  { gid: "G2",  name: "Wrkspc" },
+                        { gid: "G4",  name: "Memory" },  { gid: "G5",  name: "CPU" },
+                        { gid: "G6",  name: "Volume" },  { gid: "G7",  name: "AI" },
+                        { gid: "G9",  name: "Media" },   { gid: "G11", name: "Netwrk" },
+                        { gid: "G12", name: "GPU" },     { gid: "G13", name: "Mounts" },
+                        { gid: "G14", name: "Power" },   { gid: "G15", name: "Bluetth" },
+                        { gid: "G16", name: "Temp" },    { gid: "G17", name: "Disk" }
+                    ]
+                    Tile {
+                        required property var modelData
+                        width: root.evenW((wwCol.width - 12) / 3)
+                        label: modelData.name
+                        active: ctrlPanel.colorGid === modelData.gid
+                        accent: root.widgetHasFill(modelData.gid)
+                            ? root.widgetAssignedColor(modelData.gid) : root.seal
+                        onActivated: ctrlPanel.colorGid =
+                            (ctrlPanel.colorGid === modelData.gid ? "" : modelData.gid)
+                    }
+                }
+            }
+
+            Row {
+                width: parent.width
+                visible: ctrlPanel.colorGid !== ""
+                spacing: 6
+
+                Repeater {
+                    model: ["inherit", "color01", "color02", "color03",
+                            "color04", "color05", "color06", "color07"]
+                    Rectangle {
+                        required property var modelData
+                        width: root.evenW((wwCol.width - 42) / 8)
+                        height: 22
+                        radius: root.tileRadius
+                        color: modelData === "inherit"
+                            ? root.fillIdle : root.paletteColor(modelData)
+                        border.width: 1
+                        border.color: root.widgetPaletteId(ctrlPanel.colorGid) === modelData
+                            ? root.ink : root.sep
+                        UiText {
+                            anchors.centerIn: parent
+                            visible: parent.modelData === "inherit"
+                            text: "\u2013"
+                            color: root.sumi
+                            font.family: root.mono; font.pixelSize: 11
+                        }
+                        MouseArea {
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: root.setWidgetPaletteColor(ctrlPanel.colorGid,
+                                                                  parent.modelData)
+                        }
+                    }
+                }
+            }
+
+            Row {
+                width: parent.width
+                visible: ctrlPanel.colorGid !== ""
+                spacing: 8
+
+                Tile {
+                    width: root.evenW((wwCol.width - 8) / 2)
+                    label: "Border"
+                    active: root.widgetHasBorder(ctrlPanel.colorGid)
+                    onActivated: root.setWidgetBorderEnabled(ctrlPanel.colorGid,
+                        !root.widgetHasBorder(ctrlPanel.colorGid))
+                }
+                Tile {
+                    width: root.evenW((wwCol.width - 8) / 2)
+                    label: "Text: " + root.widgetTone(ctrlPanel.colorGid)
+                    active: root.widgetTone(ctrlPanel.colorGid) !== "auto"
+                    enabled: root.widgetHasFill(ctrlPanel.colorGid)
+                    onActivated: {
+                        var order = ["auto", "background", "foreground"]
+                        var i = order.indexOf(root.widgetTone(ctrlPanel.colorGid))
+                        root.setWidgetTone(ctrlPanel.colorGid, order[(i + 1) % order.length])
+                    }
+                }
+            }
+
+            Tile {
+                width: parent.width
+                visible: ctrlPanel.colorGid !== ""
+                label: "Reset this widget"
+                onActivated: root.resetWidgetColor(ctrlPanel.colorGid)
             }
 
             Rectangle { width: parent.width; height: 1; color: root.sep }
