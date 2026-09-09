@@ -5,6 +5,7 @@ import Quickshell
 Item {
     id: rootMod
     required property var root
+    property string gid: "G1"
     readonly property bool hasArchAssets: false
 
     implicitWidth: logoContentWidth + logoPadding
@@ -64,9 +65,9 @@ Item {
         width: rootMod.logoContentWidth + rootMod.logoPadding
         height: root.pillH
         radius: root.pillRadius
-        color: root.pill
-        border.color: root.pillBorder
-        border.width: root.pillBorderW
+        color: root.widgetFillColor(rootMod.gid)
+        border.color: root.widgetBorderColor(rootMod.gid)
+        border.width: root.widgetBorderWidth(rootMod.gid)
         clip: true
 
         Canvas {

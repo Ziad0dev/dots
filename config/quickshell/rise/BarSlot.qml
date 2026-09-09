@@ -250,8 +250,8 @@ PanelWindow {
     }
 
     // ─────────────────────────── group registry ───────────────────────────
-    Component { id: compLauncher;  LauncherWidget  { root: barSlot.root } }
-    Component { id: compWorkspace; WorkspaceWidget { root: barSlot.root } }
+    Component { id: compLauncher;  LauncherWidget  { root: barSlot.root; gid: "G1" } }
+    Component { id: compWorkspace; WorkspaceWidget { root: barSlot.root; gid: "G2" } }
     Component {
         id: compStatus                                   // G3: arch · tray · notif
         Item {
@@ -283,10 +283,10 @@ PanelWindow {
             }
         }
     }
-    Component { id: compMem;    MemoryWidget { root: barSlot.root } }
-    Component { id: compCpu;    CpuWidget    { root: barSlot.root } }
-    Component { id: compVol;    AudioWidget  { root: barSlot.root } }
-    Component { id: compClaude; ClaudeWidget { root: barSlot.root } }
+    Component { id: compMem;    MemoryWidget { root: barSlot.root; gid: "G4" } }
+    Component { id: compCpu;    CpuWidget    { root: barSlot.root; gid: "G5" } }
+    Component { id: compVol;    AudioWidget  { root: barSlot.root; gid: "G6" } }
+    Component { id: compClaude; ClaudeWidget { root: barSlot.root; gid: "G7" } }
     Component {
         id: compShellFallbackUpdater
         Item {
@@ -450,7 +450,7 @@ PanelWindow {
         }
     }
 
-    Component { id: compMpris; MprisWidget { root: barSlot.root } }
+    Component { id: compMpris; MprisWidget { root: barSlot.root; gid: "G9" } }
     Component {
         id: compQuick                                    // G10: idle-inhib · media · theme
         Item {
@@ -483,15 +483,15 @@ PanelWindow {
             }
         }
     }
-    Component { id: compNetwork;    NetworkWidget      { root: barSlot.root } }
-    Component { id: compGpu;        GpuWidget          { root: barSlot.root } }
-    Component { id: compCpuTemp;    CpuTemperatureWidget { root: barSlot.root } }
-    Component { id: compStorage;    StorageWidget        { root: barSlot.root } }
-    Component { id: compMounts;     MountsWidget       { root: barSlot.root } }
-    Component { id: compPower;      PowerProfileWidget { root: barSlot.root } }
+    Component { id: compNetwork;    NetworkWidget      { root: barSlot.root; gid: "G11" } }
+    Component { id: compGpu;        GpuWidget          { root: barSlot.root; gid: "G12" } }
+    Component { id: compCpuTemp;    CpuTemperatureWidget { root: barSlot.root; gid: "G16" } }
+    Component { id: compStorage;    StorageWidget        { root: barSlot.root; gid: "G17" } }
+    Component { id: compMounts;     MountsWidget       { root: barSlot.root; gid: "G13" } }
+    Component { id: compPower;      PowerProfileWidget { root: barSlot.root; gid: "G14" } }
     Component { id: compBattery;    BatteryWidget      { root: barSlot.root } }
     Component { id: compBrightness; BrightnessWidget   { root: barSlot.root } }
-    Component { id: compBluetooth;  BluetoothWidget    { root: barSlot.root } }
+    Component { id: compBluetooth;  BluetoothWidget    { root: barSlot.root; gid: "G15" } }
 
     readonly property var registry: ({
         "G1": compLauncher, "G2": compWorkspace, "G3": compStatus,

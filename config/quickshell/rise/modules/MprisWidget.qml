@@ -7,6 +7,7 @@ import Quickshell.Services.Mpris
 Item {
     id: rootMod
     required property var root
+    property string gid: "G9"
 
     // shared player selection (ghost-filtering) — see MprisSelect.qml
     MprisSelect { id: sel }
@@ -117,9 +118,9 @@ Item {
             : (Math.round(idleNote.implicitWidth) + 16)
         height: root.pillH
         radius: root.pillRadius
-        color: root.pill
-        border.color: root.pillBorder
-        border.width: root.pillBorderW
+        color: root.widgetFillColor(rootMod.gid)
+        border.color: root.widgetBorderColor(rootMod.gid)
+        border.width: root.widgetBorderWidth(rootMod.gid)
         PillShadow { theme: root }
     }
 

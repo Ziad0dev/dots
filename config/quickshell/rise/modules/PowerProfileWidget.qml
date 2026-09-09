@@ -5,6 +5,7 @@ import Quickshell.Io
 Item {
     id: rootMod
     required property var root
+    property string gid: "G14"
 
     property string profile: root.powerProfileCurrent
 
@@ -48,9 +49,9 @@ Item {
         width: Math.round(row.width) + 18
         height: root.pillH
         radius: root.pillRadius
-        color: root.pill
-        border.color: root.pillBorder
-        border.width: root.pillBorderW
+        color: root.widgetFillColor(rootMod.gid)
+        border.color: root.widgetBorderColor(rootMod.gid)
+        border.width: root.widgetBorderWidth(rootMod.gid)
         PillShadow { theme: root }
     }
 

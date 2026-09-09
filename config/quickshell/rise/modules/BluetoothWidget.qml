@@ -6,6 +6,7 @@ import "../IconMap.js" as IconMap
 Item {
     id: rootMod
     required property var root
+    property string gid: "G15"
 
     property bool btOn:       false
     property bool connected:  false
@@ -32,9 +33,9 @@ Item {
         width: Math.round(row.width) + 18
         height: root.pillH
         radius: root.pillRadius
-        color: root.pill
-        border.color: root.pillBorder
-        border.width: root.pillBorderW
+        color: root.widgetFillColor(rootMod.gid)
+        border.color: root.widgetBorderColor(rootMod.gid)
+        border.width: root.widgetBorderWidth(rootMod.gid)
         PillShadow { theme: root }
     }
 
