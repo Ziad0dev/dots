@@ -6,6 +6,7 @@ import "../IconMap.js" as IconMap
 Item {
     id: rootMod
     required property var root
+    property string gid: "G11"
 
     property string mode:   "none"  // "wifi" | "ethernet" | "none"
     property string ssid:   ""
@@ -66,9 +67,9 @@ Item {
         width: Math.round(row.implicitWidth) + 18
         height: root.pillH
         radius: root.pillRadius
-        color: root.pill
-        border.color: root.pillBorder
-        border.width: root.pillBorderW
+        color: root.widgetFillColor(rootMod.gid)
+        border.color: root.widgetBorderColor(rootMod.gid)
+        border.width: root.widgetBorderWidth(rootMod.gid)
         PillShadow { theme: root }
     }
 

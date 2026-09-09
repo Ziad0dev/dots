@@ -2185,6 +2185,159 @@ Item {
 
     // ── widget/workspace state persistence ──
     readonly property string widgetsCachePath: Quickshell.env("HOME") + "/.cache/quickshell_widgets"
+
+    property var widgetColorStyles: ({})
+    property bool _widgetColorsLoaded: false
+
+    function widgetGidValid(gid) {
+        var m = String(gid || "").match(/^G(\d{1,2})$/)
+        if (!m) return false
+        var n = Number(m[1])
+        return n >= 1 && n <= 17
+    }
+    function widgetColorModeValid(mode) {
+        return mode === "fill" || mode === "border" || mode === "both"
+    }
+    function normalizedWidgetColorMode(mode, colorId) {
+        var borderOn = mode === "both" || mode === "border"
+        if (!borderOn) return "fill"
+        return colorId === "inherit" ? "border" : "both"
+    }
+    function widgetToneValid(tone) {
+        return tone === "auto" || tone === "background" || tone === "foreground"
+    }
+    function widgetColorStyle(gid) {
+        var raw = widgetColorStyles[gid]
+        var colorId = raw && (raw.color === "inherit" || paletteColorValid(raw.color))
+            ? raw.color : "inherit"
+        return {
+            color: colorId,
+            mode: raw && widgetColorModeValid(raw.mode)
+                ? normalizedWidgetColorMode(raw.mode, colorId) : "fill",
+            tone: raw && widgetToneValid(raw.tone) ? raw.tone : "auto"
+        }
+    }
+    function setWidgetColorStyle(gid, colorId, mode, tone) {
+        if (!widgetGidValid(gid)) return
+        var next = {}
+        for (var key in widgetColorStyles) next[key] = widgetColorStyles[key]
+        var storedColor = colorId === "inherit"
+            ? "inherit" : (paletteColorValid(colorId) ? colorId : "color01")
+        var storedMode = normalizedWidgetColorMode(mode, storedColor)
+        if (storedColor === "inherit" && storedMode !== "border") delete next[gid]
+        else next[gid] = {
+            color: storedColor,
+            mode: storedMode,
+            tone: widgetToneValid(tone) ? tone : "auto"
+        }
+        widgetColorStyles = next
+        if (_widgetColorsLoaded) saveWidgetColors()
+    }
+    function setWidgetPaletteColor(gid, colorId) {
+        var s = widgetColorStyle(gid); setWidgetColorStyle(gid, colorId, s.mode, s.tone)
+    }
+    function setWidgetColorMode(gid, mode) {
+        var s = widgetColorStyle(gid); setWidgetColorStyle(gid, s.color, mode, s.tone)
+    }
+    function setWidgetBorderEnabled(gid, enabled) {
+        var s = widgetColorStyle(gid)
+        setWidgetColorStyle(gid, s.color,
+            enabled ? (s.color === "inherit" ? "border" : "both") : "fill", s.tone)
+    }
+    function setWidgetTone(gid, tone) {
+        var s = widgetColorStyle(gid)
+        if (s.color !== "inherit") setWidgetColorStyle(gid, s.color, s.mode, tone)
+    }
+    function resetWidgetColor(gid) {
+        var s = widgetColorStyle(gid)
+        setWidgetColorStyle(gid, "inherit",
+            s.mode === "both" || s.mode === "border" ? "border" : "fill", "auto")
+    }
+    function resetAllWidgetColors() {
+        widgetColorStyles = ({})
+        if (_widgetColorsLoaded) saveWidgetColors()
+    }
+    function widgetPaletteId(gid) { return widgetColorStyle(gid).color }
+    function widgetColorMode(gid) { return widgetColorStyle(gid).mode }
+    function widgetTone(gid) { return widgetColorStyle(gid).tone }
+    function widgetHasFill(gid) { return widgetColorStyle(gid).color !== "inherit" }
+    function widgetHasBorder(gid) {
+        var m = widgetColorStyle(gid).mode
+        return m === "border" || m === "both"
+    }
+    function widgetAssignedColor(gid) {
+        var id = widgetPaletteId(gid)
+        return id === "inherit" ? seal : paletteColor(id)
+    }
+    function widgetContrastColor(gid) {
+        var fill = widgetAssignedColor(gid)
+        var tone = widgetTone(gid)
+        if (tone === "background") return paper
+        if (tone === "foreground") return ink
+        return _contrastRatio(fill, paper) >= _contrastRatio(fill, ink) ? paper : ink
+    }
+    function widgetContentColor(gid, fallback) {
+        return widgetHasFill(gid) ? widgetContrastColor(gid) : fallback
+    }
+    function widgetFillColor(gid) {
+        return widgetHasFill(gid) ? widgetAssignedColor(gid) : pill
+    }
+    function widgetBorderColor(gid) {
+        return widgetHasBorder(gid) ? panelBorder : pillBorder
+    }
+    function widgetBorderWidth(gid) {
+        return widgetHasBorder(gid) ? Math.max(1, pillBorderW) : pillBorderW
+    }
+    function serializeWidgetColorStyles() {
+        var out = []
+        for (var n = 1; n <= 17; n++) {
+            var gid = "G" + n
+            var s = widgetColorStyle(gid)
+            if (s.color !== "inherit" || s.mode === "border")
+                out.push(gid + "~" + s.color + "~" + s.mode + "~" + s.tone)
+        }
+        return out.length ? out.join(",") : "-"
+    }
+    function parseWidgetColorStyles(raw) {
+        var out = {}
+        if (!raw || raw === "-") return out
+        var entries = String(raw).split(",")
+        for (var i = 0; i < entries.length; i++) {
+            var f = entries[i].split("~")
+            if (f.length !== 4 || !widgetGidValid(f[0])
+                    || (f[1] !== "inherit" && !paletteColorValid(f[1]))
+                    || !widgetColorModeValid(f[2]) || !widgetToneValid(f[3])) continue
+            out[f[0]] = { color: f[1], mode: normalizedWidgetColorMode(f[2], f[1]), tone: f[3] }
+        }
+        return out
+    }
+
+    readonly property string widgetColorsCachePath:
+        Quickshell.env("HOME") + "/.cache/quickshell_widget_colors"
+
+    function saveWidgetColors() {
+        widgetColorSaveProc.command = ["bash", "-c",
+            "mkdir -p \"$(dirname '" + widgetColorsCachePath + "')\" && echo '"
+            + serializeWidgetColorStyles() + "' > '" + widgetColorsCachePath + "'"]
+        widgetColorSaveProc.running = false
+        widgetColorSaveProc.running = true
+    }
+
+    Process { id: widgetColorSaveProc }
+
+    Process {
+        id: widgetColorLoadProc
+        running: true
+        command: ["cat", theme.widgetColorsCachePath]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                theme.widgetColorStyles =
+                    theme.parseWidgetColorStyles(String(this.text || "").trim())
+                theme._widgetColorsLoaded = true
+            }
+        }
+        onExited: theme._widgetColorsLoaded = true
+    }
     property bool _widgetsLoaded: false
     property bool _compactResetting: false
 

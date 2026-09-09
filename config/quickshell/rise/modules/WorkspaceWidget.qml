@@ -4,6 +4,7 @@ import QtQuick
 Item {
     id: wsWidget
     required property var root
+    property string gid: "G2"
 
     implicitWidth: wsRow.implicitWidth
     implicitHeight: 28
@@ -40,9 +41,9 @@ Item {
         width: Math.round(wsRow.width) + 2 * root.wsPillPad
         height: root.pillH
         radius: root.pillRadius
-        color: root.pill
-        border.color: root.pillBorder
-        border.width: root.pillBorderW
+        color: root.widgetFillColor(wsWidget.gid)
+        border.color: root.widgetBorderColor(wsWidget.gid)
+        border.width: root.widgetBorderWidth(wsWidget.gid)
         PillShadow { theme: root }
     }
 

@@ -5,6 +5,7 @@ import Quickshell.Io
 Item {
     id: rootMod
     required property var root
+    property string gid: "G13"
 
     property string missing: ""
 
@@ -44,7 +45,7 @@ Item {
         radius: root.pillRadius
         color: Qt.rgba(root.color01.r, root.color01.g, root.color01.b, 0.16)
         border.color: Qt.rgba(root.color01.r, root.color01.g, root.color01.b, 0.45)
-        border.width: root.pillBorderW
+        border.width: root.widgetBorderWidth(rootMod.gid)
         PillShadow { theme: root }
     }
 
