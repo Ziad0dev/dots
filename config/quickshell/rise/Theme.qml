@@ -1357,16 +1357,23 @@ Item {
         function textValue(value) {
             return value === null || value === undefined ? "" : String(value).trim()
         }
+        function volumeIsContainer(fs) {
+            var f = String(fs).toLowerCase()
+            return f === "crypto_luks" || f === "lvm2_member" || f === "linux_raid_member"
+        }
+        function volumeTotal(vol) {
+            return (vol.usedBytes >= 0 ? vol.usedBytes : 0)
+                + (vol.freeBytes >= 0 ? vol.freeBytes : 0)
+        }
         function collectVolumes(node, target) {
             var fs = textValue(node.fstype)
             var mounts = node.mountpoints || []
             var mountedAt = ""
             for (var m = 0; m < mounts.length; m++) {
                 var candidate = textValue(mounts[m])
-                if (candidate !== "" && candidate !== "[SWAP]") {
-                    mountedAt = candidate
-                    break
-                }
+                if (candidate === "" || candidate === "[SWAP]") continue
+                if (candidate === "/") { mountedAt = "/"; break }
+                if (mountedAt === "") mountedAt = candidate
             }
             if (fs !== "") {
                 var pct = parseInt(textValue(node["fsuse%"]).replace("%", ""))
@@ -1400,14 +1407,21 @@ Item {
             var usage = -1
             var freeBytes = -1
             var usedBytes = -1
+            var bestTotal = -1
             for (var v = 0; v < volumes.length; v++) {
-                if (fileSystems.indexOf(volumes[v].fs) < 0) fileSystems.push(volumes[v].fs)
-                if (mountedAt === "" && volumes[v].mount !== "") {
-                    mountedAt = volumes[v].mount
-                    usage = volumes[v].percent
-                    freeBytes = volumes[v].freeBytes
-                    usedBytes = volumes[v].usedBytes
-                }
+                var vol = volumes[v]
+                if (vol.fs !== "" && !volumeIsContainer(vol.fs)
+                        && fileSystems.indexOf(vol.fs) < 0) fileSystems.push(vol.fs)
+                if (vol.mount === "") continue
+                var better = mountedAt === ""
+                    || (vol.mount === "/" && mountedAt !== "/")
+                    || (mountedAt !== "/" && volumeTotal(vol) > bestTotal)
+                if (!better) continue
+                mountedAt = vol.mount
+                usage = vol.percent
+                freeBytes = vol.freeBytes
+                usedBytes = vol.usedBytes
+                bestTotal = volumeTotal(vol)
             }
 
             var transport = textValue(device.tran).toUpperCase()
@@ -2178,7 +2192,7 @@ Item {
     property string pickerStyle: "tanzaku"   // "tanzaku", "hearthstone", "carousel"
     property bool appLauncherVisible: false
     property string launcherLogoMode: "text"     // "text" or "icon"
-    property string launcherLogoText: "nixos"  // "dots", "hyprland", "arch", or "omacom"
+    property string launcherLogoText: "nixos"  // "dots", "hyprland", or "nixos"
     property string launcherLogoIcon: "nix"  // see launcherLogoIconGlyph()
     property bool   weatherImperial: false   // false = °C / km·h, true = °F / mph
     property bool   clock12h:        false   // false = 24h, true = 12h (AM/PM)
@@ -2424,7 +2438,7 @@ Item {
         widgetSaveProc.running = true
     }
 
-    readonly property var launcherLogoTextOptions: ["nixos", "hyprland", "arch"]
+    readonly property var launcherLogoTextOptions: ["nixos", "hyprland"]
     readonly property var launcherLogoIconOptions: ["dots", "hyprland", "arch", "grid", "spark", "power", "dragon", "mark", "nix", "branch", "rebel"]
 
     function launcherLogoTextIndex(id) {
@@ -2492,18 +2506,19 @@ Item {
         if (id === "power") return ""
         if (id === "dragon") return "⻯"
         if (id === "mark") return ""
-        if (id === "nix") return "ac_unit"
+        if (id === "nix") return String.fromCodePoint(0xF313)
         if (id === "branch") return ""
         if (id === "rebel") return ""
         return String.fromCodePoint(0xE900)
     }
     function launcherLogoIconFont(id) {
-        return id === "dots" ? "dots" : (id === "nix" ? "Material Symbols Rounded" : mono)
+        return id === "dots" ? "dots" : mono
     }
     function launcherLogoIconSize(id) {
         if (id === "dots") return 15
         if (id === "arch") return 17
         if (id === "dragon") return 16
+        if (id === "nix") return 17
         return 16
     }
     function launcherLogoIconXOffset(id) {
@@ -2771,7 +2786,7 @@ Item {
             stdinEnabled = true   // re-arm stdin each run — onStarted sets it false to send EOF; without this the 2nd+ run reads disabled stdin and hangs in 'scanning'
             running = true
         }
-        command: ["bash", Quickshell.env("HOME") + "/.local/bin/qs-arch-security-gate.sh"]
+        command: ["true"]   // qs-arch-security-gate.sh is gone; pacman-only
         stdinEnabled: true
         onStarted: {
             // Feed "pkg|repo|old|new" — exactly the gate's stdin format.

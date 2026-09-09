@@ -16,7 +16,7 @@ Item {
     readonly property bool nixosTextLogo: !logoIconMode && root.launcherLogoText === "nixos"
     readonly property bool hyprlandLogo: !logoIconMode && root.launcherLogoText === "hyprland"
     readonly property bool archTextLogo: !logoIconMode && root.launcherLogoText === "arch"
-    readonly property bool omacomTextLogo: !logoIconMode && root.launcherLogoText === "omacom"
+    readonly property bool omacomTextLogo: false   // assets/omacom-text.png does not exist
     readonly property url logoSource: omacomTextLogo ? Qt.resolvedUrl("../assets/omacom-text.png") : hyprlandLogo ? Qt.resolvedUrl("../assets/bob3.png") : Qt.resolvedUrl("../assets/nixos-logo.png")
     readonly property real logoAspect: omacomTextLogo ? (550 / 112) : archTextLogo ? (86 / 17) : hyprlandLogo ? (948 / 154) : (647 / 192)
     readonly property real logoHeight: logoIconMode ? 18 : hyprlandLogo ? 16 : omacomTextLogo ? 14 : archTextLogo ? 17 : 26

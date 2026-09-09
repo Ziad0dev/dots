@@ -4,6 +4,35 @@ let
   blue = "38;2;51;177;255";
   pink = "38;2;238;83;150";
   mauve = "38;2;190;149;255";
+
+  # Random logo, rendered fresh per invocation.
+  #
+  # chafa converts an image to ANSI at an EXACT cell size, so the art can never
+  # overflow into the module column — the failure mode of hand-made .txt art,
+  # whose height must be guessed. It also emits well-formed escapes, unlike
+  # colorscripts written to be run standalone in a terminal.
+  #
+  # Sources, in order of preference:
+  #   config/fastfetch/art/*.{png,jpg,jpeg}  your own picks
+  #   config/themes/*/preview.{png,jpg}      the 46 theme previews
+  #   config/themes/*/wallpaper.jpg          the wallpapers
+  # All read at RUNTIME, so adding art needs no rebuild.
+  randomArt = pkgs.writeShellScript "fastfetch-random-art" ''
+    set -u
+    repo="${config.dots.repoPath}"
+
+    pick=$(${pkgs.findutils}/bin/find \
+             "$repo/config/fastfetch/art" \
+             "$repo/config/themes" \
+             -type f \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' \) \
+             2>/dev/null \
+           | ${pkgs.coreutils}/bin/shuf -n 1)
+    [ -n "''${pick:-}" ] || exit 0
+
+    exec ${pkgs.chafa}/bin/chafa \
+      --format symbols --symbols block --size 24x12 \
+      --colors full --dither none --polite on "$pick"
+  '';
 in
 {
   home.packages = [ pkgs.chafa ];
@@ -14,23 +43,23 @@ in
       "$schema" = "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json";
 
       logo = {
-        # Ghostty speaks the kitty graphics protocol, so a PNG renders as a
-        # real image. width/height are terminal CELLS — 22x11 keeps it beside
-        # the text instead of dominating the window.
-        type = "kitty";
-        source = "${config.dots.repoPath}/config/quickshell/rise/assets/nixos-logo.png";
-        width = 22;
-        height = 11;
-        preserveAspectRatio = true;
+        # command-raw uses the command's stdout verbatim. Needs fastfetch
+        # >= 2.30; on older builds an unknown type degrades to NO logo.
+        type = "command-raw";
+        source = "${randomArt}";
+        width = 24;
+        height = 12;
         padding = {
           top = 1;
           left = 2;
           right = 3;
         };
 
-        # No image handy? Built-in art, nothing else to install:
+        # Static fallbacks:
+        #   type = "kitty"; source = "${config.dots.repoPath}/config/quickshell/rise/assets/nixos-logo.png";
         #   type = "builtin"; source = "nixos2";
-        # Others: nixos, nixos_small, nixos_old, nixos_old_small
+        # `fastfetch --list-logos` shows ~300 built-in distro logos, all
+        # correctly sized and coloured.
       };
 
       display = {
