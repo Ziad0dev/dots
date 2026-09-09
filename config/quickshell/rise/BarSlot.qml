@@ -14,6 +14,17 @@ PanelWindow {
     id: barSlot
     required property var root
     readonly property string screenName: barSlot.screen ? barSlot.screen.name : ""
+    readonly property bool compactShell: barSlot.root.barShellStyle !== "full"
+    readonly property int shellOuterMargin: 5
+    readonly property int shellRadius: barSlot.root.barShellStyle === "dock"
+        ? 8
+        : barSlot.root.barShellStyle === "notch" ? 0 : barSlot.root.panelRadius
+    readonly property real fitNaturalWidth:
+        leftRowItem.implicitWidth + centerRowItem.implicitWidth + rightRowItem.implicitWidth
+        + 6 * island.rowMargin
+    readonly property real shellTargetWidth: compactShell
+        ? Math.max(80, Math.min(barSlot.width - 2 * shellOuterMargin, fitNaturalWidth))
+        : barSlot.width - 2 * shellOuterMargin
 
     color: "transparent"
     // ALWAYS screen-tall → window never resizes → NO compositor resize animation.
@@ -631,10 +642,11 @@ PanelWindow {
         // vertical placement via y (NOT conditional top/bottom anchors): toggling
         // anchors live left a stale edge set → island stretched top+bottom → widgets
         // spread to mid-screen. A plain y switches cleanly on a live position change.
-        anchors {
-            left: parent.left; leftMargin: 5
-            right: parent.right; rightMargin: 5
-        }
+        anchors.verticalCenter: undefined
+        width: barSlot.shellTargetWidth
+        x: Math.round((parent.width - width) / 2)
+        Behavior on width { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
+        Behavior on x     { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
         height: 32
         y: barSlot.root.barPosition === "bottom" ? (parent.height - height - 3) : 3
         z: 2                                  // above the dim backdrop
@@ -645,7 +657,7 @@ PanelWindow {
         Rectangle {
             anchors.fill: parent
             anchors.margins: -3
-            radius: barSlot.root.islandRadius + 2
+            radius: (barSlot.compactShell ? barSlot.shellRadius : barSlot.root.islandRadius) + 2
             color: "transparent"
             border.color: barSlot.accent
             border.width: barSlot.root.barUnlocked ? 1 : 0    // width 0 hides it when locked
