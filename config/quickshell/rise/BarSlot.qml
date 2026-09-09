@@ -275,7 +275,7 @@ PanelWindow {
             Rectangle {
                 anchors.centerIn: parent
                 width: parent.implicitWidth; height: barSlot.root.pillH; radius: barSlot.root.pillRadius
-                color: barSlot.root.pill; border.color: barSlot.root.pillBorder; border.width: barSlot.root.pillBorderW
+                color: barSlot.root.widgetFillColor("G3"); border.color: barSlot.root.widgetBorderColor("G3"); border.width: barSlot.root.widgetBorderWidth("G3")
                 PillShadow { theme: barSlot.root }
             }
             Row {
@@ -366,7 +366,7 @@ PanelWindow {
             Rectangle {
                 anchors.centerIn: parent
                 width: parent.implicitWidth; height: barSlot.root.pillH; radius: barSlot.root.pillRadius
-                color: barSlot.root.pill; border.color: barSlot.root.pillBorder; border.width: barSlot.root.pillBorderW
+                color: barSlot.root.widgetFillColor("G8"); border.color: barSlot.root.widgetBorderColor("G8"); border.width: barSlot.root.widgetBorderWidth("G8")
                 PillShadow { theme: barSlot.root }
             }
             Row {
@@ -474,7 +474,7 @@ PanelWindow {
             Rectangle {
                 anchors.centerIn: parent
                 width: parent.implicitWidth; height: barSlot.root.pillH; radius: barSlot.root.pillRadius
-                color: barSlot.root.pill; border.color: barSlot.root.pillBorder; border.width: barSlot.root.pillBorderW
+                color: barSlot.root.widgetFillColor("G10"); border.color: barSlot.root.widgetBorderColor("G10"); border.width: barSlot.root.widgetBorderWidth("G10")
                 PillShadow { theme: barSlot.root }
             }
             Row {

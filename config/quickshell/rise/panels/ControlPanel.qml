@@ -557,6 +557,8 @@ PanelWindow {
                 Repeater {
                     model: [
                         { gid: "G1",  name: "Launch" },  { gid: "G2",  name: "Wrkspc" },
+                        { gid: "G3",  name: "Status" },  { gid: "G8",  name: "Clock" },
+                        { gid: "G10", name: "Quick" },
                         { gid: "G4",  name: "Memory" },  { gid: "G5",  name: "CPU" },
                         { gid: "G6",  name: "Volume" },  { gid: "G7",  name: "AI" },
                         { gid: "G9",  name: "Media" },   { gid: "G11", name: "Netwrk" },
