@@ -5,3 +5,4 @@ __pycache__/
 *.pyc
 *.back
 .direnv/
+config/broot/launcher/
