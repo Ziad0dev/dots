@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ config, pkgs, ... }:
 
 let
   hardening = import ../lib/hardening.nix;
@@ -12,12 +12,14 @@ let
   wgConfig = "/etc/wireguard/mullvad.conf";
   mullvadDns = "100.64.0.7";
 
-  lanSubnet = "192.168.86.0/24";
+  tailnet = "100.64.0.0/10";
 
   webPort = 8081;
   indexerPort = 9696;
   torrentPort = 51413;
   mediaRoot = "/mnt/media";
+
+  forwardRule = "FORWARD -d ${config.vpnNamespaces.wg.namespaceAddress} -p tcp -m multiport --dports ${toString webPort},${toString indexerPort} ! -i tailscale0 -j DROP";
 in
 {
   systemd.services.wg-dns = {
@@ -34,7 +36,7 @@ in
   vpnNamespaces.wg = {
     enable = true;
     wireguardConfigFile = wgConfig;
-    accessibleFrom = [ lanSubnet ];
+    accessibleFrom = [ tailnet ];
     portMappings = [
       {
         from = webPort;
@@ -46,6 +48,14 @@ in
       }
     ];
   };
+
+  networking.firewall.extraCommands = ''
+    iptables -w -D ${forwardRule} 2>/dev/null || true
+    iptables -w -I ${forwardRule}
+  '';
+  networking.firewall.extraStopCommands = ''
+    iptables -w -D ${forwardRule} 2>/dev/null || true
+  '';
 
   users.users.qbittorrent = {
     isSystemUser = true;

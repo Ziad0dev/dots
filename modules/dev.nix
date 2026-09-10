@@ -2,7 +2,6 @@
   config,
   lib,
   pkgs,
-  inputs,
   username,
   ...
 }:
@@ -19,8 +18,5 @@
   };
 
   nix.settings.warn-dirty = false;
-
-  nix.registry.nixpkgs.flake = inputs.nixpkgs;
-  nix.nixPath = [ "nixpkgs=flake:nixpkgs" ];
 
 }

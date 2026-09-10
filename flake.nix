@@ -23,10 +23,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    hyprland = {
-      url = "github:hyprwm/Hyprland";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    hyprland.url = "github:hyprwm/Hyprland";
 
     dvr-patched = {
       url = "git+https://git.sljusard.com/sljusard/dvr-patched-flake.git";
@@ -57,6 +54,8 @@
       url = "github:FlameFlag/nixcord";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.nixpkgs-nixcord.follows = "nixpkgs";
+      inputs.home-manager.follows = "home-manager";
+      inputs.nix-darwin.follows = "nix-darwin";
     };
 
     obsidian-extensions = {

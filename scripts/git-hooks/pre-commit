@@ -29,7 +29,10 @@ if command -v nix >/dev/null; then
         "nixosConfigurations.nixos.config.system.build.toplevel" \
         "nixosConfigurations.claude-vm.config.system.build.toplevel" \
         "homeConfigurations.\"$(whoami)@linux\".activationPackage" \
-        "homeConfigurations.\"$(whoami)@linux-desktop\".activationPackage"
+        "homeConfigurations.\"$(whoami)@linux-desktop\".activationPackage" \
+        "homeConfigurations.\"$(whoami)@aarch64-linux\".activationPackage" \
+        "homeConfigurations.\"$(whoami)@mac\".activationPackage" \
+        "darwinConfigurations.mac.system"
     do
         echo "pre-commit: evaluating $out"
         nix eval --no-warn-dirty ".#${out}.drvPath" \

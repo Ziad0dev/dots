@@ -117,10 +117,8 @@ in
   };
 
   networking.firewall.interfaces.tailscale0.allowedTCPPorts = [
-    8081
     8096
     8920
-    9696
   ];
 
   environment.systemPackages = with pkgs; [
