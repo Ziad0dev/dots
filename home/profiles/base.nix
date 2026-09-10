@@ -207,9 +207,6 @@ in
       ghostscript
       sqlite
       mermaid-cli
-      foot
-      trashy
-      psmisc
       yt-dlp
       imagemagick
     ];

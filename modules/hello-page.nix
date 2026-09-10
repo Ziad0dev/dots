@@ -1,13 +1,11 @@
-{ pkgs, ... }:
+{ pkgs, username, ... }:
 
 let
-  dir = "/home/ziad0dev/the-page";
-  user = "ziad0dev";
+  dir = "/home/${username}/the-page";
+  user = username;
   port = 8137;
 
   hardening = import ../lib/hardening.nix // {
-    # the page owns its own directory: content, config and the sqlite file
-    # all live there so a poem is a save rather than a rebuild
     ProtectHome = false;
     ProtectSystem = "strict";
     ReadWritePaths = [ dir ];
@@ -44,9 +42,6 @@ in
     };
   };
 
-  # tailscaled reports "started" well before it can accept commands, so wait for
-  # it to actually answer. no ExecStop: the serve config lives in tailscaled
-  # state and tearing it down on every restart is what breaks the page.
   systemd.services.hello-page-serve = {
     description = "publish the page to the tailnet";
     wantedBy = [ "multi-user.target" ];
@@ -71,12 +66,5 @@ in
         exit 1
       '';
     };
-  };
-
-  systemd.targets = {
-    sleep.enable = false;
-    suspend.enable = false;
-    hibernate.enable = false;
-    hybrid-sleep.enable = false;
   };
 }

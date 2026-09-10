@@ -175,6 +175,9 @@ in
 
       gcc
       xdotool
+      foot
+      trashy
+      psmisc
     ])
     ++ [
       beamPkgs.erlang

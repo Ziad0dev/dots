@@ -17,8 +17,6 @@ in
     inputs.hyprland.nixosModules.default
   ];
 
-  systemd.services.systemd-suspend.environment.SYSTEMD_SLEEP_FREEZE_USER_SESSIONS = "false";
-
   boot.kernelModules = [ "nct6775" ];
 
   systemd.sleep.settings.Sleep = {
@@ -89,7 +87,6 @@ in
 
   xdg.portal = {
     enable = true;
-    # Do NOT put xdg-desktop-portal-hyprland here — programs.hyprland already provides it
     extraPortals = with pkgs; [
       xdg-desktop-portal-gtk
     ];
@@ -105,7 +102,6 @@ in
         ];
         "org.freedesktop.impl.portal.ScreenCast" = [ "hyprland" ];
         "org.freedesktop.impl.portal.Screenshot" = [ "hyprland" ];
-        "org.freedesktop.impl.portal.Secret" = [ "gtk" ];
       };
     };
   };
@@ -144,6 +140,8 @@ in
       setSocketVariable = true;
     };
   };
+
+  virtualisation.podman.enable = true;
 
   users.users.${username} = {
     isNormalUser = true;
@@ -219,8 +217,6 @@ in
     # Pairs with programs.coolercontrol
     coolercontrol.coolercontrol-gui
     inputs.dvr-patched.packages.${system}.default
-    # Container runtime
-    podman
     kdePackages.ark
     kdePackages.qt6ct
   ]);

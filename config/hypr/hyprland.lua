@@ -206,7 +206,7 @@ hl.bind(mainMod .. " + E",
     hl.dsp.exec_cmd([[qs -c rise ipc call picker wallpaper]]))
 hl.bind(mainMod .. " + SHIFT + space", hl.dsp.window.float({ action = "toggle" }))
 
-hl.bind(mainMod .. " + space", hl.dsp.focus({ window = "current_or_last" }))
+hl.bind(mainMod .. " + space", hl.dsp.focus({ last = true }))
 
 hl.bind(mainMod .. " + SHIFT + minus", hl.dsp.window.move({ workspace = "special" }))
 hl.bind(mainMod .. " + minus",         hl.dsp.workspace.toggle_special())
@@ -417,7 +417,7 @@ local function launch_or_focus(class, cmd)
     return function()
         local wins = hl.get_windows({ class = class })
         if wins and #wins > 0 then
-            hl.dispatch(hl.dsp.focus({ window = wins[1].address }))
+            hl.dispatch(hl.dsp.focus({ window = wins[1] }))
         else
             hl.exec_cmd(cmd)
         end
@@ -432,9 +432,8 @@ hl.bind(mainMod .. " + G",           hl.dsp.group.toggle())
 hl.bind(mainMod .. " + ALT + L",     hl.dsp.group.next())
 hl.bind(mainMod .. " + ALT + H",     hl.dsp.group.prev())
 hl.bind(mainMod .. " + SHIFT + G",   hl.dsp.window.move({ out_of_group = true }))
-for _, d in ipairs({ "left", "right", "up", "down" }) do
-    hl.bind(mainMod .. " + ALT + SHIFT + " .. d:sub(1, 1):upper(),
-            hl.dsp.window.move({ into_or_create_group = d }))
+for key, d in pairs({ H = "left", L = "right", K = "up", J = "down" }) do
+    hl.bind(mainMod .. " + ALT + SHIFT + " .. key, hl.dsp.window.move({ into_or_create_group = d }))
 end
 
 hl.bind(mainMod .. " + N", hl.dsp.exec_cmd("dots-nightlight toggle"))

@@ -31,6 +31,7 @@ let
     ${builtins.concatStringsSep "\n" (
       map (p: "flatpak install --user -y --noninteractive ${p}") packages
     )}
+    flatpak override --user --env=SDL_VIDEODRIVER=x11 com.nvidia.geforcenow
 
     declared="${builtins.concatStringsSep " " appIds}"
     flatpak list --user --app --columns=application | while read -r id; do
@@ -49,13 +50,13 @@ in
   systemd.user.services.flatpak-managed = {
     description = "Reconcile declared flatpak remotes and packages";
     wantedBy = [ "default.target" ];
-    after = [ "network-online.target" ];
-    wants = [ "network-online.target" ];
     path = [ pkgs.flatpak ];
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
       ExecStart = reconcile;
+      Restart = "on-failure";
+      RestartSec = 30;
     };
   };
 }

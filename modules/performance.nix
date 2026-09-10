@@ -72,7 +72,6 @@ in
     SystemMaxFileSize = "64M";
     MaxRetentionSec = "1month";
   };
-  hardware.nvidia.powerManagement.enable = true;
 
   powerManagement.cpuFreqGovernor = lib.mkIf (isMax || isPassive) (
     if isPassive then "schedutil" else "performance"
@@ -110,8 +109,6 @@ in
       exit 0
     '';
   };
-
-  powerManagement.resumeCommands = lib.mkIf setsEPP "${pkgs.systemd}/bin/systemctl restart cpu-epp.service";
 
   environment.systemPackages = with pkgs; [
     linuxPackages.cpupower
