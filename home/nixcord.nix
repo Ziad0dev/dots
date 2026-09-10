@@ -5,6 +5,7 @@
     enable = true;
     discord.vencord.enable = true;
     discord.krisp.enable = true;
+    discord.openASAR.enable = false;
 
     userPlugins = {
       bigFileUpload = "github:ScattrdBlade/bigFileUpload/837e9efe85ce026063a13ef7fef12e96b3a0aa18";
