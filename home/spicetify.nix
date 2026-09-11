@@ -100,6 +100,13 @@ in
       newReleases
     ];
 
+    enabledSnippets = [
+      ''
+        .starrynight-bg-container > div[style*="twinkle"], .shootingstar { display: none !important; }
+        .main-nowPlayingWidget-coverArt .cover-art img { animation: none !important; }
+      ''
+    ];
+
     customColorScheme = {
       text = fg;
       subtext = dim;

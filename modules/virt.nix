@@ -44,10 +44,8 @@
     spice-gtk
     virtio-win
 
-    libguestfs-with-appliance
 
     qemu
-    quickemu
 
     OVMF
     swtpm
