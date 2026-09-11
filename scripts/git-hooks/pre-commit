@@ -21,7 +21,13 @@ if grep -rn "hyprctl dispatch" --include="*.conf" --include="*.jsonc" --include=
     fail=1
 fi
 
-# 3. Full eval — catches duplicate attrs, bad option names, type errors.
+# 3. QML: unresolved id/property references render as a blank element with
+#    nothing in the journal and nothing from qmllint.
+if command -v python3 >/dev/null; then
+    python3 "$(dirname "$0")/../qml-check.py" || fail=1
+fi
+
+# 4. Full eval — catches duplicate attrs, bad option names, type errors.
 #    Evaluating only the nixos host let a broken homeConfigurations output sit
 #    unnoticed, so every output that builds an activation package is checked.
 if command -v nix >/dev/null; then
@@ -42,7 +48,7 @@ if command -v nix >/dev/null; then
     done
 fi
 
-# 4. Lint. statix reads statix.toml (repeated_keys / empty_pattern disabled —
+# 5. Lint. statix reads statix.toml (repeated_keys / empty_pattern disabled —
 #    both are style opinions that would make these modules less readable).
 #    deadnix: -L skips module-signature args like { config, lib, pkgs, ... },
 #    which are idiomatic and not dead code.
