@@ -24,6 +24,7 @@ in
     ../kvantum.nix
     ../obsidian.nix
     ../spicetify.nix
+    ../cleanup.nix
   ];
 
   home.sessionVariables = {
@@ -154,7 +155,7 @@ in
       haruna
       mpc-qt
       qt6.qtwayland
-      obs-studio
+      (obs-studio.override { browserSupport = false; })
       cliamp
       wlopm
 
