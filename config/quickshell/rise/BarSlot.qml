@@ -198,7 +198,7 @@ PanelWindow {
     // reset the 3 region models back to the default group order
     function resetOrder() {
         var dL = ["G1","G2","G3","G4","G5","G6","G7"]
-        var dR = ["G9","G10","G11","G14","G12","G13","G15"]
+        var dR = ["G9","G10","G11","G14","G12","G13","G15","G16","G17","G18"]
         for (var i = 0; i < dL.length; i++) leftModel.setProperty(i, "gid", dL[i])
         centerModel.setProperty(0, "gid", "G8")
         for (var j = 0; j < dR.length; j++) rightModel.setProperty(j, "gid", dR[j])
@@ -213,12 +213,12 @@ PanelWindow {
         },
         splitAll: function () {
             island.leftSplits     = [true, true, true, true, true, true]
-            island.rightSplits    = [true, true, true, true, true, true, true, true]
+            island.rightSplits    = [true, true, true, true, true, true, true, true, true]
             island.boundarySplits = [true, true]
         },
         mergeAll: function () {
             island.leftSplits     = [false, false, false, false, false, false]
-            island.rightSplits    = [false, false, false, false, false, false, false, false]
+            island.rightSplits    = [false, false, false, false, false, false, false, false, false]
             island.boundarySplits = [false, false]
             barSlot.root.barAnim  = 0
         },
@@ -498,6 +498,7 @@ PanelWindow {
     Component { id: compGpu;        GpuWidget          { root: barSlot.root; gid: "G12" } }
     Component { id: compCpuTemp;    CpuTemperatureWidget { root: barSlot.root; gid: "G16" } }
     Component { id: compStorage;    StorageWidget        { root: barSlot.root; gid: "G17" } }
+    Component { id: compGithub;     GithubWidget         { root: barSlot.root; gid: "G18" } }
     Component { id: compMounts;     MountsWidget       { root: barSlot.root; gid: "G13" } }
     Component { id: compPower;      PowerProfileWidget { root: barSlot.root; gid: "G14" } }
     Component { id: compBattery;    BatteryWidget      { root: barSlot.root } }
@@ -510,7 +511,7 @@ PanelWindow {
         "G8": compCenter,
         "G9": compMpris, "G10": compQuick, "G11": compNetwork,
         "G12": compGpu, "G13": compMounts, "G14": compPower, "G15": compBluetooth,
-        "G16": compCpuTemp, "G17": compStorage
+        "G16": compCpuTemp, "G17": compStorage, "G18": compGithub
     })
 
     // ───────────────────── reusable region row of slots ─────────────────────
@@ -681,7 +682,7 @@ PanelWindow {
 
         // ── split state (positional, per within-region gap) ──
         property var leftSplits:  [false, false, false, false, false, false]   // gaps in leftModel
-        property var rightSplits: [false, false, false, false, false, false, false, false]   // gaps in rightModel
+        property var rightSplits: [false, false, false, false, false, false, false, false, false]   // gaps in rightModel
         property var boundarySplits: [false, false]   // [left↔center, center↔right]
 
         readonly property real lcBoundaryX: leftRowItem.x + leftRowItem.width + 9    // just right of Claude
@@ -715,8 +716,8 @@ PanelWindow {
         function groupVisibleAtStage(gid, stage) {
             if (gid === "G8") return true                                        // clock has its own stages
             if (stage <= 0) return true
-            if (stage === 1) return ["G7", "G9", "G10"].indexOf(gid) < 0         // drop AI · MPRIS · Quick
-            if (stage === 2) return ["G4", "G5", "G7", "G9", "G10"].indexOf(gid) < 0   // also MEM · CPU
+            if (stage === 1) return ["G7", "G9", "G10", "G18"].indexOf(gid) < 0  // drop AI · MPRIS · Quick · GitHub
+            if (stage === 2) return ["G4", "G5", "G7", "G9", "G10", "G18"].indexOf(gid) < 0   // also MEM · CPU
             return ["G1", "G2", "G6", "G8", "G11", "G14"].indexOf(gid) >= 0      // emergency whitelist
         }
         function sideNaturalWidth(row, stage) {
@@ -905,6 +906,7 @@ PanelWindow {
             ListElement { gid: "G14" } ListElement { gid: "G12" } ListElement { gid: "G13" }
             ListElement { gid: "G15" }
             ListElement { gid: "G16" } ListElement { gid: "G17" }
+            ListElement { gid: "G18" }
         }
 
         SlotRow {
@@ -968,6 +970,7 @@ PanelWindow {
                 thermal:      island.groupX("G16", 0.5),
                 storage:      island.groupX("G17", 0.5),
                 ai:           island.groupX("G7",  0.5),
+                github:       island.groupX("G18", 0.5),
                 workspace:    island.groupX("G2",  0.5),
                 arch:         island.groupX("G3",  0.5),
                 bluetooth:    island.groupX("G15", 0.5),

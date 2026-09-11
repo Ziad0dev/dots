@@ -21,6 +21,7 @@ in
     ../quickshell-rise.nix
     ../theming.nix
     ../ai-usage.nix
+    ../github-inbox.nix
     ../kvantum.nix
     ../obsidian.nix
     ../spicetify.nix
