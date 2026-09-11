@@ -192,7 +192,12 @@ in
   };
 
   environment.systemPackages = [
-    inputs.hyprland-preview-share-picker.packages.${system}.default
+    (inputs.hyprland-preview-share-picker.packages.${system}.default.overrideAttrs (old: {
+      postPatch = (old.postPatch or "") + ''
+        substituteInPlace src/views/outputs.rs \
+          --replace-fail '.filter(|monitor| !monitor.disabled)' ""
+      '';
+    }))
   ]
   ++ (with pkgs; [
     git
