@@ -2321,7 +2321,7 @@ Item {
     property bool modQuick:      true    // G10 group pill (idle-inhibitor · media · theme)
     property bool modMpris:      true    // G9 now-playing / mpris pill
     property bool modClaude:     false   // default off (toggle in ControlPanel)
-    property bool modGithub:     false   // default off (toggle in ControlPanel)
+    property bool modGithub:     true
 
     // Per-widget compact display modes. Defaults are full-width for backwards
     // compatibility; ControlPanel toggles persist these below.
