@@ -258,6 +258,7 @@ Item {
     ThermalsPanel { root: theme }
     StoragePanel { root: theme }
     AiUsagePanel { root: theme }
+    GithubPanel { root: theme }
     LazyLoader { active: theme.openRouterVisible; OpenRouterPanel { root: theme } }
     VolumePanel { root: theme }
     LanguagePanel { root: theme }
