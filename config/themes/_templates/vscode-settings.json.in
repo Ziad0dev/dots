@@ -48,6 +48,13 @@
   "nix.enableLanguageServer": true,
   "nix.serverPath": "nixd",
 
+  "vscord.enable": true,
+  "vscord.status.problems.enabled": false,
+  "vscord.status.idle.timeout": 600,
+  "vscord.status.idle.disconnectOnIdle": true,
+  "vscord.status.details.text.editing": "In {workspace}",
+  "vscord.status.state.text.editing": "Working on {file_name}{file_extension}",
+
   "workbench.colorCustomizations": {
     "editor.background": "${background}",
     "editor.foreground": "${foreground}",
@@ -185,5 +192,53 @@
     "menu.foreground": "${foreground}",
     "menu.selectionBackground": "${surface}",
     "menu.border": "${surface}"
+  },
+
+  "editor.semanticHighlighting.enabled": true,
+
+  "editor.tokenColorCustomizations": {
+    "textMateRules": [
+      { "scope": ["comment", "punctuation.definition.comment"], "settings": { "foreground": "${muted}", "fontStyle": "italic" } },
+      { "scope": ["string", "string.quoted", "string.template", "markup.inline.raw"], "settings": { "foreground": "${base0B}" } },
+      { "scope": ["constant.numeric", "constant.language", "constant.other", "support.constant"], "settings": { "foreground": "${base09}" } },
+      { "scope": ["constant.character.escape", "string.regexp", "support.other", "markup.quote"], "settings": { "foreground": "${base0C}" } },
+      { "scope": ["variable", "variable.other", "variable.parameter", "meta.definition.variable"], "settings": { "foreground": "${base05}" } },
+      { "scope": ["variable.other.property", "meta.object-literal.key", "support.variable", "entity.name.tag"], "settings": { "foreground": "${base08}" } },
+      { "scope": ["entity.name.type", "entity.name.class", "entity.name.namespace", "support.type", "support.class", "storage.type.class", "markup.bold"], "settings": { "foreground": "${base0A}" } },
+      { "scope": ["entity.name.function", "support.function", "meta.function-call", "entity.name.section", "markup.heading"], "settings": { "foreground": "${base0D}" } },
+      { "scope": ["keyword", "keyword.control", "keyword.operator.new", "storage", "storage.type", "storage.modifier", "markup.italic"], "settings": { "foreground": "${base0E}" } },
+      { "scope": ["keyword.operator", "punctuation", "meta.brace"], "settings": { "foreground": "${dim}" } },
+      { "scope": ["entity.other.attribute-name", "entity.name.tag.yaml", "support.type.property-name"], "settings": { "foreground": "${base0A}" } },
+      { "scope": ["invalid", "invalid.illegal", "markup.deleted"], "settings": { "foreground": "${base08}" } },
+      { "scope": ["markup.inserted"], "settings": { "foreground": "${base0B}" } },
+      { "scope": ["markup.changed"], "settings": { "foreground": "${base0E}" } }
+    ]
+  },
+
+  "editor.semanticTokenColorCustomizations": {
+    "enabled": true,
+    "rules": {
+      "comment": "${muted}",
+      "string": "${base0B}",
+      "number": "${base09}",
+      "enumMember": "${base09}",
+      "keyword": "${base0E}",
+      "modifier": "${base0E}",
+      "operator": "${dim}",
+      "variable": "${base05}",
+      "parameter": "${base05}",
+      "property": "${base08}",
+      "function": "${base0D}",
+      "method": "${base0D}",
+      "macro": "${base0F}",
+      "class": "${base0A}",
+      "struct": "${base0A}",
+      "enum": "${base0A}",
+      "interface": "${base0A}",
+      "type": "${base0A}",
+      "typeParameter": "${base0A}",
+      "namespace": "${base0C}",
+      "*.deprecated": { "strikethrough": true }
+    }
   }
 }

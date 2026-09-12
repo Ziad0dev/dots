@@ -206,6 +206,7 @@ in
       eamodio.gitlens
       mkhl.direnv
       vscodevim.vim
+      leonardssh.vscord
     ];
 
     profiles.default.keybindings = [
