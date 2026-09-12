@@ -191,7 +191,7 @@ in
     _JAVA_AWT_WM_NONREPARENTING = "1";
   };
 
-  environment.systemPackages = (with pkgs; [
+  environment.systemPackages = with pkgs; [
     git
     curl
     wget
@@ -216,7 +216,7 @@ in
     inputs.dvr-patched.packages.${system}.default
     kdePackages.ark
     kdePackages.qt6ct
-  ]);
+  ];
 
   fonts = {
     enableDefaultPackages = true;
