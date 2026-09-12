@@ -9,25 +9,32 @@ Item {
     implicitWidth: wsRow.implicitWidth
     implicitHeight: 28
 
-    // The focused workspace's id ONLY when it's a real (positive) workspace beyond
+    // The focused workspace's number ONLY when it's a real workspace beyond
     // the persist range — else 0. An int signals on value change only, so switching
     // between in-range workspaces does NOT renotify → workspaceList stays identical
     // → the Repeater model is stable → the per-delegate width/colour Behaviors keep
-    // animating instead of the whole model rebuilding (B2). `id > n` (n≥5) also
-    // excludes negative special/scratchpad ids (B3).
+    // animating instead of the whole model rebuilding (B2). Number(name) is NaN for
+    // special/scratchpad workspaces, so they fail `> n` and stay excluded (B3).
     readonly property int extraWs: {
         if (root.workspaceMode === "active") return 0
         var n = root.workspaceMode === "5" ? 5 : 10
         var f = Hyprland.focusedWorkspace
-        return (f && f.id > n) ? f.id : 0
+        var fid = f ? Number(f.name) : 0
+        return (fid > n) ? fid : 0
     }
 
     readonly property var workspaceList: {
         if (root.workspaceMode === "active") {
             var ids = {}
             var ws = Hyprland.workspaces.values
-            for (var i = 0; i < ws.length; i++) if (ws[i].id > 0) ids[ws[i].id] = true   // F13: skip special (negative-id) workspaces
-            if (Hyprland.focusedWorkspace && Hyprland.focusedWorkspace.id > 0) ids[Hyprland.focusedWorkspace.id] = true
+            for (var i = 0; i < ws.length; i++) {
+                var k = Number(ws[i].name)               // F13: NaN for special workspaces → skipped
+                if (k > 0) ids[k] = true
+            }
+            if (Hyprland.focusedWorkspace) {
+                var fk = Number(Hyprland.focusedWorkspace.name)
+                if (fk > 0) ids[fk] = true
+            }
             return Object.keys(ids).map(Number).sort(function(a, b) { return a - b })
         }
         var n = root.workspaceMode === "5" ? 5 : 10
@@ -73,12 +80,12 @@ Item {
                 Behavior on scale { NumberAnimation { duration: 120 } }
 
                 readonly property bool isFocused: Hyprland.focusedWorkspace !== null
-                                               && Hyprland.focusedWorkspace.id === wsId
+                                               && Number(Hyprland.focusedWorkspace.name) === wsId
 
                 readonly property bool isOccupied: {
                     var ws = Hyprland.workspaces.values
                     for (var i = 0; i < ws.length; i++)
-                        if (ws[i].id === wsId) return !isFocused
+                        if (Number(ws[i].name) === wsId) return !isFocused
                     return false
                 }
 
