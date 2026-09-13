@@ -24,7 +24,6 @@ in
     ../github-inbox.nix
     ../kvantum.nix
     ../obsidian.nix
-    ../spicetify.nix
     ../cleanup.nix
   ];
 
@@ -120,6 +119,7 @@ in
       grim
       slurp
       satty
+      spotify
       (tesseract.override {
         enableLanguages = [
           "eng"

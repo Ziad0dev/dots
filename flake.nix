@@ -62,10 +62,6 @@
       url = "github:karaolidis/nix-obsidian-extensions";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    spicetify-nix = {
-      url = "github:Gerg-L/spicetify-nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
 
     zig-overlay = {
       url = "github:mitchellh/zig-overlay";
@@ -129,6 +125,7 @@
         ./modules/media.nix
         ./modules/mullvad.nix
         ./modules/media-extras.nix
+        ./modules/arr-automation.nix
         ./modules/performance.nix
         ./modules/secrets.nix
         ./modules/storage.nix
