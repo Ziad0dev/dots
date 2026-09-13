@@ -34,6 +34,28 @@ in
     };
   };
 
+  systemd.services.wg-resolv-options = {
+    description = "Serialise A/AAAA lookups inside the wg namespace";
+    wantedBy = [ "multi-user.target" ];
+    after = [ "wg.service" ];
+    partOf = [ "wg.service" ];
+    before = [
+      "prowlarr.service"
+      "flaresolverr.service"
+      "qbittorrent.service"
+    ];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      ExecStart = "${pkgs.writeShellScript "wg-resolv-options" ''
+        ${pkgs.coreutils}/bin/printf 'nameserver %s
+options single-request-reopen timeout:2 attempts:5
+' ${mullvadDns} \
+          > /etc/netns/wg/resolv.conf
+      ''}";
+    };
+  };
+
   vpnNamespaces.wg = {
     enable = true;
     wireguardConfigFile = wgConfig;
