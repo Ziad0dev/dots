@@ -2,6 +2,7 @@
 
 let
   hardening = import ../lib/hardening.nix;
+  waitForVpnDns = import ../lib/vpn-ready.nix pkgs;
 
   browserHardening = (removeAttrs hardening [
     "CapabilityBoundingSet"
@@ -110,7 +111,12 @@ in
       enable = true;
       vpnNamespace = "wg";
     };
-    serviceConfig = hardening;
+    serviceConfig = hardening // {
+      ExecStartPre = "${waitForVpnDns}";
+      TimeoutStartSec = 180;
+      Restart = "on-failure";
+      RestartSec = 10;
+    };
   };
 
   services.flaresolverr = {
@@ -125,7 +131,8 @@ in
       vpnNamespace = "wg";
     };
     serviceConfig = browserHardening // {
-      ExecStartPre = "${pkgs.bash}/bin/bash -c 'until ${pkgs.getent}/bin/getent hosts mullvad.net >/dev/null 2>&1; do sleep 2; done'";
+      ExecStartPre = "${waitForVpnDns}";
+      TimeoutStartSec = 180;
     };
   };
 }
