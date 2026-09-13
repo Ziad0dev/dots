@@ -37,5 +37,16 @@
       };
     };
 
+    wireplumber.extraConfig."51-pin-profile" = {
+      "monitor.alsa.rules" = [
+        {
+          matches = [
+            { "device.name" = "alsa_card.usb-EPZ_Technology_G30_3302128F250725-00"; }
+          ];
+          actions.update-props."device.profile" = "output:analog-stereo+input:mono-fallback";
+        }
+      ];
+    };
+
   };
 }
