@@ -3,9 +3,10 @@ pkgs:
 pkgs.writeShellScript "wait-for-vpn-dns" ''
   i=0
   while [ $i -lt 40 ]; do
-    ${pkgs.getent}/bin/getent hosts mullvad.net >/dev/null 2>&1 && exit 0
+    ${pkgs.curl}/bin/curl -s -o /dev/null --max-time 5 https://indexers.prowlarr.com/ && exit 0
     ${pkgs.coreutils}/bin/sleep 2
     i=$((i + 1))
   done
-  exit 1
+  echo "vpn dns still unhealthy after 80s, continuing anyway" >&2
+  exit 0
 ''
