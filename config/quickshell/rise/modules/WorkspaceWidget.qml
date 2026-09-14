@@ -9,6 +9,15 @@ Item {
     implicitWidth: wsRow.implicitWidth
     implicitHeight: 28
 
+    property real _lastPulse: 0
+    readonly property int focusedId: Hyprland.focusedWorkspace ? Number(Hyprland.focusedWorkspace.name) : 0
+    onFocusedIdChanged: {
+        var now = Date.now()
+        if (now - wsWidget._lastPulse < 450) return
+        wsWidget._lastPulse = now
+        root.barPulse("workspace")
+    }
+
     // The focused workspace's number ONLY when it's a real workspace beyond
     // the persist range — else 0. An int signals on value change only, so switching
     // between in-range workspaces does NOT renotify → workspaceList stays identical
@@ -62,6 +71,51 @@ Item {
         onClicked: root.workspaceVisible = !root.workspaceVisible
     }
 
+    property real cometX: 0
+    property real cometW: 0
+    property bool cometFwd: true
+    function aimComet(nx, nw) {
+        if (nx !== wsWidget.cometX) wsWidget.cometFwd = nx > wsWidget.cometX
+        wsWidget.cometX = nx
+        wsWidget.cometW = nw
+    }
+
+    Item {
+        id: cometLayer
+        visible: root.workspaceStyle === "comet"
+        anchors.fill: wsRow
+
+        property real lead: wsWidget.cometX + wsWidget.cometW
+        property real tail: wsWidget.cometX
+        property real ghostLead: wsWidget.cometX + wsWidget.cometW
+        property real ghostTail: wsWidget.cometX
+
+        Behavior on lead      { NumberAnimation { duration: wsWidget.cometFwd ? 190 : 430; easing.type: Easing.OutCubic } }
+        Behavior on tail      { NumberAnimation { duration: wsWidget.cometFwd ? 430 : 190; easing.type: Easing.OutCubic } }
+        Behavior on ghostLead { NumberAnimation { duration: wsWidget.cometFwd ? 320 : 620; easing.type: Easing.OutCubic } }
+        Behavior on ghostTail { NumberAnimation { duration: wsWidget.cometFwd ? 620 : 320; easing.type: Easing.OutCubic } }
+
+        Rectangle {
+            x: cometLayer.ghostTail
+            width: Math.max(2, cometLayer.ghostLead - cometLayer.ghostTail)
+            anchors.verticalCenter: parent.verticalCenter
+            height: 20
+            radius: root.styleRadiusSmall ? 5 : height / 2
+            color: Qt.rgba(root.seal.r, root.seal.g, root.seal.b, 0.10)
+        }
+
+        Rectangle {
+            x: cometLayer.tail
+            width: Math.max(2, cometLayer.lead - cometLayer.tail)
+            anchors.verticalCenter: parent.verticalCenter
+            height: 20
+            radius: root.styleRadiusSmall ? 5 : height / 2
+            color: Qt.rgba(root.seal.r, root.seal.g, root.seal.b, 0.26)
+            border.color: Qt.rgba(root.seal.r, root.seal.g, root.seal.b, 0.55)
+            border.width: 1
+        }
+    }
+
     Row {
         id: wsRow
         anchors.centerIn: parent
@@ -91,7 +145,13 @@ Item {
 
                 readonly property bool isEmpty: !isFocused && !isOccupied
 
+                onXChanged:         if (wsCell.isFocused) wsWidget.aimComet(wsCell.x, wsCell.width)
+                onWidthChanged:     if (wsCell.isFocused) wsWidget.aimComet(wsCell.x, wsCell.width)
+                onIsFocusedChanged: if (wsCell.isFocused) wsWidget.aimComet(wsCell.x, wsCell.width)
+                Component.onCompleted: if (wsCell.isFocused) wsWidget.aimComet(wsCell.x, wsCell.width)
+
                 implicitWidth: root.workspaceStyle === "numbers" ? 22
+                             : root.workspaceStyle === "comet"   ? 24
                              : root.workspaceStyle === "magic"   ? (isFocused ? 20 : 18)
                              : (isFocused ? 32 : 16)
                 implicitHeight: 28
@@ -160,6 +220,19 @@ Item {
                         font.pixelSize: isFocused ? 13 : 12
                         font.weight: isFocused ? Font.Bold : Font.Normal
                     }
+                }
+
+                Text {
+                    visible: root.workspaceStyle === "comet"
+                    anchors.centerIn: parent
+                    text: wsCell.wsId
+                    color: wsCell.isFocused  ? Qt.lighter(root.seal, 1.35)
+                         : wsCell.isOccupied ? Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.75)
+                                             : Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.3)
+                    font.family: root.mono
+                    font.pixelSize: 12
+                    font.weight: wsCell.isFocused ? Font.Bold : Font.Normal
+                    Behavior on color { ColorAnimation { duration: 200 } }
                 }
 
                 // ── MAGIC style: the 3 ORIGINAL sparkle glyphs (filled / hollow / dot),

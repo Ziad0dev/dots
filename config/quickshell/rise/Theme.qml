@@ -2342,7 +2342,13 @@ Item {
     // ── workspace display mode ──
     property string workspaceMode: "10"   // "10", "5", "active"
     // ── workspace display style (orthogonal to mode; persisted) ──
-    property string workspaceStyle: "default"   // "default", "numbers", "magic"
+    property string workspaceStyle: "default"   // "default", "numbers", "magic", "comet"
+
+    // ── motion (persisted) ──
+    property bool motionHover:  true
+    property bool motionSweep:  true
+    property bool motionDigits: true
+    signal barPulse(string kind)
 
     // ── bar screen position (persisted) ──
     property string barPosition: "top"   // "top" or "bottom"
@@ -2551,6 +2557,9 @@ Item {
     onStyleRadiusSmallChanged: if (_widgetsLoaded) saveWidgets()
     onWorkspaceStyleChanged:   if (_widgetsLoaded) saveWidgets()
     onBarPositionChanged:      if (_widgetsLoaded) saveWidgets()
+    onMotionHoverChanged:      if (_widgetsLoaded) saveWidgets()
+    onMotionSweepChanged:      if (_widgetsLoaded) saveWidgets()
+    onMotionDigitsChanged:     if (_widgetsLoaded) saveWidgets()
 
     function saveWidgets() {
         var line = (modMemory    ? "1" : "0") + " "
@@ -2591,7 +2600,10 @@ Item {
                  + (compactPower      ? "1" : "0") + " "  // +30
                  + (archBadgeShell    ? "1" : "0") + " "  // +31 updater shell badge
                  + (compactMpris      ? "1" : "0") + " "  // +32 V2 FULL / muse presentation
-                 + (modGithub         ? "1" : "0")        // +33 github inbox pill
+                 + (modGithub         ? "1" : "0") + " "  // +33 github inbox pill
+                 + (motionHover       ? "1" : "0") + " "  // +34
+                 + (motionSweep       ? "1" : "0") + " "  // +35
+                 + (motionDigits      ? "1" : "0")        // +36
         widgetSaveProc.command = ["bash", "-c",
             "echo '" + line + "' > '" + widgetsCachePath + "'"]
         widgetSaveProc.running = false
@@ -2801,6 +2813,9 @@ Item {
                     if (parts.length > wsField + 31) theme.archBadgeShell    = parts[wsField + 31] !== "0"
                     if (parts.length > wsField + 32) theme.compactMpris      = parts[wsField + 32] === "1"
                     if (parts.length > wsField + 33) theme.modGithub         = parts[wsField + 33] !== "0"
+                    if (parts.length > wsField + 34) theme.motionHover       = parts[wsField + 34] !== "0"
+                    if (parts.length > wsField + 35) theme.motionSweep       = parts[wsField + 35] !== "0"
+                    if (parts.length > wsField + 36) theme.motionDigits      = parts[wsField + 36] !== "0"
                 }
                 theme._widgetsLoaded = true
             }

@@ -65,6 +65,8 @@ PanelWindow {
         x: Math.round(Math.max(6, Math.min(root.batteryBarX - width / 2, parent.width - width - 6)))
         y: root.barPosition === "bottom" ? (parent.height - barBottom - gap - height) : (barBottom + gap)
         opacity: batPanel.reveal
+        transformOrigin: root.barPosition === "bottom" ? Item.Bottom : Item.Top
+        scale: root.motionHover ? (0.955 + 0.045 * batPanel.reveal) : 1
         focus: root.batteryVisible
 
         Keys.onPressed: function(event) {

@@ -186,7 +186,7 @@ in
       beamPkgs.elixir
       beamPkgs.elixir-ls
       inputs.zen-browser.packages.${system}.default
-      inputs.helium.defaultPackage.${system}
+      inputs.helium.packages.${system}.default
       inputs.vm-curator.packages.${system}.default
     ];
 

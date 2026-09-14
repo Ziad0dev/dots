@@ -137,6 +137,8 @@ PanelWindow {
         x: Math.round(Math.max(6, Math.min(root.weatherBarX - width / 2, parent.width - width - 6)))
         y: root.barPosition === "bottom" ? (parent.height - barBottom - gap - height) : (barBottom + gap)
         opacity: wxPanel.reveal
+        transformOrigin: root.barPosition === "bottom" ? Item.Bottom : Item.Top
+        scale: root.motionHover ? (0.955 + 0.045 * wxPanel.reveal) : 1
         focus: root.weatherVisible
 
         Keys.onPressed: function(event) {

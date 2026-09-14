@@ -46,6 +46,8 @@ PanelWindow {
         x: Math.round((parent.width - width) / 2)
         y: root.barPosition === "bottom" ? (parent.height - barBottom - gap - height) : (barBottom + gap)
         opacity: calPopup.reveal
+        transformOrigin: root.barPosition === "bottom" ? Item.Bottom : Item.Top
+        scale: root.motionHover ? (0.955 + 0.045 * calPopup.reveal) : 1
         focus: root.calendarVisible
 
         Keys.onPressed: function(event) {

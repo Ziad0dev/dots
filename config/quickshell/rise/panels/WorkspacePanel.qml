@@ -44,6 +44,8 @@ PanelWindow {
         x: Math.round(Math.max(6, Math.min(root.workspaceBarX - width / 2, parent.width - width - 6)))
         y: root.barPosition === "bottom" ? (parent.height - barBottom - gap - height) : (barBottom + gap)
         opacity: wsPanel.reveal
+        transformOrigin: root.barPosition === "bottom" ? Item.Bottom : Item.Top
+        scale: root.motionHover ? (0.955 + 0.045 * wsPanel.reveal) : 1
         focus: root.workspaceVisible
 
         Keys.onPressed: function(event) {

@@ -104,6 +104,8 @@ PanelWindow {
             ? (parent.height - kbPanel.barBottom - kbPanel.gap - height)
             : (kbPanel.barBottom + kbPanel.gap)
         opacity: kbPanel.reveal
+        transformOrigin: root.barPosition === "bottom" ? Item.Bottom : Item.Top
+        scale: root.motionHover ? (0.955 + 0.045 * kbPanel.reveal) : 1
         focus: root.keybindsVisible
         clip: true
 
