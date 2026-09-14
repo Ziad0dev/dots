@@ -79,6 +79,8 @@ PanelWindow {
         x: Math.round(Math.max(6, Math.min(root.bluetoothBarX - width / 2, parent.width - width - 6)))
         y: root.barPosition === "bottom" ? (parent.height - barBottom - gap - height) : (barBottom + gap)
         opacity: btPanel.reveal
+        transformOrigin: root.barPosition === "bottom" ? Item.Bottom : Item.Top
+        scale: root.motionHover ? (0.955 + 0.045 * btPanel.reveal) : 1
         focus: root.bluetoothVisible
 
         Keys.onPressed: function(event) {

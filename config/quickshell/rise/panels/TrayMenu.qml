@@ -60,6 +60,8 @@ PanelWindow {
         x: parent ? Math.max(6, Math.min(root.trayMenuX, parent.width - width - 6)) : 6
         y: root.barPosition === "bottom" ? (parent.height - barBottom - gap - height) : (barBottom + gap)
         opacity: trayMenu.reveal
+        transformOrigin: root.barPosition === "bottom" ? Item.Bottom : Item.Top
+        scale: root.motionHover ? (0.955 + 0.045 * trayMenu.reveal) : 1
         focus: root.trayMenuVisible
 
         Keys.onPressed: function(event) {

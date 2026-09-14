@@ -12,9 +12,8 @@
       url = "github:nix-darwin/nix-darwin/master";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
     helium = {
-      url = "github:FKouhai/helium2nix/main";
+      url = "github:schembriaiden/helium-browser-nix-flake";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 

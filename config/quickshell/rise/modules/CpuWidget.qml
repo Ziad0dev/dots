@@ -107,13 +107,16 @@ Item {
             }
         }
 
-        UiText {
+        RollingNumber {
             anchors.verticalCenter: parent.verticalCenter
             visible: !root.compactCpu
-            text: String(Math.min(100, rootMod.percent)).padStart(2, '0') + "%"
-            color: root.seal
-            font.family: root.mono
-            font.pixelSize: 12
+            value: Math.min(100, rootMod.percent)
+            digits: 2
+            suffix: "%"
+            tint: root.seal
+            family: root.mono
+            pixelSize: 12
+            rolling: root.motionDigits
         }
 
         IconText {
@@ -127,13 +130,16 @@ Item {
             fill: 1
         }
 
-        UiText {
+        RollingNumber {
             anchors.verticalCenter: parent.verticalCenter
             visible: root.compactCpu
-            text: String(Math.min(100, rootMod.percent)).padStart(2, '0') + "%"
-            color: root.seal
-            font.family: root.mono
-            font.pixelSize: 12
+            value: Math.min(100, rootMod.percent)
+            digits: 2
+            suffix: "%"
+            tint: root.seal
+            family: root.mono
+            pixelSize: 12
+            rolling: root.motionDigits
         }
     }
 

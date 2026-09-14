@@ -162,6 +162,8 @@ PanelWindow {
             ? (parent.height - ghPanel.barBottom - ghPanel.gap - height)
             : (ghPanel.barBottom + ghPanel.gap)
         opacity: ghPanel.reveal
+        transformOrigin: root.barPosition === "bottom" ? Item.Bottom : Item.Top
+        scale: root.motionHover ? (0.955 + 0.045 * ghPanel.reveal) : 1
         focus: ghPanel.root.githubVisible
 
         Keys.onPressed: function (event) {

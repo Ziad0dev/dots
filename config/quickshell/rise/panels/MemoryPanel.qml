@@ -57,6 +57,8 @@ PanelWindow {
         x: Math.round(Math.max(6, Math.min(root.memoryBarX - width / 2, parent.width - width - 6)))
         y: root.barPosition === "bottom" ? (parent.height - barBottom - gap - height) : (barBottom + gap)
         opacity: memPanel.reveal
+        transformOrigin: root.barPosition === "bottom" ? Item.Bottom : Item.Top
+        scale: root.motionHover ? (0.955 + 0.045 * memPanel.reveal) : 1
         focus: root.memVisible
 
         Keys.onPressed: function(event) {

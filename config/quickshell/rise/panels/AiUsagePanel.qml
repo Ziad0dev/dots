@@ -206,6 +206,8 @@ PanelWindow {
         x: Math.round(Math.max(6, Math.min(root.aiBarX - width / 2, parent.width - width - 6)))
         y: root.barPosition === "bottom" ? (parent.height - barBottom - gap - height) : (barBottom + gap)
         opacity: aiPanel.reveal
+        transformOrigin: root.barPosition === "bottom" ? Item.Bottom : Item.Top
+        scale: root.motionHover ? (0.955 + 0.045 * aiPanel.reveal) : 1
         focus: root.aiUsageVisible
 
         Keys.onPressed: function(event) {

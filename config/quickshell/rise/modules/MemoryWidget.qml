@@ -96,11 +96,14 @@ Item {
             spacing: 0
             anchors.verticalCenter: parent.verticalCenter
 
-            UiText {
-                text: rootMod.usedLabel
-                color: root.seal
-                font.family: root.mono
-                font.pixelSize: 12
+            RollingNumber {
+                value: Math.round(rootMod.usedGiB)
+                digits: 2
+                suffix: "G"
+                tint: root.seal
+                family: root.mono
+                pixelSize: 12
+                rolling: root.motionDigits
             }
         }
 
@@ -154,13 +157,16 @@ Item {
             }
         }
 
-        UiText {
+        RollingNumber {
             anchors.verticalCenter: parent.verticalCenter
             visible: root.compactMemory
-            text: rootMod.usedLabel
-            color: root.seal
-            font.family: root.mono
-            font.pixelSize: 12
+            value: Math.round(rootMod.usedGiB)
+            digits: 2
+            suffix: "G"
+            tint: root.seal
+            family: root.mono
+            pixelSize: 12
+            rolling: root.motionDigits
         }
     }
 

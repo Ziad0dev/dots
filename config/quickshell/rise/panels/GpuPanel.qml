@@ -54,6 +54,8 @@ PanelWindow {
         x: Math.round(Math.max(6, Math.min(root.gpuBarX - width / 2, parent.width - width - 6)))
         y: root.barPosition === "bottom" ? (parent.height - barBottom - gap - height) : (barBottom + gap)
         opacity: gpuPanel.reveal
+        transformOrigin: root.barPosition === "bottom" ? Item.Bottom : Item.Top
+        scale: root.motionHover ? (0.955 + 0.045 * gpuPanel.reveal) : 1
         focus: root.gpuVisible
 
         Keys.onPressed: function(event) {

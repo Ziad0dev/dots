@@ -571,13 +571,21 @@ PanelWindow {
                 opacity: autoShown ? 1 : 0
                 Behavior on opacity { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
                 Behavior on width { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+                PillMotion {
+                    id: motion
+                    anchors.fill: parent
+                    active: barSlot.root.motionHover && !barSlot.root.barUnlocked
+                    introDelay: 70 + slot.index * 45
+                }
                 Loader {
                     id: ldr
                     x: slot.pad
                     anchors.verticalCenter: parent.verticalCenter
                     sourceComponent: barSlot.registry[slot.gid]
+                    transformOrigin: barSlot.root.barPosition === "bottom" ? Item.Bottom : Item.Top
+                    scale: motion.scaleFactor
                     // dim the original while its ghost is being dragged
-                    opacity: (barSlot.dragItem === ldr && barSlot.dragActive) ? 0.25 : 1.0
+                    opacity: ((barSlot.dragItem === ldr && barSlot.dragActive) ? 0.25 : 1.0) * motion.introOpacity
                 }
                 // ── drag-catcher: only in unlock mode, overlays the widget ──
                 MouseArea {
@@ -864,6 +872,27 @@ PanelWindow {
                 border.width: barSlot.root.pillBorderW
                 PillShadow { theme: barSlot.root }
                 // no Behavior: tracks the slot positions directly as the gap opens
+            }
+        }
+
+        Repeater {
+            model: island.runs
+            delegate: BarSweep {
+                id: runSweep
+                required property var modelData
+                theme: barSlot.root
+                x: runSweep.modelData.x
+                y: 0
+                width: Math.max(0, runSweep.modelData.w)
+                height: island.height
+                radius: barSlot.root.islandRadius
+                z: 1
+                Connections {
+                    target: barSlot.root
+                    function onBarPulse(kind) {
+                        if (barSlot.root.motionSweep && kind !== "") runSweep.run()
+                    }
+                }
             }
         }
 

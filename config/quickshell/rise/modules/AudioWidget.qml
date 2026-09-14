@@ -31,7 +31,15 @@ Item {
         border.color: root.widgetBorderColor(rootMod.gid)
         border.width: root.widgetBorderWidth(rootMod.gid)
         PillShadow { theme: root }
+        PulseRing {
+            id: volRing
+            theme: root
+            tint: rootMod.muted ? root.color01 : root.seal
+        }
     }
+
+    onVolumeChanged: if (root.motionHover) volRing.pulse()
+    onMutedChanged:  if (root.motionHover) volRing.pulse()
 
     Row {
         id: row

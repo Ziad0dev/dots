@@ -39,8 +39,6 @@
 
     writableStore = true;
 
-    msize = 262144;
-
     forwardPorts = [
       {
         from = "host";

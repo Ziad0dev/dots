@@ -135,6 +135,8 @@ PanelWindow {
         x: Math.round(Math.max(6, Math.min(root.launcherBarX - width / 2, parent.width - width - 6)))
         y: root.barPosition === "bottom" ? (parent.height - barBottom - gap - height) : (barBottom + gap)
         opacity: ctrlPanel.reveal
+        transformOrigin: root.barPosition === "bottom" ? Item.Bottom : Item.Top
+        scale: root.motionHover ? (0.955 + 0.045 * ctrlPanel.reveal) : 1
         focus: root.controlVisible
 
         Keys.onPressed: function(event) {
@@ -730,7 +732,8 @@ PanelWindow {
                     readonly property var opts: [
                         { label: "Default", mode: "default" },
                         { label: "Numbers", mode: "numbers" },
-                        { label: "Magic",   mode: "magic"   }
+                        { label: "Magic",   mode: "magic"   },
+                        { label: "Comet",   mode: "comet"   }
                     ]
                     Repeater {
                         model: wsStyleRow.opts
@@ -776,6 +779,20 @@ PanelWindow {
                 width: parent.width; spacing: 4
                 Tile { width: root.evenW((wwCol.width - 4) / 2); label: "Radius 12"; active: !root.styleRadiusSmall; onActivated: root.styleRadiusSmall = false }
                 Tile { width: root.evenW((wwCol.width - 4) / 2); label: "Radius 6";  active: root.styleRadiusSmall;  onActivated: root.styleRadiusSmall = true }
+            }
+
+            Rectangle { width: parent.width; height: 1; color: root.sep }
+
+            // ── MOTION ──
+            UiText {
+                text: "MOTION"
+                color: root.sumiHi; font.family: root.mono; font.pixelSize: 10; font.letterSpacing: 1
+            }
+            Row {
+                width: parent.width; spacing: 4
+                Tile { width: root.evenW((wwCol.width - 8) / 3); label: "Hover";  active: root.motionHover;  onActivated: root.motionHover = !root.motionHover }
+                Tile { width: root.evenW((wwCol.width - 8) / 3); label: "Sweep";  active: root.motionSweep;  onActivated: root.motionSweep = !root.motionSweep }
+                Tile { width: root.evenW((wwCol.width - 8) / 3); label: "Digits"; active: root.motionDigits; onActivated: root.motionDigits = !root.motionDigits }
             }
 
             Rectangle { width: parent.width; height: 1; color: root.sep }
