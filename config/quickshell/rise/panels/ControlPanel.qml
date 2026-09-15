@@ -473,6 +473,32 @@ PanelWindow {
                     }
                 }
             }
+            Row {
+                id: animRow2
+                width: parent.width
+                spacing: 4
+                Tile { width: root.evenW((animRow2.width - 4) / 2); label: "Weave";  active: root.barAnim === 9;  onActivated: root.barAnim = root.barAnim === 9  ? 0 : 9 }
+                Tile { width: root.evenW((animRow2.width - 4) / 2); label: "Pluck";  active: root.barAnim === 10; onActivated: root.barAnim = root.barAnim === 10 ? 0 : 10 }
+            }
+            Row {
+                id: animRow3
+                width: parent.width
+                spacing: 4
+                Tile { width: root.evenW((animRow3.width - 4) / 2); label: "Embers"; active: root.barAnim === 11; onActivated: root.barAnim = root.barAnim === 11 ? 0 : 11 }
+                Tile { width: root.evenW((animRow3.width - 4) / 2); label: "Mercury"; active: root.barAnim === 12; onActivated: root.barAnim = root.barAnim === 12 ? 0 : 12 }
+            }
+            Tile {
+                width: parent.width
+                label: "Scope"
+                active: root.barAnim === 14
+                onActivated: root.barAnim = root.barAnim === 14 ? 0 : 14
+            }
+            Tile {
+                width: parent.width
+                label: "Harmonic"
+                active: root.barAnim === 13
+                onActivated: root.barAnim = root.barAnim === 13 ? 0 : 13
+            }
             Tile {
                 width: parent.width
                 // Separate event-reactor mode; not part of the Surge 1→2 cycle.

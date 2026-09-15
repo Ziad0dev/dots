@@ -188,6 +188,7 @@ in
       inputs.zen-browser.packages.${system}.default
       inputs.helium.packages.${system}.default
       inputs.vm-curator.packages.${system}.default
+      inputs.hyprland-preview-share-picker.packages.${system}.default
     ];
 
   programs.vscode = {

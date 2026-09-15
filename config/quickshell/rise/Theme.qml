@@ -3,6 +3,8 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
 import Quickshell.Services.UPower
+import Quickshell.Services.Mpris
+import "modules"
 import "Palette.js" as Palette
 
 Item {
@@ -1836,7 +1838,72 @@ Item {
     property bool splitMon:    false
     property bool splitNet:    false
     property bool splitMprisL: false
-    property int barAnim: 0   // 0=off, 1=stream, 2=surge, 3=bolt, 4=bolt2, 5=stream2, 6=surge2, 7=reactor, 8=quotes
+    readonly property int specBands: 32
+    property var spectrum: []
+    property var spectrumPeak: []
+    MprisSelect { id: specSel }
+    readonly property bool specWanted: theme.barAnim === 14 && specSel.playing
+
+    Process {
+        id: specCava
+        running: theme.specWanted
+        command: ["bash", "-c",
+            "command -v cava >/dev/null 2>&1 || exit 0; " +
+            "exec cava -p <(printf '%s\\n' " +
+            "'[general]' 'bars = 32' 'framerate = 60' 'autosens = 1' 'sleep_timer = 0' " +
+            "'[input]' 'method = pipewire' 'source = auto' " +
+            "'[output]' 'method = raw' 'raw_target = /dev/stdout' " +
+            "'data_format = ascii' 'ascii_max_range = 100' " +
+            "'[smoothing]' 'monstercat = 0' 'waves = 0' 'noise_reduction = 20')"
+        ]
+        stdout: SplitParser {
+            splitMarker: "\n"
+            onRead: function(line) {
+                if (!theme.specWanted) return
+                var parts = line.split(";")
+                var cur = theme.spectrum
+                var pks = theme.spectrumPeak
+                var out = []
+                var opk = []
+                for (var i = 0; i < theme.specBands; i++) {
+                    var raw = parseInt(parts[i])
+                    raw = isNaN(raw) ? 0 : Math.min(1, raw / 100)
+                    var prev = i < cur.length ? cur[i] : 0
+                    var v = raw > prev ? raw : prev + (raw - prev) * 0.34
+                    out.push(v)
+                    var pp = i < pks.length ? pks[i] : 0
+                    opk.push(v > pp ? v : Math.max(v, pp - 0.011))
+                }
+                theme.spectrum = out
+                theme.spectrumPeak = opk
+            }
+        }
+    }
+
+    Timer {
+        interval: 33
+        repeat: true
+        running: !theme.specWanted && theme.spectrum.length > 0
+        onTriggered: {
+            var s = theme.spectrum
+            var p = theme.spectrumPeak
+            var a = []
+            var b = []
+            var live = false
+            for (var i = 0; i < s.length; i++) {
+                var v = s[i] * 0.80
+                if (v < 0.005) v = 0; else live = true
+                var q = (i < p.length ? p[i] : 0) - 0.022
+                if (q < v) q = v
+                if (q < 0.005) q = 0; else live = true
+                a.push(v); b.push(q)
+            }
+            if (live) { theme.spectrum = a; theme.spectrumPeak = b }
+            else      { theme.spectrum = []; theme.spectrumPeak = [] }
+        }
+    }
+
+    property int barAnim: 0   // 0=off, 1=stream, 2=surge, 3=bolt, 4=bolt2, 5=stream2, 6=surge2, 7=reactor, 8=quotes, 9=weave, 10=pluck, 11=embers, 12=mercury, 13=harmonic, 14=scope
 
     // ── Bar layout / unlock (drag&drop reorder). barUnlocked is transient. ──
     property bool barUnlocked: false
@@ -1896,7 +1963,7 @@ Item {
                     theme.splitMon       = parts[1] === "1"
                     theme.splitMprisL    = parts[2] === "1"
                     theme.splitNet       = parts[3] === "1"
-                    var ba = parseInt(parts[4]); theme.barAnim = (ba >= 0 && ba <= 8) ? ba : 0
+                    var ba = parseInt(parts[4]); theme.barAnim = (ba >= 0 && ba <= 14) ? ba : 0
                     if (parts.length >= 6) {
                         var bc = parts[5]
                         if (bc === "1" || bc === "0") theme.barColor = "color01"
