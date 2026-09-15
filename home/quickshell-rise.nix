@@ -180,6 +180,7 @@ in
     voxtype
     pkgs.wtype
     dotsShims
+    pkgs.cava
     pkgs.pulseaudio
     pkgs.wireplumber
     pkgs.nvtopPackages.nvidia

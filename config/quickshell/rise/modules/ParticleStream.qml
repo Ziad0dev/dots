@@ -986,7 +986,7 @@ Item {
         // upload, both screens) costs ~23% CPU — so full rate only during
         // fast motion while events form; ambient idle runs at ~8Hz, and fully
         // dark/no-gap states back off to ~4Hz or stop (tick7 is set from onPaint)
-        interval: (root.reactorMode7 || root.mode === 8) ? canvas.tick7 : ((root.mode === 5 || root.mode === 6) ? 16 : 33)
+        interval: (root.reactorMode7 || root.mode === 8) ? canvas.tick7 : ((root.mode === 5 || root.mode === 6 || root.mode === 10 || root.mode === 14) ? 16 : 33)
         repeat: true
         running: root.active && ((root.reactorMode7 && root.animating7)
                                  || (root.mode === 8 && root.animating8)
@@ -2237,6 +2237,286 @@ Item {
                                 ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 0.8
                                 ctx.beginPath(); ctx.moveTo(sxa, sya); ctx.lineTo(sxb, syb); ctx.stroke()
                             }
+                        }
+                    }
+
+                } else if (root.mode === 9) {
+                    // ══ WEAVE: counter-travelling strands, flaring where they cross ══
+                    var wvAmp  = Math.min(height * 0.26, 6.0)
+                    var wvStep = 3
+                    var wvN    = 3
+                    var wvYs   = []
+                    for (var wvI = 0; wvI < wvN; wvI++) {
+                        var wvK   = 0.020 + wvI * 0.009
+                        var wvSp  = (wvI % 2 === 0 ? 1 : -1) * (0.9 + wvI * 0.35)
+                        var wvPh  = g * 0.7 + wvI * 2.1
+                        var wvRow = []
+                        ctx.globalAlpha = 1.0
+                        ctx.strokeStyle = rgba(0.30 + wvI * 0.07)
+                        ctx.lineWidth   = 1.2
+                        ctx.beginPath()
+                        var wvS0 = 0
+                        for (var wvX = x1; wvX <= x2; wvX += wvStep) {
+                            var wvY = cy + wvAmp * Math.sin(wvX * wvK + wvSp * now / 700 + wvPh)
+                            wvRow.push(wvY)
+                            if (wvS0 === 0) ctx.moveTo(wvX, wvY); else ctx.lineTo(wvX, wvY)
+                            wvS0++
+                        }
+                        ctx.stroke()
+                        wvYs.push(wvRow)
+                    }
+                    for (var wvA = 0; wvA < wvN; wvA++) {
+                        for (var wvB = wvA + 1; wvB < wvN; wvB++) {
+                            var wvPrev = wvYs[wvA][0] - wvYs[wvB][0]
+                            for (var wvS = 1; wvS < wvYs[wvA].length; wvS++) {
+                                var wvD = wvYs[wvA][wvS] - wvYs[wvB][wvS]
+                                if ((wvPrev < 0) !== (wvD < 0)) {
+                                    var wvCx = x1 + wvS * wvStep
+                                    var wvCy = wvYs[wvA][wvS]
+                                    ctx.globalAlpha = 1.0; ctx.fillStyle = rgba(0.14)
+                                    ctx.beginPath(); ctx.arc(wvCx, wvCy, 4.2, 0, Math.PI * 2); ctx.fill()
+                                    ctx.fillStyle = rgba(0.34)
+                                    ctx.beginPath(); ctx.arc(wvCx, wvCy, 2.2, 0, Math.PI * 2); ctx.fill()
+                                    ctx.globalAlpha = 0.9; ctx.fillStyle = "#ffffff"
+                                    ctx.beginPath(); ctx.arc(wvCx, wvCy, 1.1, 0, Math.PI * 2); ctx.fill()
+                                }
+                                wvPrev = wvD
+                            }
+                        }
+                    }
+
+                } else if (root.mode === 10) {
+                    // ══ PLUCK: taut strings, plucked one at a time, ringing down ══
+                    var pkN   = 3
+                    var pkSep = Math.min(height * 0.22, 5.0)
+                    var pkT   = 2400
+                    var pkSteps = Math.max(8, Math.min(120, Math.floor(gw / 4)))
+                    for (var pkI = 0; pkI < pkN; pkI++) {
+                        var pkY0  = cy + (pkI - (pkN - 1) / 2) * pkSep
+                        var pkLo  = now / pkT + g * 0.29 + pkI * 0.37
+                        var pkPh  = pkLo - Math.floor(pkLo)
+                        var pkSd  = Math.floor(pkLo) * 97.3 + g * 41.1 + pkI * 17.7
+                        var pkAt  = hash(pkSd) * 0.55
+                        var pkT0  = (pkPh - pkAt) * pkT
+                        var pkAmp = 0
+                        var pkHot = 0
+                        if (pkT0 >= 0 && pkT0 < 900) {
+                            var pkDec = Math.exp(-pkT0 / 260)
+                            pkAmp = (2.2 + hash(pkSd + 3) * 3.0) * pkDec
+                            pkHot = pkDec
+                        }
+                        var pkFr  = 2 * Math.PI * (0.005 + hash(pkSd + 5) * 0.003)
+                        ctx.globalAlpha = 1.0
+                        ctx.strokeStyle = rgba(0.16 + 0.46 * pkHot)
+                        ctx.lineWidth   = 1.0 + 0.5 * pkHot
+                        ctx.beginPath()
+                        for (var pkS = 0; pkS <= pkSteps; pkS++) {
+                            var pkU = pkS / pkSteps
+                            var pkX = x1 + pkU * gw
+                            var pkY = pkY0 + pkAmp * Math.sin(Math.PI * pkU) * Math.sin(pkFr * pkT0)
+                            if (pkS === 0) ctx.moveTo(pkX, pkY); else ctx.lineTo(pkX, pkY)
+                        }
+                        ctx.stroke()
+                        if (pkHot > 0.55) {
+                            var pkPx = x1 + gw * (0.35 + hash(pkSd + 7) * 0.30)
+                            var pkPg = ctx.createRadialGradient(pkPx, pkY0, 0, pkPx, pkY0, 6)
+                            pkPg.addColorStop(0.0, rgba(0.50 * pkHot))
+                            pkPg.addColorStop(1.0, rgba(0.0))
+                            ctx.globalAlpha = 1.0; ctx.fillStyle = pkPg
+                            ctx.beginPath(); ctx.arc(pkPx, pkY0, 6, 0, Math.PI * 2); ctx.fill()
+                        }
+                    }
+
+                } else if (root.mode === 11) {
+                    // ══ EMBERS: motes lifting out of the gap ══
+                    var emN = Math.min(26, Math.max(4, Math.floor(gw / 22)))
+                    var emL = 3000
+                    for (var emI = 0; emI < emN; emI++) {
+                        var emSd   = g * 71.3 + emI * 13.7
+                        var emP    = ((now / emL) + hash(emSd)) % 1
+                        var emRise = Math.pow(emP, 0.85)
+                        var emY    = height * (1.02 - emRise * 1.04)
+                        var emX    = x1 + (0.03 + hash(emSd + 1) * 0.94) * gw
+                                   + Math.sin(now / 900 + hash(emSd + 2) * 6.28) * 3.2 * emRise
+                        var emA    = Math.sin(Math.PI * emP)
+                        var emR    = (0.9 + hash(emSd + 3) * 1.5) * (1 - emRise * 0.45)
+                        ctx.globalAlpha = 1.0; ctx.fillStyle = rgba(0.10 * emA)
+                        ctx.beginPath(); ctx.arc(emX, emY, emR * 3.0, 0, Math.PI * 2); ctx.fill()
+                        ctx.fillStyle = rgba(0.30 * emA)
+                        ctx.beginPath(); ctx.arc(emX, emY, emR * 1.5, 0, Math.PI * 2); ctx.fill()
+                        ctx.globalAlpha = 0.8 * emA; ctx.fillStyle = "#ffffff"
+                        ctx.beginPath(); ctx.arc(emX, emY, emR * 0.45, 0, Math.PI * 2); ctx.fill()
+                    }
+
+                } else if (root.mode === 12) {
+                    // ══ MERCURY: a 1D metaball field; blobs merge, neck and pinch off ══
+                    var mcN    = 5
+                    var mcThr  = 0.34
+                    var mcMax  = Math.min(height * 0.30, 9.0)
+                    var mcStep = 3
+                    var mcFade = 20
+                    var mcSpan = gw + 160
+                    var mcNs   = Math.max(2, Math.min(560, Math.ceil(gw / mcStep)))
+                    var mcC    = []
+                    var mcR    = []
+                    var mcA    = []
+                    for (var mcI = 0; mcI < mcN; mcI++) {
+                        var mcSd = g * 61.7 + mcI * 23.3
+                        var mcSp = (26 + hash(mcSd) * 46) * (hash(mcSd + 1) < 0.5 ? -1 : 1)
+                        var mcBr = 1 + 0.18 * Math.sin(now / 700 + hash(mcSd + 5) * 6.28)
+                        var mcRw = (now / 1000 * mcSp + hash(mcSd + 2) * mcSpan) % mcSpan
+                        mcC.push(x1 - 80 + ((mcRw % mcSpan) + mcSpan) % mcSpan)
+                        mcR.push((26 + hash(mcSd + 3) * 34) * mcBr)
+                        mcA.push((0.55 + hash(mcSd + 4) * 0.5) * mcBr)
+                    }
+                    var mcH = []
+                    for (var mcS = 0; mcS <= mcNs; mcS++) {
+                        var mcX = x1 + mcS * mcStep
+                        var mcF = 0
+                        for (var mcJ = 0; mcJ < mcN; mcJ++) {
+                            var mcU = (mcX - mcC[mcJ]) / mcR[mcJ]
+                            var mcK = 1 - mcU * mcU
+                            if (mcK > 0) mcF += mcA[mcJ] * mcK * mcK
+                        }
+                        var mcV = mcF - mcThr
+                        var mcE = Math.max(0, Math.min(1, (mcX - x1) / mcFade, (x2 - mcX) / mcFade))
+                        mcH.push(mcV > 0 ? mcMax * Math.min(1, Math.sqrt(mcV)) * mcE : 0)
+                    }
+
+                    ctx.globalAlpha = 0.18
+                    ctx.strokeStyle = rgba(1.0); ctx.lineWidth = 1.0
+                    ctx.beginPath(); ctx.moveTo(x1, cy); ctx.lineTo(x2, cy); ctx.stroke()
+
+                    ctx.beginPath()
+                    for (var mcT = 0; mcT <= mcNs; mcT++) {
+                        var mcTx = x1 + mcT * mcStep
+                        if (mcT === 0) ctx.moveTo(mcTx, cy - mcH[mcT]); else ctx.lineTo(mcTx, cy - mcH[mcT])
+                    }
+                    for (var mcB = mcNs; mcB >= 0; mcB--) ctx.lineTo(x1 + mcB * mcStep, cy + mcH[mcB])
+                    ctx.closePath()
+                    ctx.globalAlpha = 1.0; ctx.fillStyle = rgba(0.22); ctx.fill()
+                    ctx.globalAlpha = 0.55; ctx.strokeStyle = rgba(1.0); ctx.lineWidth = 1.1
+                    ctx.stroke()
+
+                    ctx.globalAlpha = 0.20; ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 0.9
+                    ctx.beginPath()
+                    for (var mcG = 0; mcG <= mcNs; mcG++) {
+                        var mcGx = x1 + mcG * mcStep
+                        if (mcG === 0) ctx.moveTo(mcGx, cy - mcH[mcG] * 0.55); else ctx.lineTo(mcGx, cy - mcH[mcG] * 0.55)
+                    }
+                    ctx.stroke()
+
+                } else if (root.mode === 13) {
+                    // ══ HARMONIC: a damped harmonograph draws itself, fades, reseeds ══
+                    var hmT   = 8000
+                    var hmLo  = now / hmT + g * 0.23
+                    var hmPh  = hmLo - Math.floor(hmLo)
+                    var hmSd  = Math.floor(hmLo) * 211.3 + g * 37.9
+                    var hmFx  = 1 + Math.floor(hash(hmSd) * 3)
+                    var hmFy  = 2 + Math.floor(hash(hmSd + 1) * 4)
+                    var hmDp  = hash(hmSd + 2) * Math.PI * 2
+                    var hmDx  = 0.00016 + hash(hmSd + 3) * 0.00012
+                    var hmDy  = 0.00020 + hash(hmSd + 4) * 0.00014
+                    var hmW   = 2 * Math.PI / 1900
+                    var hmAx  = gw * 0.46
+                    var hmAy  = Math.min(height * 0.34, 8.5)
+                    var hmMx  = (x1 + x2) / 2
+                    var hmDur = hmT * 0.72
+                    var hmS   = Math.min(hmPh, 0.72) / 0.72 * hmDur
+                    var hmEnv = Math.min(1, hmPh / 0.05) * (hmPh > 0.80 ? Math.max(0, 1 - (hmPh - 0.80) / 0.20) : 1)
+                    if (hmEnv > 0.01 && hmS > 0) {
+                        var hmStp = 16
+                        var hmNs  = Math.max(2, Math.min(340, Math.floor(hmS / hmStp)))
+                        var hmPx  = 0, hmPy = 0
+                        for (var hmPass = 0; hmPass < 2; hmPass++) {
+                            var hmFrom = hmPass === 0 ? 0 : Math.max(0, hmNs - 34)
+                            ctx.globalAlpha = 1.0
+                            ctx.strokeStyle = rgba(hmPass === 0 ? 0.24 * hmEnv : 0.62 * hmEnv)
+                            ctx.lineWidth   = hmPass === 0 ? 1.0 : 1.5
+                            ctx.beginPath()
+                            for (var hmI = hmFrom; hmI <= hmNs; hmI++) {
+                                var hmU = hmI * hmStp
+                                hmPx = hmMx + hmAx * Math.exp(-hmDx * hmU) * Math.sin(hmFx * hmW * hmU + hmDp)
+                                hmPy = cy   + hmAy * Math.exp(-hmDy * hmU) * Math.sin(hmFy * hmW * hmU)
+                                if (hmI === hmFrom) ctx.moveTo(hmPx, hmPy); else ctx.lineTo(hmPx, hmPy)
+                            }
+                            ctx.stroke()
+                        }
+                        ctx.globalAlpha = 0.9 * hmEnv; ctx.fillStyle = "#ffffff"
+                        ctx.beginPath(); ctx.arc(hmPx, hmPy, 1.4, 0, Math.PI * 2); ctx.fill()
+                        ctx.globalAlpha = 0.28 * hmEnv; ctx.fillStyle = rgba(1.0)
+                        ctx.beginPath(); ctx.arc(hmPx, hmPy, 3.4, 0, Math.PI * 2); ctx.fill()
+                    }
+
+                } else if (root.mode === 14) {
+                    // ══ SCOPE: one trace, additively resynthesised from the live spectrum ══
+                    ctx.globalAlpha = 0.16
+                    ctx.strokeStyle = rgba(1.0); ctx.lineWidth = 1.0
+                    ctx.beginPath(); ctx.moveTo(x1, cy); ctx.lineTo(x2, cy); ctx.stroke()
+
+                    var scL = root.theme.spectrum
+                    var scN = scL ? scL.length : 0
+                    if (scN > 0) {
+                        var scOsc  = 12
+                        var scAmp  = Math.min(height * 0.38, 11.5)
+                        var scNs   = Math.max(8, Math.min(600, Math.ceil(gw / 3)))
+                        var scA = []
+                        var scW = []
+                        var scS = []
+                        var scC = []
+                        var scDs = []
+                        var scDc = []
+                        var scSq = 0
+                        var scMean = 0
+                        for (var scI = 0; scI < scOsc; scI++) {
+                            var scLo = Math.floor(scI * scN / scOsc)
+                            var scHi = Math.floor((scI + 1) * scN / scOsc)
+                            var scSum = 0
+                            var scCnt = 0
+                            for (var scB = scLo; scB < scHi; scB++) { scSum += scL[scB]; scCnt++ }
+                            scA.push(scCnt > 0 ? scSum / scCnt : 0)
+                            var scWt = 1 / (1 + scI * 0.30)
+                            scW.push(scWt)
+                            var scPh = now / 1000 * (0.9 + scI * 0.35)
+                            scS.push(Math.sin(scPh)); scC.push(Math.cos(scPh))
+                            var scD = (1 + scI * 1.8) * 2 * Math.PI / scNs
+                            scDs.push(Math.sin(scD)); scDc.push(Math.cos(scD))
+                            scSq += (scWt * scA[scI]) * (scWt * scA[scI])
+                        }
+                        for (var scM = 0; scM < scN; scM++) scMean += scL[scM]
+                        scMean = scMean / scN
+                        var scDen = Math.max(0.0001, Math.sqrt(scSq))
+                        var scLvl = Math.pow(scMean, 0.65) * 2.6
+
+                        var scXs = []
+                        var scYs = []
+                        for (var scK = 0; scK <= scNs; scK++) {
+                            var scV = 0
+                            for (var scJ = 0; scJ < scOsc; scJ++) {
+                                scV += scW[scJ] * scA[scJ] * scS[scJ]
+                                var scRot = scS[scJ] * scDc[scJ] + scC[scJ] * scDs[scJ]
+                                scC[scJ] = scC[scJ] * scDc[scJ] - scS[scJ] * scDs[scJ]
+                                scS[scJ] = scRot
+                            }
+                            scV = scV / scDen * scLvl
+                            scV = scV / Math.sqrt(1 + scV * scV)
+                            var scX = x1 + scK * (gw / scNs)
+                            var scEd = Math.max(0, Math.min(1, (scX - x1) / 18, (x2 - scX) / 18))
+                            scXs.push(scX)
+                            scYs.push(cy - scV * scAmp * scEd)
+                        }
+
+                        ctx.lineJoin = "round"
+                        for (var scP = 0; scP < 3; scP++) {
+                            ctx.globalAlpha = scP === 0 ? 0.22 : scP === 1 ? 0.78 : 0.55
+                            ctx.strokeStyle = scP === 2 ? "#ffffff" : rgba(1.0)
+                            ctx.lineWidth   = scP === 0 ? 3.4 : scP === 1 ? 1.8 : 0.9
+                            ctx.beginPath()
+                            for (var scQ = 0; scQ <= scNs; scQ++) {
+                                if (scQ === 0) ctx.moveTo(scXs[scQ], scYs[scQ])
+                                else ctx.lineTo(scXs[scQ], scYs[scQ])
+                            }
+                            ctx.stroke()
                         }
                     }
                 }
