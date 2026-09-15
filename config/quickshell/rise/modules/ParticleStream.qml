@@ -1000,6 +1000,8 @@ Item {
         renderStrategy: Canvas.Threaded
         // adaptive tick for reactor/quotes: 16ms while moving, slower while idle/holding
         property int tick7: 250
+        property var colCache: []
+        property int colKey: -1
         // dot-matrix glyph table for text pulses, built once on first use
         property var swarmData: null
         // mode 8 quotes cache, separate from the mode-7 event cache
@@ -1028,7 +1030,16 @@ Item {
             var sg   = Math.round(seal.g * 255)
             var sb   = Math.round(seal.b * 255)
 
-            function rgba(a) { return "rgba(" + sr + "," + sg + "," + sb + "," + a + ")" }
+            var ck = (sr << 16) | (sg << 8) | sb
+            if (canvas.colKey !== ck) { canvas.colCache = []; canvas.colKey = ck }
+            var cc = canvas.colCache
+            function rgba(a) {
+                var i = (a * 512) | 0
+                if (i < 0) i = 0; else if (i > 512) i = 512
+                var c = cc[i]
+                if (c === undefined) { c = "rgba(" + sr + "," + sg + "," + sb + "," + (i / 512) + ")"; cc[i] = c }
+                return c
+            }
             // deterministic pseudo-random 0..1 (stable per seed; drives the bolt's jagged path)
             function hash(n) { var s = Math.sin(n * 127.1) * 43758.5453; return s - Math.floor(s) }
 
@@ -1864,40 +1875,70 @@ Item {
 
                     // fast layer — cap at 60 iterations (60×65 = 3900 px)
                     var k1 = Math.ceil((x1 - off1) / sp1)
+                    var plainX = []
+                    var pulseX = []
+                    var pulseV = []
                     for (var di = 0; di < 60; di++) {
                         var fx = off1 + (k1 + di) * sp1
                         if (fx >= x2) break
-                        var dotId   = (k1 + di + 100000)
-                        var isPulse = (dotId % 5 === 0)
-                        if (isPulse) {
-                            var pulse = 0.5 + 0.5 * Math.sin(now / 700 + dotId * 2.4)
-                            ctx.globalAlpha = 0.28 + pulse * 0.18
-                            ctx.fillStyle   = seal
-                            ctx.beginPath(); ctx.arc(fx, cy, 4.0 + pulse * 1.5, 0, Math.PI * 2); ctx.fill()
-                            ctx.globalAlpha = 0.95
-                            ctx.fillStyle   = "#ffffff"
-                            ctx.beginPath(); ctx.arc(fx, cy, 1.6 + pulse * 0.4, 0, Math.PI * 2); ctx.fill()
+                        var dotId = (k1 + di + 100000)
+                        if (dotId % 5 === 0) {
+                            pulseX.push(fx)
+                            pulseV.push(0.5 + 0.5 * Math.sin(now / 700 + dotId * 2.4))
                         } else {
-                            ctx.globalAlpha = 0.30
-                            ctx.fillStyle   = seal
-                            ctx.beginPath(); ctx.arc(fx, cy, 4.5, 0, Math.PI * 2); ctx.fill()
-                            ctx.globalAlpha = 0.90
-                            ctx.fillStyle   = "#ffffff"
-                            ctx.beginPath(); ctx.arc(fx, cy, 1.6, 0, Math.PI * 2); ctx.fill()
+                            plainX.push(fx)
                         }
                     }
-
-                    // slow layer
                     var k2 = Math.ceil((x1 - off2) / sp2)
+                    var slowX = []
                     for (var dj = 0; dj < 40; dj++) {
                         var sx = off2 + (k2 + dj) * sp2
                         if (sx >= x2) break
+                        slowX.push(sx)
+                    }
+
+                    ctx.fillStyle = seal
+                    if (slowX.length > 0) {
                         ctx.globalAlpha = 0.11
-                        ctx.fillStyle   = seal
-                        ctx.beginPath(); ctx.arc(sx, cy, 8.5, 0, Math.PI * 2); ctx.fill()
+                        ctx.beginPath()
+                        for (var ds = 0; ds < slowX.length; ds++) {
+                            ctx.moveTo(slowX[ds] + 8.5, cy); ctx.arc(slowX[ds], cy, 8.5, 0, Math.PI * 2)
+                        }
+                        ctx.fill()
+                    }
+                    if (plainX.length > 0) {
+                        ctx.globalAlpha = 0.30
+                        ctx.beginPath()
+                        for (var dp = 0; dp < plainX.length; dp++) {
+                            ctx.moveTo(plainX[dp] + 4.5, cy); ctx.arc(plainX[dp], cy, 4.5, 0, Math.PI * 2)
+                        }
+                        ctx.fill()
+                    }
+                    for (var du = 0; du < pulseX.length; du++) {
+                        ctx.globalAlpha = 0.28 + pulseV[du] * 0.18
+                        ctx.beginPath(); ctx.arc(pulseX[du], cy, 4.0 + pulseV[du] * 1.5, 0, Math.PI * 2); ctx.fill()
+                    }
+
+                    ctx.fillStyle = "#ffffff"
+                    if (slowX.length > 0) {
                         ctx.globalAlpha = 0.50
-                        ctx.fillStyle   = "#ffffff"
-                        ctx.beginPath(); ctx.arc(sx, cy, 2.3, 0, Math.PI * 2); ctx.fill()
+                        ctx.beginPath()
+                        for (var dt = 0; dt < slowX.length; dt++) {
+                            ctx.moveTo(slowX[dt] + 2.3, cy); ctx.arc(slowX[dt], cy, 2.3, 0, Math.PI * 2)
+                        }
+                        ctx.fill()
+                    }
+                    if (plainX.length > 0) {
+                        ctx.globalAlpha = 0.90
+                        ctx.beginPath()
+                        for (var dq = 0; dq < plainX.length; dq++) {
+                            ctx.moveTo(plainX[dq] + 1.6, cy); ctx.arc(plainX[dq], cy, 1.6, 0, Math.PI * 2)
+                        }
+                        ctx.fill()
+                    }
+                    ctx.globalAlpha = 0.95
+                    for (var dv = 0; dv < pulseX.length; dv++) {
+                        ctx.beginPath(); ctx.arc(pulseX[dv], cy, 1.6 + pulseV[dv] * 0.4, 0, Math.PI * 2); ctx.fill()
                     }
 
                 } else if (root.mode === 2) {
@@ -2265,24 +2306,43 @@ Item {
                         ctx.stroke()
                         wvYs.push(wvRow)
                     }
+                    var wvHx = []
+                    var wvHy = []
                     for (var wvA = 0; wvA < wvN; wvA++) {
                         for (var wvB = wvA + 1; wvB < wvN; wvB++) {
                             var wvPrev = wvYs[wvA][0] - wvYs[wvB][0]
                             for (var wvS = 1; wvS < wvYs[wvA].length; wvS++) {
                                 var wvD = wvYs[wvA][wvS] - wvYs[wvB][wvS]
                                 if ((wvPrev < 0) !== (wvD < 0)) {
-                                    var wvCx = x1 + wvS * wvStep
-                                    var wvCy = wvYs[wvA][wvS]
-                                    ctx.globalAlpha = 1.0; ctx.fillStyle = rgba(0.14)
-                                    ctx.beginPath(); ctx.arc(wvCx, wvCy, 4.2, 0, Math.PI * 2); ctx.fill()
-                                    ctx.fillStyle = rgba(0.34)
-                                    ctx.beginPath(); ctx.arc(wvCx, wvCy, 2.2, 0, Math.PI * 2); ctx.fill()
-                                    ctx.globalAlpha = 0.9; ctx.fillStyle = "#ffffff"
-                                    ctx.beginPath(); ctx.arc(wvCx, wvCy, 1.1, 0, Math.PI * 2); ctx.fill()
+                                    wvHx.push(x1 + wvS * wvStep)
+                                    wvHy.push(wvYs[wvA][wvS])
                                 }
                                 wvPrev = wvD
                             }
                         }
+                    }
+                    if (wvHx.length > 0) {
+                        ctx.globalAlpha = 1.0; ctx.fillStyle = rgba(0.14)
+                        ctx.beginPath()
+                        for (var wvF = 0; wvF < wvHx.length; wvF++) {
+                            ctx.moveTo(wvHx[wvF] + 4.2, wvHy[wvF])
+                            ctx.arc(wvHx[wvF], wvHy[wvF], 4.2, 0, Math.PI * 2)
+                        }
+                        ctx.fill()
+                        ctx.fillStyle = rgba(0.34)
+                        ctx.beginPath()
+                        for (var wvG = 0; wvG < wvHx.length; wvG++) {
+                            ctx.moveTo(wvHx[wvG] + 2.2, wvHy[wvG])
+                            ctx.arc(wvHx[wvG], wvHy[wvG], 2.2, 0, Math.PI * 2)
+                        }
+                        ctx.fill()
+                        ctx.globalAlpha = 0.9; ctx.fillStyle = "#ffffff"
+                        ctx.beginPath()
+                        for (var wvH = 0; wvH < wvHx.length; wvH++) {
+                            ctx.moveTo(wvHx[wvH] + 1.1, wvHy[wvH])
+                            ctx.arc(wvHx[wvH], wvHy[wvH], 1.1, 0, Math.PI * 2)
+                        }
+                        ctx.fill()
                     }
 
                 } else if (root.mode === 10) {
@@ -2331,6 +2391,10 @@ Item {
                     // ══ EMBERS: motes lifting out of the gap ══
                     var emN = Math.min(26, Math.max(4, Math.floor(gw / 22)))
                     var emL = 3000
+                    var emXs = []
+                    var emYs = []
+                    var emRs = []
+                    var emAs = []
                     for (var emI = 0; emI < emN; emI++) {
                         var emSd   = g * 71.3 + emI * 13.7
                         var emP    = ((now / emL) + hash(emSd)) % 1
@@ -2340,12 +2404,19 @@ Item {
                                    + Math.sin(now / 900 + hash(emSd + 2) * 6.28) * 3.2 * emRise
                         var emA    = Math.sin(Math.PI * emP)
                         var emR    = (0.9 + hash(emSd + 3) * 1.5) * (1 - emRise * 0.45)
-                        ctx.globalAlpha = 1.0; ctx.fillStyle = rgba(0.10 * emA)
-                        ctx.beginPath(); ctx.arc(emX, emY, emR * 3.0, 0, Math.PI * 2); ctx.fill()
-                        ctx.fillStyle = rgba(0.30 * emA)
-                        ctx.beginPath(); ctx.arc(emX, emY, emR * 1.5, 0, Math.PI * 2); ctx.fill()
-                        ctx.globalAlpha = 0.8 * emA; ctx.fillStyle = "#ffffff"
-                        ctx.beginPath(); ctx.arc(emX, emY, emR * 0.45, 0, Math.PI * 2); ctx.fill()
+                        emXs.push(emX); emYs.push(emY); emRs.push(emR); emAs.push(emA)
+                    }
+                    ctx.fillStyle = rgba(1.0)
+                    for (var emQ = 0; emQ < emXs.length; emQ++) {
+                        ctx.globalAlpha = 0.10 * emAs[emQ]
+                        ctx.beginPath(); ctx.arc(emXs[emQ], emYs[emQ], emRs[emQ] * 3.0, 0, Math.PI * 2); ctx.fill()
+                        ctx.globalAlpha = 0.30 * emAs[emQ]
+                        ctx.beginPath(); ctx.arc(emXs[emQ], emYs[emQ], emRs[emQ] * 1.5, 0, Math.PI * 2); ctx.fill()
+                    }
+                    ctx.fillStyle = "#ffffff"
+                    for (var emW = 0; emW < emXs.length; emW++) {
+                        ctx.globalAlpha = 0.8 * emAs[emW]
+                        ctx.beginPath(); ctx.arc(emXs[emW], emYs[emW], emRs[emW] * 0.45, 0, Math.PI * 2); ctx.fill()
                     }
 
                 } else if (root.mode === 12) {
