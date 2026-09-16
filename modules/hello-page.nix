@@ -53,16 +53,19 @@ in
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
+      Restart = "on-failure";
+      RestartSec = 5;
       ExecStart = pkgs.writeShellScript "hello-page-serve" ''
         i=0
         while [ $i -lt 60 ]; do
-          if ${pkgs.tailscale}/bin/tailscale status --json >/dev/null 2>&1; then
+          state=$(${pkgs.tailscale}/bin/tailscale status --json 2>/dev/null | ${pkgs.jq}/bin/jq -r '.BackendState // empty')
+          if [ "$state" = "Running" ]; then
             exec ${pkgs.tailscale}/bin/tailscale serve --bg --https 443 http://127.0.0.1:${toString port}
           fi
           ${pkgs.coreutils}/bin/sleep 2
           i=$((i + 1))
         done
-        echo "tailscaled never became ready" >&2
+        echo "tailscaled never became ready (last state: ''${state:-none})" >&2
         exit 1
       '';
     };
