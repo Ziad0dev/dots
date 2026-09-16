@@ -168,8 +168,11 @@ in
 
       interactiveShellInit = ''
         fish_vi_key_bindings
-        set -l __dots_fzf "${config.xdg.stateHome}/dots/theme/fzf.fish"
-        test -r $__dots_fzf; and source $__dots_fzf
+        set -g fish_greeting
+        set -l __dots_theme "${config.xdg.stateHome}/dots/theme"
+        for f in fzf.fish prompt.fish
+            test -r $__dots_theme/$f; and source $__dots_theme/$f
+        end
       '';
     };
 

@@ -213,7 +213,7 @@ in
     hyprpolkitagent
     # Pairs with programs.coolercontrol
     coolercontrol.coolercontrol-gui
-    inputs.dvr-patched.packages.${system}.default
+    # inputs.dvr-patched.packages.${system}.default
     kdePackages.ark
     kdePackages.qt6ct
   ];
