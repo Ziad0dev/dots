@@ -3,6 +3,33 @@
 {
   security.rtkit.enable = true;
 
+  boot.kernelParams = [ "threadirqs" ];
+
+  security.pam.loginLimits = [
+    {
+      domain = "@audio";
+      item = "memlock";
+      type = "-";
+      value = "unlimited";
+    }
+    {
+      domain = "@audio";
+      item = "rtprio";
+      type = "-";
+      value = "99";
+    }
+    {
+      domain = "@audio";
+      item = "nice";
+      type = "-";
+      value = "-19";
+    }
+  ];
+
+  services.udev.extraRules = ''
+    KERNEL=="cpu_dma_latency", GROUP="audio", MODE="0660"
+  '';
+
   services.pipewire = {
 
     enable = true;
