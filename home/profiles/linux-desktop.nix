@@ -25,6 +25,7 @@ in
     ../kvantum.nix
     ../obsidian.nix
     ../cleanup.nix
+    ../soulseek.nix
   ];
 
   home.sessionVariables = {
