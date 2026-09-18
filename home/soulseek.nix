@@ -24,8 +24,8 @@ in
     };
     Service = {
       ExecStart = "${pkgs.soulseek-rs}/bin/soulseek-rs daemon";
-      Restart = "on-failure";
-      RestartSec = 30;
+      Restart = "always";
+      RestartSec = 5;
     };
   };
 }

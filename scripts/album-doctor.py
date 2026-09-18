@@ -278,9 +278,22 @@ def fetch(info, report, dest, execute):
             print(f"    skip {label}: no title, nothing to search for")
             continue
 
-        hits = search(f"{info['artist']} {info['album']} {title}", info["ext"], info["lossless"])
-        if not hits:
-            hits = search(f"{info['artist']} {title}", info["ext"], info["lossless"])
+        artist = info["artist"]
+        if norm(artist) in {"various artists", "various", "va", "soundtrack"}:
+            artist = ""
+        queries = [
+            f"{artist} {info['album']} {title}",
+            f"{info['album']} {title}",
+            f"{artist} {title}",
+        ]
+        hits = []
+        for q in queries:
+            q = " ".join(q.split())
+            if not q:
+                continue
+            hits = search(q, info["ext"], info["lossless"])
+            if hits:
+                break
         choice = pick(hits, title)
         if not choice:
             print(f"    miss {label}")
@@ -312,6 +325,7 @@ def main():
     ap.add_argument("--library", type=Path, default=Path("/mnt/media/music"))
     ap.add_argument("--staging", type=Path, default=Path("/mnt/media/incoming"))
     ap.add_argument("--filter", default="", help="only albums whose path matches this")
+    ap.add_argument("--exclude", action="append", default=[], help="skip albums whose path matches")
     ap.add_argument("--no-musicbrainz", action="store_true", help="trust tags only")
     ap.add_argument("--min-have", type=int, default=2, help="ignore folders with fewer tracks")
     ap.add_argument("--mixed-threshold", type=int, default=4,
@@ -337,6 +351,10 @@ def main():
     for key in sorted(albums, key=str):
         info = summarise(albums[key])
         if playlists and all(d in playlists for d in info["dirs"]):
+            continue
+        if any(
+            x.lower() in str(d).lower() for x in args.exclude for d in info["dirs"]
+        ):
             continue
         if args.filter and not any(
             args.filter.lower() in str(d).lower() for d in info["dirs"]
