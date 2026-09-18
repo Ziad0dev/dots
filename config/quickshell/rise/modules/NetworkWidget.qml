@@ -219,44 +219,103 @@ Item {
         }
     }
 
+    property string ifaceCur: ""
+
+    function netRefresh() { routeFile.reload() }
+
+    function fetchSsid() {
+        if (rootMod.ifaceCur === "") { rootMod.ssid = ""; return }
+        ssidProc.running = false
+        ssidProc.command = ["bash", "-c",
+            "iw dev '" + rootMod.ifaceCur + "' link 2>/dev/null | sed -n 's/^[[:space:]]*SSID: //p' | head -1"]
+        ssidProc.running = true
+    }
+
     Process {
-        id: netProc
-        command: ["bash", "-c",
-            "IFACE=$(ip route get 1.1.1.1 2>/dev/null | awk '{for(i=1;i<=NF;i++) if($i==\"dev\"){print $(i+1); exit}}'); " +
-            "if [ -z \"$IFACE\" ]; then echo NONE; exit; fi; " +
-            "RX=$(awk -v i=\"$IFACE:\" '$1==i{print $2}' /proc/net/dev 2>/dev/null); " +
-            "TX=$(awk -v i=\"$IFACE:\" '$1==i{print $10}' /proc/net/dev 2>/dev/null); " +
-            "if [ -d \"/sys/class/net/$IFACE/wireless\" ]; then " +
-            "  LINK=$(iw dev \"$IFACE\" link 2>/dev/null); " +
-            "  SSID=$(printf '%s\\n' \"$LINK\" | sed -n 's/^\\s*SSID: //p' | head -1); " +
-            "  if [[ \"$SSID\" =~ \\\\(x[0-9A-Fa-f]{2}|[0-7]{3}) ]]; then SSID=$(printf '%b' \"$SSID\"); fi; " +
-            "  SIG=$(printf '%s\\n' \"$LINK\" | awk '/signal:/ {print int($2); exit}'); " +
-            "  QUAL=$(awk -v s=\"$SIG\" 'BEGIN{q=int((s+110)*100/70);if(q<0)q=0;if(q>100)q=100;print q}'); " +
-            "  printf 'WIFI\\t%s\\t%s\\t%s\\t%s\\n' \"$SSID\" \"$QUAL\" \"$RX\" \"$TX\"; " +
-            "else " +
-            "  printf 'ETHERNET\\t%s\\t%s\\t%s\\n' \"$IFACE\" \"$RX\" \"$TX\"; " +
-            "fi"
-        ]
+        id: ssidProc
         running: false
         stdout: StdioCollector {
-            onStreamFinished: {
-                var line  = this.text.trim()
-                var parts = line.split("\t")
-                var now   = Date.now()
+            onStreamFinished: rootMod.ssid = String(this.text || "").trim()
+        }
+    }
 
-                if (parts[0] === "WIFI" && parts.length >= 5) {
-                    rootMod.mode   = "wifi"
-                    rootMod.ssid   = parts[1] || ""
-                    rootMod.signal = parseInt(parts[2]) || 0
-                    rootMod.updateSpeeds(parseFloat(parts[3]) || 0, parseFloat(parts[4]) || 0, now)
-                } else if (parts[0] === "ETHERNET" && parts.length >= 4) {
-                    rootMod.mode  = "ethernet"
-                    rootMod.iface = parts[1] || ""
-                    rootMod.updateSpeeds(parseFloat(parts[2]) || 0, parseFloat(parts[3]) || 0, now)
-                } else {
-                    rootMod.mode  = "none"
-                    rootMod.prevRx = -1; rootMod.prevTx = -1
+    FileView {
+        id: routeFile
+        path: "/proc/net/route"
+        onLoaded: {
+            var best = "", bestMetric = -1
+            var lines = String(routeFile.text() || "").split("\n")
+            for (var i = 1; i < lines.length; i++) {
+                var f = lines[i].trim().split(/\s+/)
+                if (f.length < 8 || f[1] !== "00000000") continue
+                var m = parseInt(f[6]); if (isNaN(m)) m = 0
+                if (bestMetric < 0 || m < bestMetric) { bestMetric = m; best = f[0] }
+            }
+            if (best === "") {
+                rootMod.ifaceCur = ""
+                rootMod.mode = "none"
+                rootMod.ssid = ""
+                rootMod.prevRx = -1; rootMod.prevTx = -1
+                return
+            }
+            if (best !== rootMod.ifaceCur) {
+                rootMod.ifaceCur = best
+                rootMod.prevRx = -1; rootMod.prevTx = -1
+                rootMod.ssid = ""
+                rootMod.fetchSsid()
+            }
+            rootMod.iface = best
+            wirelessFile.reload()
+            devFile.reload()
+        }
+        onLoadFailed: {
+            rootMod.ifaceCur = ""
+            rootMod.mode = "none"
+            rootMod.prevRx = -1; rootMod.prevTx = -1
+        }
+    }
+
+    FileView {
+        id: wirelessFile
+        path: "/proc/net/wireless"
+        onLoaded: {
+            var isWifi = false, qual = 0
+            var lines = String(wirelessFile.text() || "").split("\n")
+            for (var i = 2; i < lines.length; i++) {
+                var line = lines[i].trim()
+                var c = line.indexOf(":")
+                if (c < 0) continue
+                if (line.substring(0, c).trim() !== rootMod.ifaceCur) continue
+                isWifi = true
+                var f = line.substring(c + 1).trim().split(/\s+/)
+                var lvl = parseFloat(String(f[2] || "").replace(".", ""))
+                if (!isNaN(lvl)) {
+                    qual = Math.round((lvl + 110) * 100 / 70)
+                    if (qual < 0) qual = 0
+                    if (qual > 100) qual = 100
                 }
+                break
+            }
+            rootMod.mode = isWifi ? "wifi" : "ethernet"
+            if (isWifi) rootMod.signal = qual
+        }
+        onLoadFailed: if (rootMod.ifaceCur !== "") rootMod.mode = "ethernet"
+    }
+
+    FileView {
+        id: devFile
+        path: "/proc/net/dev"
+        onLoaded: {
+            if (rootMod.ifaceCur === "") return
+            var lines = String(devFile.text() || "").split("\n")
+            for (var i = 2; i < lines.length; i++) {
+                var line = lines[i].trim()
+                var c = line.indexOf(":")
+                if (c < 0) continue
+                if (line.substring(0, c).trim() !== rootMod.ifaceCur) continue
+                var f = line.substring(c + 1).trim().split(/\s+/)
+                rootMod.updateSpeeds(parseFloat(f[0]) || 0, parseFloat(f[8]) || 0, Date.now())
+                break
             }
         }
     }
@@ -271,12 +330,19 @@ Item {
     // connection without keeping the old high-rate hidden poller alive. Changing a Timer's
     // interval does not force a tick, so refresh once immediately on becoming relevant.
     readonly property bool fastPoll: root.modNetwork || root.networkVisible || mode === "wifi"
-    onFastPollChanged: if (fastPoll) { netProc.running = false; netProc.running = true }
+    onFastPollChanged: if (fastPoll) rootMod.netRefresh()
 
     Timer {
         interval: rootMod.fastPoll ? 2000 : 60000
         running: true; repeat: true; triggeredOnStart: true
-        onTriggered: { netProc.running = false; netProc.running = true }
+        onTriggered: rootMod.netRefresh()
+    }
+
+    Timer {
+        interval: 30000
+        running: rootMod.mode === "wifi"
+        repeat: true
+        onTriggered: rootMod.fetchSsid()
     }
 
     TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText }
