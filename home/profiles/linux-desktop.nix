@@ -309,9 +309,9 @@ in
 
   services.mpdris2 = {
     enable = true;
-    mpd.host = "127.0.0.1";
-    notifications = true;
-    multimediaKeys = true;
+    settings.Connection.host = "127.0.0.1";
+    settings.Bling.notify = true;
+    settings.Bling.mmKeys = true;
   };
 
 }
