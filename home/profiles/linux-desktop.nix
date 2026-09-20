@@ -153,9 +153,7 @@ in
       imv
       nemo
       lnav
-      mpv
-      haruna
-      mpc-qt
+      (mpv.override { scripts = [ mpvScripts.uosc ]; })
       qt6.qtwayland
       (obs-studio.override { browserSupport = false; })
       cliamp
@@ -218,7 +216,7 @@ in
       }
     ];
   };
-  
+
   services.cliphist.enable = true;
 
   systemd.user.targets.hyprland-session = {

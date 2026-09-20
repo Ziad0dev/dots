@@ -9,8 +9,7 @@
 
     userPlugins = {
       bigFileUpload = "github:ScattrdBlade/bigFileUpload/837e9efe85ce026063a13ef7fef12e96b3a0aa18";
-      showMeYourTime = "github:ih8js-git/showMeYourTime/7d5b742b6eab4aa72bfa2874f758e6d77704fe4e";
-      vAnalyzer = "github:nay-cat/vAnalyzer/4cae389775defc5277627ae6d354d27616e923a4";
+      junkCleanup = "github:Sqaaakoi/vc-junkCleanup/2a3b173d77b4fdd695e7a39a124feb403923401a";
     };
 
     config = {
@@ -29,6 +28,7 @@
         gameActivityToggle.enable = true;
         messageLogger.enable = true;
         noMosaic.enable = true;
+        noPendingCount.enable = true;
         noTrack.enable = true;
         permissionsViewer.enable = true;
         pictureInPicture.enable = true;
@@ -45,9 +45,7 @@
       };
     };
     extraConfig.plugins = {
-      ShowMeYourTime.enable = true;
-
-      vAnalyzer.enable = true;
+      JunkCleanup.enable = true;
 
       BigFileUpload = {
         enable = true;

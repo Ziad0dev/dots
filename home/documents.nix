@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ lib, pkgs, ... }:
 
 let
 
@@ -93,17 +93,30 @@ in
 
   xdg.mimeApps = {
     enable = true;
-    defaultApplications = {
-      "application/pdf" = [ "org.pwmt.zathura.desktop" ];
-      "application/postscript" = [ "org.pwmt.zathura.desktop" ];
-      "application/epub+zip" = [ "org.pwmt.zathura.desktop" ];
-      "application/x-pdf" = [ "org.pwmt.zathura.desktop" ];
+    defaultApplications =
+      lib.genAttrs [
+        "video/mp4"
+        "video/mpeg"
+        "video/quicktime"
+        "video/webm"
+        "video/x-flv"
+        "video/x-matroska"
+        "video/x-msvideo"
+        "audio/flac"
+        "audio/mpeg"
+        "audio/x-vorbis+ogg"
+      ] (_: [ "mpv.desktop" ])
+      // {
+        "application/pdf" = [ "org.pwmt.zathura.desktop" ];
+        "application/postscript" = [ "org.pwmt.zathura.desktop" ];
+        "application/epub+zip" = [ "org.pwmt.zathura.desktop" ];
+        "application/x-pdf" = [ "org.pwmt.zathura.desktop" ];
 
-      "x-scheme-handler/http" = [ "zen-beta.desktop" ];
-      "x-scheme-handler/https" = [ "zen-beta.desktop" ];
-      "text/html" = [ "zen-beta.desktop" ];
-      "x-scheme-handler/discord" = [ "discord.desktop" ];
-    };
+        "x-scheme-handler/http" = [ "zen-beta.desktop" ];
+        "x-scheme-handler/https" = [ "zen-beta.desktop" ];
+        "text/html" = [ "zen-beta.desktop" ];
+        "x-scheme-handler/discord" = [ "discord.desktop" ];
+      };
   };
 
   xdg.configFile."mimeapps.list".force = true;
