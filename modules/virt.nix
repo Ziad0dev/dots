@@ -44,7 +44,6 @@
     spice-gtk
     virtio-win
 
-
     qemu
 
     OVMF

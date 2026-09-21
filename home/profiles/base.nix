@@ -185,7 +185,7 @@ in
       ".gnupg/gpg-agent.conf".text = "allow-preset-passphrase\n";
 
       ".config/btop/btop.conf".source = link "btop/btop.conf";
-       ".config/btop/themes/dots.theme".source =
+      ".config/btop/themes/dots.theme".source =
         config.lib.file.mkOutOfStoreSymlink "${config.xdg.stateHome}/dots/theme/btop.theme";
     };
 

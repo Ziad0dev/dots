@@ -6,3 +6,4 @@ __pycache__/
 *.back
 .direnv/
 config/broot/launcher/
+scripts/album-doctor.py

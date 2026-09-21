@@ -72,7 +72,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-
     vm-curator = {
       url = "github:mroboff/vm-curator";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -130,7 +129,6 @@
         ./modules/storage.nix
         ./modules/hdr.nix
         ./modules/dev-langs.nix
-        ./modules/ananicy-fix.nix
         ./modules/osd.nix
         ./modules/lockscreen.nix
         ./modules/sddm.nix

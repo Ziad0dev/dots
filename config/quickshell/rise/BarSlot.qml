@@ -447,6 +447,7 @@ PanelWindow {
                         ScreenRecordWidget       { id: screenRecInd;     root: barSlot.root; anchors.verticalCenter: parent.verticalCenter }
                         VoxtypeWidget            { id: voxInd;           root: barSlot.root; anchors.verticalCenter: parent.verticalCenter }
                         UpdateWidget             { id: dotsUpdateInd; root: barSlot.root; anchors.verticalCenter: parent.verticalCenter }
+                        UpstreamWidget           { id: dotsUpstreamInd; root: barSlot.root; anchors.verticalCenter: parent.verticalCenter }
                         Loader {
                             visible: iconsRow.shellFallbackActive || width > 0.5
                             active: iconsRow.shellFallbackActive

@@ -4,11 +4,15 @@ let
   hardening = import ../lib/hardening.nix;
   waitForVpnDns = import ../lib/vpn-ready.nix pkgs;
 
-  browserHardening = (removeAttrs hardening [
-    "CapabilityBoundingSet"
-    "PrivateDevices"
-    "RestrictNamespaces"
-  ]) // { ProtectSystem = "strict"; };
+  browserHardening =
+    (removeAttrs hardening [
+      "CapabilityBoundingSet"
+      "PrivateDevices"
+      "RestrictNamespaces"
+    ])
+    // {
+      ProtectSystem = "strict";
+    };
 
   wgConfig = "/etc/wireguard/mullvad.conf";
   mullvadDns = "100.64.0.7";
@@ -48,10 +52,10 @@ in
       Type = "oneshot";
       RemainAfterExit = true;
       ExecStart = "${pkgs.writeShellScript "wg-resolv-options" ''
-        ${pkgs.coreutils}/bin/printf 'nameserver %s
-options single-request-reopen timeout:2 attempts:5
-' ${mullvadDns} \
-          > /etc/netns/wg/resolv.conf
+                ${pkgs.coreutils}/bin/printf 'nameserver %s
+        options single-request-reopen timeout:2 attempts:5
+        ' ${mullvadDns} \
+                  > /etc/netns/wg/resolv.conf
       ''}";
     };
   };

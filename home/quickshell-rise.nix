@@ -168,6 +168,7 @@ let
       pulseaudio
       socat
       systemd
+      util-linux
       wireplumber
       xdg-user-dirs
     ])

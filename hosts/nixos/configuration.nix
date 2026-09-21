@@ -75,7 +75,7 @@ in
     package = fixZstdRefs pkgs.nvidia_cachyos;
   };
   services.lact.enable = true;
-  
+
   programs.coolercontrol.enable = true;
 
   programs.hyprland = {

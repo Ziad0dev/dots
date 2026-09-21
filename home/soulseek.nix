@@ -1,21 +1,6 @@
 { pkgs, ... }:
-let
-  python = pkgs.python313.withPackages (ps: [
-    ps.mutagen
-    ps.musicbrainzngs
-  ]);
-
-  albumDoctor = pkgs.writeShellApplication {
-    name = "album-doctor";
-    runtimeInputs = [ pkgs.soulseek-rs ];
-    text = ''exec ${python}/bin/python3 ${../scripts/album-doctor.py} "$@"'';
-  };
-in
 {
-  home.packages = [
-    pkgs.soulseek-rs
-    albumDoctor
-  ];
+  home.packages = [ pkgs.soulseek-rs ];
 
   systemd.user.services.soulseek-rs = {
     Unit = {

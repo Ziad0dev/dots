@@ -42,6 +42,11 @@
         viewRaw.enable = true;
         volumeBooster.enable = true;
         youtubeAdblock.enable = true;
+        disableCallIdle.enable = true;
+        memberCount.enable = true;
+        spotifyCrack.enable = true;
+        voiceChatDoubleClick.enable = true;
+        voiceMessages.enable = true;
       };
     };
     extraConfig.plugins = {

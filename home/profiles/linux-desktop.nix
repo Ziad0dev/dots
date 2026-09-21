@@ -26,7 +26,10 @@ in
     ../obsidian.nix
     ../cleanup.nix
     ../soulseek.nix
+    ../upstream-watch.nix
   ];
+
+  dots.upstreamWatch.enable = true;
 
   home.sessionVariables = {
     BROWSER = "zen-beta";
@@ -167,7 +170,7 @@ in
       slack
       signal-desktop
       teamspeak6-client
-      element-desktop
+      (element-desktop.override { commandLineArgs = "--password-store=gnome-libsecret"; })
       weechat
 
       nicotine-plus
