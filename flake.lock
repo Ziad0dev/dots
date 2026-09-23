@@ -306,16 +306,17 @@
         ]
       },
       "locked": {
-        "lastModified": 1787585898,
-        "narHash": "sha256-KKLkZEYzCGrSZa03hb8I6XPAOkXfUh+lb88OSrV1A/s=",
-        "ref": "refs/heads/master",
-        "rev": "0ef9b302aee716f36ea19e33ff3cc457d8c075a8",
-        "revCount": 62,
+        "lastModified": 1789467246,
+        "narHash": "sha256-AKXVxqfh3JCwcWx+p4+dbPAvjGzjqzPQg1UhAQREnCo=",
+        "ref": "drop-hyprland-rs",
+        "rev": "64cd10275ef313ede5bb8daf32f9621d4b5b3e1d",
+        "revCount": 63,
         "submodules": true,
         "type": "git",
         "url": "https://github.com/WhySoBad/hyprland-preview-share-picker"
       },
       "original": {
+        "ref": "drop-hyprland-rs",
         "submodules": true,
         "type": "git",
         "url": "https://github.com/WhySoBad/hyprland-preview-share-picker"

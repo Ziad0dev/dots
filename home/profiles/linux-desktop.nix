@@ -190,7 +190,12 @@ in
       inputs.zen-browser.packages.${system}.default
       inputs.helium.packages.${system}.default
       inputs.vm-curator.packages.${system}.default
-      inputs.hyprland-preview-share-picker.packages.${system}.default
+      #inputs.hyprland-preview-share-picker.packages.${system}.default
+      (inputs.hyprland-preview-share-picker.packages.${system}.default.overrideAttrs (old: {
+        postPatch = (old.postPatch or "") + ''
+          cp ${../../pkgs/hyprland-preview-share-picker/outputs.rs} src/views/outputs.rs
+        '';
+      }))
     ];
 
   programs.vscode = {
