@@ -30,10 +30,10 @@ The desktop output is built for one box. On anything else, go through this list 
 | Where | Value | Why it matters |
 |---|---|---|
 | `hosts/nixos/hardware-configuration.nix` | LUKS root, `/data` (LUKS2 via crypttab + keyfile), `/boot` | Replace wholesale |
-| `hosts/nixos/configuration.nix` | `hardware.nvidia` block, `fixZstdRefs pkgs.nvidia_cachyos` | NVIDIA + CachyOS kernel only; drop on other GPUs |
+| `hosts/nixos/configuration.nix` | `hardware.nvidia` block, `fixZstdRefs pkgs.nvidia_cachyos-bore` | NVIDIA + CachyOS kernel only; drop on other GPUs |
 | `hosts/nixos/configuration.nix` | `uid = 1001` | `DOCKER_HOST` in `home/profiles/linux-desktop.nix` hardcodes `/run/user/1001` |
 | `hosts/nixos/configuration.nix` | timezone, locale, `dots.sddm.theme` | |
-| `modules/gaming.nix` | `boot.kernelPackages = linuxPackages_cachyos` | Kernel choice lives here, not in the host |
+| `modules/gaming.nix` | `boot.kernelPackages = linuxPackages_cachyos-bore` | Kernel choice lives here, not in the host |
 | `modules/storage.nix`, `modules/media.nix` | exFAT drives by UUID | `nofail` + automount, so missing drives don't block boot |
 | `modules/lan.nix` | `lanInterface = "enp5s0"` | Jellyfin ports are opened on this interface only |
 | `modules/recording.nix` | `monitor = "DP-1"` | Replay buffer captures nothing if the output doesn't exist |

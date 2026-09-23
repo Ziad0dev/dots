@@ -73,7 +73,7 @@ in
     modesetting.enable = true;
     open = true;
     nvidiaPersistenced = true;
-    package = fixZstdRefs pkgs.nvidia_cachyos;
+    package = fixZstdRefs pkgs.nvidia_cachyos-bore;
   };
   services.lact.enable = true;
 
