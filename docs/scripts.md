@@ -37,7 +37,7 @@ Every `dots-*` name below is a symlink to one script, `scripts/dots-compat.sh`, 
 |---|---|
 | `dots-updates` | `1` if the locked chaotic rev differs from chaotic-nyx `HEAD`, else `0` (cached 1 h in `~/.cache/dots-updates`) |
 | `dots-update-available` | `1` if `flake.lock` is older than 7 days, else nothing |
-| `dots-mounts` | Space-separated names of unhealthy mounts among `/data /mnt/media /mnt/backup /mnt/newvolume`; empty means all fine |
+| `dots-mounts` | Space-separated names of unhealthy mounts among `/data /data/scratch /mnt/media /mnt/backup /mnt/pool`; empty means all fine |
 | `dots-qbt` | `<downloading> <dl B/s> <up B/s>` from the qBittorrent API, or `off` |
 | `dots-weather`, `dots-weather-status` | One-line wttr.in summary |
 | `dots-brightness-display` | Backlight percent (100 on a desktop with no backlight) |

@@ -115,11 +115,14 @@ sudo restic-home snapshots        # wrapper with repo + password preset
 |---|---|---|
 | `/` | LUKS, ext4 | |
 | `/data` | LUKS2 ext4, unlocked after root by keyfile (crypttab), `nofail` | games, models, VMs, replays |
+| `/data/scratch` | LUKS2 ext4 on the Intel 660p 512 GB (partlabel `scratch`), same keyfile as `/data`, `nofail` | QLC, ~100 TBW: read-heavy data only |
+| `/mnt/pool` | mergerfs over `/mnt/disks/pool*` (ext4, by label), `category.create=pfrd` | user:users; no redundancy, a dead disk loses only its own files |
 | `/mnt/media` | exFAT 10 TB | user:media, group-writable, automount, visible in file managers |
 | `/mnt/backup` | exFAT | root:root `0077`, automount (10 min idle), hidden from file managers |
-| `/mnt/newvolume` | exFAT | user:users, automount (10 min idle) |
 
-exFAT has no permissions, so ownership comes from mount options. udiskie ignores all three external drives by UUID — they belong to systemd — but still automounts real removable media. `dots-mounts` (the bar's storage alert) reports any of `/data /mnt/media /mnt/backup /mnt/newvolume` whose mount or automount unit isn't healthy.
+exFAT has no permissions, so ownership comes from mount options. udiskie ignores both external exFAT drives by UUID — they belong to systemd — but still automounts real removable media. `dots-mounts` (the bar's storage alert) reports any of `/data /data/scratch /mnt/media /mnt/backup /mnt/pool` whose mount or automount unit isn't healthy.
+
+Adding a pool disk: `sgdisk -o -n 1:0:0 -t 1:8300 -c 1:poolN`, `mkfs.ext4 -m 0 -L poolN`, add `"poolN"` to `poolDisks` in `modules/storage.nix`, switch, then `chown` the new branch root. The pool waits on every listed branch, so it never writes into an empty mountpoint on `/`.
 
 `/data` directories are created by tmpfiles rules in the modules that use them: `/data/games` (gaming), `/data/models` and `/data/models/ollama` (LLM), `/data/vms` and `/data/vms/iso` (virt), `/data/replays` (recording).
 

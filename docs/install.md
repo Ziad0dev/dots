@@ -34,7 +34,7 @@ The desktop output is built for one box. On anything else, go through this list 
 | `hosts/nixos/configuration.nix` | `uid = 1001` | `DOCKER_HOST` in `home/profiles/linux-desktop.nix` hardcodes `/run/user/1001` |
 | `hosts/nixos/configuration.nix` | timezone, locale, `dots.sddm.theme` | |
 | `modules/gaming.nix` | `boot.kernelPackages = linuxPackages_cachyos-bore` | Kernel choice lives here, not in the host |
-| `modules/storage.nix`, `modules/media.nix` | exFAT drives by UUID | `nofail` + automount, so missing drives don't block boot |
+| `modules/storage.nix`, `modules/media.nix` | exFAT drives by UUID, pool disks by label (`pool1`…), `/data/scratch` by partlabel | `nofail`, so missing drives don't block boot |
 | `modules/lan.nix` | `lanInterface = "enp5s0"` | Jellyfin ports are opened on this interface only |
 | `modules/recording.nix` | `monitor = "DP-1"` | Replay buffer captures nothing if the output doesn't exist |
 | `modules/performance.nix` | `cpuProfile`, `pl1Watts` / `pl2Watts` | Intel RAPL limits for a 12400F |
@@ -51,7 +51,7 @@ Nothing secret is in the store. These are created by hand once:
 |---|---|---|
 | `/etc/wireguard/mullvad.conf` | `modules/vpn.nix` | Mullvad WireGuard config; `wg-dns` rewrites its `DNS =` line on every start |
 | `/etc/restic/password` | `modules/backup.nix` | Unit refuses to start if empty |
-| `/etc/luks-data.key` | `hardware-configuration.nix` crypttab | Unlocks `/data` after root is open |
+| `/etc/luks-data.key` | crypttab (`hardware-configuration.nix`, `modules/storage.nix`) | Unlocks `/data` and `/data/scratch` after root is open |
 | `/var/lib/secrets/the-page.env` | `modules/hello-page.nix` | Optional (`-` prefix) |
 | `~/.password-store` | `pass`, `secretspec`, `pass-secret-service` | `pass init <gpg-id>` |
 | `/data/models/*.gguf` | `modules/llm.nix` | Units aren't autostarted, so missing models only fail on demand |

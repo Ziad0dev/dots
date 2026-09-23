@@ -268,10 +268,6 @@ in
           id_uuid = "2A0B-58D1";
           ignore = true;
         }
-        {
-          id_uuid = "4619-E5D1";
-          ignore = true;
-        }
       ];
     };
   };

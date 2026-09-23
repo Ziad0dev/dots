@@ -161,7 +161,7 @@ case "$CMD" in
     dots-mounts)
         # names of declared mounts that are not currently healthy; empty = all ok
         bad=""
-        for m in /data /mnt/media /mnt/backup /mnt/newvolume; do
+        for m in /data /data/scratch /mnt/media /mnt/backup /mnt/pool; do
             unit=$(systemd-escape -p --suffix=mount "$m" 2>/dev/null) || continue
             auto="${unit%.mount}.automount"
             if [ "$(systemctl show -p LoadState --value "$auto" 2>/dev/null)" = "loaded" ]; then

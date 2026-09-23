@@ -89,7 +89,7 @@ Per-user: MangoHud in `home/gaming-home.nix` (hidden by default, `Right Shift + 
 | `llm.nix` | Six llama.cpp units (Vulkan), mutually exclusive, user-startable without sudo | [Services](services.md#local-llms) |
 | `ollama.nix` | Ollama (Vulkan) on `127.0.0.1:11434`, not autostarted | [Services](services.md#local-llms) |
 | `backup.nix` | Daily restic of `$HOME` to `/mnt/backup/restic` | [Services](services.md#backups) |
-| `storage.nix` | `/mnt/backup` (root-only, hidden from file managers) and `/mnt/newvolume` | [Services](services.md#storage) |
+| `storage.nix` | `/mnt/backup` (root-only, hidden from file managers), the `/mnt/pool` mergerfs pool and its branches, `/data/scratch` (LUKS, same keyfile as `/data`) | [Services](services.md#storage) |
 | `hello-page.nix` | A small Python site from `~/the-page`, published on the tailnet with `tailscale serve` | [Services](services.md#hello-page) |
 
 ## Adding a module

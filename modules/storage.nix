@@ -1,7 +1,6 @@
 {
-  config,
+  lib,
   pkgs,
-  username,
   ...
 }:
 
@@ -13,35 +12,71 @@ let
     "X-mount.mkdir"
   ];
 
-  exfatOpts = baseOpts ++ [
-    "uid=${toString config.users.users.${username}.uid}"
-    "gid=100"
-    "umask=0022"
-    "x-gvfs-show"
-  ];
-
   backupOpts = baseOpts ++ [
     "uid=0"
     "gid=0"
     "umask=0077"
     "x-gvfs-hide"
   ];
+
+  poolDisks = map (d: "/mnt/disks/${d}") [
+    "pool1"
+  ];
 in
 {
+  fileSystems =
+    lib.genAttrs poolDisks (path: {
+      device = "/dev/disk/by-label/${baseNameOf path}";
+      fsType = "ext4";
+      options = [
+        "nofail"
+        "noatime"
+        "x-gvfs-hide"
+      ];
+    })
+    // {
+      "/mnt/backup" = {
+        device = "/dev/disk/by-uuid/6087-5FAB";
+        fsType = "exfat";
+        noCheck = true;
+        options = backupOpts;
+      };
 
-  fileSystems."/mnt/backup" = {
-    device = "/dev/disk/by-uuid/6087-5FAB";
-    fsType = "exfat";
-    noCheck = true;
-    options = backupOpts;
-  };
+      "/mnt/pool" = {
+        device = lib.concatStringsSep ":" poolDisks;
+        fsType = "mergerfs";
+        depends = poolDisks;
+        noCheck = true;
+        options = [
+          "nofail"
+          "cache.files=off"
+          "category.create=pfrd"
+          "func.getattr=newest"
+          "dropcacheonclose=false"
+          "minfreespace=50G"
+          "fsname=pool"
+          "x-gvfs-show"
+        ];
+      };
 
-  fileSystems."/mnt/newvolume" = {
-    device = "/dev/disk/by-uuid/4619-E5D1";
-    fsType = "exfat";
-    noCheck = true;
-    options = exfatOpts;
-  };
+      "/data/scratch" = {
+        device = "/dev/mapper/scratch";
+        fsType = "ext4";
+        options = [
+          "nofail"
+          "noatime"
+          "x-systemd.requires=systemd-cryptsetup@scratch.service"
+        ];
+      };
+    };
 
-  environment.systemPackages = [ pkgs.exfatprogs ];
+  environment.etc."crypttab".text = ''
+    scratch PARTLABEL=scratch /etc/luks-data.key luks,nofail
+  '';
+
+  system.fsPackages = [ pkgs.mergerfs ];
+  environment.systemPackages = [
+    pkgs.exfatprogs
+    pkgs.mergerfs
+  ];
 }
