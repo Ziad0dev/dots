@@ -50,6 +50,7 @@ in
   systemd.user.services.flatpak-managed = {
     description = "Reconcile declared flatpak remotes and packages";
     wantedBy = [ "default.target" ];
+    unitConfig.ConditionUser = "!@system";
     path = [ pkgs.flatpak ];
     serviceConfig = {
       Type = "oneshot";

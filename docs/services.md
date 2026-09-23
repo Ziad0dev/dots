@@ -128,7 +128,7 @@ Adding a pool disk: `sgdisk -o -n 1:0:0 -t 1:8300 -c 1:poolN`, `mkfs.ext4 -m 0 -
 
 ## Flatpak
 
-`modules/flatpak.nix` declares remotes and apps; the `flatpak-managed` user unit reconciles at login.
+`modules/flatpak.nix` declares remotes and apps; the `flatpak-managed` user unit reconciles at login. It skips system users (`ConditionUser=!@system`) — without that, the SDDM greeter's user manager ran it too and installed every app into `/var/lib/sddm`.
 
 - Remotes: Flathub and NVIDIA's GeForce NOW repo.
 - Apps: GeForce NOW, Foliate, Flatseal, Bottles, F3D, MeshLab, Blender, Simple Scan, Kdenlive, TeXstudio.
