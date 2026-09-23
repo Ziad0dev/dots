@@ -243,6 +243,7 @@ in
       After = [ "hyprland-session.target" ];
     };
     Service = {
+      Environment = [ "GSK_RENDERER=ngl" ];
       ExecStart = "${pkgs.swayosd}/bin/swayosd-server";
       Restart = "on-failure";
       RestartSec = 2;

@@ -64,6 +64,7 @@
     sharedDirectories.work = {
       source = "/data/vms/share";
       target = "/mnt/work";
+      writable = true;
     };
   };
 
