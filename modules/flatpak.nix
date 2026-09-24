@@ -33,6 +33,13 @@ let
     )}
     flatpak override --user --env=SDL_VIDEODRIVER=x11 com.nvidia.geforcenow
 
+    if [ -r /sys/module/nvidia/version ]; then
+      nv=$(tr . - < /sys/module/nvidia/version)
+      flatpak install --user -y --noninteractive flathub \
+        "org.freedesktop.Platform.GL.nvidia-$nv" \
+        "org.freedesktop.Platform.GL32.nvidia-$nv" || true
+    fi
+
     declared="${builtins.concatStringsSep " " appIds}"
     flatpak list --user --app --columns=application | while read -r id; do
       [ -n "$id" ] || continue

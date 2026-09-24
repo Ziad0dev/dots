@@ -132,6 +132,7 @@ Adding a pool disk: `sgdisk -o -n 1:0:0 -t 1:8300 -c 1:poolN`, `mkfs.ext4 -m 0 -
 
 - Remotes: Flathub and NVIDIA's GeForce NOW repo.
 - Apps: GeForce NOW, Foliate, Flatseal, Bottles, F3D, MeshLab, Blender, Simple Scan, Kdenlive, TeXstudio.
+- The reconciler also installs `GL.nvidia-<driver>` / `GL32.nvidia-<driver>` for the running driver (from `/sys/module/nvidia/version`). A driver bump otherwise leaves every flatpak on software GL until someone runs `flatpak update`; the old extension is then swept by `uninstall --unused`.
 - It installs anything listed and **uninstalls any user app that isn't** — add apps here, not with `flatpak install`.
 - GeForce NOW gets `SDL_VIDEODRIVER=x11`. The desktop profile exports `SDL_VIDEODRIVER=wayland` globally, flatpak inherits it, and SDL2's Wayland backend can't capture the mouse — aim breaks in-game without the override.
 

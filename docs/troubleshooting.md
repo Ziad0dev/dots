@@ -122,6 +122,10 @@ Something holds an `org.freedesktop.ScreenSaver` inhibit and keeps resetting hyp
 
 SDL picks Wayland because the desktop profile exports `SDL_VIDEODRIVER=wayland`, and SDL2's Wayland backend can't capture the mouse. `modules/flatpak.nix` applies `--env=SDL_VIDEODRIVER=x11` for it. Don't also set `--nosocket=wayland` — then SDL finds no Wayland socket and the client aborts (error `0x80F10000`).
 
+### GeForce NOW (or any flatpak) breaks after a driver update
+
+The NVIDIA GL extension is per driver version. Log out and back in (the reconciler installs the matching one), or `systemctl --user restart flatpak-managed`. Check with `flatpak list --runtime | string match -e nvidia` against `cat /sys/module/nvidia/version`. If Flathub hasn't published the new version yet, the install fails quietly and flatpaks stay on software GL until it does.
+
 ### A flatpak I installed disappeared
 
 `flatpak-managed` uninstalls user apps that aren't declared. Add it to `packages` in `modules/flatpak.nix`.
