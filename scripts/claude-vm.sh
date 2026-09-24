@@ -26,8 +26,10 @@ build() {
 boot() {
   local runner="/tmp/${ATTR}-result/bin/run-${ATTR}-vm"
   [[ -x $runner ]] || die "run build first"
+  id -nG | tr ' ' '\n' | grep -qx claude-vm \
+    || die "not in the claude-vm group yet — log out and back in after switching"
   echo "Ctrl-a x to power off. ssh -p 2222 dev@localhost (password: dev)"
-  QEMU_OPTS="${QEMU_OPTS:-} $1" "$runner"
+  exec /run/wrappers/bin/sg claude-vm -c "$(printf 'QEMU_OPTS=%q exec %q' "${QEMU_OPTS:-} $1" "$runner")"
 }
 
 case "${1:-run}" in
