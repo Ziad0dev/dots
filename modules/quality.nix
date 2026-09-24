@@ -19,7 +19,6 @@
     nix.daemonIOSchedClass = "idle";
 
     nix.settings = {
-      trusted-users = [ username ];
       keep-outputs = true;
       keep-derivations = true;
       substituters = [ "https://nix-community.cachix.org" ];
@@ -74,7 +73,7 @@
     services.avahi = {
       enable = true;
       nssmdns4 = true;
-      openFirewall = true;
+      openFirewall = false;
     };
 
   };

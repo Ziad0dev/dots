@@ -8,5 +8,6 @@ in
       8096
       8920
     ];
+    allowedUDPPorts = [ 5353 ];
   };
 }

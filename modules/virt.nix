@@ -55,6 +55,12 @@
     "d /data/vms/iso 0771 ${username} libvirtd -"
   ];
 
-  networking.firewall.trustedInterfaces = [ "virbr0" ];
+  networking.firewall.interfaces.virbr0 = {
+    allowedUDPPorts = [
+      53
+      67
+    ];
+    allowedTCPPorts = [ 53 ];
+  };
 
 }

@@ -6,9 +6,10 @@ let
   port = 8137;
 
   hardening = import ../lib/hardening.nix // {
-    ProtectHome = false;
-    ProtectSystem = "strict";
+    ProtectHome = "tmpfs";
+    BindPaths = [ dir ];
     ReadWritePaths = [ dir ];
+    ProtectSystem = "strict";
     SystemCallFilter = [
       "@system-service"
       "~@privileged"
