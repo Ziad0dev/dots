@@ -124,6 +124,7 @@
         ./modules/media.nix
         ./modules/mullvad.nix
         ./modules/media-extras.nix
+        ./modules/immich.nix
         ./modules/arr-automation.nix
         ./modules/performance.nix
         ./modules/secrets.nix

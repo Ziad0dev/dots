@@ -3,7 +3,7 @@
 let
   openasar = builtins.toJSON {
     cmdPreset = "balanced";
-    customFlags = "--enable-gpu-rasterization --ignore-gpu-blocklist --enable-features=CanvasOopRasterization";
+    customFlags = "--enable-gpu-rasterization --enable-zero-copy --ignore-gpu-blocklist --enable-hardware-overlays=single-fullscreen,single-on-top,underlay --enable-features=CanvasOopRasterization,BackForwardCache:TimeToLiveInBackForwardCacheInSeconds/300/should_ignore_blocklists/true/enable_same_site/true,ThrottleDisplayNoneAndVisibilityHiddenCrossOriginIframes,UseSkiaRenderer,WebAssemblyLazyCompilation --disable-features=Vulkan --force_high_performance_gpu";
   };
 in
 {
