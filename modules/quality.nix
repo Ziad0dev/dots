@@ -18,7 +18,10 @@
     nix.daemonCPUSchedPolicy = "idle";
     nix.daemonIOSchedClass = "idle";
 
+    security.sudo.execWheelOnly = true;
+
     nix.settings = {
+      allowed-users = [ "@wheel" ];
       keep-outputs = true;
       keep-derivations = true;
       substituters = [ "https://nix-community.cachix.org" ];

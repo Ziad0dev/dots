@@ -97,6 +97,7 @@ in
     enable = true;
     group = "media";
     openFirewall = false;
+    settings.server.bindaddress = "127.0.0.1";
   };
 
   systemd.services.radarr.unitConfig.RequiresMountsFor = [ mediaRoot ];
@@ -106,6 +107,7 @@ in
     enable = true;
     group = "media";
     openFirewall = false;
+    settings.server.bindaddress = "127.0.0.1";
   };
 
   systemd.services.sonarr.unitConfig.RequiresMountsFor = [ mediaRoot ];

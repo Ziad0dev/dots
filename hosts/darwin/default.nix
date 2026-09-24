@@ -26,10 +26,7 @@
       "nix-command"
       "flakes"
     ];
-    trusted-users = [
-      "root"
-      username
-    ];
+    trusted-users = [ "root" ];
     max-jobs = "auto";
     keep-outputs = true;
     keep-derivations = true;

@@ -24,11 +24,6 @@
 
     hyprland.url = "github:hyprwm/Hyprland";
 
-    dvr-patched = {
-      url = "git+https://git.sljusard.com/sljusard/dvr-patched-flake.git";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     hyprland-preview-share-picker = {
             # url = "git+https://github.com/WhySoBad/hyprland-preview-share-picker?submodules=1";
       url = "git+https://github.com/WhySoBad/hyprland-preview-share-picker?submodules=1&ref=drop-hyprland-rs";

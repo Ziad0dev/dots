@@ -22,7 +22,7 @@ in
   ];
 
   systemd.tmpfiles.rules = [
-    "d ${replayDir} 0755 ${username} users -"
+    "d ${replayDir} 0700 ${username} users -"
   ];
 
   systemd.user.services.gsr-replay = {

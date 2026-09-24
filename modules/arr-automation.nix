@@ -41,14 +41,14 @@ let
       [ -f "$cfg" ] || return 0
       key=$(${grep} -oP '(?<=<ApiKey>)[^<]+' "$cfg") || return 0
 
-      ids=$(${curl} -sf --max-time 60 -H "X-Api-Key: $key" \
+      ids=$(${curl} -sf --max-time 60 -H @- <<<"X-Api-Key: $key" \
         "$url/api/v3/wanted/missing?pageSize=${toString batchSize}&sortDirection=descending&monitored=true" \
         | ${jq} -c '[.records[].id]') || return 0
 
       [ "$ids" = "[]" ] && return 0
 
       ${curl} -sf --max-time 60 -X POST \
-        -H "X-Api-Key: $key" -H "Content-Type: application/json" \
+        -H @- <<<"X-Api-Key: $key" -H "Content-Type: application/json" \
         -d "{\"name\":\"$cmd\",\"$field\":$ids}" \
         "$url/api/v3/command" >/dev/null || return 0
 
@@ -78,10 +78,10 @@ let
       key=$(${grep} -oP '(?<=<ApiKey>)[^<]+' "$cfg")
 
       echo "== $name =="
-      ${curl} -sf --max-time 10 -H "X-Api-Key: $key" "$url/$api/indexer" \
+      ${curl} -sf --max-time 10 -H @- <<<"X-Api-Key: $key" "$url/$api/indexer" \
         | ${jq} -r '.[] | "  \(.name)  enabled=\(.enable // "-")  rss=\(.enableRss // "-") auto=\(.enableAutomaticSearch // "-") interactive=\(.enableInteractiveSearch // "-")"' \
         || echo "  unreachable"
-      ${curl} -sf --max-time 10 -H "X-Api-Key: $key" "$url/$api/indexerstatus" \
+      ${curl} -sf --max-time 10 -H @- <<<"X-Api-Key: $key" "$url/$api/indexerstatus" \
         | ${jq} -r 'if length == 0 then "  no backoff" else .[] | "  BACKOFF id=\(.indexerId) till=\(.disabledTill)" end' \
         || true
       echo
