@@ -132,6 +132,7 @@
         ./modules/dev-langs.nix
         ./modules/osd.nix
         ./modules/lockscreen.nix
+        ./modules/sway.nix
         ./modules/sddm.nix
         ./modules/foreign.nix
         ./modules/flatpak.nix

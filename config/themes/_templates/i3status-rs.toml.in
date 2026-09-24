@@ -1,0 +1,6 @@
+idle_fg = "${foreground}"
+info_fg = "${blue}"
+good_fg = "${green}"
+warning_fg = "${yellow}"
+critical_fg = "${red}"
+separator_fg = "${muted}"

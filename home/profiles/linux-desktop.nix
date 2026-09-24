@@ -20,6 +20,7 @@ in
     ../documents.nix
     ../quickshell-rise.nix
     ../theming.nix
+    ../sway.nix
     ../ai-usage.nix
     ../github-inbox.nix
     ../kvantum.nix

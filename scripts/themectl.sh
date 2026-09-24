@@ -162,6 +162,14 @@ vscode_compat() {
     mkdir -p "$dir"
     relink "$out" "$dir/settings.json"
 }
+i3status_compat() {
+    local out dir
+    out="$STATE/i3status-rs.toml"
+    [ -f "$out" ] || return 0
+    dir="${XDG_CONFIG_HOME:-$HOME/.config}/i3status-rust/themes"
+    mkdir -p "$dir"
+    relink "$out" "$dir/dots.toml"
+}
 gtk_compat() {
     local out d
     out="$STATE/gtk.css"
@@ -208,6 +216,11 @@ reload_apps() {
         hyprctl reload >/dev/null 2>&1 || true
     fi
 
+    if [ -n "${SWAYSOCK:-}" ] && command -v swaymsg >/dev/null 2>&1; then
+        swaymsg reload >/dev/null 2>&1 || true
+    fi
+    pkill -USR2 i3status-rs 2>/dev/null || true
+
     if command -v systemctl >/dev/null 2>&1; then
         systemctl --user try-restart swayosd.service 2>/dev/null || true
     fi
@@ -237,6 +250,7 @@ cmd_set() {
     sddm_compat "$name"
     kvantum_compat "$name"
     vscode_compat "$name"
+    i3status_compat
     gtk_compat
     vencord_compat
     reload_apps

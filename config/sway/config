@@ -1,0 +1,223 @@
+set $mod Mod4
+set $term ghostty
+
+set $dots_bg #161616
+set $dots_fg #f2f4f8
+set $dots_accent #ee5396
+set $dots_surface #272728
+set $dots_muted #6e6e70
+set $dots_inactive #393939
+set $dots_urgent #ee5396
+set $dots_menu fuzzel
+include ~/.local/state/dots/theme/sway.conf
+
+set $session_vars WAYLAND_DISPLAY DISPLAY SWAYSOCK XDG_CURRENT_DESKTOP XDG_SESSION_TYPE XDG_SESSION_DESKTOP NIXOS_OZONE_WL MOZ_ENABLE_WAYLAND QT_QPA_PLATFORM QT_QPA_PLATFORMTHEME
+
+output DP-1 mode 2560x1440@239.970Hz position 0 0 scale 1 adaptive_sync off
+output HDMI-A-1 mode 1920x1080@60Hz position 2560 0 scale 1 transform 90
+
+workspace 1 output DP-1
+workspace 2 output DP-1
+workspace 3 output DP-1
+workspace 4 output DP-1
+workspace 5 output DP-1
+workspace 6 output DP-1
+workspace 7 output DP-1
+workspace 8 output DP-1
+workspace 10 output DP-1
+workspace 9 output HDMI-A-1
+
+input type:keyboard {
+    xkb_layout us,se,ara,fr,de
+    xkb_options grp:rctrl_toggle,compose:caps
+    xkb_numlock enabled
+    repeat_rate 40
+    repeat_delay 250
+}
+
+input type:pointer {
+    accel_profile flat
+    pointer_accel 0
+}
+
+input type:touchpad {
+    tap enabled
+    drag_lock enabled
+    dwt enabled
+    natural_scroll disabled
+}
+
+seat * xcursor_theme Bibata-Modern-Classic 24
+seat * hide_cursor when-typing enable
+
+font pango:JetBrainsMono Nerd Font 10
+default_border pixel 1
+default_floating_border pixel 1
+titlebar_border_thickness 1
+titlebar_padding 4 2
+gaps inner 2
+gaps outer 0
+focus_follows_mouse yes
+mouse_warping container
+focus_on_window_activation focus
+floating_modifier $mod normal
+
+client.focused          $dots_accent   $dots_surface $dots_fg    $dots_accent   $dots_accent
+client.focused_inactive $dots_inactive $dots_bg      $dots_muted $dots_inactive $dots_inactive
+client.unfocused        $dots_inactive $dots_bg      $dots_muted $dots_inactive $dots_inactive
+client.urgent           $dots_urgent   $dots_urgent  $dots_bg    $dots_urgent   $dots_urgent
+
+bindsym --to-code {
+    $mod+Return exec $term
+    $mod+Shift+Return exec $term -e tmux new-session -A -s main
+    $mod+grave exec sh -c 'swaymsg "[app_id=dev.dots.scratch] scratchpad show" || $term --class=dev.dots.scratch'
+
+    $mod+d exec $dots_menu
+    $mod+b exec sh -c 'swaymsg "[app_id=zen-beta] focus" || zen-beta'
+    $mod+o exec sh -c 'swaymsg "[app_id=obsidian] focus" || obsidian'
+    $mod+c exec sh -c 'swaymsg "[app_id=discord] focus" || discord'
+
+    $mod+Shift+q kill
+    $mod+f fullscreen toggle
+    $mod+Shift+space floating toggle
+    $mod+space focus mode_toggle
+    $mod+g layout toggle tabbed split
+    $mod+semicolon splith
+    $mod+apostrophe splitv
+    $mod+u focus parent
+
+    $mod+h focus left
+    $mod+j focus down
+    $mod+k focus up
+    $mod+l focus right
+    $mod+Left focus left
+    $mod+Down focus down
+    $mod+Up focus up
+    $mod+Right focus right
+    $mod+Shift+h move left
+    $mod+Shift+j move down
+    $mod+Shift+k move up
+    $mod+Shift+l move right
+    $mod+Shift+Left move left
+    $mod+Shift+Down move down
+    $mod+Shift+Up move up
+    $mod+Shift+Right move right
+
+    $mod+1 workspace number 1
+    $mod+2 workspace number 2
+    $mod+3 workspace number 3
+    $mod+4 workspace number 4
+    $mod+5 workspace number 5
+    $mod+6 workspace number 6
+    $mod+7 workspace number 7
+    $mod+8 workspace number 8
+    $mod+9 workspace number 9
+    $mod+0 workspace number 10
+    $mod+Shift+1 move container to workspace number 1
+    $mod+Shift+2 move container to workspace number 2
+    $mod+Shift+3 move container to workspace number 3
+    $mod+Shift+4 move container to workspace number 4
+    $mod+Shift+5 move container to workspace number 5
+    $mod+Shift+6 move container to workspace number 6
+    $mod+Shift+7 move container to workspace number 7
+    $mod+Shift+8 move container to workspace number 8
+    $mod+Shift+9 move container to workspace number 9
+    $mod+Shift+0 move container to workspace number 10
+    $mod+Tab workspace next_on_output
+    $mod+Shift+Tab workspace prev_on_output
+
+    $mod+minus scratchpad show
+    $mod+Shift+minus move scratchpad
+
+    $mod+r mode resize
+
+    $mod+Shift+t exec themectl next
+    $mod+Ctrl+Shift+space exec sh -c 'themectl set "$(themectl list | $dots_menu --dmenu --prompt=theme:)"'
+    $mod+e exec sh -c 'f=$(ls ~/Pictures/wallpapers | $dots_menu --dmenu --prompt=wallpaper:) && themectl bg set ~/Pictures/wallpapers/"$f"'
+    $mod+Ctrl+e exec themectl bg next
+    $mod+n exec dots-nightlight toggle
+    $mod+v exec voxtype toggle
+    $mod+period exec bemoji -n -t
+    $mod+Shift+v exec sh -c 'cliphist list | $dots_menu --dmenu | cliphist decode | wl-copy'
+
+    $mod+s exec flameshot gui
+    $mod+Print exec sh -c 'grim - | wl-copy && notify-send Screenshot "Full screen copied to clipboard"'
+    $mod+Shift+r exec sh -c 'systemctl --user reload gsr-replay && notify-send -t 3000 "Replay saved" "last 5 min -> /data/replays"'
+
+    $mod+Shift+e exit
+    $mod+Ctrl+r reload
+    $mod+Ctrl+l exec loginctl lock-session
+    $mod+Escape exec loginctl lock-session
+}
+
+bindsym Print exec sh -c 'grim -g "$(slurp)" - | satty --filename - --fullscreen --output-filename ~/Pictures/screenshot-$(date +%Y%m%d-%H%M%S).png'
+
+bindsym --locked {
+    XF86AudioRaiseVolume exec sh -c 'pamixer -i 5 && notify-send -h int:value:$(pamixer --get-volume) Volume'
+    XF86AudioLowerVolume exec sh -c 'pamixer -d 5 && notify-send -h int:value:$(pamixer --get-volume) Volume'
+    XF86AudioMute exec sh -c 'pamixer -t && notify-send Volume "$(pamixer --get-volume-human)"'
+    XF86AudioPlay exec playerctl play-pause
+    XF86AudioNext exec playerctl next
+    XF86AudioPrev exec playerctl previous
+}
+
+bindsym --whole-window {
+    $mod+button4 workspace prev_on_output
+    $mod+button5 workspace next_on_output
+}
+
+mode resize {
+    bindsym --to-code {
+        h resize shrink width 20px
+        j resize grow height 20px
+        k resize shrink height 20px
+        l resize grow width 20px
+        Left resize shrink width 20px
+        Down resize grow height 20px
+        Up resize shrink height 20px
+        Right resize grow width 20px
+        Escape mode default
+        Return mode default
+    }
+}
+
+for_window [app_id=".*"] inhibit_idle fullscreen
+for_window [class=".*"] inhibit_idle fullscreen
+for_window [app_id="^com.dots.float.lg$"] floating enable, resize set 1200 750, move position center
+for_window [app_id="^com.dots.float.md$"] floating enable, resize set 1100 700, move position center
+for_window [app_id="^com.dots.float.sm$"] floating enable, resize set 900 600, move position center
+for_window [app_id="^com.dots.float$"] floating enable, resize set 1200 750, move position center
+for_window [app_id="^dev.dots.scratch$"] floating enable, resize set 60 ppt 60 ppt, move position center, move scratchpad, scratchpad show
+for_window [app_id="^flameshot$"] floating enable, sticky enable
+for_window [window_role="pop-up"] floating enable
+for_window [window_type="dialog"] floating enable
+assign [app_id="^dev.dots.sysmon$"] workspace number 9
+assign [app_id="^discord$"] workspace number 10
+assign [app_id="^spotify$"] workspace number 10
+
+bar {
+    id main
+    position top
+    output DP-1
+    font pango:JetBrainsMono Nerd Font 10
+    status_command sh -c '(test -e ~/.config/i3status-rust/themes/dots.toml || themectl reload >/dev/null 2>&1 || true) && exec i3status-rs ~/.config/sway/status.toml'
+    tray_output DP-1
+    workspace_min_width 24
+    colors {
+        background $dots_bg
+        statusline $dots_fg
+        separator $dots_muted
+        focused_workspace $dots_accent $dots_accent $dots_bg
+        active_workspace $dots_surface $dots_surface $dots_fg
+        inactive_workspace $dots_bg $dots_bg $dots_muted
+        urgent_workspace $dots_urgent $dots_urgent $dots_bg
+    }
+}
+
+exec sh -c 'systemctl --user unset-environment HYPRLAND_INSTANCE_SIGNATURE && dbus-update-activation-environment --systemd $session_vars && systemctl --user import-environment $session_vars && systemctl --user start sway-session.target && systemctl --user start hyprpolkitagent'
+exec swaymsg -t subscribe '["shutdown"]' && systemctl --user stop sway-session.target && systemctl --user unset-environment SWAYSOCK
+exec dunst
+exec awww-daemon
+exec autotiling-rs
+exec easyeffects --gapplication-service
+exec sh -c 'tmux has-session -t sysmon 2>/dev/null || { tmux new-session -d -s sysmon -n sysmon "btop || exec fish" && tmux split-window -v -t sysmon:sysmon "nvtop || exec fish"; } && $term --class=dev.dots.sysmon -e tmux new-session -A -s sysmon'
