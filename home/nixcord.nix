@@ -1,11 +1,25 @@
-{ ... }:
+{ lib, pkgs, ... }:
 
+let
+  openasar = builtins.toJSON {
+    cmdPreset = "balanced";
+    customFlags = "--enable-gpu-rasterization --ignore-gpu-blocklist --enable-features=CanvasOopRasterization";
+  };
+in
 {
+  home.activation.discordOpenasarFlags = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    f="$HOME/.config/discord/settings.json"
+    mkdir -p "$(dirname "$f")"
+    [ -s "$f" ] || echo '{}' > "$f"
+    ${lib.getExe pkgs.jq} --argjson oa '${openasar}' '.openasar = ((.openasar // {}) + $oa)' "$f" > "$f.tmp"
+    mv "$f.tmp" "$f"
+  '';
+
   programs.nixcord = {
     enable = true;
     discord.vencord.enable = true;
     discord.krisp.enable = true;
-    discord.openASAR.enable = false;
+    discord.openASAR.enable = true;
 
     userPlugins = {
       bigFileUpload = "github:ScattrdBlade/bigFileUpload/837e9efe85ce026063a13ef7fef12e96b3a0aa18";
