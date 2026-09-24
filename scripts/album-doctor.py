@@ -7,7 +7,9 @@ import shutil
 import sqlite3
 import subprocess
 import sys
+import time
 import unicodedata
+import urllib.parse
 from collections import defaultdict
 from pathlib import Path
 
@@ -20,6 +22,7 @@ AUDIO = {".flac", ".mp3", ".m4a", ".ogg", ".opus", ".wav", ".wv", ".aiff",
 LOSSLESS = {".flac", ".wav", ".wv", ".aiff", ".aif", ".ape", ".alac"}
 CACHE = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")) / "album-doctor"
 VARIOUS = {"various artists", "various", "va", "soundtrack"}
+SEARCH_GAP = float(os.environ.get("ALBUM_DOCTOR_SEARCH_GAP", "4"))
 STOP = {"the", "and", "vol", "disc", "edition", "deluxe", "remaster", "remastered",
         "version", "flac", "mp3", "web"}
 
@@ -321,7 +324,15 @@ def diagnose(info, use_mb, max_expected=40):
     return {"source": "tags", "expected": total, "missing": missing} if missing else None
 
 
+_last_search = [0.0]
+
+
 def slsk(args, check=False):
+    if args and args[0] == "search":
+        wait = _last_search[0] + SEARCH_GAP - time.monotonic()
+        if wait > 0:
+            time.sleep(wait)
+        _last_search[0] = time.monotonic()
     return subprocess.run(
         ["soulseek-rs", *args], capture_output=True, text=True, check=check
     )
@@ -430,6 +441,59 @@ def pick_folder(hits, expected, lossless, artist, album):
     return best[1:] if best else None
 
 
+PARALLEL = {
+    "slsk": int(os.environ.get("ALBUM_DOCTOR_PARALLEL", "10")),
+    "yt": int(os.environ.get("ALBUM_DOCTOR_YT_PARALLEL", "3")),
+}
+_running = {"slsk": [], "yt": []}
+
+
+def _reap():
+    for kind, jobs in _running.items():
+        for job in list(jobs):
+            proc, label, done = job
+            if proc.poll() is None:
+                continue
+            jobs.remove(job)
+            if proc.returncode == 0:
+                if done:
+                    done()
+            else:
+                print(f"    fail {label}: exit {proc.returncode}")
+
+
+def launch(kind, cmd, label, payload=None, done=None):
+    while True:
+        _reap()
+        if len(_running[kind]) < PARALLEL[kind]:
+            break
+        time.sleep(2)
+    proc = subprocess.Popen(
+        cmd, stdin=subprocess.PIPE if payload is not None else subprocess.DEVNULL,
+        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, text=True,
+    )
+    if payload is not None:
+        proc.stdin.write(payload)
+        proc.stdin.close()
+    _running[kind].append((proc, label, done))
+
+
+def wait_all():
+    pending = sum(len(j) for j in _running.values())
+    if pending:
+        print(f"\nwaiting for {pending} download job(s) to finish")
+    while any(_running.values()):
+        _reap()
+        time.sleep(2)
+
+
+def queue_slsk(items, target, timeout, label, done=None):
+    target.mkdir(parents=True, exist_ok=True)
+    payload = "".join(json.dumps(h) + "\n" for h in items)
+    launch("slsk", ["soulseek-rs", "download", "--stdin", "-t", str(timeout),
+                    "--download-dir", str(target)], label, payload, done)
+
+
 def fetch_album(info, report, dest, execute, timeout=600, ytdl="", ytdl_max=3):
     expected = report["expected"]
     artist = credited(info["artist"])
@@ -442,20 +506,11 @@ def fetch_album(info, report, dest, execute, timeout=600, ytdl="", ytdl_max=3):
             print(f"    {'get ' if execute else 'find'} folder {len(items)}/{expected} <- {user}")
             if not execute:
                 return len(items)
-            target = dest / safe_name(info["artist"]) / safe_name(info["album"])
-            target.mkdir(parents=True, exist_ok=True)
-            payload = "".join(json.dumps(h) + "\n" for h in items)
-            out = subprocess.run(
-                ["soulseek-rs", "download", "--stdin", "-t", str(timeout),
-                 "--download-dir", str(target)],
-                input=payload, capture_output=True, text=True, check=False,
-            )
-            if out.returncode == 0:
-                for d in info["dirs"]:
-                    replaced_log(d)
-                return len(items)
-            print(f"    fail folder: exit {out.returncode}")
-            return 0
+            dirs = list(info["dirs"])
+            queue_slsk(items, dest / safe_name(info["artist"]) / safe_name(info["album"]),
+                       timeout, f"folder {info['album']}",
+                       lambda: [replaced_log(d) for d in dirs])
+            return len(items)
     print(f"    miss folder ({expected} tracks), falling back to tracks")
     return fetch(info, report, dest, execute, timeout, ytdl, ytdl_max)
 
@@ -493,6 +548,118 @@ def tag_file(path, artist, album, title, track):
 
 def have_ytdlp():
     return shutil.which("yt-dlp") is not None
+
+
+def ytdlp_json(url, timeout=180):
+    try:
+        r = subprocess.run(
+            ["yt-dlp", "--flat-playlist", "-J", "--no-warnings", url],
+            capture_output=True, text=True, timeout=timeout, check=False,
+        )
+    except subprocess.TimeoutExpired:
+        return None
+    if r.returncode != 0:
+        return None
+    try:
+        return json.loads(r.stdout)
+    except json.JSONDecodeError:
+        return None
+
+
+def retag_album(target, since, artist, album):
+    for f in target.iterdir():
+        if f.suffix.lower() not in AUDIO:
+            continue
+        try:
+            if f.stat().st_mtime < since:
+                continue
+            m = mutagen.File(f, easy=True)
+            if m is None:
+                continue
+            if m.tags is None:
+                m.add_tags()
+            m["album"] = [album]
+            if artist:
+                m["albumartist"] = [artist]
+            m.save()
+        except Exception:
+            pass
+
+
+def ytmusic_album(info, report, dest, execute, fmt="opus"):
+    artist = credited(info["artist"])
+    query = " ".join(f"{artist} {info['album']}".split())
+    search = "https://music.youtube.com/search?q=" + urllib.parse.quote(query) + "#albums"
+    found = ytdlp_json(search)
+    if not found:
+        print("    ytm-miss search failed")
+        return 0
+
+    titles = [norm(t["title"]) for t in report["missing"] if t["title"]]
+    expected = [t for t in titles + sorted(info["titles"]) if t]
+
+    def same(a, b):
+        return bool(a and b) and (a == b or f" {a} " in f" {b} " or f" {b} " in f" {a} ")
+
+    def who(d):
+        return " ".join(
+            " ".join(map(str, v)) if isinstance(v, list) else str(v or "")
+            for v in (d.get(k) for k in ("artist", "artists", "creator", "uploader", "channel"))
+        )
+
+    choice = url = None
+    tracks = []
+    for e in (found.get("entries") or [])[:5]:
+        cand = e.get("url") or e.get("webpage_url")
+        listing = ytdlp_json(cand) if cand else None
+        entries = (listing or {}).get("entries") or []
+        if not entries:
+            continue
+        names = [norm(t.get("title")) for t in entries]
+        if expected:
+            hits = sum(any(same(x, n) for n in names) for x in expected)
+            ok = hits >= max(1, round(len(expected) * 0.5))
+        else:
+            ok = mentions(info["album"], listing.get("title") or "") and (
+                not artist or mentions_artist(artist, who(listing) + " " + (listing.get("title") or ""))
+            )
+        if ok:
+            choice, url, tracks = listing, cand, entries
+            break
+    if not choice:
+        print("    ytm-miss no matching album")
+        return 0
+    numbers = {t["track"] for t in report["missing"]}
+    picks = []
+    for i, e in enumerate(tracks, start=1):
+        n = norm(e.get("title"))
+        if titles:
+            if n and any(n == w or f" {w} " in f" {n} " or f" {n} " in f" {w} " for w in titles):
+                picks.append(i)
+        elif i in numbers:
+            picks.append(i)
+    if not picks:
+        print(f"    ytm-miss none of the missing tracks on {choice.get('title')}")
+        return 0
+
+    print(f"    {'ytm ' if execute else 'ytm?'} {len(picks)}/{len(report['missing'])} <- {choice.get('title')}")
+    if not execute:
+        return len(picks)
+
+    target = dest / safe_name(info["artist"]) / safe_name(info["album"])
+    target.mkdir(parents=True, exist_ok=True)
+    since = time.time() - 1
+    cmd = [
+        "yt-dlp", "--quiet", "--no-warnings", "--embed-metadata",
+        "-x", "--audio-format", fmt, "--audio-quality", "0",
+        "--playlist-items", ",".join(map(str, picks)),
+        "-o", str(target / "%(playlist_index)02d - %(title)s.%(ext)s"),
+        url,
+    ]
+    albumartist, album = info["artist"], info["album"]
+    launch("yt", cmd, f"ytm {album}",
+           done=lambda: retag_album(target, since, albumartist, album))
+    return len(picks)
 
 
 def ytdl_one(info, want, dest, execute, fmt):
@@ -551,6 +718,9 @@ def fetch(info, report, dest, execute, timeout=600, ytdl="", ytdl_max=3):
     if len(report["missing"]) > ytdl_max:
         ytdl = ""
     artist = credited(info["artist"])
+    base = " ".join(f"{artist} {info['album']}".split())
+    pool = search(base, info["ext"], info["lossless"]) if base else []
+    chosen = []
     for want in report["missing"]:
         title = want["title"]
         label = title or f"track {want['track']}"
@@ -558,19 +728,14 @@ def fetch(info, report, dest, execute, timeout=600, ytdl="", ytdl_max=3):
             print(f"    skip {label}: no title, nothing to search for")
             continue
 
-        queries = [
-            f"{artist} {info['album']} {title}",
-            f"{info['album']} {title}",
-            f"{artist} {title}" if artist else "",
-        ]
-        choice = None
-        for q in queries:
-            q = " ".join(q.split())
-            if not q:
-                continue
-            choice = pick(search(q, info["ext"], info["lossless"]), title, artist, info["album"])
-            if choice:
-                break
+        choice = pick(pool, title, artist, info["album"])
+        if not choice:
+            for q in (f"{artist} {info['album']} {title}", f"{artist} {title}" if artist else ""):
+                q = " ".join(q.split())
+                if q:
+                    choice = pick(search(q, info["ext"], info["lossless"]), title, artist, info["album"])
+                if choice:
+                    break
         if not choice:
             if ytdl:
                 got += ytdl_one(info, want, dest, execute, ytdl)
@@ -579,30 +744,12 @@ def fetch(info, report, dest, execute, timeout=600, ytdl="", ytdl_max=3):
             continue
 
         print(f"    {'get ' if execute else 'find'} {label}  <- {choice['user']}")
-        if not execute:
-            got += 1
-            continue
+        chosen.append(choice)
+        got += 1
 
-        target = dest / safe_name(info["artist"]) / safe_name(info["album"])
-        try:
-            target.mkdir(parents=True, exist_ok=True)
-        except OSError as e:
-            print(f"    error {e}", file=sys.stderr)
-            continue
-        r = subprocess.run(
-            ["soulseek-rs", "download", "--stdin", "-t", str(timeout),
-             "--download-dir", str(target)],
-            input=json.dumps(choice) + "\n",
-            check=False,
-            capture_output=True,
-            text=True,
-        )
-        if r.returncode == 0:
-            got += 1
-        else:
-            print(f"    fail {label}: exit {r.returncode}")
-            if ytdl:
-                got += ytdl_one(info, want, dest, execute, ytdl)
+    if execute and chosen:
+        queue_slsk(chosen, dest / safe_name(info["artist"]) / safe_name(info["album"]),
+                   timeout, f"tracks {info['album']}")
     return got
 
 
@@ -976,6 +1123,8 @@ def main():
     ap.add_argument("--ytdl", nargs="?", const="opus", default="",
                     metavar="FORMAT",
                     help="fall back to yt-dlp for tracks soulseek cannot supply")
+    ap.add_argument("--ytmusic", action="store_true",
+                    help="fetch missing tracks from the official YouTube Music album instead of soulseek")
     ap.add_argument("--ytdl-max", type=int, default=3, metavar="N",
                     help="only use yt-dlp for albums missing N or fewer tracks")
     ap.add_argument("--max-expected", type=int, default=40, metavar="N",
@@ -1008,7 +1157,9 @@ def main():
     if ytdl and not have_ytdlp():
         print("yt-dlp not on PATH; continuing without the fallback", file=sys.stderr)
         ytdl = ""
-    if args.fetch:
+    if args.ytmusic and not have_ytdlp():
+        sys.exit("yt-dlp not on PATH")
+    if args.fetch and not args.ytmusic:
         require_daemon()
 
     albums = group(scan(args.library, verbose=True), args.mixed_threshold)
@@ -1046,7 +1197,9 @@ def main():
         if args.fetch:
             ratio = info["count"] / max(report["expected"], 1)
             try:
-                if ratio < args.whole_below:
+                if args.ytmusic:
+                    queued += ytmusic_album(info, report, args.staging, args.go)
+                elif ratio < args.whole_below:
                     queued += fetch_album(info, report, args.staging, args.go,
                                           args.transfer_timeout, ytdl, args.ytdl_max)
                 else:
@@ -1058,6 +1211,8 @@ def main():
             for want in report["missing"]:
                 print(f"    {want['disc']}-{want['track']:02d}  {want['title'] or '?'}")
 
+    if args.go:
+        wait_all()
     verb = "downloaded" if args.go else "findable"
     print(f"\n{incomplete} incomplete album(s)" + (f", {queued} {verb}" if args.fetch else ""))
 
