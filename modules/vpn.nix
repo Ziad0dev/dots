@@ -16,6 +16,7 @@ let
 
   wgConfig = "/etc/wireguard/mullvad.conf";
   mullvadDns = "100.64.0.7";
+  mullvadFallbackDns = "10.64.0.1";
 
   tailnet = "100.64.0.0/10";
 
@@ -52,10 +53,11 @@ in
       Type = "oneshot";
       RemainAfterExit = true;
       ExecStart = "${pkgs.writeShellScript "wg-resolv-options" ''
-                ${pkgs.coreutils}/bin/printf 'nameserver %s
-        options single-request-reopen timeout:2 attempts:5
-        ' ${mullvadDns} \
-                  > /etc/netns/wg/resolv.conf
+        ${pkgs.coreutils}/bin/printf '%s\n' \
+          "nameserver ${mullvadDns}" \
+          "nameserver ${mullvadFallbackDns}" \
+          "options single-request-reopen timeout:2 attempts:3" \
+          > /etc/netns/wg/resolv.conf
       ''}";
     };
   };

@@ -5,27 +5,62 @@ let
   radarrData = "/var/lib/radarr/.config/Radarr";
   prowlarrData = "/var/lib/prowlarr";
 
+  prowlarrDb = "${prowlarrData}/prowlarr.db";
+  sonarrDb = "${sonarrData}/sonarr.db";
+  radarrDb = "${radarrData}/radarr.db";
+  arrDbs = "${prowlarrDb} ${sonarrDb} ${radarrDb}";
+
   sonarrUrl = "http://127.0.0.1:8989";
   radarrUrl = "http://127.0.0.1:7878";
   prowlarrUrl = "http://192.168.15.1:9696";
 
   batchSize = 25;
 
-  sqlite = "${pkgs.sqlite}/bin/sqlite3";
+  sqlite = "${pkgs.sqlite}/bin/sqlite3 -cmd '.timeout 5000'";
   curl = "${pkgs.curl}/bin/curl";
   jq = "${pkgs.jq}/bin/jq";
   grep = "${pkgs.gnugrep}/bin/grep";
+  ip = "${pkgs.iproute2}/bin/ip";
+
+  blockedSql = "select count(*) from IndexerStatus where datetime(DisabledTill) > datetime('now');";
 
   resetIndexerStatus = pkgs.writeShellScript "arr-reset-indexer-status" ''
-    for db in \
-      ${prowlarrData}/prowlarr.db \
-      ${prowlarrData}/.config/Prowlarr/prowlarr.db \
-      ${sonarrData}/sonarr.db \
-      ${radarrData}/radarr.db
-    do
+    for db in ${arrDbs}; do
       [ -f "$db" ] || continue
       ${sqlite} "$db" "delete from IndexerStatus;" || true
     done
+  '';
+
+  recoverIndexers = pkgs.writeShellScript "arr-recover-indexers" ''
+    set -u
+
+    blocked=0
+    for db in ${arrDbs}; do
+      [ -f "$db" ] || continue
+      n=$(${sqlite} "$db" "${blockedSql}") || continue
+      blocked=$((blocked + n))
+    done
+
+    [ "$blocked" -eq 0 ] && exit 0
+
+    if ! ${ip} netns exec wg ${curl} -s -o /dev/null --max-time 15 https://indexers.prowlarr.com/; then
+      echo "$blocked indexers in backoff, wg namespace still can't reach out; leaving them"
+      exit 0
+    fi
+
+    ${resetIndexerStatus}
+    echo "cleared backoff on $blocked indexers"
+
+    health() {
+      key=$(${grep} -oP '(?<=<ApiKey>)[^<]+' "$2") || return 0
+      ${curl} -sf --max-time 10 -X POST \
+        -H @- <<<"X-Api-Key: $key" -H "Content-Type: application/json" \
+        -d '{"name":"CheckHealth"}' "$1/command" >/dev/null || true
+    }
+
+    health ${prowlarrUrl}/api/v1 ${prowlarrData}/config.xml
+    health ${sonarrUrl}/api/v3 ${sonarrData}/config.xml
+    health ${radarrUrl}/api/v3 ${radarrData}/config.xml
   '';
 
   backlogSearch = pkgs.writeShellScript "arr-backlog-search" ''
@@ -69,6 +104,7 @@ let
       url=$2
       cfg=$3
       api=$4
+      db=$5
 
       if [ ! -r "$cfg" ]; then
         echo "$name: cannot read config (try sudo)"
@@ -79,17 +115,17 @@ let
 
       echo "== $name =="
       ${curl} -sf --max-time 10 -H @- <<<"X-Api-Key: $key" "$url/$api/indexer" \
-        | ${jq} -r '.[] | "  \(.name)  enabled=\(.enable // "-")  rss=\(.enableRss // "-") auto=\(.enableAutomaticSearch // "-") interactive=\(.enableInteractiveSearch // "-")"' \
+        | ${jq} -r '.[] | "  \(.id) \(.name)  enabled=\(.enable // "-")  rss=\(.enableRss // "-") auto=\(.enableAutomaticSearch // "-") interactive=\(.enableInteractiveSearch // "-")"' \
         || echo "  unreachable"
-      ${curl} -sf --max-time 10 -H @- <<<"X-Api-Key: $key" "$url/$api/indexerstatus" \
-        | ${jq} -r 'if length == 0 then "  no backoff" else .[] | "  BACKOFF id=\(.indexerId) till=\(.disabledTill)" end' \
-        || true
+      ${sqlite} -readonly "$db" \
+        "select '  BACKOFF id=' || ProviderId || ' till=' || DisabledTill || ' level=' || EscalationLevel from IndexerStatus where datetime(DisabledTill) > datetime('now');" \
+        | ${grep} . || echo "  no backoff"
       echo
     }
 
-    report prowlarr ${prowlarrUrl} ${prowlarrData}/config.xml api/v1
-    report sonarr ${sonarrUrl} ${sonarrData}/config.xml api/v3
-    report radarr ${radarrUrl} ${radarrData}/config.xml api/v3
+    report prowlarr ${prowlarrUrl} ${prowlarrData}/config.xml api/v1 ${prowlarrDb}
+    report sonarr ${sonarrUrl} ${sonarrData}/config.xml api/v3 ${sonarrDb}
+    report radarr ${radarrUrl} ${radarrData}/config.xml api/v3 ${radarrDb}
   '';
 in
 {
@@ -127,6 +163,23 @@ in
       OnCalendar = "daily";
       RandomizedDelaySec = "2h";
       Persistent = true;
+    };
+  };
+
+  systemd.services.arr-recover-indexers = {
+    description = "Clear *arr indexer backoff once the VPN path works again";
+    after = [ "wg-resolv-options.service" ];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "${recoverIndexers}";
+    };
+  };
+
+  systemd.timers.arr-recover-indexers = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnBootSec = "30min";
+      OnUnitActiveSec = "1h";
     };
   };
 
