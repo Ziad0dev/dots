@@ -41,15 +41,14 @@ let
       blocked=$((blocked + n))
     done
 
-    [ "$blocked" -eq 0 ] && exit 0
-
-    if ! ${ip} netns exec wg ${curl} -s -o /dev/null --max-time 15 https://indexers.prowlarr.com/; then
-      echo "$blocked indexers in backoff, wg namespace still can't reach out; leaving them"
-      exit 0
+    if [ "$blocked" -gt 0 ]; then
+      if ${ip} netns exec wg ${curl} -s -o /dev/null --max-time 15 https://indexers.prowlarr.com/; then
+        ${resetIndexerStatus}
+        echo "cleared backoff on $blocked indexers"
+      else
+        echo "$blocked indexers in backoff, wg namespace still can't reach out; leaving them"
+      fi
     fi
-
-    ${resetIndexerStatus}
-    echo "cleared backoff on $blocked indexers"
 
     health() {
       key=$(${grep} -oP '(?<=<ApiKey>)[^<]+' "$2") || return 0
@@ -178,8 +177,8 @@ in
   systemd.timers.arr-recover-indexers = {
     wantedBy = [ "timers.target" ];
     timerConfig = {
-      OnBootSec = "30min";
-      OnUnitActiveSec = "1h";
+      OnBootSec = "10min";
+      OnUnitActiveSec = "15min";
     };
   };
 

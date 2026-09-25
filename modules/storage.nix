@@ -74,6 +74,26 @@ in
     scratch PARTLABEL=scratch /etc/luks-data.key luks,nofail
   '';
 
+  systemd.services.wallpaper-backup = {
+    description = "Mirror wallpapers to the pool";
+    unitConfig.RequiresMountsFor = [
+      "/data"
+      "/mnt/pool"
+    ];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "${pkgs.rsync}/bin/rsync -aHX --delete --mkpath /data/wallpapers /data/wallpapers-lowres /mnt/pool/backups/";
+    };
+  };
+
+  systemd.timers.wallpaper-backup = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnCalendar = "weekly";
+      Persistent = true;
+    };
+  };
+
   system.fsPackages = [ pkgs.mergerfs ];
   environment.systemPackages = [
     pkgs.exfatprogs

@@ -246,6 +246,11 @@ in
 
   programs.git.enable = true;
   programs.dconf.enable = true;
+  home-manager.users.${username} = { config, ... }: {
+    home.file."Pictures/wallpapers".source = config.lib.file.mkOutOfStoreSymlink "/data/wallpapers";
+  };
+
+  systemd.tmpfiles.rules = [ "d /data/wallpapers 0755 ${username} users -" ];
 
   system.stateVersion = "24.05";
 }

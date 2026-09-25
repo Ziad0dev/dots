@@ -25,7 +25,7 @@
     hyprland.url = "github:hyprwm/Hyprland";
 
     hyprland-preview-share-picker = {
-            # url = "git+https://github.com/WhySoBad/hyprland-preview-share-picker?submodules=1";
+      # url = "git+https://github.com/WhySoBad/hyprland-preview-share-picker?submodules=1";
       url = "git+https://github.com/WhySoBad/hyprland-preview-share-picker?submodules=1&ref=drop-hyprland-rs";
       inputs.nixpkgs.follows = "nixpkgs";
     };

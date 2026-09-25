@@ -280,7 +280,7 @@ cmd_step() {
 }
 
 wallpapers() {
-    find -L "$HOME/Pictures/wallpapers" -maxdepth 1 -type f \
+    find -L "$HOME/Pictures/wallpapers" -maxdepth 2 -type f \
         \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \) \
         2>/dev/null | sort
 }
