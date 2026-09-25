@@ -200,7 +200,7 @@ bar {
     position top
     output DP-1
     font pango:JetBrainsMono Nerd Font 10
-    status_command sh -c '(test -e ~/.config/i3status-rust/themes/dots.toml || themectl reload >/dev/null 2>&1 || true) && exec i3status-rs ~/.config/sway/status.toml'
+    status_command exec ~/.config/sway/status.sh
     tray_output DP-1
     workspace_min_width 24
     colors {

@@ -1,3 +1,5 @@
+
+[theme.overrides]
 idle_fg = "${foreground}"
 info_fg = "${blue}"
 good_fg = "${green}"
