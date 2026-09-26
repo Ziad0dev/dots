@@ -10,13 +10,14 @@ Nothing listens on the LAN except Jellyfin and mDNS. Everything else is loopback
 | qBittorrent web UI | `:8081` in namespace `wg` | tailnet via port mapping; host at `http://192.168.15.1:8081` |
 | Prowlarr | `:9696` in namespace `wg` | tailnet via port mapping; host at the namespace address |
 | FlareSolverr | `127.0.0.1:8191` in namespace `wg` | Prowlarr only |
-| Radarr / Sonarr | `:7878` / `:8989` | host only (firewall closed) |
+| Radarr / Sonarr | `127.0.0.1:7878` / `127.0.0.1:8989` | host |
 | Audiobookshelf | `127.0.0.1:8000` | host |
 | calibre-web | `127.0.0.1:8083` | host |
 | llama.cpp units | `127.0.0.1:8080` | host |
 | llama-fim | `127.0.0.1:8012` | host |
 | Ollama | `127.0.0.1:11434` | host |
 | MPD | `127.0.0.1:6600` (socket-activated) | host |
+| Immich | `:2283` (all interfaces) | tailnet (`tailscale0`); firewall closed elsewhere |
 | hello-page | `127.0.0.1:8137` → `tailscale serve` on 443 | tailnet (HTTPS) |
 | Avahi | `:5353/udp` | LAN |
 | claude-vm | `127.0.0.1:2222` (ssh), `:5173`, `:3000` | host, while the VM runs |
@@ -96,7 +97,7 @@ gpu-free                         # stop all llama units
 
 ## Backups
 
-`modules/backup.nix` — restic, `$HOME` → `/mnt/backup/restic`, daily (persistent, up to 1 h random delay).
+`modules/backup.nix` — restic, `$HOME` (plus `/data/immich` from `immich.nix`) → `/mnt/backup/restic`, daily (persistent, up to 1 h random delay).
 
 - Excludes caches, Steam, flatpak and container storage, Downloads, Trash, and build junk (`node_modules`, `target`, `zig-cache`, `zig-out`, `.venv`, `.direnv`, `__pycache__`).
 - Retention: 7 daily, 4 weekly, 6 monthly. Each run checks a random 5 % of pack data.
@@ -106,8 +107,18 @@ gpu-free                         # stop all llama units
 ```fish
 sudo systemctl start restic-backups-home
 journalctl -u restic-backups-home -e
-sudo restic-home snapshots        # wrapper with repo + password preset
+sudo restic -r /mnt/backup/restic -p /etc/restic/password snapshots
 ```
+
+## Immich
+
+`modules/immich.nix` — photo library on `:2283`, reachable from the tailnet only (the firewall opens the port on `tailscale0`; the service itself binds every interface).
+
+- NVENC for video transcoding and decode, with the NVIDIA device nodes passed through.
+- Uploads and generated files live in `/data/immich` (`0700 immich:immich`, created before start); the storage template files originals as `YYYY/YYYY-MM-DD/<filename>`.
+- The unit waits for `/data` and `/mnt/media/photos`.
+- PostgreSQL 17. Machine learning at `http://localhost:3003`.
+- `/data/immich` is added to the `home` restic backup, minus `thumbs` and `encoded-video` (both regenerable). Immich's automatic database dumps (on by default in its admin settings) land in `/data/immich/backups`, so they're covered too.
 
 ## Storage
 
@@ -144,4 +155,4 @@ Adding a pool disk: `sgdisk -o -n 1:0:0 -t 1:8300 -c 1:poolN`, `mkfs.ext4 -m 0 -
 
 - **Docker** runs rootless; `DOCKER_HOST` points at the user socket. Not started at boot.
 - **Podman** is available alongside.
-- **libvirt**: `qemu:///system`, images under `/data/vms`; virt-manager is preconfigured (autoconnect to system, SPICE, host-passthrough CPU, qcow2). The agent VM is separate — see [Development](development.md#agent-vm).
+- **libvirt**: `qemu:///system`, images under `/data/vms`; virt-manager is preconfigured (autoconnect to system, SPICE, host-passthrough CPU, qcow2). Your user isn't in the `libvirtd` group, so connecting to `qemu:///system` goes through a polkit password prompt. The agent VM is separate — see [Development](development.md#agent-vm).

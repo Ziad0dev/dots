@@ -10,15 +10,15 @@ What stays in the host rather than a module is what's specific to this hardware 
 |---|---|
 | Boot | systemd-boot, `configurationLimit = 3`, `nct6775` (board sensors) |
 | Sleep | Suspend, hibernate, hybrid-sleep all disabled at the systemd level — the box never sleeps |
-| GPU | `hardware.nvidia`: open kernel module, modesetting, `nvidiaPersistenced`, `package = fixZstdRefs pkgs.nvidia_cachyos`; LACT; CoolerControl |
+| GPU | `hardware.nvidia`: open kernel module, modesetting, `nvidiaPersistenced`, `package = fixZstdRefs pkgs.nvidia_cachyos-bore`; LACT; CoolerControl |
 | Session | `programs.hyprland` from the flake input (package + portal), XWayland; portals hyprland → gtk, ScreenCast/Screenshot pinned to hyprland |
 | Desktop plumbing | dbus, polkit (+ rule letting the active local session mount/eject via udisks), printing, gvfs, udisks2, usbmuxd (iPhone) |
 | Off | Bluetooth, blueman |
 | Containers | Docker **rootless** (`enableOnBoot = false`), Podman |
-| User | fish, uid 1001, groups `wheel networkmanager audio video input libvirtd` |
+| User | fish, uid 1001, groups `wheel networkmanager audio video` (+ `kvm` and `claude-vm` from `virt.nix`) |
 | Nix | flakes, `cache.nixos.org` + `hyprland.cachix.org`, `allowUnfree`, overlays from `lib/overlays.nix`, auto-optimise |
 | Env | `NIXOS_OZONE_WL`, `MOZ_ENABLE_WAYLAND`, `QT_QPA_PLATFORM=wayland;xcb` |
-| Packages | Rescue and system-level set only: git, curl, wget, jq, tree, zip, neovim, htop, btop, lm_sensors, usbutils, gparted, exfatprogs, libimobiledevice, ifuse, hyprpolkitagent, coolercontrol-gui, DaVinci Resolve (`dvr-patched`), share picker, ark, qt6ct |
+| Packages | Rescue and system-level set only: git, curl, wget, jq, tree, zip, neovim, htop, btop, lm_sensors, usbutils, gparted, exfatprogs, libimobiledevice, ifuse, hyprpolkitagent, coolercontrol-gui, ark, qt6ct. The share picker lives in `home/profiles/linux-desktop.nix` |
 | Fonts | Fira Code / JetBrains Mono Nerd, Noto (+CJK, emoji), Font Awesome, plus document fonts (New Computer Modern, Libertinus, STIX Two, Latin Modern, DejaVu, Liberation) |
 
 The package test for the system list: root needs it, a system service needs it, it has to work before login or with a broken home-manager generation, or NixOS has to discover a unit file from it. Everything else goes to `home.packages`.
@@ -29,12 +29,11 @@ The package test for the system list: root needs it, a system service needs it, 
 
 | Module | Owns |
 |---|---|
-| `quality.nix` | The NixOS `dots.repoPath` option; nix-daemon at idle CPU/IO priority; `trusted-users`; `keep-outputs` / `keep-derivations`; nix-community cache; `/tmp` wiped on boot; `vm.max_map_count` (games), `split_lock_mitigate = 0`; weekly fstrim; plocate (pruned of `/nix/store`, `/mnt`, `/data`, …); gamemode settings; smartd; fwupd; Avahi mDNS |
+| `quality.nix` | The NixOS `dots.repoPath` option; nix-daemon at idle CPU/IO priority; `sudo` exec restricted to wheel; `allowed-users = @wheel` (no extra `trusted-users`); `keep-outputs` / `keep-derivations`; nix-community cache; `/tmp` wiped on boot; `vm.max_map_count` (games), `split_lock_mitigate = 0`; weekly fstrim; plocate (pruned of `/nix/store`, `/mnt`, `/data`, …); gamemode settings; smartd; fwupd; Avahi mDNS |
 | `performance.nix` | 8 GiB swapfile + zram at priority 100, `swappiness 180` / `page-cluster 0` (zram tuning), dirty-bytes caps, inotify limits, systemd-oomd on user slices, nix-daemon `MemoryMax 75%` + OOM score 500, `max-jobs 3` / `cores 4`, journald caps, CPU profile (below), RAPL limits, cpupower + turbostat |
 | `dev.nix` | `programs.nh` (flake = `dots.repoPath`), nh's GC timer `--keep 3 --keep-since 4d`, `warn-dirty = false` |
 | `cleanup.nix` | Coredump storage capped at 1 GiB |
 | `secrets.nix` | secretspec, pass, gnupg agent with pinentry-qt, bitwarden-cli |
-| `ananicy-fix.nix` | Overlay: prepends `<cstring>`/`<cstdint>` to every ananicy-cpp source file so 1.2.0 builds on current libc++. Delete once nixpkgs ships a fixed ananicy-cpp |
 
 #### CPU profile (`performance.nix`)
 
@@ -75,7 +74,7 @@ Per-user: MangoHud in `home/gaming-home.nix` (hidden by default, `Right Shift + 
 | Module | Owns |
 |---|---|
 | `dev-langs.nix` | System-wide toolchains: Zig 0.16.0 + zls, nixd, lua-language-server, clang_multi / clang-tools / lldb / gdb / mold / ccache / bear / meson / ninja / valgrind / cppcheck, python313 + uv / ruff / pyright, SBCL (swank, alexandria) + rlwrap; ccache at `/var/cache/ccache` |
-| `virt.nix` | libvirtd (unprivileged QEMU, swtpm, virtiofsd), virt-manager, SPICE USB redirection, OVMF, virtio-win; `/data/vms` and `/data/vms/iso`; `virbr0` trusted; libvirtd ordered after `data.mount` |
+| `virt.nix` | libvirtd (unprivileged QEMU, swtpm, virtiofsd), virt-manager, SPICE USB redirection, OVMF, virtio-win; `/data/vms` and `/data/vms/iso`; DNS/DHCP open on `virbr0`; egress filter for the `claude-vm` group (no LAN, tailnet or host access); libvirtd ordered after `data.mount` |
 
 ### Services and network
 
@@ -89,6 +88,8 @@ Per-user: MangoHud in `home/gaming-home.nix` (hidden by default, `Right Shift + 
 | `llm.nix` | Six llama.cpp units (Vulkan), mutually exclusive, user-startable without sudo | [Services](services.md#local-llms) |
 | `ollama.nix` | Ollama (Vulkan) on `127.0.0.1:11434`, not autostarted | [Services](services.md#local-llms) |
 | `backup.nix` | Daily restic of `$HOME` to `/mnt/backup/restic` | [Services](services.md#backups) |
+| `immich.nix` | Immich (NVENC) on `:2283`, tailnet only; data in `/data/immich`, added to the restic backup | [Services](services.md#immich) |
+| `arr-automation.nix` | Clears stale *arr indexer backoff at boot and once the VPN path works again, a daily backlog search, and the `arr-status` command | [Services](services.md#vpn-namespace) |
 | `storage.nix` | `/mnt/backup` (root-only, hidden from file managers), the `/mnt/pool` mergerfs pool and its branches, `/data/scratch` (LUKS, same keyfile as `/data`) | [Services](services.md#storage) |
 | `hello-page.nix` | A small Python site from `~/the-page`, published on the tailnet with `tailscale serve` | [Services](services.md#hello-page) |
 
