@@ -43,10 +43,6 @@ The fix is `lib/nvidia-zstd-refs.nix`, applied in the host as `package = fixZstd
 
 `sign-file` SSL warnings and "missing System.map. Skipping depmod." in that build log are normal.
 
-### ananicy-cpp fails to build (`memset` / `int32_t` not declared)
-
-libc++ header cleanup; nixpkgs has no patch. `modules/ananicy-fix.nix` prepends `<cstring>` and `<cstdint>` to every source file. Passing `-include` through `cmakeFlags` doesn't work — nixpkgs word-splits them. Delete the module once nixpkgs builds ananicy-cpp again.
-
 ### `stdenv.isx86_64` / `isLinux is deprecated` warnings
 
 Not from this repo or any input's own `.nix` files. They're emitted once when chaotic's CachyOS kernel package set is constructed. Harmless.

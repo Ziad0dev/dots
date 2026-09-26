@@ -57,12 +57,10 @@ When home-manager rides on a system (`mk.nixos`, `mk.darwin`) it runs with `useG
 | `hyprland-preview-share-picker` | screenshare picker for xdph | |
 | `zen-browser`, `helium` | browsers | |
 | `nixcord` | Discord + Vencord + Krisp | `nixpkgs-nixcord` input also pinned to ours |
-| `spicetify-nix` | Spotify theming | |
 | `obsidian-extensions` | overlay: `obsidianPlugins`, `obsidianThemes` | |
 | `zig-overlay`, `zls` | Zig 0.16.0 + matching zls | overlay provides `pkgs.zigpkgs` |
 | `nix-index-database` | prebuilt nix-index DB, powers `,` | |
 | `vpn-confinement` | `vpnNamespaces` NixOS module | |
-| `dvr-patched` | patched DaVinci Resolve | |
 | `vm-curator` | VM management tool | |
 
 Every input that has a nixpkgs input follows ours; duplicates are what drag in a second or third nixpkgs.
