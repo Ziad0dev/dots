@@ -201,6 +201,9 @@ in
 
   programs.vscode = {
     enable = true;
+    package = pkgs.vscode.override {
+      commandLineArgs = "--disable-features=WaylandWpColorManagerV1";
+    };
     mutableExtensionsDir = true;
 
     profiles.default.extensions = with pkgs.vscode-extensions; [
