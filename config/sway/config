@@ -214,7 +214,7 @@ bar {
     }
 }
 
-exec sh -c 'systemctl --user unset-environment HYPRLAND_INSTANCE_SIGNATURE && dbus-update-activation-environment --systemd $session_vars && systemctl --user import-environment $session_vars && systemctl --user start sway-session.target && systemctl --user start hyprpolkitagent'
+exec sh -c 'systemctl --user unset-environment HYPRLAND_INSTANCE_SIGNATURE && dbus-update-activation-environment --systemd $session_vars && systemctl --user import-environment $session_vars && { systemctl --user stop xdg-desktop-portal xdg-desktop-portal-gtk xdg-desktop-portal-wlr xdg-desktop-portal-hyprland || true; } && systemctl --user start sway-session.target && systemctl --user start hyprpolkitagent'
 exec swaymsg -t subscribe '["shutdown"]' && systemctl --user stop sway-session.target && systemctl --user unset-environment SWAYSOCK
 exec dunst
 exec awww-daemon
