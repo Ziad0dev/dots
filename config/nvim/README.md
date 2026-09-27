@@ -21,13 +21,16 @@ nvim/
         ├── colorscheme.lua  mini.base16 driven by config.theme
         ├── snacks.lua       dashboard, picker, explorer, terminal, zen, lazygit, indent
         ├── explorer.lua     oil (buffer-as-directory) + yazi + folder picker
-        ├── treesitter.lua
-        ├── lsp.lua          native vim.lsp, no Mason
+        ├── treesitter.lua   + treesitter-context
+        ├── lsp.lua          native vim.lsp, no Mason, SchemaStore
         ├── completion.lua   nvim-cmp + luasnip + latex snippets + autopairs
-        ├── git.lua          gitsigns + fugitive
+        ├── format.lua       conform (format on save)
+        ├── dap.lua          nvim-dap + dap-ui + virtual text (lldb-dap, debugpy, elixir)
+        ├── git.lua          gitsigns + fugitive + diffview
         ├── statusline.lua   lualine + bufferline
-        ├── editing.lua      surround/ts-comments/flash/which-key
-        ├── ui.lua           aerial
+        ├── editing.lua      surround/ts-comments/flash/grug-far/which-key
+        ├── workspace.lua    persistence sessions + direnv
+        ├── ui.lua           aerial + trouble + todo-comments + cord
         ├── lisp.lua         nvlime + vim-sexp + rainbow-delimiters
         ├── llm.lua          llama.vim FIM + codecompanion
         ├── tex.lua          vimtex
@@ -79,6 +82,18 @@ themectl derives.
 | Toggle inlay hints         | `<leader>uh`                |
 | Markdown preview           | `<leader>mp`                |
 | Lazy menu                  | `<leader>L`                 |
+| Debug: continue / stop     | `F5` / `S-F5`               |
+| Debug: breakpoint          | `F9` / `<leader>Db`         |
+| Debug: over / into / out   | `F10` / `F11` / `S-F11`     |
+| Debug: UI / REPL / eval    | `<leader>Du` / `<leader>Dr` / `<leader>De` |
+| Problems (workspace / buf) | `<leader>xx` / `<leader>xX` |
+| Todos                      | `<leader>xt` / `<leader>ft` |
+| Diff / file history        | `<leader>gd` / `<leader>gh` |
+| Search & replace           | `<leader>rs` / `<leader>rS` |
+| Restore session            | `<leader>qs` / `<leader>ql` |
+| Format on save toggle      | `<leader>uf` / `<leader>uF` |
+| Sticky context toggle      | `<leader>uc`                |
+| Call hierarchy in / out    | `<leader>cs` / `<leader>cS` |
 
 LSP maps (`gd`, `gr`, `K`, etc.) attach per-buffer when a server connects.
 Commenting is Neovim's native `gc`/`gcc`, with `ts-comments.nvim` fixing
@@ -92,9 +107,16 @@ Commenting is Neovim's native `gc`/`gcc`, with `ts-comments.nvim` fixing
 - **git** — gitsigns/fugitive
 - LSP servers (install via Nix, no Mason): `lua-language-server`, `pyright`,
   `ruff`, `nixd`, `zls`, `clangd`, `rust-analyzer`, `tinymist`, `texlab`,
-  `typescript-language-server`. Servers whose binary is absent are silently
-  skipped — add/remove in `lua/plugins/lsp.lua`.
-- **nixfmt** — nixd formatting is wired to it
+  `typescript-language-server`, `bash-language-server`, `taplo`,
+  `vscode-langservers-extracted`, `yaml-language-server`, `marksman`,
+  `elixir-ls`, `haskell-language-server`. Servers whose binary is absent are
+  silently skipped — add/remove in `lua/plugins/lsp.lua`.
+- Formatters: `nixfmt`, `stylua`, `ruff`, `rustfmt`, `zig`, `clang-format`,
+  `shfmt`, `taplo`, `typstyle`, `prettier`.
+- Debug adapters: `lldb-dap` (from `lldb`), `debugpy-adapter`,
+  `elixir-debug-adapter`. `home/nvim.nix` installs the ones not already in the
+  system toolchains.
+- **direnv** — direnv.vim is skipped when it isn't installed
 - A Nerd Font for icons.
 
 ## Install

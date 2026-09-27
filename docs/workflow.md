@@ -84,7 +84,6 @@ The bar's update indicator comes from two shims: `dots-updates` compares the loc
 |---|---|---|
 | Flatpaks and remotes | `modules/flatpak.nix` | `flatpak-managed` user unit at login — installs what's listed, **uninstalls what isn't** |
 | Obsidian vault, plugins, hotkeys | `home/obsidian.nix` | home-manager |
-| VS Code `settings.json` | `config/themes/_templates/vscode-settings.json.in` | `themectl` links the rendered file over `~/.config/Code/User/settings.json` |
 | Zen `userChrome.css` / `userContent.css` | `config/zen/` | `config/zen/zen-theme-link.sh`, run by hand once per profile |
 | Git hooks | `scripts/git-hooks/` | `home/git-hooks.nix` activation |
 

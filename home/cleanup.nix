@@ -3,7 +3,6 @@ lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
   systemd.user.tmpfiles.rules = [
     "e %C/thumbnails - - - 60d"
     "e %C/quickshell-img-thumbs - - - 60d"
-    "e %C/vscode-cpptools - - - 30d"
     "e %C/nvidia - - - 30d"
     "e %C/mpv - - - 30d"
     "e %h/.local/share/Trash - - - 30d"

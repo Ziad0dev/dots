@@ -20,6 +20,26 @@ return {
   },
 
   {
+    "MagicDuck/grug-far.nvim",
+    cmd = "GrugFar",
+    opts = { headerMaxWidth = 80 },
+    keys = {
+      { "<leader>rs", function() require("grug-far").open() end, desc = "Search & replace (project)" },
+      {
+        "<leader>rs",
+        function() require("grug-far").with_visual_selection() end,
+        mode = "v",
+        desc = "Search & replace selection",
+      },
+      {
+        "<leader>rS",
+        function() require("grug-far").open({ prefills = { paths = vim.fn.expand("%") } }) end,
+        desc = "Search & replace (file)",
+      },
+    },
+  },
+
+  {
     "folke/which-key.nvim",
     event = "VeryLazy",
     opts = {
@@ -37,6 +57,8 @@ return {
         { "<leader>r", group = "rename/refactor" },
         { "<leader>d", group = "document (tex/typst)" },
         { "<leader>u", group = "ui" },
+        { "<leader>x", group = "diagnostics" },
+        { "<leader>D", group = "debug" },
       },
     },
   },
