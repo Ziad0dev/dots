@@ -30,7 +30,7 @@ nvim/
         ├── statusline.lua   lualine + bufferline
         ├── editing.lua      surround/ts-comments/flash/grug-far/which-key
         ├── workspace.lua    persistence sessions + direnv
-        ├── ui.lua           aerial + trouble + todo-comments + cord
+        ├── ui.lua           aerial + trouble + todo-comments
         ├── lisp.lua         nvlime + vim-sexp + rainbow-delimiters
         ├── llm.lua          llama.vim FIM + codecompanion
         ├── tex.lua          vimtex
