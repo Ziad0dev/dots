@@ -2,7 +2,7 @@ return {
   {
     "neovim/nvim-lspconfig",
     event = { "BufReadPre", "BufNewFile" },
-    dependencies = { "hrsh7th/cmp-nvim-lsp" },
+    dependencies = { "hrsh7th/cmp-nvim-lsp", "b0o/SchemaStore.nvim" },
     config = function()
 
       vim.diagnostic.config({
@@ -46,7 +46,9 @@ return {
           m("K", vim.lsp.buf.hover, "Hover")
           m("<leader>rn", vim.lsp.buf.rename, "Rename")
           m("<leader>ca", vim.lsp.buf.code_action, "Code action")
-          m("<leader>cf", function() vim.lsp.buf.format({ async = true }) end, "Format")
+          m("<leader>cl", vim.lsp.codelens.run, "Run codelens")
+          m("<leader>cs", function() Snacks.picker.lsp_incoming_calls() end, "Incoming calls")
+          m("<leader>cS", function() Snacks.picker.lsp_outgoing_calls() end, "Outgoing calls")
         end,
       })
 
@@ -111,6 +113,27 @@ return {
         },
       })
 
+      vim.lsp.config("jsonls", {
+        settings = {
+          json = {
+            schemas = require("schemastore").json.schemas(),
+            validate = { enable = true },
+          },
+        },
+      })
+
+      vim.lsp.config("yamlls", {
+        settings = {
+          yaml = {
+            schemaStore = { enable = false, url = "" },
+            schemas = require("schemastore").yaml.schemas(),
+            keyOrdering = false,
+          },
+        },
+      })
+
+      vim.lsp.config("elixirls", { cmd = { "elixir-ls" } })
+
       local servers = {
         lua_ls = "lua-language-server",
         pyright = "pyright",
@@ -122,7 +145,15 @@ return {
         ruff = "ruff",
         tinymist = "tinymist",
         texlab = "texlab",
-
+        bashls = "bash-language-server",
+        taplo = "taplo",
+        jsonls = "vscode-json-language-server",
+        yamlls = "yaml-language-server",
+        cssls = "vscode-css-language-server",
+        html = "vscode-html-language-server",
+        marksman = "marksman",
+        elixirls = "elixir-ls",
+        hls = "haskell-language-server-wrapper",
       }
       for server, bin in pairs(servers) do
         if vim.fn.executable(bin) == 1 then
