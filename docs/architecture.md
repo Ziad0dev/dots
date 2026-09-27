@@ -72,7 +72,7 @@ Every input that has a nixpkgs input follows ours; duplicates are what drag in a
 | Profile file | Loaded when | Carries |
 |---|---|---|
 | `profiles/base.nix` | always | `dots.repoPath` / `dots.theme` options, shell (fish + abbrevs), git, ssh, direnv + nix-direnv, CLI tools, nvim/ghostty/tmux/broot/ranger/btop links, dev-home, fastfetch, yazi, git-hooks, infosec + maths `core` sets |
-| `profiles/linux-desktop.nix` | Linux and `profile == "desktop"` | Hyprland session target, Quickshell, theming, GTK/Qt/cursor, desktop apps, MPD, udiskie, hypridle, nixcord, emacs, Obsidian, Spicetify, VS Code, … |
+| `profiles/linux-desktop.nix` | Linux and `profile == "desktop"` | Hyprland session target, Quickshell, theming, GTK/Qt/cursor, desktop apps, MPD, udiskie, hypridle, nixcord, emacs, Obsidian, Spicetify, … |
 | `profiles/darwin.nix` | macOS | GNU userland, `open` abbrevs, macOS defaults |
 
 Everything under `home/` that isn't a profile is an app module imported by one of these.

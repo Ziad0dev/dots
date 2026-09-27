@@ -76,4 +76,13 @@ return {
       })
     end,
   },
+
+  {
+    "nvim-treesitter/nvim-treesitter-context",
+    event = { "BufReadPost", "BufNewFile" },
+    opts = { max_lines = 3, multiline_threshold = 1 },
+    keys = {
+      { "<leader>uc", function() require("treesitter-context").toggle() end, desc = "Toggle sticky context" },
+    },
+  },
 }

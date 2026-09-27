@@ -24,7 +24,7 @@ Or: `SUPER + CTRL + SHIFT + Space` (theme picker), `SUPER + SHIFT + T` (next the
 2. Records the name in `~/.local/state/dots/theme/current`.
 3. Points `~/.local/state/dots/shell/current/` at the palette, wallpaper directory, preview and background — what Quickshell and the lock screen read.
 4. Writes `/var/lib/dots-theme/sddm.json` for the login greeter (if the directory is writable).
-5. Links or copies the rendered Kvantum, VS Code, GTK and Vencord files into place.
+5. Links or copies the rendered Kvantum, GTK and Vencord files into place.
 6. Reloads: Ghostty (`SIGUSR2`), Quickshell (`theme reload` over IPC), GTK (theme name bounce), dunst, Hyprland, swayosd.
 7. If the theme ships a `wallpaper.*`, sets it with a random `awww` transition.
 
@@ -65,7 +65,6 @@ Templates use `${key}` for `#rrggbb` and `${key_hex}` for the bare hex (Hyprland
 | `swayosd.css.in` | `swayosd.css` | linked as `~/.config/swayosd/style.css` |
 | `gtk.css.in` | `gtk.css` | copied to `~/.config/gtk-3.0/` and `gtk-4.0/` |
 | `kvantum.kvconfig.in` | `kvantum.kvconfig` | linked into `~/.config/Kvantum/KvGlass#/` |
-| `vscode-settings.json.in` | `vscode-settings.json` | linked as `~/.config/Code/User/settings.json` — **the whole file**, so VS Code settings are edited here, not in VS Code |
 | `vencord-quickcss.css.in` | `vencord-quickcss.css` | copied to Vencord's `quickCss.css` if Vencord's settings dir exists |
 | `share-picker.css.in` | `share-picker.css` | rendered; the stylesheet include in `config/hyprland-preview-share-picker/config.yaml` is currently commented out |
 

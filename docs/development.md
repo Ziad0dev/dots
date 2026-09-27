@@ -42,7 +42,10 @@ Every template is multi-system (x86_64-linux, aarch64-linux, aarch64-darwin). Ch
 
 Documented in [`config/nvim/README.md`](../config/nvim/README.md). The short version:
 
-- lazy.nvim, native `vim.lsp.config` / `vim.lsp.enable`. **No Mason** — language servers come from Nix, and each one is enabled only if its binary is on PATH (`lua_ls`, `pyright`, `ts_ls`, `rust_analyzer`, `nixd`, `zls`, `clangd`, `ruff`, `tinymist`, `texlab`). In a devshell, the project's server wins.
+- lazy.nvim, native `vim.lsp.config` / `vim.lsp.enable`. **No Mason** — language servers, formatters and debug adapters come from Nix (`home/nvim.nix` plus the system toolchains), and each server is enabled only if its binary is on PATH (`lua_ls`, `pyright`, `ts_ls`, `rust_analyzer`, `nixd`, `zls`, `clangd`, `ruff`, `tinymist`, `texlab`, `bashls`, `taplo`, `jsonls`, `yamlls`, `cssls`, `html`, `marksman`, `elixirls`, `hls`). In a devshell, the project's server wins. JSON/YAML get SchemaStore schemas.
+- **Debugging**: nvim-dap + dap-ui. `lldb-dap` for C/C++/Rust/Zig, `debugpy-adapter` (a Nix wrapper) for Python — it picks up `$VIRTUAL_ENV` or `./.venv` — and `elixir-debug-adapter` for mix tasks. VS Code-style F5/F9/F10/F11 keys; `.vscode/launch.json` in a project is read too.
+- **Formatting**: conform.nvim, format-on-save on by default (`<leader>uf` toggles, `<leader>uF` per buffer), skipped for Markdown and TeX. Falls back to the LSP formatter when a filetype has none listed.
+- Trouble for the problems panel, diffview for history/merges, grug-far for project search & replace, persistence for per-directory sessions, direnv.vim so `:tcd` into a project loads its devshell, treesitter-context for sticky scroll, cord.nvim for Discord presence.
 - Colours follow themectl live.
 - **Local FIM**: llama.vim talks to `http://127.0.0.1:8012/infill` — `systemctl start llama-fim`. It conflicts with the chat-model units, so it's one or the other on the GPU.
 - **Chat**: codecompanion via OpenRouter, key read with `secretspec get OPENROUTER_API_KEY`.
@@ -51,10 +54,6 @@ Documented in [`config/nvim/README.md`](../config/nvim/README.md). The short ver
 ### Emacs
 
 `home/emacs.nix`: emacs-pgtk running as a daemon with `emacsclient` wired up. Evil (+ collection, escape), SLY for Common Lisp, paredit, rainbow-delimiters, corfu, envrc (picks up direnv), magit. `init.el` is a live link to `config/emacs/init.el`.
-
-### VS Code
-
-`programs.vscode` with a fixed extension set (nix-ide, Python/Pylance, rust-analyzer, Zig, TOML, errorlens, GitLens, direnv, vim) and `mutableExtensionsDir` so you can still try extensions ad hoc. **`settings.json` is owned by themectl** — it's the rendered `config/themes/_templates/vscode-settings.json.in`, so changes made in the settings UI are lost on the next theme switch. Edit the template.
 
 ## Tool flakes
 

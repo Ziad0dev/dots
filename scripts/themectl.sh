@@ -154,14 +154,6 @@ kvantum_compat() {
     mkdir -p "$dir"
     relink "$out" "$dir/KvGlass#.kvconfig"
 }
-vscode_compat() {
-    local out dir
-    out="$STATE/vscode-settings.json"
-    [ -f "$out" ] || return 0
-    dir="${XDG_CONFIG_HOME:-$HOME/.config}/Code/User"
-    mkdir -p "$dir"
-    relink "$out" "$dir/settings.json"
-}
 gtk_compat() {
     local out d
     out="$STATE/gtk.css"
@@ -245,7 +237,6 @@ cmd_set() {
     shell_compat "$name"
     sddm_compat "$name"
     kvantum_compat "$name"
-    vscode_compat "$name"
     gtk_compat
     vencord_compat
     reload_apps

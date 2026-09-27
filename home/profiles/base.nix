@@ -27,6 +27,7 @@ in
     inputs.nix-index-database.homeModules.default
     ../dev-home.nix
     ../fastfetch.nix
+    ../nvim.nix
     ../git-hooks.nix
     ../yazi.nix
     (import ../../flakes/infosec/module.nix { target = "home"; })

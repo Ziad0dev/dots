@@ -37,4 +37,21 @@ return {
       { "<leader>gs", "<cmd>Git<cr>", desc = "Git status (fugitive)" },
     },
   },
+
+  {
+    "sindrets/diffview.nvim",
+    cmd = { "DiffviewOpen", "DiffviewFileHistory", "DiffviewClose" },
+    keys = {
+      { "<leader>gd", "<cmd>DiffviewOpen<cr>", desc = "Diff working tree" },
+      { "<leader>gD", "<cmd>DiffviewOpen origin/HEAD...HEAD<cr>", desc = "Diff branch vs origin" },
+      { "<leader>gh", "<cmd>DiffviewFileHistory %<cr>", desc = "File history" },
+      { "<leader>gH", "<cmd>DiffviewFileHistory<cr>", desc = "Repo history" },
+      { "<leader>gh", ":DiffviewFileHistory<cr>", mode = "v", desc = "Selection history" },
+      { "<leader>gq", "<cmd>DiffviewClose<cr>", desc = "Close diffview" },
+    },
+    opts = {
+      enhanced_diff_hl = true,
+      view = { merge_tool = { layout = "diff3_mixed" } },
+    },
+  },
 }
