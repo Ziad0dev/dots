@@ -41,11 +41,4 @@ return {
       { "<leader>ft", function() Snacks.picker.todo_comments() end, desc = "Todos" },
     },
   },
-
-  {
-    "vyfor/cord.nvim",
-    build = ":Cord update",
-    event = "VeryLazy",
-    opts = {},
-  },
 }
