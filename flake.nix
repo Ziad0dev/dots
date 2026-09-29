@@ -110,6 +110,7 @@
         ./modules/virt.nix
         ./modules/gaming.nix
         ./modules/llm.nix
+        ./modules/agents.nix
         ./modules/ollama.nix
         ./modules/audio.nix
         ./modules/dev.nix

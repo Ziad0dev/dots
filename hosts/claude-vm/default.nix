@@ -81,8 +81,6 @@
       ];
     };
 
-    registry.nixpkgs.flake = inputs.nixpkgs;
-    nixPath = [ "nixpkgs=flake:nixpkgs" ];
   };
 
   documentation.enable = false;
