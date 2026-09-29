@@ -100,6 +100,7 @@ in
     ".config/rmpc".source = link "rmpc";
     ".config/mpv".source = link "mpv";
     ".config/zen-theme".source = link "zen";
+    ".config/nyxt/config.lisp".source = link "nyxt/config.lisp";
     ".config/hyprland-preview-share-picker".source = link "hyprland-preview-share-picker";
   };
 
@@ -190,6 +191,7 @@ in
       beamPkgs.elixir-ls
       inputs.zen-browser.packages.${system}.default
       inputs.helium.packages.${system}.default
+      (pkgs.callPackage ../../pkgs/nyxt { })
       inputs.vm-curator.packages.${system}.default
       #inputs.hyprland-preview-share-picker.packages.${system}.default
       (inputs.hyprland-preview-share-picker.packages.${system}.default.overrideAttrs (old: {

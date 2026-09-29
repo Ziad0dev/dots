@@ -1,25 +1,37 @@
 { lib, pkgs, ... }:
-
 let
+  discord = lib.makeOverridable (lib.mirrorFunctionArgs pkgs.discord.override (
+    args: pkgs.discord.override (builtins.intersectAttrs (lib.functionArgs pkgs.discord.override) args)
+  )) { };
+
   openasar = builtins.toJSON {
-    cmdPreset = "balanced";
-    customFlags = "--enable-gpu-rasterization --enable-zero-copy --ignore-gpu-blocklist --enable-hardware-overlays=single-fullscreen,single-on-top,underlay --enable-features=CanvasOopRasterization,BackForwardCache:TimeToLiveInBackForwardCacheInSeconds/300/should_ignore_blocklists/true/enable_same_site/true,ThrottleDisplayNoneAndVisibilityHiddenCrossOriginIframes,UseSkiaRenderer,WebAssemblyLazyCompilation --disable-features=Vulkan --force_high_performance_gpu";
+    cmdPreset = "perf";
+    customFlags = "--disable-features=WaylandWpColorManagerV1";
   };
 in
 {
   home.activation.discordOpenasarFlags = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    f="$HOME/.config/discord/settings.json"
-    mkdir -p "$(dirname "$f")"
-    [ -s "$f" ] || echo '{}' > "$f"
-    ${lib.getExe pkgs.jq} --argjson oa '${openasar}' '.openasar = ((.openasar // {}) + $oa)' "$f" > "$f.tmp"
-    mv "$f.tmp" "$f"
+    if [[ ! -v DRY_RUN ]]; then
+      f="$HOME/.config/discord/settings.json"
+      mkdir -p "$(dirname "$f")"
+      [ -s "$f" ] || echo '{}' > "$f"
+      if ${lib.getExe pkgs.jq} --argjson oa '${openasar}' '.openasar = ((.openasar // {}) + $oa)' "$f" > "$f.tmp"; then
+        mv "$f.tmp" "$f"
+      else
+        rm -f "$f.tmp"
+      fi
+    fi
   '';
 
   programs.nixcord = {
     enable = true;
-    discord.vencord.enable = true;
-    discord.krisp.enable = true;
-    discord.openASAR.enable = true;
+
+    discord = {
+      enable = true;
+      package = discord;
+      vencord.enable = true;
+      openASAR.enable = true;
+    };
 
     userPlugins = {
       bigFileUpload = "github:ScattrdBlade/bigFileUpload/837e9efe85ce026063a13ef7fef12e96b3a0aa18";
@@ -63,9 +75,9 @@ in
         voiceMessages.enable = true;
       };
     };
+
     extraConfig.plugins = {
       JunkCleanup.enable = true;
-
       BigFileUpload = {
         enable = true;
         fileUploader = "Litterbox";
