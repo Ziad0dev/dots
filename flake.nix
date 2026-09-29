@@ -99,7 +99,6 @@
       chaoticModules = [
         chaotic.nixosModules.nyx-cache
         chaotic.nixosModules.nyx-overlay
-        chaotic.nixosModules.nyx-registry
       ];
 
       desktopModules = [
