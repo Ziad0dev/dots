@@ -8,9 +8,6 @@
   ...
 }:
 
-let
-  fixZstdRefs = import ../../lib/nvidia-zstd-refs.nix { inherit pkgs; };
-in
 {
   imports = [
 
@@ -74,7 +71,7 @@ in
     modesetting.enable = true;
     open = true;
     nvidiaPersistenced = true;
-    package = fixZstdRefs pkgs.nvidia_cachyos-bore;
+    package = pkgs.nvidia_cachyos-bore;
   };
   services.lact.enable = true;
 
