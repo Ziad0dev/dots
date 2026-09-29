@@ -161,9 +161,9 @@
   nixpkgs.overlays = import ../../lib/overlays.nix { inherit inputs; };
   nixpkgs.config.allowUnfree = true;
 
-  nix.optimise.automatic = true;
-
   nix = {
+    optimise.automatic = true;
+    registry.chaotic.flake = inputs.chaotic;
     settings = {
       experimental-features = [
         "nix-command"
@@ -178,7 +178,6 @@
         "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc="
       ];
     };
-
   };
 
   environment.sessionVariables = {
