@@ -710,7 +710,7 @@ Item {
             warnCheck()
         } else if (kind === "quota") {
             if (!armed7) return
-            var who = sanitize7(arg || "CLAUDE", 16) || "CLAUDE"
+            var who = sanitize7(arg || "CODEX", 16) || "CODEX"
             queueWarn7(who + " 80", "AI QUOTA!")
         } else if (kind === "ws" || kind === "workspace") {
             var ws = parseInt(arg || "1")
@@ -729,7 +729,7 @@ Item {
 
     // ── warning engine: warnings are STATES, not events — they re-announce
     //    themselves while the state lasts, and stop the moment it ends ──
-    property var warnNext: ({ offline: 0, batt: 0, aicl: 0, aicx: 0, aioc: 0, urgent: 0 })
+    property var warnNext: ({ offline: 0, batt: 0, aicx: 0, aioc: 0, urgent: 0 })
     property var warnQueue7: []
     property string urgentAddr: ""
     property string urgentCls: ""
@@ -796,9 +796,6 @@ Item {
                     wn.batt = tnow + 120000
             }
         } else wn.batt = 0
-        if (aiClHot) {
-            if (tnow >= wn.aicl && queueWarn7("CLAUDE " + aiCl7, "AI QUOTA!")) wn.aicl = tnow + 300000
-        } else wn.aicl = 0
         if (aiCxHot) {
             if (tnow >= wn.aicx && queueWarn7("CODEX " + aiCx7, aiCxQuotaName7)) wn.aicx = tnow + 300000
         } else wn.aicx = 0
@@ -919,29 +916,17 @@ Item {
 
     // AI quota crossing 80% of the highest available provider window
     // (hysteresis: rearms below 75%).
-    readonly property int aiCl7: theme.aiClPct5h !== undefined ? theme.aiClPct5h : 0
     readonly property int aiCx7: theme.aiCxQuotaPct !== undefined ? theme.aiCxQuotaPct : (theme.aiCxPct5h !== undefined ? theme.aiCxPct5h : 0)
     readonly property string aiCxQuotaName7: theme.aiCxQuotaLabel !== undefined && theme.aiCxQuotaLabel !== "" ? theme.aiCxQuotaLabel.toUpperCase() : "AI QUOTA!"
     readonly property int aiOc7: theme.aiOcPct5h !== undefined ? theme.aiOcPct5h : 0
     readonly property int aiQuotaWarn7: 80
     readonly property int aiQuotaReset7: 75
-    property bool aiClHot: false
     property bool aiCxHot: false
     property bool aiOcHot: false
-    property bool aiClQuotaPrimed7: false
     property bool aiCxQuotaPrimed7: false
     property bool aiOcQuotaPrimed7: false
     readonly property string helperOwnerMonitor7: Quickshell.screens.length > 0 ? Quickshell.screens[0].name : ""
     readonly property bool ownsGlobalHelpers7: root.monitor === "" || root.monitor === helperOwnerMonitor7
-    onAiCl7Changed: {
-        if (!aiClQuotaPrimed7) {
-            aiClQuotaPrimed7 = true
-            aiClHot = aiCl7 >= aiQuotaWarn7
-            return
-        }
-        if (aiCl7 >= aiQuotaWarn7 && !aiClHot) { aiClHot = true; warnCheck() }
-        else if (aiCl7 < aiQuotaReset7) aiClHot = false
-    }
     onAiCx7Changed: {
         if (!aiCxQuotaPrimed7) {
             aiCxQuotaPrimed7 = true

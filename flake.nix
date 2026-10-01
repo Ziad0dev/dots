@@ -152,14 +152,6 @@
           ++ desktopModules
           ++ chaoticModules;
         };
-
-        claude-vm = mk.nixos {
-          hostname = "claude-vm";
-          username = "dev";
-          system = "x86_64-linux";
-          home = false;
-          modules = [ ./hosts/claude-vm ];
-        };
       };
 
       darwinConfigurations.mac = mk.darwin {

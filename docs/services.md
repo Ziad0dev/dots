@@ -20,7 +20,6 @@ Nothing listens on the LAN except Jellyfin and mDNS. Everything else is loopback
 | Immich | `:2283` (all interfaces) | tailnet (`tailscale0`); firewall closed elsewhere |
 | hello-page | `127.0.0.1:8137` → `tailscale serve` on 443 | tailnet (HTTPS) |
 | Avahi | `:5353/udp` | LAN |
-| claude-vm | `127.0.0.1:2222` (ssh), `:5173`, `:3000` | host, while the VM runs |
 
 ## Media
 
@@ -155,4 +154,4 @@ Adding a pool disk: `sgdisk -o -n 1:0:0 -t 1:8300 -c 1:poolN`, `mkfs.ext4 -m 0 -
 
 - **Docker** runs rootless; `DOCKER_HOST` points at the user socket. Not started at boot.
 - **Podman** is available alongside.
-- **libvirt**: `qemu:///system`, images under `/data/vms`; virt-manager is preconfigured (autoconnect to system, SPICE, host-passthrough CPU, qcow2). Your user isn't in the `libvirtd` group, so connecting to `qemu:///system` goes through a polkit password prompt. The agent VM is separate — see [Development](development.md#agent-vm).
+- **libvirt**: `qemu:///system`, images under `/data/vms`; virt-manager is preconfigured (autoconnect to system, SPICE, host-passthrough CPU, qcow2). Your user isn't in the `libvirtd` group, so connecting to `qemu:///system` goes through a polkit password prompt.

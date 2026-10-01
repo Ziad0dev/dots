@@ -556,7 +556,7 @@ PanelWindow {
                 rowSpacing: 8
                 Tile { width: root.evenW((wwCol.width - 8) / 2); label: "Memory";      active: root.modMemory;    onActivated: root.modMemory = !root.modMemory }
                 Tile { width: root.evenW((wwCol.width - 8) / 2); label: "Brightness";  visible: root.hasBacklight; active: root.modBrightness; onActivated: root.modBrightness = !root.modBrightness }
-                Tile { width: root.evenW((wwCol.width - 8) / 2); label: "AI usage";    active: root.modClaude;    onActivated: root.modClaude = !root.modClaude }
+                Tile { width: root.evenW((wwCol.width - 8) / 2); label: "AI usage";    active: root.modAi;        onActivated: root.modAi = !root.modAi }
                 Tile { width: root.evenW((wwCol.width - 8) / 2); label: "GitHub";     active: root.modGithub;    onActivated: root.modGithub = !root.modGithub }
                 Tile { width: root.evenW((wwCol.width - 8) / 2); label: "Power Prof."; active: root.modPower;     onActivated: root.modPower = !root.modPower }
                 Tile { width: root.evenW((wwCol.width - 8) / 2); label: "Bluetooth";   active: root.modBluetooth; onActivated: root.modBluetooth = !root.modBluetooth }

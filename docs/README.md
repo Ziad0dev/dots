@@ -28,7 +28,6 @@ These files are the source of truth. The [wiki](https://github.com/Ziad0dev/dots
 
 ```
 flake.nix ──┬─ nixosConfigurations.nixos ── hosts/nixos + modules/* + home-manager(desktop)
-            ├─ nixosConfigurations.claude-vm ── hosts/claude-vm (qemu, no home-manager)
             ├─ darwinConfigurations.mac ── hosts/darwin + home-manager(desktop → darwin profile)
             ├─ homeConfigurations.<user>@{linux,linux-desktop,aarch64-linux,mac}
             ├─ templates.{zig,rust,haskell,c,python,lisp,beam,typst,latex}

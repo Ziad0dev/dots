@@ -184,7 +184,7 @@ Things in the repo today that are wrong or brittle, not yet fixed:
 |---|---|
 | `home/quickshell-rise.nix` | Hardcodes `${homeDir}/dots` instead of `config.dots.repoPath` — the bar's PATH, `DOTS_SHELL_PATH` and stop hook break on a checkout elsewhere |
 | `scripts/dots-compat.sh` | `dots-update`, `dots-update-available`, `dots-updates` hardcode `~/dots` |
-| `scripts/themectl.sh`, `config/zen/zen-theme-link.sh`, `scripts/claude-vm.sh` | Default to `~/dots` (overridable via `DOTS_DIR` / `SRC` / `FLAKE`, but nothing sets them from `repoPath`) |
+| `scripts/themectl.sh`, `config/zen/zen-theme-link.sh` | Default to `~/dots` (overridable via `DOTS_DIR` / `SRC`, but nothing sets them from `repoPath`) |
 | `home/profiles/base.nix` | `update` / `upall` assume nh, which only the NixOS host installs; on darwin and standalone home-manager they fail. The rebuild command is chosen by *profile*, so `ziad0dev@linux-desktop` (standalone HM) gets `nh os switch` |
 | `scripts/dots-compat.sh` | `dots-tz-select` runs `timedatectl set-timezone`, which NixOS refuses while `time.timeZone` is set declaratively |
 | `scripts/dots-compat.sh`, `modules/recording.nix` | Capture output `DP-1` hardcoded in two places |

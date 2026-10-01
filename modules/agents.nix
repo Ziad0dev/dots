@@ -26,10 +26,6 @@ in
       type = lib.types.str;
       default = "0.5.17";
     };
-    claude.enable = lib.mkOption {
-      type = lib.types.bool;
-      default = true;
-    };
     codex.enable = lib.mkEnableOption "Codex CLI";
   };
 
@@ -40,7 +36,6 @@ in
       (openrigBin "rig")
       (openrigBin "openrig-tui")
     ]
-    ++ lib.optional cfg.claude.enable pkgs.claude-code
     ++ lib.optional cfg.codex.enable pkgs.codex;
 
     programs.tmux = {

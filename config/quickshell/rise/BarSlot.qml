@@ -297,7 +297,7 @@ PanelWindow {
     Component { id: compMem;    MemoryWidget { root: barSlot.root; gid: "G4" } }
     Component { id: compCpu;    CpuWidget    { root: barSlot.root; gid: "G5" } }
     Component { id: compVol;    AudioWidget  { root: barSlot.root; gid: "G6" } }
-    Component { id: compClaude; ClaudeWidget { root: barSlot.root; gid: "G7" } }
+    Component { id: compAi; AiWidget { root: barSlot.root; gid: "G7" } }
     Component {
         id: compShellFallbackUpdater
         Item {
@@ -508,7 +508,7 @@ PanelWindow {
 
     readonly property var registry: ({
         "G1": compLauncher, "G2": compWorkspace, "G3": compStatus,
-        "G4": compMem, "G5": compCpu, "G6": compVol, "G7": compClaude,
+        "G4": compMem, "G5": compCpu, "G6": compVol, "G7": compAi,
         "G8": compCenter,
         "G9": compMpris, "G10": compQuick, "G11": compNetwork,
         "G12": compGpu, "G13": compMounts, "G14": compPower, "G15": compBluetooth,
@@ -694,7 +694,7 @@ PanelWindow {
         property var rightSplits: [false, false, false, false, false, false, false, false, false]   // gaps in rightModel
         property var boundarySplits: [false, false]   // [left↔center, center↔right]
 
-        readonly property real lcBoundaryX: leftRowItem.x + leftRowItem.width + 9    // just right of Claude
+        readonly property real lcBoundaryX: leftRowItem.x + leftRowItem.width + 9    // just right of the AI pill
         readonly property real crBoundaryX: rightRowItem.x - 9                       // just left of Mpris
 
         // ── G8 collision handling (narrow-monitor overlap fix) ──

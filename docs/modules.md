@@ -15,7 +15,7 @@ What stays in the host rather than a module is what's specific to this hardware 
 | Desktop plumbing | dbus, polkit (+ rule letting the active local session mount/eject via udisks), printing, gvfs, udisks2, usbmuxd (iPhone) |
 | Off | Bluetooth, blueman |
 | Containers | Docker **rootless** (`enableOnBoot = false`), Podman |
-| User | fish, uid 1001, groups `wheel networkmanager audio video` (+ `kvm` and `claude-vm` from `virt.nix`) |
+| User | fish, uid 1001, groups `wheel networkmanager audio video` (+ `kvm` from `virt.nix`) |
 | Nix | flakes, `cache.nixos.org` + `hyprland.cachix.org`, `allowUnfree`, overlays from `lib/overlays.nix`, auto-optimise |
 | Env | `NIXOS_OZONE_WL`, `MOZ_ENABLE_WAYLAND`, `QT_QPA_PLATFORM=wayland;xcb` |
 | Packages | Rescue and system-level set only: git, curl, wget, jq, tree, zip, neovim, htop, btop, lm_sensors, usbutils, gparted, exfatprogs, libimobiledevice, ifuse, hyprpolkitagent, coolercontrol-gui, ark, qt6ct. The share picker lives in `home/profiles/linux-desktop.nix` |
@@ -74,7 +74,7 @@ Per-user: MangoHud in `home/gaming-home.nix` (hidden by default, `Right Shift + 
 | Module | Owns |
 |---|---|
 | `dev-langs.nix` | System-wide toolchains: Zig 0.16.0 + zls, nixd, lua-language-server, clang_multi / clang-tools / lldb / gdb / mold / ccache / bear / meson / ninja / valgrind / cppcheck, python313 + uv / ruff / pyright, SBCL (swank, alexandria) + rlwrap; ccache at `/var/cache/ccache` |
-| `virt.nix` | libvirtd (unprivileged QEMU, swtpm, virtiofsd), virt-manager, SPICE USB redirection, OVMF, virtio-win; `/data/vms` and `/data/vms/iso`; DNS/DHCP open on `virbr0`; egress filter for the `claude-vm` group (no LAN, tailnet or host access); libvirtd ordered after `data.mount` |
+| `virt.nix` | libvirtd (unprivileged QEMU, swtpm, virtiofsd), virt-manager, SPICE USB redirection, OVMF, virtio-win; `/data/vms` and `/data/vms/iso`; DNS/DHCP open on `virbr0`; libvirtd ordered after `data.mount` |
 
 ### Services and network
 
