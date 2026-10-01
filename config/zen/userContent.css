@@ -1,3 +1,5 @@
+@import url("dots-palette.css");
+@import url("dots-sites.css");
 
 @-moz-document url("about:blank"), url("about:newtab"), url("about:home") {
   :root, body { background: #161616 !important; }

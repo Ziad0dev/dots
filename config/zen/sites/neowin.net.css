@@ -1,0 +1,8 @@
+@-moz-document domain("neowin.net") {
+
+    div { background-color: var(--dots-background) !important; color: var(--dots-on_background) !important; border-color: var(--dots-outline_variant) !important; }
+    a { color: var(--dots-on_background) !important; }
+    p { color: var(--dots-on_secondary_container) !important; }
+    h3 { color: var(--dots-on_surface_variant) !important; }
+
+}

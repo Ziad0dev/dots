@@ -88,6 +88,10 @@ HDR: the profile runs DP-1 in 10-bit HDR permanently. That costs compositor CPU 
 | `SUPER + SHIFT + V` | Clipboard history (cliphist → fuzzel) |
 | `SUPER + V` | Dictation — start / stop (voxtype) |
 | `SUPER + N` | Night light toggle |
+| `SUPER + ALT + M` | Identify the song playing (`dots-songrec`) |
+| `SUPER + ALT + G` | Region → Google Lens (`dots-lens`) |
+| `SUPER + ALT + T` | Read the selection aloud / stop (`dots-say`) |
+| `SUPER + ALT + I` | Live disk I/O monitor (`dots-diskio`) |
 
 ### Look
 
@@ -98,6 +102,9 @@ HDR: the profile runs DP-1 in 10-bit HDR permanently. That costs compositor CPU 
 | `SUPER + E` | Wallpaper picker |
 | `SUPER + CTRL + E` | Next wallpaper |
 | `SUPER + CTRL + Z` / `SUPER + CTRL + ALT + Z` | Zoom in / reset zoom |
+| `SUPER + ALT + A` | Animation preset picker |
+| `SUPER + ALT + S` | Screen shader picker |
+| `SUPER + ALT + B` | Blur on / off |
 
 ### Capture
 
@@ -189,6 +196,29 @@ qs -c rise ipc call <target> <function>
 ## Night light
 
 `dots-nightlight [on|off|toggle|status]` controls the `dots-gammastep` user unit (fixed 2700 K; config in `config/gammastep/`). `SUPER + N` toggles.
+
+## Animations, shaders, blur
+
+`dots-look` (`scripts/dots-look.sh`) switches three things and remembers them in `~/.local/state/dots/hypr/`, which `config/hypr/modules/45-animations.lua` and `46-look.lua` read on every load:
+
+- **Animation presets** — `config/hypr/animations/*.lua`. `snap` is the default (the old `45-animations.lua`); the rest come from [dusky](https://github.com/dusklinux/dusky), switched to vertical workspace slides. `dots-look anim [pick|list|<name>]`, then a `hyprctl reload`.
+- **Screen shaders** — `config/hypr/shaders/*.glsl` (dusky). `dots-look shader [pick|list|off|<name>]`. A shader forces a full composite every frame, so direct scanout is gone while one is active, and they are written for SDR output — expect them to look wrong on DP-1 while HDR is engaged.
+- **Blur** — `dots-look blur [on|off|toggle|status]`.
+
+Shader and blur changes go through `hyprctl eval "hl.config(...)"` and fall back to `hyprctl reload` if that request isn't supported.
+
+## Extra tools
+
+From `home/desktop-tools.nix`:
+
+- **`dots-songrec [desktop|mic|history]`** — records 10 s of the default sink's monitor (or the mic), identifies it with SongRec, notifies, copies `artist - title`, and appends to `~/.local/state/dots/songrec/history.tsv`. Needs the network (Shazam's API).
+- **`dots-lens`** — slurp a region, copy it as PNG, open lens.google.com; paste with `Ctrl+V`. Nothing is uploaded to a third-party host.
+- **`dots-say [toggle|stop] [text…]`** — Kokoro text to speech. With no text it reads stdin, then the primary selection, then the clipboard; streams to `pw-play`. `DOTS_SAY_VOICE` (default `af_heart`) and `DOTS_SAY_SPEED` change the voice. The first run downloads `hexgrad/Kokoro-82M` into `~/.cache/huggingface`. Set `dots.tts.enable = false` to drop it (it pulls in torch and spaCy).
+- **`dots-mono [on|off|toggle|status]`** — puts a mono `pw-loopback` sink in front of the current output and makes it the default; `off` restores the previous sink.
+- **`dots-usb-sound [on|off|toggle|status]`** — the `dots-usb-sound` user unit plays the freedesktop device-added / removed sounds on USB plug events; this mutes or unmutes it.
+- **`dots-diskio`** — per-disk read/write rates and busy %, with mount points, plus the kernel's dirty and writeback totals: when those reach zero a copy has actually landed.
+- **`dots-screentime [today|yesterday|week|month|YYYY-MM-DD]`** — the `dots-screentime` user unit logs focused-app time from Hyprland's event socket into `~/.local/state/dots/screentime.db`, skipping time while the lock screen runs.
+- **`dots-timemachine [back|status|<commit>]`** — fzf over the repo's history, stashes uncommitted work (untracked included), detaches onto the chosen commit; `back` returns to the branch and pops the stash.
 
 ## Screen sharing
 

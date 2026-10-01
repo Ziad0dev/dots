@@ -109,6 +109,7 @@ Everything past this README lives in [`docs/`](docs/README.md), mirrored to the 
 ## Credits
 
 - **Quickshell bar** — a fork of [HANCORE-linux/quickshell-dots](https://github.com/HANCORE-linux/quickshell-dots) (MIT, see [`config/quickshell/rise/LICENSE`](config/quickshell/rise/LICENSE)).
+- **Animation presets, screen shaders and per-site Zen styles** — from [dusky](https://github.com/dusklinux/dusky) (MIT, see the `LICENSE` in `config/hypr/animations/`, `config/hypr/shaders/` and `config/zen/sites/`).
 - **Theme palettes and bundled wallpapers** — largely adapted from [omarchy](https://github.com/basecamp/omarchy) (MIT) and the HANCORE-linux theme repos (MIT); original artwork belongs to its authors.
 - **KvGlass / Glass-Kv** Kvantum theme — Victor Calles (GPL).
 - Built on [chaotic-nyx](https://github.com/chaotic-cx/nyx), [home-manager](https://github.com/nix-community/home-manager), [nix-darwin](https://github.com/nix-darwin/nix-darwin), [VPN-Confinement](https://github.com/Maroka-chan/VPN-Confinement) and [nh](https://github.com/nix-community/nh).

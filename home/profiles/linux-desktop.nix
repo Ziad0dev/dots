@@ -28,6 +28,7 @@ in
     ../cleanup.nix
     ../soulseek.nix
     ../upstream-watch.nix
+    ../desktop-tools.nix
   ];
 
   dots.upstreamWatch.enable = true;
@@ -158,7 +159,12 @@ in
       imv
       nemo
       lnav
-      (mpv.override { scripts = [ mpvScripts.uosc ]; })
+      (mpv.override {
+        scripts = [
+          mpvScripts.uosc
+          mpvScripts.thumbfast
+        ];
+      })
       qt6.qtwayland
       (obs-studio.override { browserSupport = false; })
       cliamp

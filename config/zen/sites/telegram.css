@@ -1,0 +1,21 @@
+@-moz-document domain("web.telegram.org") {
+
+    html, body, html.theme-dark {
+        --action-message-bg: var(--dots-surface_container_low) !important;
+        --color-chat-hover: var(--dots-surface_container_high) !important;
+        --color-chat-active: var(--dots-primary_container) !important;
+        --color-background-selected: var(--dots-surface_container_high) !important;
+        --color-text: var(--dots-on_surface_variant) !important;
+        --color-primary: var(--dots-primary_container) !important;
+        --color-primary-shade-rgb: var(--dots-primary_container) !important;
+        --theme-background-color: var(--dots-surface) !important;
+        --color-background: var(--dots-surface) !important;
+        --color-forum-hover-unread-topic-hover: var(--dots-surface) !important;
+        --color-forum-unread-topic-hover: var(--dots-surface) !important;
+        --color-gray: var(--dots-surface_container_high) !important;
+        --color-background-own: var(--dots-primary_container) !important;
+        --color-reply-own-hover: var(--dots-on_primary) !important;
+        --color-background-compact-menu: var(--dots-surface_container_low) !important;
+        --color-background-secondary: var(--dots-surface_container_lowest) !important;
+    }
+}
