@@ -6,7 +6,7 @@ let
 
   openasar = builtins.toJSON {
     cmdPreset = "perf";
-    customFlags = "--disable-features=WaylandWpColorManagerV1";
+    customFlags = "--disable-features=WaylandWpColorManagerV1 --disable-gpu-memory-buffer-video-frames --disable-accelerated-video-decode";
   };
 in
 {
