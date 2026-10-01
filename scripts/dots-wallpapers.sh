@@ -16,6 +16,23 @@ sets_for() {
     esac
 }
 
+verify() {
+    local f magic bad=0
+    while IFS= read -r -d '' f; do
+        magic=$(head -c 4 "$f" | od -An -tx1 | tr -d ' \n')
+        case "$magic" in
+            ffd8ff* | 89504e47) ;;
+            *)
+                rm -f "$f"
+                bad=$((bad + 1))
+                ;;
+        esac
+    done < <(find "$DIR" -path "$DIR/.git" -prune -o -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' \) -print0)
+    if [ "$bad" -gt 0 ]; then
+        printf 'dots-wallpapers: removed %s files that were not really JPEG/PNG\n' "$bad" >&2
+    fi
+}
+
 link_sets() {
     local s
     mkdir -p "$WP"
@@ -37,7 +54,11 @@ cmd_sync() {
     fi
     git -C "$DIR" sparse-checkout set "${sets[@]}"
     git -C "$DIR" fetch --depth 1 --quiet origin main
+    if git -C "$DIR" ls-tree -r FETCH_HEAD | awk '$1 == "120000" { found = 1 } END { exit !found }'; then
+        die "upstream now contains symlinks; refusing to check it out"
+    fi
     git -C "$DIR" reset --hard --quiet FETCH_HEAD
+    verify
     git -C "$DIR" reflog expire --expire=now --all
     git -C "$DIR" gc --prune=now --quiet
     link_sets "${sets[@]}"
