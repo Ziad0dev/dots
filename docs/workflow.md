@@ -19,7 +19,7 @@ update                      # nh os switch
 | `config/quickshell/rise/**` | Quickshell reloads QML on save; `dots-shell restart` if it wedges. The bar's helper scripts in `rise/scripts/` run straight from the repo |
 | `config/themes/*/colors.sh`, `config/themes/_templates/*.in` | `themectl reload` — no rebuild. Exception: the theme baked into SDDM / Spotify, see below |
 | `config/sddm/**`, or the theme named by `dots.sddm.theme` / `dots.theme` | Rebuild — the greeter and Spicetify theme are generated at build time |
-| `scripts/*.sh` | Rebuild. `themectl`, `dots-compat` (all `dots-*` shims), `voxtype` and the wallpaper helpers are packaged with `writeShellApplication`; the thing on PATH is a store copy. `claude-vm.sh` and the git hook run from the repo |
+| `scripts/*.sh` | Rebuild. `themectl`, `dots-compat` (all `dots-*` shims), `voxtype` and the wallpaper helpers are packaged with `writeShellApplication`; the thing on PATH is a store copy. The git hook runs from the repo |
 | Any `.nix` file | Rebuild |
 
 A switch that prints `PATHS +0, -0` after a `config/`-only change is expected — no store path moved.

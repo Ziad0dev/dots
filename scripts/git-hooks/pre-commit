@@ -33,7 +33,6 @@ fi
 if command -v nix >/dev/null; then
     for out in \
         "nixosConfigurations.nixos.config.system.build.toplevel" \
-        "nixosConfigurations.claude-vm.config.system.build.toplevel" \
         "homeConfigurations.\"$(whoami)@linux\".activationPackage" \
         "homeConfigurations.\"$(whoami)@linux-desktop\".activationPackage" \
         "homeConfigurations.\"$(whoami)@aarch64-linux\".activationPackage" \

@@ -92,29 +92,6 @@ inputs.dots-maths.url = "github:Ziad0dev/dots?dir=flakes/maths";
 
 Sets live in `names.nix`, one attribute path string per entry (`"python3Packages.pwntools"` works).
 
-## Agent VM
-
-`nixosConfigurations.claude-vm` is a disposable QEMU guest for letting a coding agent run without permission prompts. It's built from `hosts/claude-vm/` and driven by `scripts/claude-vm.sh`.
-
-```fish
-~/dots/scripts/claude-vm.sh          # build + boot ephemeral (-snapshot): nothing written to disk survives
-~/dots/scripts/claude-vm.sh persist  # boot keeping /data/vms/claude-vm.qcow2
-~/dots/scripts/claude-vm.sh ssh      # ssh -p 2222 dev@localhost
-~/dots/scripts/claude-vm.sh reset    # delete the disk image
-~/dots/scripts/claude-vm.sh build    # build only
-```
-
-| | |
-|---|---|
-| Resources | 6 GiB RAM, 4 cores, 24 GiB disk, no graphics (serial console, `Ctrl-a x` to power off) |
-| Share | host `/data/vms/share` ↔ guest `/mnt/work` (9p). The guest user is uid 1001, same as the host user, so ownership lines up |
-| Ports | `127.0.0.1:2222` → ssh, `:5173` and `:3000` forwarded for dev servers |
-| Guest | user `dev` / password `dev`, passwordless sudo, autologin, firewall off, writable store, flakes enabled, registry pinned to the host flake's nixpkgs |
-| Tools | claude-code, git, gh, jujutsu, node 22, ripgrep, fd, jq, neovim, tmux, plus everything in `modules/dev-langs.nix` |
-| Agent config | `~/.claude/settings.json` seeded from Nix on first boot (copied, not linked — the agent can edit it). `yolo` = `claude --dangerously-skip-permissions` |
-
-Credentials from `claude` login land in the guest's home and vanish on an ephemeral boot — use `persist` to keep them. The guest's weak password is only reachable from the host's loopback.
-
 ## Foreign binaries
 
 `modules/foreign.nix` covers software that wasn't built for Nix. Pick by symptom:

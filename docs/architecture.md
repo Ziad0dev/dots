@@ -5,7 +5,7 @@
 ```
 flake.nix       inputs, username, every output
 lib/            mk.nix (output builders), overlays, shared systemd hardening, nvidia fix
-hosts/          nixos/ (the desktop), darwin/, claude-vm/
+hosts/          nixos/ (the desktop), darwin/
 modules/        NixOS modules, one concern per file
 home/           home-manager: home.nix dispatcher, profiles/, one module per app
 config/         raw app config, symlinked live into ~/.config
@@ -20,7 +20,6 @@ scripts/        shell sources packaged by the nix modules, plus the git hook
 | Output | Built by | Contents |
 |---|---|---|
 | `nixosConfigurations.nixos` | `mk.nixos` | `hosts/nixos/*` + `desktopModules` + chaotic's cache/overlay/registry modules + home-manager (profile `desktop`) |
-| `nixosConfigurations.claude-vm` | `mk.nixos` with `home = false` | `hosts/claude-vm/` — qemu guest, user `dev` |
 | `darwinConfigurations.mac` | `mk.darwin` | `hosts/darwin/` + home-manager (profile `desktop`, which on darwin selects the darwin profile) |
 | `homeConfigurations."ziad0dev@mac"` | `mk.home` | aarch64-darwin, desktop |
 | `homeConfigurations."ziad0dev@linux"` | `mk.home` | x86_64-linux, minimal |

@@ -4,9 +4,9 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 
-// AI usage panel: shows Claude Code, OpenAI Codex, and OpenCode usage and lets the user
+// AI usage panel: shows OpenAI Codex and OpenCode usage and lets the user
 // switch which tool's icon the bar pill displays (root.aiTool). Opened from the
-// combined AI pill (ClaudeWidget). Reads the same caches the bar widget reads.
+// combined AI pill (AiWidget). Reads the same caches the bar widget reads.
 PanelWindow {
     id: aiPanel
     required property var root
@@ -24,15 +24,6 @@ PanelWindow {
 
     // ── usage data: rendered from root.ai* — the single shared parse in Theme.qml
     //    that the bar pill uses too, so the two views can never drift apart. ──
-    readonly property int    clPct5h:     root.aiClPct5h
-    readonly property int    clPct7d:     root.aiClPct7d
-    readonly property int    clReset5hTs: root.aiClReset5hTs
-    readonly property int    clReset7dTs: root.aiClReset7dTs
-    readonly property string clTokens:    root.aiClTokens
-    readonly property string clRate:      root.aiClRate
-    readonly property int    clToday:     root.aiClToday
-    readonly property bool   clFresh:     root.aiClFresh
-    readonly property bool   clHas:       root.aiClHas
 
     readonly property int    cxPct5h:     root.aiCxPct5h
     readonly property int    cxPct7d:     root.aiCxPct7d
@@ -66,7 +57,6 @@ PanelWindow {
     readonly property bool   ocFresh:     root.aiOcFresh
     readonly property bool   ocHas:       root.aiOcHas
     readonly property var    ocModels:    root.aiOcModels
-    readonly property bool   showClaude:  root.aiTool === "claude"
     readonly property bool   showCodex:   root.aiTool === "codex"
     readonly property bool   showOpenCode: root.aiTool === "opencode"
 
@@ -270,10 +260,10 @@ PanelWindow {
                     height: 28
                     spacing: 6
                     Repeater {
-                        model: [ { id: "claude", label: "Claude" }, { id: "codex", label: "Codex" }, { id: "opencode", label: "OpenCode" } ]
+                        model: [ { id: "codex", label: "Codex" }, { id: "opencode", label: "OpenCode" } ]
                         Rectangle {
                             required property var modelData
-                            width: root.evenW((parent.width - 12) / 3)
+                            width: root.evenW((parent.width - 6) / 2)
                             height: 28; radius: root.tileRadius
                             readonly property bool active: root.aiTool === modelData.id
                             color: active ? root.fillActive
@@ -300,36 +290,6 @@ PanelWindow {
                 }
 
                 Rectangle { width: parent.width; height: 1; color: root.sep }
-
-                // ── Claude Code ──
-                Item {
-                    visible: aiPanel.showClaude
-                    width: parent.width; height: 16
-                    UiText {
-                        anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
-                        text: "Claude Code"; color: root.ink
-                        font.family: root.mono; font.pixelSize: 12; font.weight: Font.Medium
-                    }
-                    UiText {
-                        anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
-                        text: aiPanel.clFresh ? "live" : "stale"
-                        color: aiPanel.clFresh ? root.sumi : root.sealRaw
-                        font.family: root.mono; font.pixelSize: 10
-                    }
-                }
-                UiText {
-                    visible: aiPanel.showClaude && !aiPanel.clHas
-                    width: parent.width
-                    text: "no data — run claude"
-                    color: root.sumiHi; font.family: root.mono; font.pixelSize: 11
-                }
-                UsageRow { visible: aiPanel.showClaude && aiPanel.clHas; label: "5h"; pct: aiPanel.clPct5h; dim: !aiPanel.clFresh }
-                UsageRow { visible: aiPanel.showClaude && aiPanel.clHas; label: "7d"; pct: aiPanel.clPct7d; dim: !aiPanel.clFresh }
-                DetailRow { visible: aiPanel.showClaude && aiPanel.clHas; k: "5h resets in"; v: root.aiFmtResetDetail(aiPanel.clReset5hTs) || "—" }
-                DetailRow { visible: aiPanel.showClaude && aiPanel.clHas; k: "7d resets in"; v: root.aiFmtResetDetail(aiPanel.clReset7dTs) || "—" }
-                DetailRow { visible: aiPanel.showClaude && aiPanel.clHas && aiPanel.clTokens !== ""; k: "Tokens"; v: aiPanel.clTokens }
-                DetailRow { visible: aiPanel.showClaude && aiPanel.clHas && aiPanel.clRate !== "";   k: "Rate"; v: aiPanel.clRate }
-                DetailRow { visible: aiPanel.showClaude && aiPanel.clHas && aiPanel.clToday > 0; k: "Today"; v: (aiPanel.clToday / 1e6).toFixed(2) + "M tok" }
 
                 Rectangle { visible: false; width: parent.width; height: 1; color: root.sep }
 

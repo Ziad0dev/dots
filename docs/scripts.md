@@ -92,10 +92,9 @@ These open a floating terminal (`$DOTS_TERMINAL`, default ghostty) with window c
 
 | Script | Usage |
 |---|---|
-| `scripts/claude-vm.sh` | `build` · `run` (default, ephemeral) · `persist` · `ssh [args]` · `reset`. `FLAKE` overrides the repo path. See [Development](development.md#agent-vm) |
 | `scripts/git-hooks/pre-commit` | Run by git; see [Workflow](workflow.md#commit-checks) |
 | `config/zen/zen-theme-link.sh` | Link `config/zen/*.css` into every Zen profile's `chrome/`. `SRC` / `ROOT` env override source and profile root. Launch Zen once first so a profile exists |
-| `config/quickshell/rise/scripts/*` | Bar helpers: `claude-usage`, `codex-usage`, `opencode-usage`, `openrouter`, `qs-barctl`, `qs-kb-*`, `qs-proj` |
+| `config/quickshell/rise/scripts/*` | Bar helpers: `codex-usage`, `opencode-usage`, `openrouter`, `qs-barctl`, `qs-kb-*`, `qs-proj` |
 
 ## Fish
 
@@ -116,7 +115,6 @@ These open a floating terminal (`$DOTS_TERMINAL`, default ghostty) with window c
 | `y` | yazi, `cd`s to where you quit |
 | `gpu-check` | running `llama-*` units + `ollama ps` |
 | `gpu-free` | stop every `llama-*` unit |
-| `yolo` | agent VM only: `claude --dangerously-skip-permissions` |
 
 Fish starts in vi mode and sources the themed fzf colours.
 

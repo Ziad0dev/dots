@@ -82,7 +82,7 @@ The rest: [Desktop → keybinds](docs/desktop.md#keybinds).
 
 ```
 flake.nix     username, hostnames, every output
-hosts/        nixos/ · darwin/ · claude-vm/
+hosts/        nixos/ · darwin/
 modules/      system config, one file per concern
 home/         home-manager: profiles/ + one module per app
 config/       app config, symlinked live into ~/.config

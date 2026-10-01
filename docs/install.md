@@ -8,7 +8,6 @@
 | A Mac | `darwinConfigurations.mac` | nix-darwin + home-manager, darwin profile |
 | Any Linux with Nix, headless | `homeConfigurations."ziad0dev@linux"` / `"ziad0dev@aarch64-linux"` | minimal: shell, editors, CLI tools |
 | Any Linux with Nix, graphical | `homeConfigurations."ziad0dev@linux-desktop"` | desktop home profile without the NixOS system layer |
-| A throwaway sandbox | `nixosConfigurations.claude-vm` | see [Development](development.md#agent-vm) |
 
 `username` is set once at the top of `flake.nix`; hostnames are per output.
 

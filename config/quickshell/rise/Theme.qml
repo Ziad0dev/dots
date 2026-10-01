@@ -709,22 +709,12 @@ Item {
         if (githubVisible) refreshGithub()
     }
 
-    property string aiTool: "claude"   // "claude", "codex", or "opencode" — icon shown in the bar
+    property string aiTool: "codex"   // "codex" or "opencode" — icon shown in the bar
 
     // ── AI usage data (single source of truth) ───────────────────
-    // The bar pill (ClaudeWidget) and the AiUsagePanel both render from these —
+    // The bar pill (AiWidget) and the AiUsagePanel both render from these —
     // the cache parsing lives ONLY here so the two views can never drift apart.
     // Token strings are bare "X.XXM / Y.YM"; the pill tooltip appends " tokens".
-    property bool   aiClHas: false
-    property bool   aiClFresh: false
-    property int    aiClPct5h: 0
-    property int    aiClPct7d: 0
-    property bool   aiClBlocked: false
-    property string aiClTokens: ""
-    property string aiClRate: ""
-    property int    aiClReset5hTs: 0
-    property int    aiClReset7dTs: 0
-    property int    aiClToday: 0
 
     property bool   aiCxHas: false
     property bool   aiCxFresh: false
@@ -943,39 +933,6 @@ Item {
     }
 
     Process {
-        id: aiReadClaude
-        command: ["bash", "-c",
-            "f=\"$HOME/.cache/claude-usage.json\"; stat -c %Y \"$f\" 2>/dev/null; cat \"$f\" 2>/dev/null"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                var raw = this.text, nl = raw.indexOf("\n")
-                var mtime = nl > 0 ? (parseInt(raw.substring(0, nl)) || 0) : 0
-                var ageOk = mtime > 0 && (Date.now() / 1000 - mtime) < 900
-                try {
-                    var d = JSON.parse((nl > 0 ? raw.substring(nl + 1) : "").trim())
-                    theme.aiClHas = true
-                    theme.aiClFresh = ageOk && d._source !== "stale"
-                    theme.aiClPct5h = theme.aiPct(d["5h-utilization"])
-                    theme.aiClPct7d = theme.aiPct(d["7d-utilization"])
-                    theme.aiClBlocked = d.status === "rejected" || d.status === "blocked"
-                    theme.aiClReset5hTs = parseInt(d["5h-reset"]) || 0
-                    theme.aiClReset7dTs = parseInt(d["7d-reset"]) || 0
-                    var used = (d["_tokens_used"] || 0), lim = (d["_window_limit"] || 0)
-                    theme.aiClTokens = used ? (used / 1e6).toFixed(2) + "M / " + (lim / 1e6).toFixed(1) + "M" : ""
-                    var rateH = Math.round((d["_rate_per_hour"] || 0) / 1000)
-                    theme.aiClRate = rateH > 0 ? rateH + "k tok/h" : ""
-                    theme.aiClToday = parseInt(d._today_tokens) || 0
-                } catch (e) {
-                    theme.aiClHas = false; theme.aiClFresh = false
-                    theme.aiClPct5h = 0; theme.aiClPct7d = 0
-                    theme.aiClBlocked = false; theme.aiClTokens = ""; theme.aiClRate = ""
-                    theme.aiClReset5hTs = 0; theme.aiClReset7dTs = 0; theme.aiClToday = 0
-                }
-            }
-        }
-    }
-
-    Process {
         id: aiReadCodex
         command: ["bash", "-c",
             "f=\"$HOME/.cache/codex-usage.json\"; stat -c %Y \"$f\" 2>/dev/null; cat \"$f\" 2>/dev/null"]
@@ -1030,9 +987,6 @@ Item {
     function refreshAiUsage(selectedOnly) {
         aiClockTick++
         var only = selectedOnly === true
-        if (!only || aiTool === "claude") {
-            aiReadClaude.running = false; aiReadClaude.running = true
-        }
         if (!only || aiTool === "codex") {
             aiReadCodex.running = false;  aiReadCodex.running = true
         }
@@ -2387,7 +2341,7 @@ Item {
     property bool modMedia:      true
     property bool modQuick:      true    // G10 group pill (idle-inhibitor · media · theme)
     property bool modMpris:      true    // G9 now-playing / mpris pill
-    property bool modClaude:     false   // default off (toggle in ControlPanel)
+    property bool modAi:         false   // default off (toggle in ControlPanel)
     property bool modGithub:     true
 
     // Per-widget compact display modes. Defaults are full-width for backwards
@@ -2589,7 +2543,7 @@ Item {
 
     onModMemoryChanged:     if (_widgetsLoaded) saveWidgets()
     onModBrightnessChanged: if (_widgetsLoaded) saveWidgets()
-    onModClaudeChanged:     if (_widgetsLoaded) saveWidgets()
+    onModAiChanged:         if (_widgetsLoaded) saveWidgets()
     onModPowerChanged:      if (_widgetsLoaded) saveWidgets()
     onModBluetoothChanged:  if (_widgetsLoaded) saveWidgets()
     onModNetworkChanged:    if (_widgetsLoaded) saveWidgets()
@@ -2631,7 +2585,7 @@ Item {
     function saveWidgets() {
         var line = (modMemory    ? "1" : "0") + " "
                  + (modBrightness ? "1" : "0") + " "
-                 + (modClaude    ? "1" : "0") + " "
+                 + (modAi        ? "1" : "0") + " "
                  + (modPower     ? "1" : "0") + " "
                  + (modBluetooth ? "1" : "0") + " "
                  + workspaceMode + " "
@@ -2650,7 +2604,7 @@ Item {
                  + (modCpu    ? "1" : "0") + " "          // +13
                  + (modVolume ? "1" : "0") + " "          // +14
                  + (modMpris  ? "1" : "0") + " "          // +15 now-playing / mpris
-                 + aiTool + " "                           // +16 AI tool shown in bar (claude/codex/opencode)
+                 + aiTool + " "                           // +16 AI tool shown in bar (codex/opencode)
                  + (styleFrost ? "1" : "0") + " "         // +17 frost / lowered island opacity
                  + launcherLogoMode + " "                 // +18 launcher logo mode (text/icon)
                  + launcherLogoText + " "                 // +19 text logo id
@@ -2793,7 +2747,7 @@ Item {
                 if (parts.length >= 4) {
                     theme.modMemory    = parts[0] !== "0"
                     theme.modBrightness = parts[1] !== "0"
-                    theme.modClaude    = parts[2] !== "0"
+                    theme.modAi        = parts[2] !== "0"
                     theme.modPower     = parts[3] !== "0"
                 }
                 // parts[4] is the bluetooth flag in the new format, but in the OLD
@@ -2850,7 +2804,7 @@ Item {
                     if (parts.length > wsField + 15) theme.modMpris  = parts[wsField + 15] !== "0"
                     if (parts.length > wsField + 16) {
                         var at = parts[wsField + 16]
-                        if (at === "claude" || at === "codex" || at === "opencode") theme.aiTool = at
+                        if (at === "codex" || at === "opencode") theme.aiTool = at
                     }
                     if (parts.length > wsField + 17) theme.styleFrost = parts[wsField + 17] === "1"
                     if (parts.length > wsField + 18) {

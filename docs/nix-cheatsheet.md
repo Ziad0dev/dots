@@ -182,7 +182,6 @@ Other outputs:
 |---|---|
 | `nh home switch ~/dots -c ziad0dev@linux` | bare Nix on Linux (`@linux-desktop`, `@aarch64-linux` too) |
 | `nh darwin switch ~/dots -H mac` | nix-darwin |
-| `~/dots/scripts/claude-vm.sh` | the sandbox VM |
 
 Maintaining the templates:
 
