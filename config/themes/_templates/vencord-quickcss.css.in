@@ -347,3 +347,13 @@ pre,
   background-color: transparent !important;
   background-image: none !important;
 }
+
+li:has(a[href="/store"]),
+li:has(a[href="/shop"]),
+li:has(a[href="/quest-home"]),
+a[href="/store"],
+a[href="/shop"],
+a[href="/quest-home"],
+button[aria-label="Send a gift"] {
+  display: none !important;
+}
