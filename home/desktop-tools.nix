@@ -74,9 +74,11 @@ let
     };
 
   usbVoice = pkgs.runCommand "dots-usb-voice" { nativeBuildInputs = [ pkgs.piper-tts ]; } ''
-    mkdir -p $out
-    echo "USB device plugged in." | piper -m ${voice.model} -c ${voice.config} -f $out/device-added.wav
-    echo "USB device unplugged." | piper -m ${voice.model} -c ${voice.config} -f $out/device-removed.wav
+    mkdir -p $out voice
+    ln -s ${voice.model} voice/en_US-lessac-high.onnx
+    ln -s ${voice.config} voice/en_US-lessac-high.onnx.json
+    echo "USB device plugged in." | piper -m voice/en_US-lessac-high.onnx -f $out/device-added.wav
+    echo "USB device unplugged." | piper -m voice/en_US-lessac-high.onnx -f $out/device-removed.wav
   '';
 
   usbSound = pkgs.writeShellApplication {
