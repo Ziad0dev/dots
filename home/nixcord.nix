@@ -29,13 +29,8 @@ in
     discord = {
       enable = true;
       package = discord;
-      vencord.enable = true;
+      equicord.enable = true;
       openASAR.enable = true;
-    };
-
-    userPlugins = {
-      bigFileUpload = "github:ScattrdBlade/bigFileUpload/837e9efe85ce026063a13ef7fef12e96b3a0aa18";
-      junkCleanup = "github:Sqaaakoi/vc-junkCleanup/2a3b173d77b4fdd695e7a39a124feb403923401a";
     };
 
     config = {
@@ -62,7 +57,10 @@ in
         reverseImageSearch.enable = true;
         settings.enable = true;
         silentTyping.enable = true;
-        spotifyControls.enable = true;
+        musicControls = {
+          enable = true;
+          showSpotifyControls = true;
+        };
         translate.enable = true;
         unsuppressEmbeds.enable = true;
         viewRaw.enable = true;
@@ -73,27 +71,23 @@ in
         spotifyCrack.enable = true;
         voiceChatDoubleClick.enable = true;
         voiceMessages.enable = true;
-      };
-    };
-
-    extraConfig.plugins = {
-      JunkCleanup.enable = true;
-      BigFileUpload = {
-        enable = true;
-        fileUploader = "Litterbox";
-        litterboxTime = "72h";
-        respectNitroLimit = "Yes";
-        nitroType = "none";
-        disableFallbacks = "No";
-        autoSend = "No";
-        autoFormat = "Yes";
-        useNotifications = "No";
-        useEmbedsVideo = "Yes";
-        embedService = "x266";
-        dragAndDropEnabled = "Yes";
-        pasteEnabled = "Yes";
-        uploadTimeout = "300000";
-        loggingLevel = "errors";
+        declutter = {
+          enable = true;
+          removeShopAboveDms = true;
+          removeQuestsAboveDms = true;
+          removeAudioMenus = false;
+          alwaysShowUsername = false;
+        };
+        questify = {
+          enable = true;
+          disableQuestsEverything = true;
+        };
+        fileUpload = {
+          enable = true;
+          serviceType = "litterbox";
+          litterboxExpiry = "72h";
+          autoFormat = true;
+        };
       };
     };
   };
