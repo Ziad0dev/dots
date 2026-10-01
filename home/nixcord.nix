@@ -1,5 +1,17 @@
-{ lib, pkgs, ... }:
+{ lib, pkgs, options, ... }:
 let
+  # discord_voice.node segfaults in OggWriter's destructor when a local
+  # recording stops, so voice notes go through Chromium's MediaRecorder,
+  # the same recorder Vencord uses on Vesktop and the web client.
+  vencord = options.programs.nixcord.discord.vencord.package.default.overrideAttrs (o: {
+    postPatch = (o.postPatch or "") + ''
+      substituteInPlace src/plugins/voiceMessages/index.tsx \
+        --replace-fail \
+          'IS_DISCORD_DESKTOP ? VoiceRecorderDesktop : VoiceRecorderWeb' \
+          'VoiceRecorderWeb'
+    '';
+  });
+
   discord = lib.makeOverridable (lib.mirrorFunctionArgs pkgs.discord.override (
     args: pkgs.discord.override (builtins.intersectAttrs (lib.functionArgs pkgs.discord.override) args)
   )) { };
@@ -29,7 +41,10 @@ in
     discord = {
       enable = true;
       package = discord;
-      vencord.enable = true;
+      vencord = {
+        enable = true;
+        package = vencord;
+      };
       openASAR.enable = true;
       commandLineArgs = [ "--enable-logging=file" ];
     };
