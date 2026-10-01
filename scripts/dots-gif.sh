@@ -32,10 +32,12 @@ trap 'rm -rf "$tmp"' EXIT
 
 filters="fps=$fps,scale=$width:-1:flags=lanczos"
 
-ffmpeg -v error -stats "${trim[@]}" -i "$in" \
-    -vf "$filters,palettegen=stats_mode=diff" -y "$tmp/palette.png"
-ffmpeg -v error -stats "${trim[@]}" -i "$in" -i "$tmp/palette.png" \
+safe=(-protocol_whitelist file)
+
+ffmpeg -v error -stats "${trim[@]}" "${safe[@]}" -i "file:$in" \
+    -vf "$filters,palettegen=stats_mode=diff" -y "file:$tmp/palette.png"
+ffmpeg -v error -stats "${trim[@]}" "${safe[@]}" -i "file:$in" "${safe[@]}" -i "file:$tmp/palette.png" \
     -lavfi "$filters [x]; [x][1:v] paletteuse=dither=sierra2_4a:diff_mode=rectangle" \
-    -loop 0 -y "$out"
+    -loop 0 -y "file:$out"
 
 printf '%s (%s)\n' "$out" "$(du -h "$out" | cut -f1)"

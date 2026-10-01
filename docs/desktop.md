@@ -224,7 +224,7 @@ From `home/desktop-tools.nix`:
 
 ## Waydroid
 
-`modules/waydroid.nix` enables Waydroid (the `cachyos-bore` kernel has binder and binderfs built in) and installs `waydroid-helper` for ARM translation and extensions. The images are fetched imperatively with `sudo waydroid init`. On the NVIDIA card it has to render in software (SwiftShader) — see [Troubleshooting](troubleshooting.md).
+`modules/waydroid.nix` enables Waydroid (the `cachyos-bore` kernel has binder and binderfs built in) and installs `waydroid-helper` for ARM translation and extensions. The images are fetched imperatively with `sudo waydroid init`. The NixOS module trusts `waydroid0` outright; `dots-waydroid` (an iptables chain inserted ahead of that rule) narrows it to DHCP, DNS and replies, so Android apps reach the internet but none of the host's services — an Android Jellyfin client can't see the local server unless you add a port there. On the NVIDIA card it has to render in software (SwiftShader) — see [Troubleshooting](troubleshooting.md).
 
 ## Screen sharing
 
