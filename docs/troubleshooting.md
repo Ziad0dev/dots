@@ -126,6 +126,17 @@ The NVIDIA GL extension is per driver version. Log out and back in (the reconcil
 
 `flatpak-managed` uninstalls user apps that aren't declared. Add it to `packages` in `modules/flatpak.nix`.
 
+### Waydroid shows a black window or crashes on start
+
+Waydroid's hardware rendering needs Mesa; the proprietary NVIDIA driver can't provide it, so Android has to render with SwiftShader. After `sudo waydroid init`, add to `/var/lib/waydroid/waydroid.cfg` under `[properties]`:
+
+```
+ro.hardware.gralloc=default
+ro.hardware.egl=swiftshader
+```
+
+then `sudo waydroid upgrade --offline` and `sudo systemctl restart waydroid-container`. Expect it to be CPU-bound: fine for apps, not for games.
+
 ## Login screen
 
 ### SDDM shows the fallback theme
