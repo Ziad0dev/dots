@@ -201,7 +201,7 @@ qs -c rise ipc call <target> <function>
 
 `dots-look` (`scripts/dots-look.sh`) switches three things and remembers them in `~/.local/state/dots/hypr/`, which `config/hypr/modules/45-animations.lua` and `46-look.lua` read on every load:
 
-- **Animation presets** — `config/hypr/animations/*.lua`. `snap` is the default (the old `45-animations.lua`); the rest come from [dusky](https://github.com/dusklinux/dusky), switched to vertical workspace slides. `dots-look anim [pick|list|<name>]`, then a `hyprctl reload`.
+- **Animation presets** — `config/hypr/animations/*.lua`. `snap` is the default (the old `45-animations.lua`); the rest come from dusky, switched to vertical workspace slides. `dots-look anim [pick|list|<name>]`, then a `hyprctl reload`.
 - **Screen shaders** — `config/hypr/shaders/*.glsl` (dusky). `dots-look shader [pick|list|off|<name>]`. A shader forces a full composite every frame, so direct scanout is gone while one is active, and they are written for SDR output — expect them to look wrong on DP-1 while HDR is engaged.
 - **Blur** — `dots-look blur [on|off|toggle|status]`.
 
@@ -219,7 +219,7 @@ From `home/desktop-tools.nix`:
 - **`dots-diskio`** — per-disk read/write rates and busy %, with mount points, plus the kernel's dirty and writeback totals: when those reach zero a copy has actually landed.
 - **`dots-screentime [today|yesterday|week|month|YYYY-MM-DD]`** — the `dots-screentime` user unit logs focused-app time from Hyprland's event socket into `~/.local/state/dots/screentime.db`, skipping time while the lock screen runs.
 - **`dots-gif <video> [-s start] [-t seconds] [-f fps] [-w width] [-o out.gif]`** — two-pass palette GIF; defaults 15 fps, 720 px wide, written next to the input.
-- **`dots-wallpapers sync [dark|light|all]`** — shallow, sparse clone of [dusklinux/images](https://github.com/dusklinux/images) into `~/.local/share/dots/dusky-images`, linked in as `~/Pictures/wallpapers/dusky-dark` / `dusky-light` so the pickers see them. Re-run to update; `status`, `remove`. Not vendored: the images carry no licence.
+- **`dots-wallpapers sync [dark|light|all]`** — shallow, sparse clone of dusky's wallpaper repo into `~/.local/share/dots/dusky-images`, linked in as `~/Pictures/wallpapers/dusky-dark` / `dusky-light` so the pickers see them. Re-run to update; `status`, `remove`. Not vendored: the images carry no licence.
 - **`dots-timemachine [back|status|<commit>]`** — fzf over the repo's history, stashes uncommitted work (untracked included), detaches onto the chosen commit; `back` returns to the branch and pops the stash.
 
 ## Waydroid

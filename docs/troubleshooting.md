@@ -34,7 +34,7 @@ Happened once when chaotic-nyx's overlay re-imported nixpkgs without the (newly 
 
 The CachyOS kernel compresses modules, so they install as `.ko.zst`, and nixpkgs' `nuke-refs` pass only looks at `.ko` — a reference to the kernel's dev output survives inside `nvidia-modeset.ko.zst`. It only bites when the driver is built locally (a cache miss on chaotic's cache).
 
-The fix is `lib/nvidia-zstd-refs.nix`, applied in the host as `package = fixZstdRefs pkgs.nvidia_cachyos;`. Its `postFixup` decompresses each `.ko.zst`, strips references, recompresses. Things to know:
+The fix was `lib/nvidia-zstd-refs.nix`, removed in Sep 2026 once the unpatched driver built clean; the host is back to `package = pkgs.nvidia_cachyos-bore;`. If the error returns, restore it from history (`git log --diff-filter=D -- lib/nvidia-zstd-refs.nix`) and wrap the package with it again. Its `postFixup` decompresses each `.ko.zst`, strips references, recompresses. Things to know if you bring it back:
 
 - It's a function, not a module — keep it out of `modules/` and out of `imports`, or NixOS calls it with module arguments and fails with "unexpected argument".
 - It adds `nukeReferences` explicitly; the `open` derivation doesn't inherit it from nvidia-x11.
