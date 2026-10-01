@@ -60,25 +60,25 @@ let
 
   voice =
     let
-      base = "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/high/en_US-lessac-high";
+      base = "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/amy/medium/en_US-amy-medium";
     in
     {
       model = pkgs.fetchurl {
         url = "${base}.onnx";
-        hash = "sha256-TKv3w6Y4AXE380oVFlIgMtT+PzgiioQ8ybdk3cvNngk=";
+        hash = "sha256-s6bke1e4x/vmoM4lGBYaUPWanN2KUINcAssCvdYgbBg=";
       };
       config = pkgs.fetchurl {
         url = "${base}.onnx.json";
-        hash = "sha256-20K5fZhZ8le8FWG47ZgOf7I5hAIFCnTd1svskxqSQS8=";
+        hash = "sha256-laI+tNQpCdON9zu5rH9F9Zfb/N4tG/lSb96vVGaXfXc=";
       };
     };
 
   usbVoice = pkgs.runCommand "dots-usb-voice" { nativeBuildInputs = [ pkgs.piper-tts ]; } ''
     mkdir -p $out voice
-    ln -s ${voice.model} voice/en_US-lessac-high.onnx
-    ln -s ${voice.config} voice/en_US-lessac-high.onnx.json
-    echo "USB device plugged in." | piper -m voice/en_US-lessac-high.onnx -f $out/device-added.wav
-    echo "USB device unplugged." | piper -m voice/en_US-lessac-high.onnx -f $out/device-removed.wav
+    ln -s ${voice.model} voice/en_US-amy-medium.onnx
+    ln -s ${voice.config} voice/en_US-amy-medium.onnx.json
+    echo "USB device plugged in." | piper -m voice/en_US-amy-medium.onnx -f $out/device-added.wav
+    echo "USB device unplugged." | piper -m voice/en_US-amy-medium.onnx -f $out/device-removed.wav
   '';
 
   usbSound = pkgs.writeShellApplication {
