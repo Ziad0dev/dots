@@ -28,7 +28,7 @@ function M.state(name)
         f:close()
         return line
     end)
-    if not ok or v == nil or v == "" then return nil end
+    if not ok or v == nil or not v:match("^[%w_%-]+$") then return nil end
     return v
 end
 

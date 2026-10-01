@@ -12,8 +12,10 @@ FLUSH = 30
 
 
 def db():
+    os.umask(0o077)
     os.makedirs(STATE, exist_ok=True)
     con = sqlite3.connect(DB)
+    os.chmod(DB, 0o600)
     con.execute(
         "CREATE TABLE IF NOT EXISTS usage (day TEXT NOT NULL, app TEXT NOT NULL,"
         " seconds REAL NOT NULL, PRIMARY KEY (day, app))"

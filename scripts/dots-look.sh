@@ -34,6 +34,8 @@ pick() {
         fuzzel --dmenu --prompt "$prompt " | sed 's/  (current)$//'
 }
 
+valid() { [[ "$1" =~ ^[A-Za-z0-9_-]+$ ]] || die "invalid name '$1'"; }
+
 notify() { notify-send -a dots-look -t 1500 -h string:x-canonical-private-synchronous:dots-look "$1" "$2" || true; }
 
 cmd_anim() {
@@ -48,6 +50,7 @@ cmd_anim() {
             [ -n "$name" ] || exit 0
             ;;
     esac
+    valid "$name"
     [ -f "$HYPR/animations/$name.lua" ] || die "no animation preset '$name'"
     if [ "$name" = snap ]; then put animation ""; else put animation "$name"; fi
     hyprctl reload >/dev/null
@@ -70,6 +73,7 @@ cmd_shader() {
         put shader ""
         apply 'hl.config({ decoration = { screen_shader = "" } })'
     else
+        valid "$name"
         [ -f "$HYPR/shaders/$name.glsl" ] || die "no shader '$name'"
         put shader "$name"
         apply "hl.config({ decoration = { screen_shader = \"$HYPR/shaders/$name.glsl\" } })"

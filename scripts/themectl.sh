@@ -233,7 +233,8 @@ gen_auto() {
           ["magenta", b("base0e")], ["cyan", b("base0c")], ["pink", m("tertiary")]
         ][] | "\(.[0])=\"\(.[1])\""
     ' <<<"$json" >"$AUTO/colors.sh.tmp"
-    if grep -q '="null"\|=""' "$AUTO/colors.sh.tmp"; then
+    if grep -qvE '^[A-Za-z0-9_]+="#[0-9a-fA-F]{6}"$' "$AUTO/colors.sh.tmp" ||
+        [ "$(grep -c . "$AUTO/colors.sh.tmp")" -ne 47 ]; then
         rm -f "$AUTO/colors.sh.tmp"
         die "auto: matugen output was missing colours"
     fi

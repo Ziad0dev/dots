@@ -2,6 +2,10 @@ STATE="${XDG_STATE_HOME:-$HOME/.local/state}/dots/songrec"
 HISTORY="$STATE/history.tsv"
 SECONDS_TO_RECORD="${DOTS_SONGREC_SECONDS:-10}"
 
+umask 077
+
+esc() { sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g' <<<"$1"; }
+
 notify() { notify-send -a dots-songrec -h string:x-canonical-private-synchronous:dots-songrec "$@" || true; }
 
 sink_name() {
@@ -50,7 +54,7 @@ listen() {
     printf '%s\t%s\t%s\t%s\n' "$(date -Iseconds)" "$artist" "$title" "$url" >>"$HISTORY"
     printf '%s - %s' "$artist" "$title" | wl-copy
     printf '%s - %s\n%s\n' "$artist" "$title" "$url"
-    notify "$title" "$artist  (copied)"
+    notify "$(esc "$title")" "$(esc "$artist")  (copied)"
 }
 
 case "${1:-}" in
