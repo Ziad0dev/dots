@@ -31,6 +31,7 @@ in
       package = discord;
       vencord.enable = true;
       openASAR.enable = true;
+      commandLineArgs = [ "--enable-logging=file" ];
     };
 
     config = {
