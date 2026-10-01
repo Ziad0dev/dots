@@ -354,6 +354,7 @@ li:has(a[href="/quest-home"]),
 a[href="/store"],
 a[href="/shop"],
 a[href="/quest-home"],
-button[aria-label="Send a gift"] {
+button[aria-label*="gift" i],
+[role="button"][aria-label*="gift" i] {
   display: none !important;
 }
