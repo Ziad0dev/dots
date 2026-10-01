@@ -182,15 +182,17 @@ gtk_compat() {
     done
 }
 vencord_compat() {
-    local out dst
+    local out dst mod
     out="$STATE/vencord-quickcss.css"
-    dst="${XDG_CONFIG_HOME:-$HOME/.config}/Vencord/settings/quickCss.css"
     [ -f "$out" ] || return 0
-    [ -d "${dst%/*}" ] || return 0
-    if [ -L "$dst" ]; then
-        rm -f "$dst"
-    fi
-    cp -f "$out" "$dst" || return 0
+    for mod in Vencord Equicord; do
+        dst="${XDG_CONFIG_HOME:-$HOME/.config}/$mod/settings/quickCss.css"
+        [ -d "${dst%/*}" ] || continue
+        if [ -L "$dst" ]; then
+            rm -f "$dst"
+        fi
+        cp -f "$out" "$dst" || true
+    done
 }
 zen_compat() {
     local sites="$DOTS/config/zen/sites" out="$STATE/zen-sites.css" f

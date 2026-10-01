@@ -55,7 +55,7 @@ When home-manager rides on a system (`mk.nixos`, `mk.darwin`) it runs with `useG
 | `hyprland` | compositor + portal, NixOS module | hyprland.cachix.org substituter configured |
 | `hyprland-preview-share-picker` | screenshare picker for xdph | |
 | `zen-browser`, `helium` | browsers | |
-| `nixcord` | Discord + Vencord + Krisp | `nixpkgs-nixcord` input also pinned to ours |
+| `nixcord` | Discord + Equicord + OpenASAR | `nixpkgs-nixcord` input also pinned to ours |
 | `obsidian-extensions` | overlay: `obsidianPlugins`, `obsidianThemes` | |
 | `zig-overlay`, `zls` | Zig 0.16.0 + matching zls | overlay provides `pkgs.zigpkgs` |
 | `nix-index-database` | prebuilt nix-index DB, powers `,` | |
