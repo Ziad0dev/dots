@@ -58,6 +58,27 @@ let
     ]
   );
 
+  voice =
+    let
+      base = "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/high/en_US-lessac-high";
+    in
+    {
+      model = pkgs.fetchurl {
+        url = "${base}.onnx";
+        hash = "sha256-TKv3w6Y4AXE380oVFlIgMtT+PzgiioQ8ybdk3cvNngk=";
+      };
+      config = pkgs.fetchurl {
+        url = "${base}.onnx.json";
+        hash = "sha256-20K5fZhZ8le8FWG47ZgOf7I5hAIFCnTd1svskxqSQS8=";
+      };
+    };
+
+  usbVoice = pkgs.runCommand "dots-usb-voice" { nativeBuildInputs = [ pkgs.piper-tts ]; } ''
+    mkdir -p $out
+    echo "USB device plugged in." | piper -m ${voice.model} -c ${voice.config} -f $out/device-added.wav
+    echo "USB device unplugged." | piper -m ${voice.model} -c ${voice.config} -f $out/device-removed.wav
+  '';
+
   usbSound = pkgs.writeShellApplication {
     name = "dots-usb-sound";
     runtimeInputs = with pkgs; [
@@ -65,7 +86,7 @@ let
       pipewire
       systemd
     ];
-    runtimeEnv.DOTS_SOUNDS = "${pkgs.sound-theme-freedesktop}/share/sounds/freedesktop/stereo";
+    runtimeEnv.DOTS_SOUNDS = "${usbVoice}";
     text = builtins.readFile ../scripts/dots-usb-sound.sh;
   };
 
