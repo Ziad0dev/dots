@@ -2,7 +2,7 @@ OFF="${XDG_STATE_HOME:-$HOME/.local/state}/dots/usb-sound-off"
 
 play() {
     [ -e "$OFF" ] && return 0
-    pw-play "$DOTS_SOUNDS/$1.oga" >/dev/null 2>&1 &
+    pw-play "$DOTS_SOUNDS/$1.wav" >/dev/null 2>&1 &
 }
 
 watch_usb() {

@@ -215,7 +215,7 @@ From `home/desktop-tools.nix`:
 - **`dots-lens`** — slurp a region, copy it as PNG, open lens.google.com; paste with `Ctrl+V`. Nothing is uploaded to a third-party host.
 - **`dots-say [toggle|stop] [text…]`** — Kokoro text to speech. With no text it reads stdin, then the primary selection, then the clipboard; streams to `pw-play`. `DOTS_SAY_VOICE` (default `af_heart`) and `DOTS_SAY_SPEED` change the voice. The first run downloads `hexgrad/Kokoro-82M` into `~/.cache/huggingface`. Off by default (it pulls in torch and spaCy); set `dots.tts.enable = true` to install it.
 - **`dots-mono [on|off|toggle|status]`** — puts a mono `pw-loopback` sink in front of the current output and makes it the default; `off` restores the previous sink.
-- **`dots-usb-sound [on|off|toggle|status]`** — the `dots-usb-sound` user unit plays the freedesktop device-added / removed sounds on USB plug events; this mutes or unmutes it.
+- **`dots-usb-sound [on|off|toggle|status]`** — the `dots-usb-sound` user unit says "USB device plugged in" / "USB device unplugged" on USB plug events — clips rendered at build time by Piper (`en_US-lessac-high`); this mutes or unmutes it.
 - **`dots-diskio`** — per-disk read/write rates and busy %, with mount points, plus the kernel's dirty and writeback totals: when those reach zero a copy has actually landed.
 - **`dots-screentime [today|yesterday|week|month|YYYY-MM-DD]`** — the `dots-screentime` user unit logs focused-app time from Hyprland's event socket into `~/.local/state/dots/screentime.db`, skipping time while the lock screen runs.
 - **`dots-timemachine [back|status|<commit>]`** — fzf over the repo's history, stashes uncommitted work (untracked included), detaches onto the chosen commit; `back` returns to the branch and pops the stash.
