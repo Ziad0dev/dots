@@ -218,7 +218,13 @@ From `home/desktop-tools.nix`:
 - **`dots-usb-sound [on|off|toggle|status]`** — the `dots-usb-sound` user unit says "USB device plugged in" / "USB device unplugged" on USB plug events — clips rendered at build time by Piper (`en_US-amy-medium`); this mutes or unmutes it.
 - **`dots-diskio`** — per-disk read/write rates and busy %, with mount points, plus the kernel's dirty and writeback totals: when those reach zero a copy has actually landed.
 - **`dots-screentime [today|yesterday|week|month|YYYY-MM-DD]`** — the `dots-screentime` user unit logs focused-app time from Hyprland's event socket into `~/.local/state/dots/screentime.db`, skipping time while the lock screen runs.
+- **`dots-gif <video> [-s start] [-t seconds] [-f fps] [-w width] [-o out.gif]`** — two-pass palette GIF; defaults 15 fps, 720 px wide, written next to the input.
+- **`dots-wallpapers sync [dark|light|all]`** — shallow, sparse clone of [dusklinux/images](https://github.com/dusklinux/images) into `~/.local/share/dots/dusky-images`, linked in as `~/Pictures/wallpapers/dusky-dark` / `dusky-light` so the pickers see them. Re-run to update; `status`, `remove`. Not vendored: the images carry no licence.
 - **`dots-timemachine [back|status|<commit>]`** — fzf over the repo's history, stashes uncommitted work (untracked included), detaches onto the chosen commit; `back` returns to the branch and pops the stash.
+
+## Waydroid
+
+`modules/waydroid.nix` enables Waydroid (the `cachyos-bore` kernel has binder and binderfs built in) and installs `waydroid-helper` for ARM translation and extensions. The images are fetched imperatively with `sudo waydroid init`. On the NVIDIA card it has to render in software (SwiftShader) — see [Troubleshooting](troubleshooting.md).
 
 ## Screen sharing
 

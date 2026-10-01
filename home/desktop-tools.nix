@@ -116,6 +116,23 @@ let
     ]
   );
 
+  gif = script "dots-gif" (
+    with pkgs;
+    [
+      coreutils
+      ffmpeg
+    ]
+  );
+
+  wallpapers = script "dots-wallpapers" (
+    with pkgs;
+    [
+      coreutils
+      findutils
+      git
+    ]
+  );
+
   diskio = pyScript "dots-diskio" pkgs.python3 [ ];
 
   screentime = pyScript "dots-screentime" pkgs.python3 [ pkgs.procps ];
@@ -147,6 +164,8 @@ in
       usbSound
       mono
       timemachine
+      gif
+      wallpapers
       diskio
       screentime
       pkgs.songrec

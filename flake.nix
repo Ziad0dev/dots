@@ -134,6 +134,7 @@
         ./modules/flatpak.nix
         ./modules/hello-page.nix
         ./modules/cleanup.nix
+        ./modules/waydroid.nix
       ];
 
     in

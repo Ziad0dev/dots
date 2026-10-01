@@ -95,6 +95,8 @@ These open a floating terminal (`$DOTS_TERMINAL`, default ghostty) with window c
 | `dots-usb-sound` | `scripts/dots-usb-sound.sh` | `watch` (the unit) · `on` · `off` · `toggle` · `status` |
 | `dots-diskio` | `scripts/dots-diskio.py` | live disk I/O and dirty/writeback totals |
 | `dots-screentime` | `scripts/dots-screentime.py` | `daemon` (the unit) · `today` · `yesterday` · `week` · `month` · `YYYY-MM-DD` |
+| `dots-gif` | `scripts/dots-gif.sh` | `<video> [-s start] [-t seconds] [-f fps] [-w width] [-o out.gif]` |
+| `dots-wallpapers` | `scripts/dots-wallpapers.sh` | `sync [dark\|light\|all]` · `status` · `remove` |
 | `dots-timemachine` | `scripts/dots-timemachine.sh` | no args: pick a commit · `back` · `status` · `<commit>` |
 
 ## Run from the repo
