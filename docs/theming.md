@@ -27,7 +27,7 @@ Or: `SUPER + CTRL + SHIFT + Space` (theme picker), `SUPER + SHIFT + T` (next the
 2. Records the name in `~/.local/state/dots/theme/current`.
 3. Points `~/.local/state/dots/shell/current/` at the palette, wallpaper directory, preview and background — what Quickshell and the lock screen read.
 4. Writes `/var/lib/dots-theme/sddm.json` for the login greeter (if the directory is writable).
-5. Links or copies the rendered Kvantum, GTK and Vencord/Equicord files into place, and concatenates `config/zen/sites/*.css` into `zen-sites.css`.
+5. Links or copies the rendered Kvantum, GTK and Vencord files into place, and concatenates `config/zen/sites/*.css` into `zen-sites.css`.
 6. Reloads: Ghostty (`SIGUSR2`), Quickshell (`theme reload` over IPC), GTK (theme name bounce), tmux, dunst, Hyprland, swayosd. Zen reads its CSS only at startup.
 7. If the theme ships a `wallpaper.*`, sets it with a random `awww` transition.
 
@@ -68,7 +68,7 @@ Templates use `${key}` for `#rrggbb`, `${key_hex}` for the bare hex (Hyprland's 
 | `swayosd.css.in` | `swayosd.css` | linked as `~/.config/swayosd/style.css` |
 | `gtk.css.in` | `gtk.css` | copied to `~/.config/gtk-3.0/` and `gtk-4.0/` |
 | `kvantum.kvconfig.in` | `kvantum.kvconfig` | linked into `~/.config/Kvantum/KvGlass#/` |
-| `vencord-quickcss.css.in` | `vencord-quickcss.css` | copied to `quickCss.css` in Vencord's and/or Equicord's settings dir, whichever exists |
+| `vencord-quickcss.css.in` | `vencord-quickcss.css` | copied to Vencord's `quickCss.css` if Vencord's settings dir exists; also hides the Nitro, Shop and Quests tabs and the gift button |
 | `zathura.in` | `zathura` | `include`d at the end of the zathurarc from `home/documents.nix` |
 | `tmux.conf.in` | `tmux.conf` | `source-file -q` at the end of `config/tmux/tmux.conf`; re-sourced on switch |
 | `cava.in` | `cava` | linked as `~/.config/cava/config` (`home/theming.nix`) |
