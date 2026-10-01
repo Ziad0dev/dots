@@ -99,7 +99,7 @@ let
 
   say = pyScript "dots-say" (pkgs.python3.withPackages (ps: [
     ps.kokoro
-    ps.en_core_web_sm
+    ps.spacy-models.en_core_web_sm
   ])) (
     with pkgs;
     [
