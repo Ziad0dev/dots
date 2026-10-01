@@ -29,7 +29,7 @@ in
     discord = {
       enable = true;
       package = discord;
-      equicord.enable = true;
+      vencord.enable = true;
       openASAR.enable = true;
     };
 
@@ -57,10 +57,7 @@ in
         reverseImageSearch.enable = true;
         settings.enable = true;
         silentTyping.enable = true;
-        musicControls = {
-          enable = true;
-          showSpotifyControls = true;
-        };
+        spotifyControls.enable = true;
         translate.enable = true;
         unsuppressEmbeds.enable = true;
         viewRaw.enable = true;
@@ -71,23 +68,6 @@ in
         spotifyCrack.enable = true;
         voiceChatDoubleClick.enable = true;
         voiceMessages.enable = true;
-        declutter = {
-          enable = true;
-          removeShopAboveDms = true;
-          removeQuestsAboveDms = true;
-          removeAudioMenus = false;
-          alwaysShowUsername = false;
-        };
-        questify = {
-          enable = true;
-          disableQuestsEverything = true;
-        };
-        fileUpload = {
-          enable = true;
-          serviceType = "litterbox";
-          litterboxExpiry = "72h";
-          autoFormat = true;
-        };
       };
     };
   };
