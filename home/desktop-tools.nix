@@ -112,7 +112,7 @@ in
 {
   options.dots.tts.enable = lib.mkOption {
     type = lib.types.bool;
-    default = true;
+    default = false;
     description = "Install dots-say (Kokoro text to speech). Pulls in torch and spaCy.";
   };
 
