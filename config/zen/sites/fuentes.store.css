@@ -1,0 +1,5 @@
+@-moz-document domain("fuentes.store") {
+
+    body { background-color: var(--dots-background) !important; color: var(--dots-on_background) !important; border-color: var(--dots-outline_variant) !important; }
+
+}

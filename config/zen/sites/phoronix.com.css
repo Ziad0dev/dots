@@ -1,0 +1,11 @@
+@-moz-document domain("phoronix.com") {
+
+    div { background-color: var(--dots-background) !important; color: var(--dots-on_background) !important; border-color: var(--dots-outline_variant) !important; }
+    input { background-color: var(--dots-surface_container_low) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    a { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    article.full > div.content > blockquote { color: var(--dots-primary_fixed_dim) !important; }
+    p { color: var(--dots-on_secondary_container) !important; }
+    header { color: var(--dots-on_tertiary_container) !important; }
+    #main > article { color: var(--dots-secondary) !important; }
+
+}

@@ -3,6 +3,7 @@
 set -euo pipefail
 
 SRC="${SRC:-$HOME/dots/config/zen}"
+THEME="${XDG_STATE_HOME:-$HOME/.local/state}/dots/theme"
 
 roots=()
 if [[ -n "${ROOT:-}" ]]; then
@@ -43,6 +44,8 @@ for root in "${roots[@]}"; do
     mkdir -p "$prof/chrome"
     ln -sfn "$SRC/userChrome.css"  "$prof/chrome/userChrome.css"
     ln -sfn "$SRC/userContent.css" "$prof/chrome/userContent.css"
+    ln -sfn "$THEME/zen-palette.css" "$prof/chrome/dots-palette.css"
+    ln -sfn "$THEME/zen-sites.css"   "$prof/chrome/dots-sites.css"
 
     touch "$prof/user.js"
     grep -q 'toolkit.legacyUserProfileCustomizations.stylesheets' "$prof/user.js" \

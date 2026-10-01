@@ -1,0 +1,9 @@
+set -g status-style "bg=${background},fg=${muted}"
+set -g status-right '#[fg=${background},bg=${muted},bold] %d/%m #[fg=${background},bg=${dim},bold] %H:%M:%S '
+setw -g window-status-current-format ' #I#[fg=${dim}]:#[fg=${foreground}]#W#[fg=${accent}]#F '
+setw -g window-status-format ' #I#[fg=${surface}]:#[fg=${dim}]#W#[fg=${muted}]#F '
+set -g pane-border-style "fg=${base02}"
+set -g pane-active-border-style "fg=${accent}"
+set -g message-style "bg=${base01},fg=${foreground}"
+set -g message-command-style "bg=${base01},fg=${accent}"
+set -g mode-style "bg=${accent_container},fg=${foreground}"

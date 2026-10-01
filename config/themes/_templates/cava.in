@@ -1,0 +1,7 @@
+[color]
+background = 'default'
+foreground = '${accent}'
+gradient = 1
+gradient_color_1 = '${accent_container}'
+gradient_color_2 = '${accent_dim}'
+gradient_color_3 = '${accent}'

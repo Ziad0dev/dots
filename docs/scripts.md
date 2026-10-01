@@ -87,13 +87,22 @@ These open a floating terminal (`$DOTS_TERMINAL`, default ghostty) with window c
 | `dots-thumb-prune` | `home/quickshell-rise.nix` | Prune picker thumbnails (weekly timer) |
 | `nvim-synctex <line> <file>` | `home/documents.nix` | Zathura → Neovim inverse search |
 | `fhs` | `modules/foreign.nix` | FHS bash — see [Development](development.md#foreign-binaries) |
+| `dots-look` | `scripts/dots-look.sh` | `anim [pick\|list\|<name>]` · `shader [pick\|list\|off\|<name>]` · `blur [on\|off\|toggle\|status]` |
+| `dots-songrec` | `scripts/dots-songrec.sh` | `desktop` (default) · `mic` · `history [n]` |
+| `dots-lens` | `scripts/dots-lens.sh` | region → clipboard → lens.google.com |
+| `dots-say` | `scripts/dots-say.py` | `[toggle\|stop] [text…]` — Kokoro TTS; off with `dots.tts.enable = false` |
+| `dots-mono` | `scripts/dots-mono.sh` | `on` · `off` · `toggle` · `status` |
+| `dots-usb-sound` | `scripts/dots-usb-sound.sh` | `watch` (the unit) · `on` · `off` · `toggle` · `status` |
+| `dots-diskio` | `scripts/dots-diskio.py` | live disk I/O and dirty/writeback totals |
+| `dots-screentime` | `scripts/dots-screentime.py` | `daemon` (the unit) · `today` · `yesterday` · `week` · `month` · `YYYY-MM-DD` |
+| `dots-timemachine` | `scripts/dots-timemachine.sh` | no args: pick a commit · `back` · `status` · `<commit>` |
 
 ## Run from the repo
 
 | Script | Usage |
 |---|---|
 | `scripts/git-hooks/pre-commit` | Run by git; see [Workflow](workflow.md#commit-checks) |
-| `config/zen/zen-theme-link.sh` | Link `config/zen/*.css` into every Zen profile's `chrome/`. `SRC` / `ROOT` env override source and profile root. Launch Zen once first so a profile exists |
+| `config/zen/zen-theme-link.sh` | Link `config/zen/*.css`, plus the rendered `dots-palette.css` and `dots-sites.css`, into every Zen profile's `chrome/`. `SRC` / `ROOT` env override source and profile root. Launch Zen once first so a profile exists |
 | `config/quickshell/rise/scripts/*` | Bar helpers: `codex-usage`, `opencode-usage`, `openrouter`, `qs-barctl`, `qs-kb-*`, `qs-proj` |
 
 ## Fish
@@ -126,6 +135,7 @@ Fish starts in vi mode and sources the themed fzf colours.
 | `hypridle` | user | idle → lock → DPMS |
 | `swayosd`, `dotsDunstTheme`, `cliphist` | user | session plumbing |
 | `dots-gammastep` | user | night light (on demand) |
+| `dots-usb-sound`, `dots-screentime` | user | USB plug sounds, app focus log |
 | `gsr-replay` | user | replay buffer (on demand) |
 | `dots-gsr` | user, transient | manual screen recording |
 | `flatpak-managed` | user | flatpak reconciler, at login |

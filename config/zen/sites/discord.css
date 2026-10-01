@@ -1,0 +1,34 @@
+@-moz-document domain("discord.com") {
+
+    :root {
+
+        --neutral-94: var(--dots-surface_container_low) !important;
+        --neutral-92: var(--dots-surface) !important;
+        --neutral-87: var(--dots-surface_container_high) !important;
+        --neutral-86: var(--dots-surface_container_low) !important;
+        --neutral-83: var(--dots-surface_container_high) !important;
+        --neutral-82: var(--dots-surface_container_low) !important;
+        --neutral-80: var(--dots-surface_container_high) !important;
+        --neutral-79: var(--dots-surface_container) !important;
+        --neutral-76: var(--dots-surface_container) !important;
+        --neutral-73: var(--dots-surface_container_high) !important;
+
+        --blurple-65: var(--dots-primary_container) !important;
+        --blurple-60: var(--dots-secondary_container) !important;
+        --blurple-50: var(--dots-primary_container) !important;
+        --blurple-36: var(--dots-primary) !important;
+        --blurple-14: var(--dots-primary) !important;
+        --blurple-10: var(--dots-surface_bright) !important;
+        --blue-new-37: var(--dots-primary) !important;
+
+        --neutral-23: var(--dots-on_surface_variant) !important;
+        --neutral-5: var(--dots-on_surface_variant) !important;
+        --neutral-2: var(--dots-on_surface) !important;
+
+        --reaction-background-reacted-default: var(--dots-inverse_on_surface) !important;
+        --brand-10a: var(--dots-inverse_on_surface) !important;
+        --brand-560: var(--dots-on_primary_container) !important;
+        --message-highlight-background-hover: var(--dots-inverse_on_surface) !important;
+        --message-highlight-background-default: var(--dots-inverse_on_surface) !important;
+    }
+}

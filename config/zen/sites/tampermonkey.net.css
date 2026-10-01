@@ -1,0 +1,8 @@
+@-moz-document domain("tampermonkey.net") {
+
+    div { background: transparent !important; box-shadow: none !important; }
+    html { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    body.index { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    body { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+
+}

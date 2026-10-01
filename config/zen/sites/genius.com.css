@@ -1,0 +1,10 @@
+@-moz-document domain("genius.com") {
+
+    body { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    div { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    #sticky-nav { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    form.StickyNavSearch-desktop__Form-sc-212872c2-0.gDkJXT.ng-pristine { background-color: var(--dots-surface_container_highest) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    input.StickyNavSearch-desktop__Input-sc-212872c2-2.dDDWOS { background-color: var(--dots-surface_variant) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    a { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+
+}

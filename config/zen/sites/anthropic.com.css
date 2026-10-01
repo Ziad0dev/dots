@@ -1,0 +1,6 @@
+@-moz-document domain("anthropic.com") {
+
+    html > body { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    .serif { color: var(--dots-on_surface) !important; }
+
+}

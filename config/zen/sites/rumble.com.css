@@ -1,0 +1,39 @@
+@-moz-document domain("rumble.com") {
+
+    #featured_videos { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    section.homepage-section { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    a.main-menu-item.main-menu-item__nav { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    aside.media-page-related-media-desktop-sidebar { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    textarea.comments-create-textarea { background-color: var(--dots-surface_container_low) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    button.round-button.comments-add-comment { background-color: var(--dots-primary_fixed) !important; }
+    select.comments-sort-by { background-color: var(--dots-surface_container_high) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    header { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    div.constrained { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    #main-menu { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    div.rum-featured-pills-row__scroll-btn--end { background: transparent !important; box-shadow: none !important; }
+    a.rum-featured-pills-row__pill.rum-featured-pills-row__pill-style--sls { background-color: var(--dots-inverse_on_surface) !important; }
+    a.rum-featured-pills-row__pill.rum-featured-pills-row__pill-style--live-videos { background-color: var(--dots-primary) !important; color: var(--dots-on_primary) !important; border-color: var(--dots-outline_variant) !important; }
+    a.rum-featured-pills-row__pill.rum-featured-pills-row__pill-style--featured_videos { background-color: var(--dots-surface_bright) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    input.header-search-field { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    div.header-search-container { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    div.main-content { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    div.media-description-section { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    div.container.content.media-description { background-color: var(--dots-surface_container_low) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    footer.page__footer.foot.nav--transition { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    #screen-index-0 > div.rum-shorts-feed__screen-box > rum-shorts-screen { background-color: var(--dots-surface_container_lowest) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    rum-button.rum-rxuvcr { background-color: var(--dots-secondary_container) !important; color: var(--dots-on_secondary_container) !important; border-color: var(--dots-outline_variant) !important; }
+    main.nonconstrained.nav--transition > rum-shorts { background-color: var(--dots-surface_container_lowest) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    #screen-index-5 > div.rum-shorts-feed__screen-box > rum-shorts-screen { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    rum-shorts-feed.rum-scrollbar-none { background-color: var(--dots-surface_container_lowest) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    section.chat { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    #chat-message-text-input { background-color: var(--dots-surface_container_lowest) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    button.btn.btn-medium.btn-icon-left { background-color: var(--dots-surface_variant) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    button.rumbles-vote-pill-down.rumblers-vote-pill-button { background-color: var(--dots-surface_bright) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    button.round-button.media-by-actions-button.media-by-actions-button-menu { background-color: var(--dots-surface_container_low) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    button.popout__button.btn.btn-grey { background-color: var(--dots-surface_container_high) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    a.rum-ib8x33.rum-oehx4z.rum-vxl0e0 { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    rum-video-thumbnail.rum-1sazlf { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    div.user-notifications.pop-show { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    main { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+
+}

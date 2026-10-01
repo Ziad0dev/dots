@@ -1,4 +1,4 @@
-{ lib, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 let
 
@@ -88,6 +88,7 @@ in
     extraConfig = ''
       set font "FiraCode Nerd Font 11"
       set synctex-editor-command "nvim-synctex %{line} %{input}"
+      include ${config.xdg.stateHome}/dots/theme/zathura
     '';
   };
 

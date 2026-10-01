@@ -1,0 +1,27 @@
+@-moz-document domain("twitch.tv") {
+
+    div.Layout-sc-1xcs6mc-0.gUJjOO { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    button { background-color: var(--dots-on_primary) !important; }
+    div.Layout-sc-1xcs6mc-0.zdujK { color: var(--dots-on_background) !important; }
+    div.Layout-sc-1xcs6mc-0.dsnQdd.side-nav__overlay-wrapper { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    div.Layout-sc-1xcs6mc-0.lokfxK { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    div.Layout-sc-1xcs6mc-0.iOjmbV.carousel-metadata { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    span.CoreText-sc-1txzju1-0.ScTitleText-sc-d9mj2s-0.fPJBrv { color: var(--dots-on_primary_container) !important; }
+    div.scrollable-area.root-scrollable.root-scrollable__content { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    div.chat-line__message { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    div.Layout-sc-1xcs6mc-0.eepdmT.stream-chat-header { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    div.Layout-sc-1xcs6mc-0.dzySBZ { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    div.Layout-sc-1xcs6mc-0.eEQrDE.about-section > div.Layout-sc-1xcs6mc-0.eEpDIo.about-section__panel > div.Layout-sc-1xcs6mc-0.gBIXhQ.about-section__panel--content { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    div.Layout-sc-1xcs6mc-0.hUxSyf { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    div.channel-root__info.channel-root__info--with-chat > div.channel-info-content > div { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    div.Layout-sc-1xcs6mc-0.chat-line__status { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    div.Layout-sc-1xcs6mc-0.jeukXd.chat-room__content { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    div.Layout-sc-1xcs6mc-0.jZSZBP.chat-input { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    div.Layout-sc-1xcs6mc-0.glFavL > div.chat-wysiwyg-input__editor > div { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    div.chat-wysiwyg-input__editor { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    polygon.ScBody-sc-mx5axi-3.hLPsEo { fill: var(--dots-primary_container) !important; color: var(--dots-primary_container) !important; }
+    div.Layout-sc-1xcs6mc-0.fxdmZj { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    div.scrollable-area { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    div.Layout-sc-1xcs6mc-0.ScPopoverHeader-sc-gzhxn4-0.bsRIFN { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+
+}
