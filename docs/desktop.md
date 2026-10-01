@@ -213,7 +213,7 @@ From `home/desktop-tools.nix`:
 
 - **`dots-songrec [desktop|mic|history]`** — records 10 s of the default sink's monitor (or the mic), identifies it with SongRec, notifies, copies `artist - title`, and appends to `~/.local/state/dots/songrec/history.tsv`. Needs the network (Shazam's API).
 - **`dots-lens`** — slurp a region, copy it as PNG, open lens.google.com; paste with `Ctrl+V`. Nothing is uploaded to a third-party host.
-- **`dots-say [toggle|stop] [text…]`** — Kokoro text to speech. With no text it reads stdin, then the primary selection, then the clipboard; streams to `pw-play`. `DOTS_SAY_VOICE` (default `af_heart`) and `DOTS_SAY_SPEED` change the voice. The first run downloads `hexgrad/Kokoro-82M` into `~/.cache/huggingface`. Set `dots.tts.enable = false` to drop it (it pulls in torch and spaCy).
+- **`dots-say [toggle|stop] [text…]`** — Kokoro text to speech. With no text it reads stdin, then the primary selection, then the clipboard; streams to `pw-play`. `DOTS_SAY_VOICE` (default `af_heart`) and `DOTS_SAY_SPEED` change the voice. The first run downloads `hexgrad/Kokoro-82M` into `~/.cache/huggingface`. Off by default (it pulls in torch and spaCy); set `dots.tts.enable = true` to install it.
 - **`dots-mono [on|off|toggle|status]`** — puts a mono `pw-loopback` sink in front of the current output and makes it the default; `off` restores the previous sink.
 - **`dots-usb-sound [on|off|toggle|status]`** — the `dots-usb-sound` user unit plays the freedesktop device-added / removed sounds on USB plug events; this mutes or unmutes it.
 - **`dots-diskio`** — per-disk read/write rates and busy %, with mount points, plus the kernel's dirty and writeback totals: when those reach zero a copy has actually landed.
