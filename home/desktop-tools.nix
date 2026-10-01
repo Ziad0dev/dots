@@ -163,6 +163,14 @@ in
         ExecStart = "${usbSound}/bin/dots-usb-sound watch";
         Restart = "on-failure";
         RestartSec = 5;
+        NoNewPrivileges = true;
+        LockPersonality = true;
+        RestrictNamespaces = true;
+        SystemCallArchitectures = "native";
+        RestrictAddressFamilies = [
+          "AF_UNIX"
+          "AF_NETLINK"
+        ];
       };
       Install.WantedBy = [ "hyprland-session.target" ];
     };
@@ -177,6 +185,11 @@ in
         ExecStart = "${screentime}/bin/dots-screentime daemon";
         Restart = "on-failure";
         RestartSec = 5;
+        NoNewPrivileges = true;
+        LockPersonality = true;
+        RestrictNamespaces = true;
+        SystemCallArchitectures = "native";
+        RestrictAddressFamilies = [ "AF_UNIX" ];
       };
       Install.WantedBy = [ "hyprland-session.target" ];
     };
