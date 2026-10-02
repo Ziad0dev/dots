@@ -15,9 +15,10 @@ hl.bind("XF86AudioMicMute",
     util.sh([[pactl set-source-mute @DEFAULT_SOURCE@ toggle]]),
     { locked = true })
 
+hl.bind(mod .. " + S",               hl.dsp.exec_cmd("flameshot gui"))
+
 -- dots-shot saves to ~/Pictures, copies, and notifies with Open / Edit (satty)
 hl.bind("Print",                     hl.dsp.exec_cmd("dots-shot region"))
-hl.bind(mod .. " + S",               hl.dsp.exec_cmd("dots-shot region"))
 hl.bind(mod .. " + Print",           hl.dsp.exec_cmd("dots-shot screen"))
 hl.bind(mod .. " + SHIFT + S",       hl.dsp.exec_cmd("dots-shot window"))
 
