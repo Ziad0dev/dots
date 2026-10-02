@@ -32,6 +32,11 @@ Item {
         }
     }
 
+    Connections {
+        target: rootMod.root
+        function onDotsUpdateCheckTickChanged() { updateProc.running = false; updateProc.running = true }
+    }
+
     Timer {
         interval: 21600000   // 6h
         running: true; repeat: true; triggeredOnStart: true
