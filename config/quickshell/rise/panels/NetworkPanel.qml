@@ -125,6 +125,32 @@ PanelWindow {
         && speedTest.phase !== "idle"
         && speedTest.phase !== "cancelled"
 
+    // ── DNS (NetworkManager profile behind the default route, via scripts/qs-dns) ──
+    readonly property string dnsScript: Qt.resolvedUrl("../scripts/qs-dns").toString().replace(/^file:\/\//, "")
+    readonly property var dnsPresets: [
+        { label: "Auto",       v4: "auto",                    v6: "" },
+        { label: "Cloudflare", v4: "1.1.1.1,1.0.0.1",         v6: "2606:4700:4700::1111,2606:4700:4700::1001" },
+        { label: "Quad9",      v4: "9.9.9.9,149.112.112.112", v6: "2620:fe::fe,2620:fe::9" },
+        { label: "Google",     v4: "8.8.8.8,8.8.4.4",         v6: "2001:4860:4860::8888,2001:4860:4860::8844" },
+        { label: "AdGuard",    v4: "94.140.14.14,94.140.15.15", v6: "2a10:50c0::ad1:ff,2a10:50c0::ad2:ff" },
+        { label: "OpenDNS",    v4: "208.67.222.222,208.67.220.220", v6: "2620:119:35::35,2620:119:53::53" }
+    ]
+    property bool   dnsManaged: false
+    property string dnsActive: ""       // preset v4 key, "auto", or "custom"
+    property string dnsInUse: ""        // first server resolved is actually querying
+    property string dnsPending: ""      // preset being applied
+    property string dnsError: ""
+
+    function applyDns(preset) {
+        if (dnsPending !== "" || !dnsManaged || preset.v4 === dnsActive)
+            return
+        dnsError = ""
+        dnsPending = preset.v4
+        dnsApply.command = ["bash", dnsScript, "set", preset.v4, preset.v6]
+        dnsApply.running = false
+        dnsApply.running = true
+    }
+
     function toggleWifi() {
         if (nmAdapterReady) {
             nmAdapter.item.toggleWifi()
@@ -682,6 +708,92 @@ PanelWindow {
                         font.pixelSize: 10
                         font.letterSpacing: 1
                     }
+                }
+            }
+
+            Rectangle { width: parent.width; height: 1; color: root.sep }
+
+            // ── DNS switcher ──
+            Column {
+                width: parent.width
+                spacing: 6
+
+                Item {
+                    width: parent.width
+                    height: 16
+
+                    UiText {
+                        id: dnsTitle
+                        anchors.left: parent.left
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: "DNS"
+                        color: root.sumiHi
+                        font.family: root.mono
+                        font.pixelSize: 10
+                        font.letterSpacing: 1
+                    }
+                    UiText {
+                        anchors.left: dnsTitle.right; anchors.leftMargin: 12
+                        anchors.right: parent.right
+                        anchors.verticalCenter: parent.verticalCenter
+                        horizontalAlignment: Text.AlignRight
+                        text: netPanel.dnsPending !== "" ? "applying…"
+                            : !netPanel.dnsManaged ? "unavailable"
+                            : netPanel.dnsInUse !== "" ? "using " + netPanel.dnsInUse : ""
+                        color: netPanel.dnsPending !== "" ? root.seal : root.sumiHi
+                        font.family: root.mono
+                        font.pixelSize: 10
+                        elide: Text.ElideLeft
+                    }
+                }
+
+                Grid {
+                    width: parent.width
+                    columns: 3
+                    spacing: 6
+
+                    Repeater {
+                        model: netPanel.dnsPresets
+                        delegate: Rectangle {
+                            required property var modelData
+                            width: (parent.width - 12) / 3
+                            height: 26
+                            radius: root.tileRadius
+                            readonly property bool active: netPanel.dnsActive === modelData.v4
+                            readonly property bool pending: netPanel.dnsPending === modelData.v4
+                            color: active ? root.fillActive : dnsMa.containsMouse ? root.fillHover : root.fillIdle
+                            border.color: active || pending || dnsMa.containsMouse ? root.seal : root.sep
+                            border.width: 1
+                            opacity: netPanel.dnsManaged ? 1 : 0.5
+                            Behavior on color { ColorAnimation { duration: 120 } }
+
+                            UiText {
+                                anchors.centerIn: parent
+                                text: modelData.label
+                                color: parent.active || parent.pending ? root.seal : root.ink
+                                font.family: root.mono
+                                font.pixelSize: 10
+                            }
+                            MouseArea {
+                                id: dnsMa
+                                anchors.fill: parent
+                                enabled: netPanel.dnsManaged && netPanel.dnsPending === ""
+                                hoverEnabled: true
+                                cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+                                onClicked: netPanel.applyDns(modelData)
+                            }
+                        }
+                    }
+                }
+
+                UiText {
+                    width: parent.width
+                    visible: netPanel.dnsError !== "" || netPanel.dnsActive === "custom"
+                    text: netPanel.dnsError !== "" ? netPanel.dnsError : "custom servers set on this connection"
+                    color: netPanel.dnsError !== "" ? root.sealRaw : root.sumiHi
+                    wrapMode: Text.Wrap
+                    font.family: root.mono
+                    font.pixelSize: 10
                 }
             }
 
@@ -1402,8 +1514,53 @@ PanelWindow {
         }
     }
 
+    Process {
+        id: dnsProbe
+        command: ["bash", netPanel.dnsScript, "status"]
+        running: false
+        stdout: StdioCollector {
+            onStreamFinished: {
+                var parts = this.text.trim().split("\t")
+                netPanel.dnsManaged = parts.length >= 2 && parts[0] !== ""
+                if (!netPanel.dnsManaged) {
+                    netPanel.dnsActive = ""
+                    netPanel.dnsInUse = ""
+                    return
+                }
+                netPanel.dnsInUse = (parts[3] || "").split(" ")[0]
+                if (parts[1] !== "manual") {
+                    netPanel.dnsActive = "auto"
+                    return
+                }
+                var first = (parts[2] || "").split(",")[0]
+                var match = "custom"
+                for (var i = 0; i < netPanel.dnsPresets.length; i++)
+                    if (netPanel.dnsPresets[i].v4.split(",")[0] === first)
+                        match = netPanel.dnsPresets[i].v4
+                netPanel.dnsActive = match
+            }
+        }
+    }
+
+    Process {
+        id: dnsApply
+        command: ["true"]
+        running: false
+        stderr: StdioCollector { id: dnsApplyErr; waitForEnd: true }
+        onExited: function(exitCode, exitStatus) {
+            if (exitCode !== 0) {
+                var message = dnsApplyErr.text.trim()
+                netPanel.dnsError = message !== "" ? message.split("\n")[0] : "Could not change DNS"
+            }
+            netPanel.dnsPending = ""
+            dnsProbe.running = false
+            dnsProbe.running = true
+        }
+    }
+
     onVisibleChanged: {
         if (visible) {
+            dnsProbe.running = false; dnsProbe.running = true
             if (!root.useNM) {
                 rfkillState.running = false; rfkillState.running = true
             } else if (nmAdapterReady) {

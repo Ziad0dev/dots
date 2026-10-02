@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+# DNS switcher for the network panel. Edits the NetworkManager profile behind
+# the default route, so the choice survives reconnects and reboots.
+#
+#   qs-dns status                  iface<TAB>auto|manual<TAB>configured v4<TAB>servers in use
+#   qs-dns set auto                back to the servers DHCP/RA hand out
+#   qs-dns set <v4,...> [v6,...]   pin these servers, ignore DHCP/RA DNS
+set -uo pipefail
+
+die() { echo "$*" >&2; exit 1; }
+
+iface=$(ip route get 1.1.1.1 2>/dev/null | awk '{for(i=1;i<=NF;i++) if($i=="dev"){print $(i+1); exit}}')
+[ -n "$iface" ] || die "offline"
+uuid=$(nmcli -t -f UUID,DEVICE connection show --active | awk -F: -v d="$iface" '$2==d {print $1; exit}')
+[ -n "$uuid" ] || die "$iface is not managed by NetworkManager"
+
+case "${1:-}" in
+status)
+    ignore=$(nmcli -g ipv4.ignore-auto-dns connection show uuid "$uuid")
+    v4=$(nmcli -g ipv4.dns connection show uuid "$uuid")
+    inuse=$(resolvectl dns "$iface" 2>/dev/null | sed 's/^[^:]*: *//')
+    [ "$ignore" = yes ] && [ -n "$v4" ] && mode=manual || mode=auto
+    printf '%s\t%s\t%s\t%s\n' "$iface" "$mode" "$v4" "$inuse"
+    ;;
+set)
+    v4=${2:-}
+    v6=${3:-}
+    [ -n "$v4" ] || die "usage: qs-dns set auto | <v4,...> [v6,...]"
+    # ipv6.dns is rejected on profiles with IPv6 disabled
+    case $(nmcli -g ipv6.method connection show uuid "$uuid") in
+    auto | dhcp | manual) touch6=1 ;;
+    *) touch6=0 ;;
+    esac
+    if [ "$v4" = auto ]; then
+        args=(ipv4.dns "" ipv4.ignore-auto-dns no)
+        [ $touch6 = 1 ] && args+=(ipv6.dns "" ipv6.ignore-auto-dns no)
+    else
+        args=(ipv4.dns "$v4" ipv4.ignore-auto-dns yes)
+        [ $touch6 = 1 ] && [ -n "$v6" ] && args+=(ipv6.dns "$v6" ipv6.ignore-auto-dns yes)
+    fi
+    nmcli connection modify uuid "$uuid" "${args[@]}" || exit 1
+    nmcli device reapply "$iface" >/dev/null || exit 1
+    resolvectl flush-caches 2>/dev/null || true
+    ;;
+*)
+    die "usage: qs-dns status | set auto | set <v4,...> [v6,...]"
+    ;;
+esac
