@@ -8,7 +8,13 @@
 
 let
   modelDir = "/data/models";
-  vulkan = pkgs.llama-cpp-vulkan;
+  # CUDA kernels for the RTX 3060 (sm_86) only. No binary cache carries a CUDA
+  # llama.cpp, so this builds locally (~14 min); one arch keeps that short.
+  # Measured against llama-cpp-vulkan on this card: prompt processing +32%
+  # (9B Q6_K, 14B IQ4_XS), generation same on the 9B, +21% on the 14B.
+  llama = (pkgs.llama-cpp.override { cudaSupport = true; }).overrideAttrs (o: {
+    cmakeFlags = (o.cmakeFlags or [ ]) ++ [ "-DCMAKE_CUDA_ARCHITECTURES=86" ];
+  });
 
   freeGpu = pkgs.writeShellScript "free-gpu" ''
     set -u
@@ -63,7 +69,7 @@ in
 
   services.llama-cpp = {
     enable = true;
-    package = vulkan;
+    package = llama;
     settings = {
       model = "${modelDir}/Qwen3.5-9B-Q6_K.gguf";
       host = "127.0.0.1";
@@ -80,7 +86,7 @@ in
     description = "Huihui Qwen3.5-9B abliterated (uncensored general)";
     serviceConfig = sandbox // {
       ExecStart = ''
-        ${vulkan}/bin/llama-server \
+        ${llama}/bin/llama-server \
           -m ${modelDir}/Huihui-Qwen3.5-9B-abliterated.Q6_K.gguf \
           --host 127.0.0.1 --port 8080 \
           -c 16384 -ngl 99 --flash-attn on --jinja
@@ -94,7 +100,7 @@ in
     description = "Hermes 4 14B (steerable; pairs with Hermes Agent)";
     serviceConfig = sandbox // {
       ExecStart = ''
-        ${vulkan}/bin/llama-server \
+        ${llama}/bin/llama-server \
           -m ${modelDir}/NousResearch_Hermes-4-14B-IQ4_XS.gguf \
           --host 127.0.0.1 --port 8080 \
           -c 8192 -ngl 99 --flash-attn on --jinja \
@@ -107,7 +113,7 @@ in
     description = "WhiteRabbitNeo V3-7B (security)";
     serviceConfig = sandbox // {
       ExecStart = ''
-        ${vulkan}/bin/llama-server \
+        ${llama}/bin/llama-server \
           -m ${modelDir}/WhiteRabbitNeo_WhiteRabbitNeo-V3-7B-Q5_K_M.gguf \
           --host 127.0.0.1 --port 8080 \
           -c 16384 -ngl 99 --flash-attn on --jinja
@@ -119,7 +125,7 @@ in
     description = "Qwen2.5-Coder-14B (agent / tool-calling)";
     serviceConfig = sandbox // {
       ExecStart = ''
-        ${vulkan}/bin/llama-server \
+        ${llama}/bin/llama-server \
           -m ${modelDir}/Qwen2.5-Coder-14B-Instruct-Q4_K_M.gguf \
           --host 127.0.0.1 --port 8080 \
           -c 16384 -ngl 99 --flash-attn on --jinja
@@ -131,7 +137,7 @@ in
     description = "Gemma 4 12B Unified (general / vision / audio)";
     serviceConfig = sandbox // {
       ExecStart = ''
-        ${vulkan}/bin/llama-server \
+        ${llama}/bin/llama-server \
           -m ${modelDir}/gemma-4-12B-it-Q4_K_M.gguf \
           --host 127.0.0.1 --port 8080 \
           -c 16384 -ngl 99 --flash-attn on --jinja \
@@ -144,10 +150,10 @@ in
     description = "Gemma 4 26B A4B MoE (coding / agentic)";
     serviceConfig = sandbox // {
       ExecStart = ''
-        ${vulkan}/bin/llama-server \
+        ${llama}/bin/llama-server \
           -m ${modelDir}/gemma-4-26B-A4B-it-Q4_K_M.gguf \
           --host 127.0.0.1 --port 8080 \
-          -c 16384 -ngl 99 --n-cpu-moe 10 --flash-attn on --jinja \
+          -c 16384 -ngl 99 --n-cpu-moe 18 --flash-attn on --jinja \
           --temp 1.0 --top-p 0.95 --top-k 64 \
           --cache-type-k q8_0 --cache-type-v q8_0
       '';
@@ -158,7 +164,7 @@ in
     description = "Qwen2.5-Coder-3B FIM (llama.vim)";
     serviceConfig = sandbox // {
       ExecStart = ''
-        ${vulkan}/bin/llama-server \
+        ${llama}/bin/llama-server \
           -m ${modelDir}/qwen2.5-coder-3b-q8_0.gguf \
           --host 127.0.0.1 --port 8012 \
           -c 8192
@@ -189,6 +195,6 @@ in
   environment.systemPackages = with pkgs; [
     nvtopPackages.nvidia
 
-    vulkan
+    llama
   ];
 }
