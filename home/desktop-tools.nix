@@ -46,6 +46,22 @@ let
     ]
   );
 
+  shot = script "dots-shot" (
+    with pkgs;
+    [
+      coreutils
+      grim
+      hyprpicker
+      jq
+      libnotify
+      satty
+      slurp
+      wl-clipboard
+      xdg-user-dirs
+      xdg-utils
+    ]
+  );
+
   lens = script "dots-lens" (
     with pkgs;
     [
@@ -161,6 +177,7 @@ in
       look
       songrec
       lens
+      shot
       usbSound
       mono
       timemachine

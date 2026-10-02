@@ -15,11 +15,11 @@ hl.bind("XF86AudioMicMute",
     util.sh([[pactl set-source-mute @DEFAULT_SOURCE@ toggle]]),
     { locked = true })
 
-hl.bind(mod .. " + S", hl.dsp.exec_cmd("flameshot gui"))
-hl.bind("Print",
-    util.sh([[grim -g "$(slurp)" - | satty --filename - --fullscreen --output-filename ~/Pictures/screenshot-$(date +%Y%m%d-%H%M%S).png]]))
-hl.bind(mod .. " + Print",
-    util.sh([[grim - | wl-copy && notify-send "Screenshot" "Full screen copied to clipboard"]]))
+-- dots-shot saves to ~/Pictures, copies, and notifies with Open / Edit (satty)
+hl.bind("Print",                     hl.dsp.exec_cmd("dots-shot region"))
+hl.bind(mod .. " + S",               hl.dsp.exec_cmd("dots-shot region"))
+hl.bind(mod .. " + Print",           hl.dsp.exec_cmd("dots-shot screen"))
+hl.bind(mod .. " + SHIFT + S",       hl.dsp.exec_cmd("dots-shot window"))
 
 hl.bind(mod .. " + SHIFT + R",
     util.sh([[systemctl --user reload gsr-replay && notify-send -t 3000 "Replay saved" "last 5 min -> /data/replays"]]))

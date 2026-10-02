@@ -16,10 +16,9 @@ for _, f in ipairs(floats) do
 end
 
 hl.window_rule({
-    name  = "flameshot",
-    match = { class = "^(flameshot)$" },
+    name  = "satty",
+    match = { class = "^(com.gabm.satty)$" },
     float = true,
-    pin   = true,
 })
 
 for _, app in ipairs({ { "discord", "^(discord)$" }, { "spotify", "^(spotify)$" } }) do

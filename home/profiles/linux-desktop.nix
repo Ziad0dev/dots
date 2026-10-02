@@ -105,7 +105,6 @@ in
     ".config/Kvantum/KvGlass".source = link "kvantum/KvGlass";
     ".config/Kvantum/Glass-Kv".source = link "kvantum/Glass-Kv";
     ".config/quickshell".source = link "quickshell";
-    ".config/flameshot".source = link "flameshot";
     ".config/gammastep".source = link "gammastep";
     ".config/rmpc".source = link "rmpc";
     ".config/mpv".source = link "mpv";
@@ -145,7 +144,6 @@ in
         ];
       })
       zbar
-      (flameshot.override { enableWlrSupport = true; })
       gammastep
       brightnessctl
       libnotify
