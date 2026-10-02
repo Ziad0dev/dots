@@ -158,7 +158,7 @@ PanelWindow {
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
-                            setProfileProc.command = ["bash", "-c", "powerprofilesctl set " + modelData.key]
+                            setProfileProc.command = ["powerprofilesctl", "set", modelData.key]
                             setProfileProc.running = false
                             setProfileProc.running = true
                             root.powerProfileCurrent = modelData.key

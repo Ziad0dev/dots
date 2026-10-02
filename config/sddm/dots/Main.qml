@@ -44,12 +44,15 @@ Item {
             x.open("GET", "file:///var/lib/dots-theme/sddm.json", false)
             x.send()
             var j = JSON.parse(x.responseText)
-            if (j.background) cBg = j.background
-            if (j.foreground) cFg = j.foreground
-            if (j.accent) cAccent = j.accent
-            if (j.error) cError = j.error
-            if (j.warn) cWarn = j.warn
-            if (j.wallpaper) wallpaper = j.wallpaper
+            // the file is user-writable: hex colours only, and the one
+            // wallpaper dots-set-wallpaper renders (never a remote URL)
+            var hex = /^#[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?$/
+            if (hex.test(j.background)) cBg = j.background
+            if (hex.test(j.foreground)) cFg = j.foreground
+            if (hex.test(j.accent)) cAccent = j.accent
+            if (hex.test(j.error)) cError = j.error
+            if (hex.test(j.warn)) cWarn = j.warn
+            if (j.wallpaper === "file:///var/lib/dots-theme/wallpaper.jpg") wallpaper = j.wallpaper
         } catch (e) {
         }
     }

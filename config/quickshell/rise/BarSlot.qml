@@ -178,7 +178,7 @@ PanelWindow {
     function saveOrder() {
         var serialized = serializeOrder()
         orderSaveProc.command = ["bash", "-c",
-            "mkdir -p \"$(dirname '" + orderCachePath + "')\" && printf '%s' '" + serialized + "' > '" + orderCachePath + "'"]
+            "mkdir -p \"$(dirname \"$2\")\" && printf '%s' \"$1\" > \"$2\"", "_", serialized, orderCachePath]
         orderSaveProc.running = false; orderSaveProc.running = true
         if (!barSlot.root._barLayoutSyncing) barSlot.root.syncBarOrder(barSlot.screenName, serialized)
     }
@@ -783,7 +783,7 @@ PanelWindow {
         function saveSplits() {
             var serialized = serializeSplits()
             splitSaveProc.command = ["bash", "-c",
-                "mkdir -p \"$(dirname '" + splitCachePath + "')\" && printf '%s' '" + serialized + "' > '" + splitCachePath + "'"]
+                "mkdir -p \"$(dirname \"$2\")\" && printf '%s' \"$1\" > \"$2\"", "_", serialized, splitCachePath]
             splitSaveProc.running = false; splitSaveProc.running = true
             if (!barSlot.root._barLayoutSyncing) barSlot.root.syncBarSplits(barSlot.screenName, serialized)
         }

@@ -37,7 +37,7 @@ Item {
         if (exitCode === 0 || brightnessErrorNotified) return
         brightnessErrorNotified = true
         brightnessErrNotify.command = ["bash", "-c",
-            "notify-send -a 'QS-Shell' 'Brightness command failed' '" + action + " failed; brightness backend unavailable.' 2>/dev/null || true"]
+            "notify-send -a QS-Shell 'Brightness command failed' \"$1 failed; brightness backend unavailable.\" 2>/dev/null || true", "_", action]
         brightnessErrNotify.running = false
         brightnessErrNotify.running = true
     }
