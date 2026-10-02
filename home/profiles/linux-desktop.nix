@@ -298,4 +298,29 @@ in
     settings.Bling.mmKeys = true;
   };
 
+  systemd.user.services."app-com.mitchellh.ghostty" = {
+    Unit = {
+      Description = "Ghostty";
+      After = [
+        "hyprland-session.target"
+        "dbus.socket"
+      ];
+      Requires = [ "dbus.socket" ];
+      PartOf = [ "hyprland-session.target" ];
+      X-SwitchMethod = "keep-old";
+    };
+    Service = {
+      Type = "notify-reload";
+      ReloadSignal = "SIGUSR2";
+      BusName = "com.mitchellh.ghostty";
+      Environment = [
+        "PATH=/run/wrappers/bin:/etc/profiles/per-user/${username}/bin:${config.home.homeDirectory}/.nix-profile/bin:/run/current-system/sw/bin"
+      ];
+      ExecStart = "${pkgs.ghostty}/bin/ghostty --gtk-single-instance=true --initial-window=false --quit-after-last-window-closed=false";
+      Slice = "app-graphical.slice";
+      Restart = "on-failure";
+    };
+    Install.WantedBy = [ "hyprland-session.target" ];
+  };
+
 }

@@ -1,7 +1,7 @@
 local util = require("lib.util")
 local mod = util.mod
 
-hl.bind(mod .. " + Return",         hl.dsp.exec_cmd("ghostty"))
+hl.bind(mod .. " + Return",         util.sh("ghostty +new-window || ghostty"))
 hl.bind(mod .. " + SHIFT + Return", hl.dsp.exec_cmd("ghostty -e tmux new-session -A -s main"))
 
 hl.bind(mod .. " + B", util.launch_or_focus("zen-beta", "zen-beta"))
