@@ -1,5 +1,6 @@
 {
   config,
+  lib,
   pkgs,
   inputs,
   username,
@@ -140,6 +141,8 @@
       setSocketVariable = true;
     };
   };
+
+  systemd.user.services.docker.wantedBy = lib.mkForce [ ];
 
   virtualisation.podman.enable = true;
 
