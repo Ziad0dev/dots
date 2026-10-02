@@ -437,6 +437,7 @@ PanelWindow {
                             && (barSlot.root.shellUpdateBehind > 0 || barSlot.root.shellUpdateProgressVisible)
                         readonly property bool hasActive: idleInd.awake
                             || privacyInd.active
+                            || capsInd.on
                             || dndInd.silenced
                             || screenRecInd.recording
                             || voxInd.state === "recording"
@@ -444,6 +445,7 @@ PanelWindow {
                             || dotsUpdateInd.updateAvailable
                             || shellFallbackActive
                         PrivacyWidget            { id: privacyInd;       root: barSlot.root; anchors.verticalCenter: parent.verticalCenter }
+                        CapsLockWidget           { id: capsInd;          root: barSlot.root; anchors.verticalCenter: parent.verticalCenter }
                         IdleWidget               { id: idleInd;          root: barSlot.root; anchors.verticalCenter: parent.verticalCenter }
                         NotificationSilenceWidget{ id: dndInd;           root: barSlot.root; anchors.verticalCenter: parent.verticalCenter }
                         ScreenRecordWidget       { id: screenRecInd;     root: barSlot.root; anchors.verticalCenter: parent.verticalCenter }

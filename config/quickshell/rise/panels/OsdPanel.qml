@@ -63,22 +63,11 @@ PanelWindow {
             show(IconMap.icons["headphones"], "Output", sink.description || sink.nickname || sink.name, -1, false)
     }
 
-    // caps lock: every keyboard has its own LED; any lit means on. Builtin reads
-    // and a read-timeout sleep keep the loop fork-free; it prints only changes.
-    property bool capsOn: false
-    Process {
-        running: true
-        command: ["bash", "-c",
-            "exec {t}<> <(:); last=; while :; do on=0; " +
-            "for f in /sys/class/leds/*::capslock/brightness; do read -r v < \"$f\" && [ \"$v\" != 0 ] && on=1; done; " +
-            "[ \"$on\" != \"$last\" ] && echo $on && last=$on; read -t 0.25 -u $t; done"]
-        stdout: SplitParser {
-            onRead: function(line) {
-                var on = line.trim() === "1"
-                if (on === osd.capsOn) return
-                osd.capsOn = on
-                osd.show("", "Caps Lock", on ? "on" : "off", -1, on)
-            }
+    // caps lock state comes from Theme's LED watcher (shared with the bar glyph)
+    Connections {
+        target: osd.root
+        function onCapsLockOnChanged() {
+            osd.show("\uE318", "Caps Lock", osd.root.capsLockOn ? "on" : "off", -1, osd.root.capsLockOn)
         }
     }
 
