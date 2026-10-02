@@ -1,15 +1,19 @@
 
+/* the rendered themectl palette (~/.local/state/dots/theme/zen-palette.css);
+   the --oxo-* names are kept from the original oxocarbon-only version */
+@import url("dots-palette.css");
+
 :root {
-  --oxo-base00: #161616;
-  --oxo-base01: #262626;
-  --oxo-base02: #393939;
-  --oxo-base03: #525252;
-  --oxo-base04: #dde1e6;
-  --oxo-base05: #f2f4f8;
-  --oxo-pink:   #ee5396;
-  --oxo-blue:   #33b1ff;
-  --oxo-cyan:   #3ddbd9;
-  --oxo-purple: #be95ff;
+  --oxo-base00: var(--dots-background);
+  --oxo-base01: var(--dots-surface_container_low);
+  --oxo-base02: var(--dots-outline_variant);
+  --oxo-base03: var(--dots-outline);
+  --oxo-base04: var(--dots-on_surface_variant);
+  --oxo-base05: var(--dots-on_background);
+  --oxo-pink:   var(--dots-primary);
+  --oxo-blue:   var(--dots-secondary);
+  --oxo-cyan:   var(--dots-secondary);
+  --oxo-purple: var(--dots-tertiary);
 
   --zen-primary-color: var(--oxo-pink) !important;
   --zen-colors-primary: var(--oxo-base00) !important;
