@@ -1,0 +1,27 @@
+[main]
+font=monospace:size=12
+prompt="❯ "
+width=40
+lines=12
+horizontal-pad=16
+vertical-pad=12
+inner-pad=8
+icons-enabled=yes
+
+[colors]
+background=${background_hex}f2
+text=${foreground_hex}ff
+message=${muted_hex}ff
+prompt=${accent_hex}ff
+placeholder=${muted_hex}ff
+input=${foreground_hex}ff
+match=${accent_hex}ff
+selection=${accent_container_hex}ff
+selection-text=${foreground_hex}ff
+selection-match=${accent_hex}ff
+counter=${dim_hex}ff
+border=${accent_hex}ff
+
+[border]
+width=1
+radius=0

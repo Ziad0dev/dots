@@ -49,7 +49,7 @@
     history_length = 20
     
     # Misc
-    dmenu = /usr/bin/rofi -dmenu -p dunst:
+    dmenu = fuzzel --dmenu --prompt=dunst:
     browser = /usr/bin/firefox
     always_run_script = true
     title = Dunst

@@ -34,6 +34,9 @@ in
   xdg.configFile."cava/config".source =
     config.lib.file.mkOutOfStoreSymlink "${config.xdg.stateHome}/dots/theme/cava";
 
+  xdg.configFile."fuzzel/fuzzel.ini".source =
+    config.lib.file.mkOutOfStoreSymlink "${config.xdg.stateHome}/dots/theme/fuzzel.ini";
+
   systemd.user.services.dotsDunstTheme = {
     Unit = {
       Description = "Apply the themed dunst config once dunst is up";
