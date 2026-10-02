@@ -250,6 +250,7 @@ Item {
     }
 
     TooltipOverlay { root: theme }
+    OsdPanel { root: theme }
     CalendarPopup { root: theme }
     PowerProfilePanel { root: theme }
     MemoryPanel { root: theme }
