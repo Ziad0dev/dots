@@ -182,7 +182,7 @@ PanelWindow {
                                     visible: text !== ""
                                 }
                                 UiText {
-                                    text: notifPanel.field(modelData, "body") || ""
+                                    text: notifPanel.service.safeBody(notifPanel.field(modelData, "body"))
                                     textFormat: Text.StyledText
                                     color: Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.6)
                                     font.family: root.mono

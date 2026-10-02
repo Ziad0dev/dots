@@ -25,6 +25,33 @@ Item {
 
     signal received(var entry)
 
+    // Senders control body, image and links, so nothing they send may reach
+    // the network. StyledText fetches <img src> on its own (even remote), so the
+    // tag goes; repeat until stable so "<im<img>g ...>" can't reassemble one.
+    function safeBody(text) {
+        var s = text ? String(text) : ""
+        var prev
+        do {
+            prev = s
+            s = s.replace(/<\s*\/?\s*img\b[^>]*>?/gi, "")
+        } while (s !== prev)
+        return s
+    }
+    // local files and Quickshell's own image providers only
+    function localImage(url) {
+        if (!url) return ""
+        url = String(url)
+        if (url.indexOf("/") === 0) return "file://" + url
+        // Quickshell wraps unknown image hints as image://icon/<hint>; a URL
+        // there is a remote image, not a theme icon
+        if (url.indexOf("image://icon/") === 0 && url.indexOf(":", 13) >= 0) return ""
+        if (url.indexOf("file://") === 0 || url.indexOf("image://") === 0) return url
+        return ""
+    }
+    function openLink(link) {
+        if (/^(https?:\/\/|mailto:)/i.test(link)) Qt.openUrlExternally(link)
+    }
+
     NotificationServer {
         id: server
         keepOnReload: true
