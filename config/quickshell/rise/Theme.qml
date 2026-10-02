@@ -1971,6 +1971,18 @@ Item {
     readonly property string voxPhasePath: Quickshell.env("HOME") + "/.local/state/dots/voxtype/phase"
     property bool notifSilenced: false        // notification do-not-disturb mode
     property var notifService: null           // NotificationService, set by VariantRoot
+    property bool capsLockOn: false           // any keyboard's capslock LED lit
+
+    // Every keyboard has its own LED. Builtin reads and a read -t sleep keep
+    // the loop fork-free; it prints only on change.
+    Process {
+        running: true
+        command: ["bash", "-c",
+            "exec {t}<> <(:); last=; while :; do on=0; " +
+            "for f in /sys/class/leds/*::capslock/brightness; do read -r v < \"$f\" && [ \"$v\" != 0 ] && on=1; done; " +
+            "[ \"$on\" != \"$last\" ] && echo $on && last=$on; read -t 0.25 -u $t; done"]
+        stdout: SplitParser { onRead: function(line) { theme.capsLockOn = line.trim() === "1" } }
+    }
     property bool _notifBackendChecked: false
     property bool _notifNixOSShellBackend: false
     property bool _notifNixOSShellSystem: false
