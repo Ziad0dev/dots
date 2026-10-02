@@ -693,10 +693,6 @@ Item {
             pushPulse("win", -1)
         } else if (kind === "monsweep" || kind === "sweep") {
             pushPulse("monsweep", arg === "-1" ? -1 : 1, { life: 5200, gain: 0.82, count: root.maxSweepParticleCount7 })
-        } else if (kind === "dots-updates" || kind === "packages") {
-            var parsedN = parseInt(arg || "3")
-            var n = isFinite(parsedN) ? Math.max(1, parsedN) : 3
-            pushText(n + (n === 1 ? " PACKAGE" : " PACKAGES") + " CHANGED", "PACMAN", 1, "long")
         } else if (kind === "ai" || kind === "model") {
             return
         } else if (kind === "urgent") {

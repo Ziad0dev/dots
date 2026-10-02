@@ -57,7 +57,7 @@ These open a floating terminal (`$DOTS_TERMINAL`, default ghostty) with window c
 | `dots-launch-audio` | wiremix |
 | `dots-launch-or-focus-tui <cmd>` | `<cmd>` (always launches; doesn't focus an existing one) |
 | `dots-launch-floating-terminal-with-presentation <cmd>` | `<cmd>` |
-| `dots-tz-select` | fzf over timezones → `sudo timedatectl set-timezone` |
+| `dots-tz-select` | Points at `time.timeZone` in `hosts/nixos/configuration.nix` (timedatectl can't change a declarative zone) |
 | `dots-voxtype-config` | fzf over whisper models → `voxtype set-model` |
 
 ### Capture and OSD
@@ -149,4 +149,4 @@ Fish starts in vi mode and sources the themed fzf colours.
 | `jellyfin`, `radarr`, `sonarr`, `audiobookshelf`, `calibre-web` | system | media |
 | `restic-backups-home` | system | backup (daily timer) |
 | `hello-page`, `hello-page-serve` | system | tailnet site |
-| `cpu-epp`, `cpu-power-limit` | system | CPU tuning oneshots |
+| `power-profiles-daemon`, `cpu-power-limit` | system | EPP switching (bar power-profile button), RAPL limits |

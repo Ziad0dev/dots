@@ -108,7 +108,7 @@ Was sched_ext: `scx_lavd` stalled media and browser threads (`sched_ext: BPF sch
 
 ### `pkill -x foo` / `pgrep -x foo` matches nothing
 
-Nix wrappers rename the process: `waybar` runs as `.waybar-wrapped`, `awww-daemon` as `.awww-daemon-wr` (15-char `comm` truncation). Drop `-x`, or ask the program itself (`awww query`).
+Nix wrappers rename the process: `dunst` runs as `.dunst-wrapped`, `awww-daemon` as `.awww-daemon-wr` (15-char `comm` truncation). Drop `-x`, or ask the program itself (`awww query`).
 
 ### The screen never locks
 
@@ -197,11 +197,9 @@ Things in the repo today that are wrong or brittle, not yet fixed:
 | `scripts/dots-compat.sh` | `dots-update`, `dots-update-available`, `dots-updates` hardcode `~/dots` |
 | `scripts/themectl.sh`, `config/zen/zen-theme-link.sh` | Default to `~/dots` (overridable via `DOTS_DIR` / `SRC`, but nothing sets them from `repoPath`) |
 | `home/profiles/base.nix` | `update` / `upall` assume nh, which only the NixOS host installs; on darwin and standalone home-manager they fail. The rebuild command is chosen by *profile*, so `ziad0dev@linux-desktop` (standalone HM) gets `nh os switch` |
-| `scripts/dots-compat.sh` | `dots-tz-select` runs `timedatectl set-timezone`, which NixOS refuses while `time.timeZone` is set declaratively |
 | `scripts/dots-compat.sh`, `modules/recording.nix` | Capture output `DP-1` hardcoded in two places |
 | `home/profiles/linux-desktop.nix` | `DOCKER_HOST` hardcodes uid 1001 |
 | `modules/hello-page.nix` | `Restart = always` every 5 s when `~/the-page/app.py` doesn't exist |
 | `modules/ollama.nix` | `gpu-free` stops llama units but leaves Ollama's loaded model in VRAM (`ollama stop <model>` or wait 5 min) |
 | `config/hyprland-preview-share-picker/config.yaml` | Rendered `share-picker.css` isn't loaded — the stylesheet line is commented out |
-| `config/nvim/README.md` | Still mentions waybar, rofi and hyprlock, all since replaced |
 | `scripts/themectl.sh` | The unsubstituted-token warning doesn't catch the missing-key case above |

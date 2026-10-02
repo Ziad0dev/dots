@@ -41,7 +41,7 @@ The package test for the system list: root needs it, a system service needs it, 
 
 | Value | Effect |
 |---|---|
-| `"responsive"` (default) | `intel_pstate` active mode; a `cpu-epp` oneshot writes `performance` to every CPU's energy-performance preference. In active mode EPP is the lever that matters, not the governor name |
+| `"responsive"` (default) | `intel_pstate` active mode with power-profiles-daemon owning the energy-performance preference: the bar's power-profile button switches performance / balanced / power-saver (EPP `performance` / `balance_performance` / `power`), and the choice persists across reboots. In active mode EPP is the lever that matters, not the governor name |
 | `"max"` | `performance` governor |
 | `"passive"` | `intel_pstate=passive` + schedutil — the only mode where a sched_ext scheduler's frequency hints reach a governor |
 

@@ -64,8 +64,3 @@ hl.window_rule({
     workspace = "1 silent",
 })
 
-hl.window_rule({
-    name      = "qbittorrent-place",
-    match     = { class = "^(org\\.qbittorrent\\.qBittorrent)$" },
-    workspace = "3 silent",
-})
