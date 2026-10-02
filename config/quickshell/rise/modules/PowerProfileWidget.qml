@@ -129,7 +129,7 @@ Item {
                 var profiles = ["power-saver", "balanced", "performance"]
                 var idx = profiles.indexOf(root.powerProfileCurrent)
                 var next = profiles[(Math.max(0, idx) + 1) % profiles.length]
-                setProfileProc.command = ["bash", "-c", "powerprofilesctl set " + next]
+                setProfileProc.command = ["powerprofilesctl", "set", next]
                 setProfileProc.running = false; setProfileProc.running = true
                 root.powerProfileCurrent = next
             } else {

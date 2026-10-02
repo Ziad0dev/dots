@@ -227,7 +227,7 @@ Item {
         if (rootMod.ifaceCur === "") { rootMod.ssid = ""; return }
         ssidProc.running = false
         ssidProc.command = ["bash", "-c",
-            "iw dev '" + rootMod.ifaceCur + "' link 2>/dev/null | sed -n 's/^[[:space:]]*SSID: //p' | head -1"]
+            "iw dev \"$1\" link 2>/dev/null | sed -n 's/^[[:space:]]*SSID: //p' | head -1", "_", rootMod.ifaceCur]
         ssidProc.running = true
     }
 

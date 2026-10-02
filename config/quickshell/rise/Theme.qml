@@ -1049,8 +1049,7 @@ Item {
         }
         next[String(item.url || "")] = String(item.updatedAt || "")
         ghSeen = next
-        ghSeenSaveProc.command = ["bash", "-c",
-            "cat > " + JSON.stringify(ghSeenPath)]
+        ghSeenSaveProc.command = ["bash", "-c", "cat > \"$1\"", "_", ghSeenPath]
         ghSeenSaveProc.running = false
         ghSeenSaveProc.running = true
         ghSeenSaveProc.write(JSON.stringify(next))
@@ -1099,7 +1098,7 @@ Item {
 
     function refreshGithub(force) {
         if (force === true) ghFetchProc.command = ["bash", "-c",
-            "rm -f " + JSON.stringify(ghCachePath) + "; " + JSON.stringify(ghScriptPath)]
+            "rm -f \"$1\"; exec \"$2\"", "_", ghCachePath, ghScriptPath]
         else ghFetchProc.command = [ghScriptPath]
         ghFetchProc.running = false
         ghFetchProc.running = true
@@ -1911,7 +1910,7 @@ Item {
                  + barAnim + " "
                  + barColor
         splitSaveProc.command = ["bash", "-c",
-            "mkdir -p \"$(dirname '" + splitsCachePath + "')\" && echo '" + line + "' > '" + splitsCachePath + "'"]
+            "mkdir -p \"$(dirname \"$2\")\" && printf '%s\\n' \"$1\" > \"$2\"", "_", line, splitsCachePath]
         splitSaveProc.running = false
         splitSaveProc.running = true
     }
@@ -2544,8 +2543,8 @@ Item {
 
     function saveWidgetColors() {
         widgetColorSaveProc.command = ["bash", "-c",
-            "mkdir -p \"$(dirname '" + widgetColorsCachePath + "')\" && echo '"
-            + serializeWidgetColorStyles() + "' > '" + widgetColorsCachePath + "'"]
+            "mkdir -p \"$(dirname \"$2\")\" && printf '%s\\n' \"$1\" > \"$2\"",
+            "_", serializeWidgetColorStyles(), widgetColorsCachePath]
         widgetColorSaveProc.running = false
         widgetColorSaveProc.running = true
     }
@@ -2653,7 +2652,7 @@ Item {
                  + (motionSweep       ? "1" : "0") + " "  // +35
                  + (motionDigits      ? "1" : "0")        // +36
         widgetSaveProc.command = ["bash", "-c",
-            "echo '" + line + "' > '" + widgetsCachePath + "'"]
+            "printf '%s\\n' \"$1\" > \"$2\"", "_", line, widgetsCachePath]
         widgetSaveProc.running = false
         widgetSaveProc.running = true
     }

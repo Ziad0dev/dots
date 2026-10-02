@@ -161,7 +161,7 @@ Item {
         if (exitCode === 0 || audioErrorNotified) return
         audioErrorNotified = true
         audioErrNotify.command = ["bash", "-c",
-            "notify-send -a 'QS-Shell' 'Audio command failed' '" + action + " failed; audio backend unavailable.' 2>/dev/null || true"]
+            "notify-send -a QS-Shell 'Audio command failed' \"$1 failed; audio backend unavailable.\" 2>/dev/null || true", "_", action]
         audioErrNotify.running = false
         audioErrNotify.running = true
     }
