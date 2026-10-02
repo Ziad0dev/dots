@@ -11,7 +11,7 @@ let
 
   isPassive = cpuProfile == "passive";
   isMax = cpuProfile == "max";
-  setsEPP = cpuProfile == "responsive";
+  usesPPD = cpuProfile == "responsive";
 
   pl1Watts = 65;
   pl2Watts = 117;
@@ -79,20 +79,10 @@ in
 
   boot.kernelParams = [ "zswap.enabled=0" ] ++ lib.optional isPassive "intel_pstate=passive";
 
-  systemd.services.cpu-epp = lib.mkIf setsEPP {
-    description = "Set HWP energy_performance_preference to performance";
-    wantedBy = [ "multi-user.target" ];
-    serviceConfig = {
-      Type = "oneshot";
-      RemainAfterExit = true;
-    };
-    script = ''
-      for f in /sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference; do
-        [ -w "$f" ] && echo performance > "$f"
-      done
-      exit 0
-    '';
-  };
+  # Runtime EPP switching (the bar's power-profile button): performance →
+  # performance, balanced → balance_performance, power-saver → power. The
+  # choice persists across reboots in /var/lib/power-profiles-daemon.
+  services.power-profiles-daemon.enable = usesPPD;
 
   systemd.services.cpu-power-limit = {
     description = "Set RAPL package power limits";
