@@ -126,7 +126,7 @@ PanelWindow {
 
             Repeater {
                 model: root.gpuAvailable ? [
-                    { label: "UTIL",  value: root.gpuPercent + "%",
+                    { label: "LOAD",  value: root.gpuPercent + "%",
                       frac: root.gpuPercent / 100 },
                     { label: "VRAM",  value: (root.gpuMemoryUsedMiB / 1024).toFixed(1) + "/"
                         + (root.gpuMemoryTotalMiB / 1024).toFixed(1) + "G",
@@ -183,7 +183,8 @@ PanelWindow {
                 Repeater {
                     model: root.gpuAvailable ? [
                         { k: "TEMP",   v: root.gpuTemperatureC + "\u00B0C" },
-                        { k: "CLOCK",  v: root.gpuClockMHz + " MHz" },
+                        { k: "CLOCK",  v: root.gpuClockMHz + (root.gpuMaxClockMHz > 0 ? "/" + root.gpuMaxClockMHz : "") + " MHz" },
+                        { k: "BUSY",   v: root.gpuBusyPercent + "% @ clock" },
                         { k: "FAN",    v: root.gpuFanPercent + "%" },
                         { k: "PSTATE", v: root.gpuPerformanceState },
                         { k: "DRIVER", v: root.gpuDriverVersion },

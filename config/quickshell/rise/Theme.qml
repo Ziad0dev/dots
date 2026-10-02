@@ -1197,7 +1197,12 @@ Item {
     property string gpuBackend: ""
     property string gpuName: ""
     property string gpuDriverVersion: ""
+    // busy% is relative to the current clock, so it jumps whenever the driver
+    // drops to idle clocks or boosts; gpuPercent scales it by clock/max clock
+    // to show actual load, and gpuBusyPercent keeps the raw reading.
     property int gpuPercent: 0
+    property int gpuBusyPercent: 0
+    property int gpuMaxClockMHz: 0
     property int gpuTemperatureC: 0
     property int gpuMemoryUsedMiB: 0
     property int gpuMemoryTotalMiB: 0
@@ -1408,6 +1413,8 @@ Item {
             gpuName = ""
             gpuDriverVersion = ""
             gpuPercent = 0
+            gpuBusyPercent = 0
+            gpuMaxClockMHz = 0
             gpuTemperatureC = 0
             gpuMemoryUsedMiB = 0
             gpuMemoryTotalMiB = 0
@@ -1428,7 +1435,7 @@ Item {
         gpuBackend = clean(fields[0])
         gpuName = clean(fields[1])
         gpuDriverVersion = clean(fields[2])
-        gpuPercent = Math.max(0, Math.min(100, Math.round(number(fields[3]))))
+        gpuBusyPercent = Math.max(0, Math.min(100, Math.round(number(fields[3]))))
         gpuTemperatureC = Math.max(0, Math.round(number(fields[4])))
         gpuMemoryUsedMiB = Math.max(0, Math.round(number(fields[5])))
         gpuMemoryTotalMiB = Math.max(0, Math.round(number(fields[6])))
@@ -1437,6 +1444,10 @@ Item {
         gpuPowerLimitW = Math.max(0, number(fields[9]))
         gpuPerformanceState = clean(fields[10])
         gpuFanPercent = Math.max(0, Math.min(100, Math.round(number(fields[11]))))
+        gpuMaxClockMHz = Math.max(0, Math.round(number(fields[12])))
+        gpuPercent = gpuClockMHz > 0 && gpuMaxClockMHz > 0
+            ? Math.max(0, Math.min(100, Math.round(number(fields[3]) * gpuClockMHz / gpuMaxClockMHz)))
+            : gpuBusyPercent
     }
 
     function parseThermalTelemetry(text) {
@@ -1656,16 +1667,16 @@ Item {
         id: gpuTelemetryProc
         command: ["bash", "-c",
             "if command -v nvidia-smi >/dev/null 2>&1; then "
-            + "IFS=, read -r name driver util temp used total clock power limit pstate fan < <(nvidia-smi --query-gpu=name,driver_version,utilization.gpu,temperature.gpu,memory.used,memory.total,clocks.current.graphics,power.draw,power.limit,pstate,fan.speed --format=csv,noheader,nounits 2>/dev/null | head -n1); "
+            + "IFS=, read -r name driver util temp used total clock power limit pstate fan maxclock < <(nvidia-smi --query-gpu=name,driver_version,utilization.gpu,temperature.gpu,memory.used,memory.total,clocks.current.graphics,power.draw,power.limit,pstate,fan.speed,clocks.max.graphics --format=csv,noheader,nounits 2>/dev/null | head -n1); "
             + "if [[ $util =~ ^[[:space:]]*[0-9]+[[:space:]]*$ && $temp =~ ^[[:space:]]*[0-9]+[[:space:]]*$ && $used =~ ^[[:space:]]*[0-9]+[[:space:]]*$ && $total =~ ^[[:space:]]*[0-9]+[[:space:]]*$ ]]; then "
-            + "printf 'nvidia|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\\n' \"$name\" \"$driver\" \"$util\" \"$temp\" \"$used\" \"$total\" \"$clock\" \"$power\" \"$limit\" \"$pstate\" \"$fan\"; exit 0; fi; "
+            + "printf 'nvidia|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\\n' \"$name\" \"$driver\" \"$util\" \"$temp\" \"$used\" \"$total\" \"$clock\" \"$power\" \"$limit\" \"$pstate\" \"$fan\" \"$maxclock\"; exit 0; fi; "
             + "fi; "
             + "for busy in /sys/class/drm/card*/device/gpu_busy_percent; do "
             + "[[ -r $busy ]] || continue; read -r util < \"$busy\"; temp=0; "
             + "for sensor in \"${busy%/gpu_busy_percent}\"/hwmon/hwmon*/temp1_input; do "
             + "[[ -r $sensor ]] || continue; read -r raw < \"$sensor\"; temp=$((raw / 1000)); break; done; "
-            + "printf 'sysfs|GPU||%s|%s|0|0|0|0|0||0\\n' \"$util\" \"$temp\"; exit 0; done; "
-            + "printf 'none|||||||||||\\n'"]
+            + "printf 'sysfs|GPU||%s|%s|0|0|0|0|0||0|0\\n' \"$util\" \"$temp\"; exit 0; done; "
+            + "printf 'none||||||||||||\\n'"]
         stdout: StdioCollector { onStreamFinished: theme.parseGpuTelemetry(this.text) }
     }
 
