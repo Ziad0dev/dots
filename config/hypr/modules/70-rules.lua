@@ -16,6 +16,13 @@ for _, f in ipairs(floats) do
 end
 
 hl.window_rule({
+    name  = "flameshot",
+    match = { class = "^(flameshot)$" },
+    float = true,
+    pin   = true,
+})
+
+hl.window_rule({
     name  = "satty",
     match = { class = "^(com.gabm.satty)$" },
     float = true,

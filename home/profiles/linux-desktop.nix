@@ -102,6 +102,7 @@ in
 
   home.file = {
     ".config/hypr".source = link "hypr";
+    ".config/flameshot".source = link "flameshot";
     ".config/Kvantum/KvGlass".source = link "kvantum/KvGlass";
     ".config/Kvantum/Glass-Kv".source = link "kvantum/Glass-Kv";
     ".config/quickshell".source = link "quickshell";
@@ -133,6 +134,7 @@ in
       grim
       slurp
       satty
+      (flameshot.override { enableWlrSupport = true; })
       spotify
       (tesseract.override {
         enableLanguages = [
