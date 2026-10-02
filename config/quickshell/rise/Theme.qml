@@ -2391,6 +2391,7 @@ Item {
     // ── picker visual style (theme/wallpaper/screenshot/video pickers) ──
     property string pickerStyle: "tanzaku"   // "tanzaku", "hearthstone", "carousel"
     property bool appLauncherVisible: false
+    property bool clipboardVisible: false
     property string launcherLogoMode: "text"     // "text" or "icon"
     property string launcherLogoText: "nixos"  // "dots", "hyprland", or "nixos"
     property string launcherLogoIcon: "nix"  // see launcherLogoIconGlyph()

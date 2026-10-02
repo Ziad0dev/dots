@@ -17,6 +17,8 @@ Item {
 
     function toggleOverview() { if (!theme.overviewVisible) theme.activateFocusedPopupScreen(); theme.overviewVisible = !theme.overviewVisible }
 
+    function toggleClipboard() { if (!theme.clipboardVisible) theme.activateFocusedPopupScreen(); theme.clipboardVisible = !theme.clipboardVisible }
+
     function toggleNotifications() { if (!theme.notifVisible) theme.activateFocusedPopupScreen(); theme.notifVisible = !theme.notifVisible }
 
     function clearNotifications() { notifService.clearAll() }
@@ -293,6 +295,7 @@ Item {
     LazyLoader { active: theme.pickerStyle === "hearthstone";                           ImageCarouselHearthstone { root: theme } }
     LazyLoader { active: theme.pickerStyle === "carousel";                              ImageCarouselCarousel    { root: theme } }
     LazyLoader { active: true; AppLauncher { root: theme } }
+    LazyLoader { active: theme.clipboardVisible; ClipboardPanel { root: theme } }
     LazyLoader { active: theme.mediaBrowserVisible && (theme.pickerStyle === "tanzaku" || theme.pickerStyle === "");  MediaBrowserPanel        { root: theme } }
     LazyLoader { active: theme.mediaBrowserVisible && theme.pickerStyle === "hearthstone";                             MediaBrowserHearthstone  { root: theme } }
     LazyLoader { active: theme.mediaBrowserVisible && theme.pickerStyle === "carousel";                                MediaBrowserCarousel     { root: theme } }

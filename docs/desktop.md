@@ -179,7 +179,7 @@ qs -c rise ipc call <target> <function>
 
 - **Notifications** — Quickshell is the notification daemon (`rise/NotificationService.qml`): popups under the bar on the focused monitor (`panels/NotificationPopups.qml`, hover pauses, click runs the default action, right click dismisses) and a persisted history in the notification center. `qs -c rise ipc call notifications toggle|clear`; do-not-disturb is `dots-toggle-notification-silencing`, which flips `~/.local/state/dots/notifications.json`.
 - **OSD** — `panels/OsdPanel.qml` shows volume, mic mute, output-device switches and caps lock, driven by PipeWire and the capslock LEDs, so any source of change shows it. swayosd is still used for brightness; style is the rendered `swayosd.css`.
-- **cliphist** — history daemon as a user service; `SUPER + SHIFT + V` to pick.
+- **Clipboard** — cliphist records history (user service); `SUPER + SHIFT + V` opens the Quickshell clipboard panel (`panels/ClipboardPanel.qml`): search, image thumbnails, Enter to copy, Delete to remove, wipe with a second click.
 
 ## Recording
 

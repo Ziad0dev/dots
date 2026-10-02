@@ -20,7 +20,7 @@ hl.bind(mod .. " + N",         hl.dsp.exec_cmd("dots-nightlight toggle"))
 
 hl.bind(mod .. " + V",         hl.dsp.exec_cmd("voxtype toggle"))
 hl.bind(mod .. " + period",    hl.dsp.exec_cmd("bemoji -n -t"))
-hl.bind(mod .. " + SHIFT + V", util.sh([[cliphist list | fuzzel --dmenu | cliphist decode | wl-copy]]))
+hl.bind(mod .. " + SHIFT + V", hl.dsp.exec_cmd("qs -c rise ipc call clipboard toggle"))
 
 hl.bind(mod .. " + ALT + A", hl.dsp.exec_cmd("dots-look anim pick"))
 hl.bind(mod .. " + ALT + S", hl.dsp.exec_cmd("dots-look shader pick"))
