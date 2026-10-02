@@ -43,6 +43,8 @@ let
     after = [ "data.mount" ];
     conflicts = lib.filter (n: n != self) [
       "llama-cpp.service"
+      "llama-uncensored.service"
+      "llama-hermes.service"
       "llama-sec.service"
       "llama-agent.service"
       "llama-gemma.service"
@@ -73,6 +75,33 @@ in
   };
 
   systemd.services.llama-cpp = gpuUnit "llama-cpp.service";
+
+  systemd.services.llama-uncensored = lib.recursiveUpdate (gpuUnit "llama-uncensored.service") {
+    description = "Huihui Qwen3.5-9B abliterated (uncensored general)";
+    serviceConfig = sandbox // {
+      ExecStart = ''
+        ${vulkan}/bin/llama-server \
+          -m ${modelDir}/Huihui-Qwen3.5-9B-abliterated.Q6_K.gguf \
+          --host 127.0.0.1 --port 8080 \
+          -c 16384 -ngl 99 --flash-attn on --jinja
+      '';
+    };
+  };
+
+  # 8.1 GB of weights: 8k context with a q8 KV cache keeps it on a 12 GB card
+  # next to the desktop's own VRAM use
+  systemd.services.llama-hermes = lib.recursiveUpdate (gpuUnit "llama-hermes.service") {
+    description = "Hermes 4 14B (steerable; pairs with Hermes Agent)";
+    serviceConfig = sandbox // {
+      ExecStart = ''
+        ${vulkan}/bin/llama-server \
+          -m ${modelDir}/NousResearch_Hermes-4-14B-IQ4_XS.gguf \
+          --host 127.0.0.1 --port 8080 \
+          -c 8192 -ngl 99 --flash-attn on --jinja \
+          --cache-type-k q8_0 --cache-type-v q8_0
+      '';
+    };
+  };
 
   systemd.services.llama-sec = lib.recursiveUpdate (gpuUnit "llama-sec.service") {
     description = "WhiteRabbitNeo V3-7B (security)";
@@ -142,7 +171,8 @@ in
       if (action.id == "org.freedesktop.systemd1.manage-units"
           && subject.local && subject.active && subject.user == "${username}") {
         var u = action.lookup("unit");
-        if (u == "llama-cpp.service" || u == "llama-sec.service"
+        if (u == "llama-cpp.service" || u == "llama-uncensored.service"
+            || u == "llama-hermes.service" || u == "llama-sec.service"
             || u == "llama-agent.service" || u == "llama-gemma.service"
             || u == "llama-coder.service" || u == "llama-fim.service"
             || u == "ollama.service") {
