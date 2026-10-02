@@ -39,6 +39,16 @@ in
     DOCKER_HOST = "unix:///run/user/1001/docker.sock";
   };
 
+  programs.fish.functions.docker = {
+    description = "Start the rootless daemon on first use, then run docker";
+    body = ''
+      if not test -S $XDG_RUNTIME_DIR/docker.sock
+          systemctl --user start docker.service; or return
+      end
+      command docker $argv
+    '';
+  };
+
   home.pointerCursor = {
     enable = true;
     gtk.enable = true;
