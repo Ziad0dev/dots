@@ -28,7 +28,7 @@ Or: `SUPER + CTRL + SHIFT + Space` (theme picker), `SUPER + SHIFT + T` (next the
 3. Points `~/.local/state/dots/shell/current/` at the palette, wallpaper directory, preview and background — what Quickshell and the lock screen read.
 4. Writes `/var/lib/dots-theme/sddm.json` for the login greeter (if the directory is writable).
 5. Links or copies the rendered Kvantum, GTK and Vencord files into place, and concatenates `config/zen/sites/*.css` into `zen-sites.css`.
-6. Reloads: Ghostty (`SIGUSR2`), Quickshell (`theme reload` over IPC), GTK (theme name bounce), tmux, dunst, Hyprland, swayosd. Zen reads its CSS only at startup.
+6. Reloads: Ghostty (`SIGUSR2`), Quickshell (`theme reload` over IPC), GTK (theme name bounce), tmux, dunst (sway only), Hyprland, swayosd. Zen reads its CSS only at startup.
 7. If the theme ships a `wallpaper.*`, sets it with a random `awww` transition.
 
 ## Palette format
@@ -60,7 +60,6 @@ Templates use `${key}` for `#rrggbb`, `${key_hex}` for the bare hex (Hyprland's 
 |---|---|---|
 | `hyprland.lua.in` | `hyprland.lua` | `pcall(dofile, …)` at the end of `config/hypr/hyprland.lua` — window borders |
 | `ghostty.in` | `ghostty` | `config-file = ?…` in `config/ghostty/config` (the `?` makes it optional) |
-| `dunstrc.in` | `dunstrc` | layered over `config/dunst/dunstrc` via `dunstctl reload` |
 | `nvim.lua.in` | `nvim.lua` | watched by Neovim's `config/nvim/lua/config/theme.lua`, re-applied live in every instance |
 | `yazi.toml.in` | `yazi.toml` | linked as `~/.config/yazi/theme.toml` (`home/yazi.nix`) |
 | `btop.theme.in` | `btop.theme` | linked as `~/.config/btop/themes/dots.theme` |

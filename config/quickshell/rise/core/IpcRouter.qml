@@ -141,6 +141,12 @@ Item {
     }
 
     IpcHandler {
+        target: "notifications"
+        function toggle(): void { router.invoke("toggleNotifications") }
+        function clear(): void { router.invoke("clearNotifications") }
+    }
+
+    IpcHandler {
         target: "launcher"
         function toggle(): void { router.invoke("toggleAppLauncher") }
     }

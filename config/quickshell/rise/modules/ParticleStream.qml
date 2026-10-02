@@ -855,29 +855,14 @@ Item {
         }
     }
 
-    // new notification (the bar's dunst poll counts up) → fetch newest, show
-    // message left of the clock and its source right of it
-    readonly property int notifC: theme.notifCount === undefined ? 0 : theme.notifCount
-    property int lastNotifC: -1
-    onNotifCChanged: {
-        var prev = lastNotifC
-        lastNotifC = notifC
-        if (armed7 && active && reactorMode7 && !dnd7 && prev >= 0 && notifC > prev) notifFetch.running = true
-    }
-    Process {
-        id: notifFetch
-        command: ["bash", "-c", "dunstctl history 2>/dev/null | jq -c '(.data[0] | max_by(.timestamp.data)) as $n | if $n then {summary: ($n.summary.data // \"\"), body: ($n.body.data // \"\"), app_name: ($n.appname.data // \"\")} else empty end' 2>/dev/null"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                var d
-                try { d = JSON.parse(this.text) } catch (e) { return }
-                if (!d) return
-                var e0 = d.length !== undefined ? d[0] : d
-                if (!e0) return
-                var s0 = e0.summary || "", b0 = e0.body || ""
-                var msg = s0 && b0 && b0 !== s0 ? s0 + " - " + b0 : (s0 || b0)
-                root.pushText(msg, e0.app_name || "NOTIFY", 1, "long")
-            }
+    // new notification → show message left of the clock and its source right of it
+    Connections {
+        target: theme.notifService
+        function onReceived(entry) {
+            if (!(root.armed7 && root.active && root.reactorMode7 && !root.dnd7)) return
+            var s0 = entry.summary || "", b0 = (entry.body || "").replace(/<[^>]*>/g, "")
+            var msg = s0 && b0 && b0 !== s0 ? s0 + " - " + b0 : (s0 || b0)
+            root.pushText(msg, entry.appName || "NOTIFY", 1, "long")
         }
     }
 

@@ -10,7 +10,6 @@ hl.on("hyprland.start", function()
         "systemctl --user start hyprpolkitagent\n'",
         SESSION_VARS, SESSION_VARS))
 
-    hl.exec_cmd("dunst")
     hl.exec_cmd("awww-daemon")
     hl.exec_cmd("easyeffects --gapplication-service")
 

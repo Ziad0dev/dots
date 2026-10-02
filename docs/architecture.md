@@ -88,7 +88,7 @@ home.file.".config/hypr".source = link "hypr";
 | Linked from `config/` | By |
 |---|---|
 | nvim, ghostty, tmux, broot, ranger, btop.conf | `profiles/base.nix` |
-| hypr, dunst, quickshell, flameshot, gammastep, rmpc, mpv, Kvantum themes, zen → `~/.config/zen-theme`, share-picker | `profiles/linux-desktop.nix` |
+| hypr, quickshell, flameshot, gammastep, rmpc, mpv, Kvantum themes, zen → `~/.config/zen-theme`, share-picker | `profiles/linux-desktop.nix` |
 | yazi (`yazi.toml`, `keymap.toml`, `init.lua` — per file) | `home/yazi.nix` |
 | emacs `init.el` | `home/emacs.nix` |
 

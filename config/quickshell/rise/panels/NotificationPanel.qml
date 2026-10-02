@@ -19,213 +19,29 @@ PanelWindow {
     readonly property int barBottom: 35
     readonly property int gap: 8
 
-    // ── quickshell-owned notification history ────────────────────────────────
-    // dunst's history is capped, so polling it and
-    // REPLACING our list each time loses everything older. Instead we MERGE each
-    // poll into our own retained history (capped 50) and persist it, so entries
-    // survive both dunst dropping them and a quickshell restart.
-    //
-    // Identity: dunst ids are a per-session counter that RESETS on a dunst restart,
-    // so a bare id is ambiguous across restarts. We derive a session token
-    // (boot-id + dunst pid + proc start-time) once per poll; when it changes we
-    // bump `generation`, and every entry is keyed "generation:id". Old entries
-    // (gen 0) and reused new ids (gen 1) therefore never collide. The bare id is
-    // used ONLY for dunstctl history-rm/history-pop operations.
-
-    property var recent: []             // [{key,id,gen,appName,summary,body,firstSeen,active}]
-    property var dismissed: ({})         // composite-key -> true (persisted)
-    property string sessionToken: ""
-    property int generation: 0
-    property int seq: 0                  // monotonic first-seen counter (ordering)
-    property bool cacheLoaded: false
-    property string lastSaved: ""
-
-    // pending = not dismissed → drives both the list and the badge
-    readonly property var pending: {
-        var out = []
-        for (var i = 0; i < recent.length; i++)
-            if (!dismissed[recent[i].key]) out.push(recent[i])
-        return out
-    }
+    // history lives in NotificationService (theme.notifService); this panel only shows it
+    readonly property var service: root.notifService
+    readonly property var pending: service ? service.history : []
     readonly property int unreadCount: pending.length
     // scrollable list height cap, clamped to the monitor
     readonly property int listCap: Math.max(120, Math.min(420, notifPanel.height - 220))
 
     Binding { target: root; property: "notifCount"; value: notifPanel.unreadCount }
 
-    // ── persistent cache (quickshell is the sole writer; write only on change) ──
-    readonly property string cachePath: Quickshell.env("HOME") + "/.cache/qs-rise-notifications.json"
-    FileView {
-        id: cacheFile
-        path: notifPanel.cachePath
-        onLoaded: {
-            try {
-                var j = JSON.parse(cacheFile.text())
-                notifPanel.sessionToken = j.token || ""
-                notifPanel.generation   = j.generation || 0
-                notifPanel.seq          = j.seq || 0
-                notifPanel.recent       = Array.isArray(j.recent) ? j.recent : []
-                notifPanel.dismissed    = (j.dismissed && typeof j.dismissed === "object") ? j.dismissed : ({})
-                notifPanel.lastSaved    = cacheFile.text()
-            } catch (e) {
-                notifPanel.recent = []; notifPanel.dismissed = ({})
-            }
-            notifPanel.cacheLoaded = true
-            notifPanel.poll()
-        }
-        onLoadFailed: {                  // first run: no cache yet
-            notifPanel.cacheLoaded = true
-            notifPanel.poll()
-        }
-    }
-    // force the initial load (don't rely on implicit auto-load) — the whole panel
-    // is gated on cacheLoaded, so a missed load would mean no notifications ever
-    Component.onCompleted: cacheFile.reload()
-
-    function saveCache() {
-        if (!notifPanel.cacheLoaded) return
-        var state = JSON.stringify({
-            token: notifPanel.sessionToken,
-            generation: notifPanel.generation,
-            seq: notifPanel.seq,
-            recent: notifPanel.recent,
-            dismissed: notifPanel.dismissed
-        })
-        if (state === notifPanel.lastSaved) return   // no real change → no write
-        notifPanel.lastSaved = state
-        cacheFile.setText(state)
-    }
-
-    // pid-guarded: with an empty pid, /proc//stat collapses to /proc/stat (a
-    // multi-line file) and awk would inject raw newlines into the token → broken
-    // JSON. So build the token ONLY when dunst's pid is known; else token="" (the
-    // merge then keeps the current generation untouched — a safe no-op).
-    readonly property string pollScript: "pid=$(busctl --user call org.freedesktop.DBus /org/freedesktop/DBus org.freedesktop.DBus GetConnectionUnixProcessID s org.freedesktop.Notifications 2>/dev/null | awk '{print $2}'); if [ -n \"$pid\" ]; then bid=$(cat /proc/sys/kernel/random/boot_id 2>/dev/null); st=$(awk '{print $22}' /proc/$pid/stat 2>/dev/null); tok=\"$bid-$pid-$st\"; else tok=\"\"; fi; his=$(dunstctl history 2>/dev/null | jq -c '[.data[0][] | {id: .id.data, app_name: (.appname.data // \"\"), summary: (.summary.data // \"\"), body: (.body.data // \"\")}]' 2>/dev/null); [ -z \"$his\" ] && his='[]'; printf '{\"token\":\"%s\",\"list\":[],\"history\":%s}' \"$tok\" \"$his\""
-
-    Process {
-        id: pollProc
-        command: ["bash", "-c", notifPanel.pollScript]
-        running: false
-        stdout: StdioCollector {
-            onStreamFinished: {
-                var d
-                try { d = JSON.parse(this.text) } catch (e) { return }
-                notifPanel.merge(d.token || "", d.list || [], d.history || [])
-            }
-        }
-    }
-    function poll() {
-        if (!notifPanel.cacheLoaded) return
-        pollProc.running = false; pollProc.running = true
-    }
-
-    // merge this poll's active(list) + history into our retained history
-    function merge(token, listArr, histArr) {
-        // session / generation
-        if (token !== "" && token !== notifPanel.sessionToken) {
-            if (notifPanel.sessionToken !== "") notifPanel.generation += 1
-            notifPanel.sessionToken = token
-        }
-        var gen = notifPanel.generation
-
-        // incoming this poll (current generation), by bare id; active = in `list`
-        var incoming = {}
-        for (var i = 0; i < listArr.length; i++) {
-            var n = listArr[i]
-            incoming[n.id] = { appName: n.app_name || "", summary: n.summary || "", body: n.body || "", active: true }
-        }
-        for (var j = 0; j < histArr.length; j++) {
-            var h = histArr[j]
-            if (incoming[h.id] === undefined)
-                incoming[h.id] = { appName: h.app_name || "", summary: h.summary || "", body: h.body || "", active: false }
-        }
-
-        // existing entries by composite key
-        var byKey = {}
-        for (var k = 0; k < notifPanel.recent.length; k++) byKey[notifPanel.recent[k].key] = notifPanel.recent[k]
-
-        // update-or-create current-gen entries; oldest id first so newest gets the largest seq
-        var ids = []
-        for (var idk in incoming) ids.push(parseInt(idk))
-        ids.sort(function(a, b) { return a - b })
-        for (var m = 0; m < ids.length; m++) {
-            var id = ids[m]
-            var key = gen + ":" + id
-            var src = incoming[id]
-            if (byKey[key] !== undefined) {
-                var e = byKey[key]
-                e.appName = src.appName; e.summary = src.summary; e.body = src.body
-            } else {
-                byKey[key] = { key: key, id: id, gen: gen,
-                    appName: src.appName, summary: src.summary, body: src.body,
-                    firstSeen: (++notifPanel.seq) }
-            }
-        }
-
-        // recompute the (transient) active flag for ALL entries, build a NEW array
-        var out = []
-        for (var ek in byKey) {
-            var ee = byKey[ek]
-            ee.active = (ee.gen === gen && incoming[ee.id] !== undefined && incoming[ee.id].active === true)
-            out.push(ee)
-        }
-        out.sort(function(a, b) { return b.firstSeen - a.firstSeen })
-        if (out.length > 50) out = out.slice(0, 50)
-
-        // prune dismissed keys no longer present (bounds the set)
-        var present = {}
-        for (var o = 0; o < out.length; o++) present[out[o].key] = true
-        var nd = {}, changed = false
-        for (var dk in notifPanel.dismissed) {
-            if (present[dk]) nd[dk] = true; else changed = true
-        }
-
-        notifPanel.recent = out                  // reassign → bindings fire
-        if (changed) notifPanel.dismissed = nd
-        notifPanel.saveCache()
-    }
-
-    // ── actions ──
-    Process { id: actionProc; command: ["bash", "-c", "true"] }
-    function runNotif(cmd) {
-        actionProc.command = ["bash", "-c", cmd + " 2>/dev/null || true"]
-        actionProc.running = false; actionProc.running = true
-    }
-
-    function dismissOne(entry) {
-        var nd = {}
-        for (var k in notifPanel.dismissed) nd[k] = true
-        nd[entry.key] = true
-        notifPanel.dismissed = nd                // reassign → bindings update
-        var id = parseInt(entry.id)              // normalize before it touches a shell
-        if (id > 0) notifPanel.runNotif("dunstctl history-rm " + id)
-        notifPanel.saveCache()
-    }
-
-    function dismissAll() {
-        var nd = {}
-        for (var k in notifPanel.dismissed) nd[k] = true
-        for (var i = 0; i < notifPanel.recent.length; i++) nd[notifPanel.recent[i].key] = true
-        notifPanel.dismissed = nd
-        notifPanel.recent = []                   // clear own history; re-merged entries stay dismissed-filtered
-        notifPanel.runNotif("dunstctl close-all; dunstctl history-clear")
-        notifPanel.saveCache()
-    }
-
+    function dismissOne(entry) { service.dismiss(entry.key) }
+    function dismissAll() { service.clearAll() }
     function openNotification(entry) {
-        var id = parseInt(entry.id)              // normalize before it touches a shell
-        if (id > 0) notifPanel.runNotif("dunstctl history-pop " + id)
+        service.invokeDefault(entry.key)
         root.notifVisible = false
     }
-
-    // ── poll cadence: fast while open, much slower when closed.
-    // Opening the panel still triggers an immediate refresh below; the closed
-    // cadence only keeps the badge/history roughly warm without parsing dunst
-    // JSON every few seconds in idle.
-    Timer {
-        interval: notifPanel.visible ? 1500 : 10000
-        running: notifPanel.cacheLoaded; repeat: true; triggeredOnStart: true
-        onTriggered: notifPanel.poll()
+    function field(entry, name) { return entry.notif ? entry.notif[name] : entry[name] }
+    function ago(t) {
+        if (!(t > 0)) return ""
+        var s = Math.round((Date.now() - t) / 1000)
+        if (s < 45) return "now"
+        if (s < 3600) return Math.round(s / 60) + "m"
+        if (s < 86400) return Math.round(s / 3600) + "h"
+        return Math.round(s / 86400) + "d"
     }
 
     property real reveal: root.notifVisible ? 1 : 0
@@ -237,8 +53,6 @@ PanelWindow {
     }
     visible: reveal > 0.001
     WlrLayershell.keyboardFocus: root.notifVisible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
-
-    onVisibleChanged: { if (visible) notifPanel.poll() }
 
     MouseArea {
         anchors.fill: parent
@@ -255,7 +69,9 @@ PanelWindow {
         border.width: root.pillBorderW
         PillShadow { theme: root }
 
-        x: Math.round(Math.max(6, Math.min(root.notifBarX, parent.width - width - 6)))
+        // under the bar's bell when it was clicked; right edge when opened by key/IPC
+        x: root.notifBarX > 0 ? Math.round(Math.max(6, Math.min(root.notifBarX, parent.width - width - 6)))
+                              : parent.width - width - 8
         y: root.barPosition === "bottom" ? (parent.height - barBottom - gap - height) : (barBottom + gap)
         opacity: notifPanel.reveal
         transformOrigin: root.barPosition === "bottom" ? Item.Bottom : Item.Top
@@ -347,7 +163,8 @@ PanelWindow {
                                 spacing: 3
 
                                 UiText {
-                                    text: modelData.appName || "App"
+                                    text: (notifPanel.field(modelData, "appName") || "App")
+                                        + (modelData.time > 0 ? "  ·  " + notifPanel.ago(modelData.time) : "")
                                     color: root.sumiHi
                                     font.family: root.mono
                                     font.pixelSize: 10
@@ -356,7 +173,7 @@ PanelWindow {
                                     elide: Text.ElideRight
                                 }
                                 UiText {
-                                    text: modelData.summary || ""
+                                    text: notifPanel.field(modelData, "summary") || ""
                                     color: root.ink
                                     font.family: root.mono
                                     font.pixelSize: 11
@@ -365,7 +182,8 @@ PanelWindow {
                                     visible: text !== ""
                                 }
                                 UiText {
-                                    text: modelData.body || ""
+                                    text: notifPanel.field(modelData, "body") || ""
+                                    textFormat: Text.StyledText
                                     color: Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.6)
                                     font.family: root.mono
                                     font.pixelSize: 10
@@ -377,7 +195,7 @@ PanelWindow {
                                 }
                             }
 
-                            // click body → redisplay via dunstctl history-pop
+                            // click body → run the notification's default action
                             MouseArea {
                                 id: entryMa
                                 anchors.fill: parent

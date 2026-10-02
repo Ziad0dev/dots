@@ -263,8 +263,9 @@ reload_apps() {
         tmux source-file -q "$STATE/tmux.conf" >/dev/null 2>&1 || true
     fi
 
-    if command -v dunstctl >/dev/null 2>&1; then
-        dunstctl reload "$HOME/.config/dunst/dunstrc" "$STATE/dunstrc" 2>/dev/null || true
+    # sway only; quickshell owns notifications under Hyprland
+    if systemctl --user is-active --quiet dunst.service 2>/dev/null; then
+        systemctl --user start dotsDunstTheme.service >/dev/null 2>&1 || true
     fi
 
     if command -v hyprctl >/dev/null 2>&1; then
