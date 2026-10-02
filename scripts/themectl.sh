@@ -159,9 +159,12 @@ sddm_compat() {
     # shellcheck source=/dev/null
     (
         . "$pal"
+        # the live wallpaper copy is rendered by dots-set-wallpaper
+        wp=""
+        [ -f "$dir/wallpaper.jpg" ] && wp="file://$dir/wallpaper.jpg"
         # shellcheck disable=SC2154
-        printf '{"background":"%s","foreground":"%s","accent":"%s","error":"%s","warn":"%s"}\n' \
-            "$background" "$foreground" "$accent" "$red" "$yellow"
+        printf '{"background":"%s","foreground":"%s","accent":"%s","error":"%s","warn":"%s","wallpaper":"%s"}\n' \
+            "$background" "$foreground" "$accent" "$red" "$yellow" "$wp"
     ) >"$dir/sddm.json.tmp" && mv -f "$dir/sddm.json.tmp" "$dir/sddm.json"
 }
 kvantum_compat() {

@@ -91,7 +91,11 @@ let
 
   setWallpaper = pkgs.writeShellApplication {
     name = "dots-set-wallpaper";
-    runtimeInputs = [ pkgs.coreutils ];
+    runtimeInputs = with pkgs; [
+      coreutils
+      imagemagick
+      jq
+    ];
     text = builtins.readFile ../scripts/dots-set-wallpaper.sh;
   };
 

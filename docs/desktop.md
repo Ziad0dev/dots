@@ -237,8 +237,8 @@ xdg-desktop-portal-hyprland with [hyprland-preview-share-picker](https://github.
 `modules/sddm.nix` builds a greeter theme called `dots` from `config/sddm/dots/`:
 
 - A centred card with the NixOS mark tinted in the theme accent, clock, password field, user/session cyclers and power buttons. Plain QtQuick — no Controls, no runtime shaders.
-- Colours are baked from `config/themes/<dots.sddm.theme>/colors.sh` at build time (the host sets `demon`). The logo is tinted and the wallpaper pre-blurred with ImageMagick **inside the derivation**.
-- With `dots.sddm.live = true` (default), `themectl set` also writes `/var/lib/dots-theme/sddm.json` and the greeter reads colours from it — so the greeter follows your theme without a rebuild. The wallpaper stays baked; the greeter runs as `sddm` and can't read your home.
+- Colours are baked from `config/themes/<dots.sddm.theme>/colors.sh` at build time (the host sets `demon`), and the theme wallpaper is pre-blurred with ImageMagick **inside the derivation**. The logo is baked white and tinted with the accent in QML (`MultiEffect`), so it follows live colours too.
+- With `dots.sddm.live = true` (default), `themectl set` also writes `/var/lib/dots-theme/sddm.json` and the greeter reads colours from it — so the greeter follows your theme without a rebuild. The greeter runs as `sddm` and can't read your home, so `dots-set-wallpaper` also renders a blurred, dimmed copy of every new wallpaper to `/var/lib/dots-theme/wallpaper.jpg` and points `sddm.json` at it; the baked wallpaper is the fallback.
 
 | Option | Default | |
 |---|---|---|
