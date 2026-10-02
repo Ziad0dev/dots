@@ -6,8 +6,7 @@ hl.on("hyprland.start", function()
         "dbus-update-activation-environment --systemd %s\n" ..
         "systemctl --user import-environment %s\n" ..
         "systemctl --user stop xdg-desktop-portal xdg-desktop-portal-gtk xdg-desktop-portal-wlr xdg-desktop-portal-hyprland\n" ..
-        "systemctl --user start hyprland-session.target\n" ..
-        "systemctl --user start hyprpolkitagent\n'",
+        "systemctl --user start hyprland-session.target\n'",
         SESSION_VARS, SESSION_VARS))
 
     hl.exec_cmd("awww-daemon")

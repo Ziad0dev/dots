@@ -264,6 +264,7 @@ Item {
     TooltipOverlay { root: theme }
     OsdPanel { root: theme }
     NotificationPopups { root: theme }
+    PolkitPanel { root: theme }
     CalendarPopup { root: theme }
     PowerProfilePanel { root: theme }
     MemoryPanel { root: theme }

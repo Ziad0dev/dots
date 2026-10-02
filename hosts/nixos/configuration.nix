@@ -211,6 +211,7 @@
     # Pairs with services.usbmuxd
     libimobiledevice
     ifuse
+    # polkit agent for the sway session; quickshell is the agent under Hyprland
     hyprpolkitagent
     # Pairs with programs.coolercontrol
     coolercontrol.coolercontrol-gui
