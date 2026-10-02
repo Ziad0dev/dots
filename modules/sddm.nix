@@ -44,7 +44,8 @@ let
 
         envsubst '${varlist}' <${src}/theme.conf.in >"$dir/theme.conf"
 
-        if magick ${logoSrc} -alpha extract -background "$accent" -alpha shape "$dir/logo.png"; then
+        # white silhouette; Main.qml tints it with the (live) accent
+        if magick ${logoSrc} -alpha extract -background white -alpha shape "$dir/logo.png"; then
           echo "logo=logo.png" >>"$dir/theme.conf"
         fi
 

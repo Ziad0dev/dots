@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Effects
 
 Item {
     id: root
@@ -48,6 +49,7 @@ Item {
             if (j.accent) cAccent = j.accent
             if (j.error) cError = j.error
             if (j.warn) cWarn = j.warn
+            if (j.wallpaper) wallpaper = j.wallpaper
         } catch (e) {
         }
     }
@@ -173,6 +175,12 @@ Item {
             sourceSize.height: 118
             fillMode: Image.PreserveAspectFit
             smooth: true
+            // the logo is baked white so it follows the live accent
+            layer.enabled: true
+            layer.effect: MultiEffect {
+                colorization: 1.0
+                colorizationColor: root.cAccent
+            }
         }
 
         Item {
