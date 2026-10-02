@@ -264,6 +264,9 @@ reload_apps() {
         fi
     fi
 
+    # btop re-reads btop.conf and its theme file on SIGUSR2 (checked on 1.4.7)
+    pkill -USR2 -x btop >/dev/null 2>&1 || true
+
     if command -v tmux >/dev/null 2>&1 && tmux info >/dev/null 2>&1; then
         tmux source-file -q "$STATE/tmux.conf" >/dev/null 2>&1 || true
     fi

@@ -2,13 +2,13 @@
 @import url("dots-sites.css");
 
 @-moz-document url("about:blank"), url("about:newtab"), url("about:home") {
-  :root, body { background: #161616 !important; }
+  :root, body { background: var(--dots-background) !important; }
 }
 
 @-moz-document url-prefix("about:reader") {
   :root {
-    --main-background: #161616 !important;
-    --main-foreground: #f2f4f8 !important;
-    --link-foreground: #33b1ff !important;
+    --main-background: var(--dots-background) !important;
+    --main-foreground: var(--dots-on_background) !important;
+    --link-foreground: var(--dots-secondary) !important;
   }
 }
