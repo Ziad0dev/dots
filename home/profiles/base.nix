@@ -213,6 +213,7 @@ in
       mermaid-cli
       yt-dlp
       imagemagick
+      claude-code
     ];
   };
 }
