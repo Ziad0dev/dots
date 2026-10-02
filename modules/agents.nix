@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, inputs, system, ... }:
 
 let
   cfg = config.programs.agents;
@@ -10,6 +10,7 @@ in
     codex.enable = lib.mkEnableOption "Codex CLI";
     pi.enable = lib.mkEnableOption "Pi coding agent (pi.dev)";
     opencode.enable = lib.mkEnableOption "OpenCode";
+    hermes.enable = lib.mkEnableOption "Hermes Agent (Nous Research)";
   };
 
   config = lib.mkIf cfg.enable {
@@ -18,7 +19,9 @@ in
     ]
     ++ lib.optional cfg.codex.enable pkgs.codex
     ++ lib.optional cfg.pi.enable pkgs.pi-coding-agent
-    ++ lib.optional cfg.opencode.enable pkgs.opencode;
+    ++ lib.optional cfg.opencode.enable pkgs.opencode
+    # upstream flake's default output: the CLI with every provider SDK bundled
+    ++ lib.optional cfg.hermes.enable inputs.hermes-agent.packages.${system}.default;
 
     programs.tmux = {
       enable = true;
