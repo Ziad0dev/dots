@@ -113,7 +113,9 @@ case "$CMD" in
         ;;
 
     dots-tz-select)
-        launch_float "sh -c 'timedatectl list-timezones | fzf | xargs -r sudo timedatectl set-timezone'"
+        # time.timeZone is declarative, so timedatectl set-timezone is refused
+        notify-send -a dots "Time zone is set in the config" \
+            "Change time.timeZone in hosts/nixos/configuration.nix and rebuild" 2>/dev/null || true
         exit 0
         ;;
 

@@ -1,7 +1,7 @@
 # ⸸ reaper.nvim — themectl edition
 
 A modern Lua/lazy.nvim config. Colours are driven by `themectl`, so Neovim
-follows the same palette as ghostty, waybar, dunst, rofi, hyprland and hyprlock.
+follows the same palette as ghostty, quickshell, hyprland and the rest of the desktop.
 
 ## Layout
 
