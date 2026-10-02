@@ -1,18 +1,18 @@
 local util = require("lib.util")
 local mod = util.mod
 
-local function volumeNotify()
-    return [[notify-send "Volume" "$(pactl get-sink-volume @DEFAULT_SINK@ | grep -oP "\d+%" | head -1)"]]
-end
-
+-- the quickshell OSD reacts to the PipeWire change itself, so these only set state
 hl.bind("XF86AudioRaiseVolume",
-    util.sh([[pactl set-sink-volume @DEFAULT_SINK@ +5% && ]] .. volumeNotify()),
+    util.sh([[pactl set-sink-volume @DEFAULT_SINK@ +5%]]),
     { repeating = true, locked = true })
 hl.bind("XF86AudioLowerVolume",
-    util.sh([[pactl set-sink-volume @DEFAULT_SINK@ -5% && ]] .. volumeNotify()),
+    util.sh([[pactl set-sink-volume @DEFAULT_SINK@ -5%]]),
     { repeating = true, locked = true })
 hl.bind("XF86AudioMute",
-    util.sh([[pactl set-sink-mute @DEFAULT_SINK@ toggle && notify-send "Volume" "Toggled"]]),
+    util.sh([[pactl set-sink-mute @DEFAULT_SINK@ toggle]]),
+    { locked = true })
+hl.bind("XF86AudioMicMute",
+    util.sh([[pactl set-source-mute @DEFAULT_SOURCE@ toggle]]),
     { locked = true })
 
 hl.bind(mod .. " + S", hl.dsp.exec_cmd("flameshot gui"))
