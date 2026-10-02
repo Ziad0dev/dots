@@ -25,7 +25,17 @@ let
   torrentPort = 51413;
   mediaRoot = "/mnt/media";
 
-  forwardRule = "FORWARD -d ${config.vpnNamespaces.wg.namespaceAddress} -p tcp -m multiport --dports ${toString webPort},${toString indexerPort} ! -i tailscale0 -j DROP";
+  # VPN-Confinement binds the netns resolv.conf onto /etc/resolv.conf, which
+  # follows the symlink to resolved's stub-resolv.conf. resolved replaces that
+  # file whenever its config changes (tailscale pushing its search domain at
+  # boot), which drops the mount and leaves the service on 127.0.0.53. A
+  # private /run/systemd/resolve keeps the bind out of resolved's reach.
+  netnsResolv = {
+    TemporaryFileSystem = [ "/run/systemd/resolve" ];
+    BindReadOnlyPaths = [ "/etc/netns/wg/resolv.conf:/run/systemd/resolve/stub-resolv.conf" ];
+  };
+
+  forwardRule ="FORWARD -d ${config.vpnNamespaces.wg.namespaceAddress} -p tcp -m multiport --dports ${toString webPort},${toString indexerPort} ! -i tailscale0 -j DROP";
 in
 {
   systemd.services.wg-dns = {
@@ -126,7 +136,9 @@ in
       vpnNamespace = "wg";
     };
     unitConfig.RequiresMountsFor = [ mediaRoot ];
-    serviceConfig.MemoryHigh = "2G";
+    serviceConfig = netnsResolv // {
+      MemoryHigh = "2G";
+    };
   };
 
   services.prowlarr = {
@@ -139,7 +151,7 @@ in
       enable = true;
       vpnNamespace = "wg";
     };
-    serviceConfig = hardening // {
+    serviceConfig = hardening // netnsResolv // {
       ExecStartPre = "${waitForVpnDns}";
       TimeoutStartSec = 180;
       Restart = "on-failure";
@@ -158,7 +170,7 @@ in
       enable = true;
       vpnNamespace = "wg";
     };
-    serviceConfig = browserHardening // {
+    serviceConfig = browserHardening // netnsResolv // {
       ExecStartPre = "${waitForVpnDns}";
       TimeoutStartSec = 180;
     };
