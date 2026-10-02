@@ -4,6 +4,7 @@ let
     name = "themectl";
     runtimeInputs = with pkgs; [
       coreutils
+      dconf
       findutils
       gettext
       gnugrep
