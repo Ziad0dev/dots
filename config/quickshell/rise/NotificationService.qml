@@ -37,6 +37,12 @@ Item {
 
         onNotification: function(notif) {
             notif.tracked = true
+            // keepOnReload re-emits every still-open notification after a
+            // config reload; link those back instead of adding or popping
+            if (notif.lastGeneration) {
+                service.carry(notif)
+                return
+            }
             var entry = {
                 key: Date.now() + ":" + notif.id,
                 notif: notif,
@@ -193,39 +199,41 @@ Item {
             for (var i = 0; i < service.history.length; i++) live[service.history[i].key] = true
             service.history = service.history.concat(restored.filter(function(e) { return !live[e.key] }))
                 .slice(0, service.historyCap)
-            service.reattach()
             service.loaded = true
+            service.flushCarried()
         }
         onLoadFailed: {
-            service.reattach()
             service.loaded = true
+            service.flushCarried()
         }
     }
 
-    // keepOnReload hands still-open notifications to the new config without
-    // re-emitting them; link them back to their restored entries by id, and
-    // close the ones whose entry is gone.
-    function reattach() {
-        var tracked = server.trackedNotifications.values
-        var changed = false
-        for (var i = 0; i < tracked.length; i++) {
-            var n = tracked[i]
-            var hit = null
-            for (var j = 0; j < history.length; j++) {
-                var e = history[j]
-                if (e.notif === n) { hit = e; break }
-                if (!e.notif && e.key.endsWith(":" + n.id)) { hit = e; break }
-            }
-            if (!hit) { n.dismiss(); continue }
-            if (hit.notif !== n) {
-                hit.notif = n
-                n.closed.connect(function(k) { return function() { service.detach(k) } }(hit.key))
-                changed = true
+    // a notification carried over a reload: attach it to its restored entry
+    // (keys end in ":<id>"); until the cache is read, park it
+    property var carried: []
+    function carry(n) {
+        if (!loaded) {
+            carried = carried.concat([n])
+            return
+        }
+        for (var j = 0; j < history.length; j++) {
+            var e = history[j]
+            if (e.notif === n) return
+            if (!e.notif && e.key.endsWith(":" + n.id)) {
+                e.notif = n
+                n.closed.connect(function() { service.detach(e.key) })
+                history = history.slice()
+                return
             }
         }
-        if (changed) history = history.slice()
+        // its entry was dismissed or aged out while we were reloading
+        n.dismiss()
     }
-    Component.onCompleted: cacheFile.reload()
+    function flushCarried() {
+        var list = carried
+        carried = []
+        for (var i = 0; i < list.length; i++) carry(list[i])
+    }
 
     Timer { id: saveTimer; interval: 400; onTriggered: service.writeCache() }
     function save() { if (loaded) saveTimer.restart() }
