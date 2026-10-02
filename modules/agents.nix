@@ -9,6 +9,7 @@ in
     herdr.package = lib.mkPackageOption pkgs "herdr" { };
     codex.enable = lib.mkEnableOption "Codex CLI";
     pi.enable = lib.mkEnableOption "Pi coding agent (pi.dev)";
+    opencode.enable = lib.mkEnableOption "OpenCode";
   };
 
   config = lib.mkIf cfg.enable {
@@ -16,7 +17,8 @@ in
       cfg.herdr.package
     ]
     ++ lib.optional cfg.codex.enable pkgs.codex
-    ++ lib.optional cfg.pi.enable pkgs.pi-coding-agent;
+    ++ lib.optional cfg.pi.enable pkgs.pi-coding-agent
+    ++ lib.optional cfg.opencode.enable pkgs.opencode;
 
     programs.tmux = {
       enable = true;
