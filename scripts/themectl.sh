@@ -253,12 +253,14 @@ reload_apps() {
     fi
 
 
-    if command -v gsettings >/dev/null 2>&1; then
-        local t
-        t=$(gsettings get org.gnome.desktop.interface gtk-theme 2>/dev/null | tr -d "'")
+    # flip the GTK theme so running GTK apps re-read gtk.css (via dconf: no
+    # GSettings schemas are installed, so gsettings itself can't do this)
+    if command -v dconf >/dev/null 2>&1; then
+        local key=/org/gnome/desktop/interface/gtk-theme t
+        t=$(dconf read "$key" 2>/dev/null)
         if [ -n "$t" ]; then
-            gsettings set org.gnome.desktop.interface gtk-theme "" >/dev/null 2>&1 || true
-            gsettings set org.gnome.desktop.interface gtk-theme "$t" >/dev/null 2>&1 || true
+            dconf write "$key" "''" >/dev/null 2>&1 || true
+            dconf write "$key" "$t" >/dev/null 2>&1 || true
         fi
     fi
 

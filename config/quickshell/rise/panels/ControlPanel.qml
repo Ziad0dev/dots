@@ -219,7 +219,7 @@ PanelWindow {
                 Tile {
                     width: root.evenW((col.width - 8) / 2)
                     label: "Lock"
-                    onActivated: { root.controlVisible = false; Quickshell.execDetached(["hyprlock"]) }
+                    onActivated: { root.controlVisible = false; Quickshell.execDetached(["loginctl", "lock-session"]) }
                 }
                 Tile {
                     width: root.evenW((col.width - 8) / 2)
