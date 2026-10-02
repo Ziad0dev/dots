@@ -161,6 +161,7 @@
   };
   programs.fish.enable = true;
   programs.agents.enable = true;
+  programs.agents.pi.enable = true;
 
   nixpkgs.overlays = import ../../lib/overlays.nix { inherit inputs; };
   nixpkgs.config.allowUnfree = true;
