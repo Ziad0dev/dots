@@ -109,9 +109,11 @@ HDR: the profile runs DP-1 in 10-bit HDR permanently. That costs compositor CPU 
 
 | Keys | Action |
 |---|---|
-| `Print` | Region → satty annotator → `~/Pictures/screenshot-<timestamp>.png` |
-| `SUPER + Print` | Full screen → clipboard |
-| `SUPER + S` | Flameshot |
+| `Print` / `SUPER + S` | Region (screen frozen while selecting) |
+| `SUPER + Print` | Focused monitor |
+| `SUPER + SHIFT + S` | Active window |
+
+All three go through `dots-shot`: saved as `~/Pictures/<date>_<time>.png`, copied to the clipboard, and announced with a preview notification; click it to open, or **Edit** to annotate in satty.
 | `SUPER + ALT + R` | Arm / disarm the replay buffer |
 | `SUPER + SHIFT + R` | Save the last 5 minutes |
 
@@ -134,7 +136,7 @@ HDR: the profile runs DP-1 in 10-bit HDR permanently. That costs compositor CPU 
 | `dev.dots.sysmon` | Workspace 9 (silent, no focus) — tmux session `sysmon` with btop over nvtop |
 | `discord`, `spotify` | Workspace 10 (silent), 0.98 opacity |
 | `org.pwmt.zathura` | Opaque, no blur, inhibits idle when fullscreen |
-| `flameshot` | Floating, pinned |
+| `com.gabm.satty` (screenshot editor) | Floating |
 
 Ghostty windows swallow what they launch (`enable_swallow`).
 

@@ -90,6 +90,7 @@ These open a floating terminal (`$DOTS_TERMINAL`, default ghostty) with window c
 | `dots-look` | `scripts/dots-look.sh` | `anim [pick\|list\|<name>]` · `shader [pick\|list\|off\|<name>]` · `blur [on\|off\|toggle\|status]` |
 | `dots-songrec` | `scripts/dots-songrec.sh` | `desktop` (default) · `mic` · `history [n]` |
 | `dots-lens` | `scripts/dots-lens.sh` | region → clipboard → lens.google.com |
+| `dots-shot` | `scripts/dots-shot.sh` | `region`/`screen`/`window` screenshot → `~/Pictures` + clipboard + notification (Open / Edit in satty) |
 | `dots-say` | `scripts/dots-say.py` | `[toggle\|stop] [text…]` — Kokoro TTS; only with `dots.tts.enable = true` |
 | `dots-mono` | `scripts/dots-mono.sh` | `on` · `off` · `toggle` · `status` |
 | `dots-usb-sound` | `scripts/dots-usb-sound.sh` | `watch` (the unit) · `on` · `off` · `toggle` · `status` |
