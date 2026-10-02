@@ -56,12 +56,13 @@ PanelWindow {
 
     function iconSource(entry) {
         var n = entry.notif
-        var img = n ? n.image : entry.image
+        var img = service.localImage(n ? n.image : entry.image)
         if (img) return img
         var icon = n ? n.appIcon : entry.appIcon
         if (!icon) return ""
-        if (icon.indexOf("/") === 0) return "file://" + icon
-        if (icon.indexOf("file://") === 0 || icon.indexOf("image://") === 0) return icon
+        var local = service.localImage(icon)
+        if (local) return local
+        if (icon.indexOf(":") >= 0) return ""   // some other URL; never fetch it
         return Quickshell.iconPath(icon, true)
     }
 
@@ -212,7 +213,7 @@ PanelWindow {
                         Text {
                             width: parent.width
                             visible: text !== ""
-                            text: card.notif ? card.notif.body : (card.entry ? card.entry.body : "")
+                            text: popups.service.safeBody(card.notif ? card.notif.body : (card.entry ? card.entry.body : ""))
                             textFormat: Text.StyledText
                             color: Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.72)
                             linkColor: root.seal
@@ -221,7 +222,7 @@ PanelWindow {
                             wrapMode: Text.Wrap
                             maximumLineCount: 4
                             elide: Text.ElideRight
-                            onLinkActivated: function(link) { Qt.openUrlExternally(link) }
+                            onLinkActivated: function(link) { popups.service.openLink(link) }
                         }
 
                         Flow {
