@@ -931,26 +931,6 @@ Item {
         else if (aiOc7 < aiQuotaReset7) aiOcHot = false
     }
 
-    // dots-updates transaction finished (streaming log tail — no helper script)
-    Process {
-        id: pacTail
-        running: root.active && root.reactorMode7 && root.ownsGlobalHelpers7
-        command: ["bash", "-c", "tail -n 0 -F /var/log/dots-updates.log 2>/dev/null"]
-        property int pkgN: 0
-        onRunningChanged: if (!running) pkgN = 0
-        stdout: SplitParser {
-            onRead: function(line) {
-                if (line.indexOf("transaction started") >= 0) pacTail.pkgN = 0
-                else if (line.indexOf("] upgraded ") >= 0
-                         || line.indexOf("] installed ") >= 0
-                         || line.indexOf("] removed ") >= 0) pacTail.pkgN++
-                else if (line.indexOf("transaction completed") >= 0 && pacTail.pkgN > 0)
-                    root.pushText(pacTail.pkgN + (pacTail.pkgN === 1 ? " PACKAGE" : " PACKAGES") + " CHANGED",
-                                  "PACMAN", 1, "long")
-            }
-        }
-    }
-
     Timer {
         // mode 7 self-paces: the 60fps tick machinery alone (clear + texture
         // upload, both screens) costs ~23% CPU — so full rate only during

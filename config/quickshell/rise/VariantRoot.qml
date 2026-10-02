@@ -51,7 +51,7 @@ Item {
     function deactivationReady() { return !theme.anyPopupVisible }
     function layoutLock() { theme.barUnlocked = false }
     function layoutUnlock() { theme.barUnlocked = true }
-    function systemUpdateRefresh() { theme.archRefreshTick++ }
+    function systemUpdateRefresh() { theme.dotsUpdateCheckTick++ }
     function runReactor(kind, arg) { theme.reactorTest(kind, arg) }
     function applyTheme(payload) { theme.ipcApplyTheme(payload) }
     function applyLauncher(payload) { theme.ipcApplyLauncher(payload) }
