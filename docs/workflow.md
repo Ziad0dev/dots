@@ -15,7 +15,7 @@ update                      # nh os switch
 
 | You edited | Takes effect |
 |---|---|
-| Anything under `config/` that is symlinked (hypr, nvim, ghostty, tmux, quickshell, dunst, yazi, mpv, …) | Immediately — `hyprctl reload`, restart the app, or nothing at all |
+| Anything under `config/` that is symlinked (hypr, nvim, ghostty, tmux, quickshell, yazi, mpv, …) | Immediately — `hyprctl reload`, restart the app, or nothing at all |
 | `config/quickshell/rise/**` | Quickshell reloads QML on save; `dots-shell restart` if it wedges. The bar's helper scripts in `rise/scripts/` run straight from the repo |
 | `config/themes/*/colors.sh`, `config/themes/_templates/*.in` | `themectl reload` — no rebuild. Exception: the theme baked into SDDM / Spotify, see below |
 | `config/sddm/**`, or the theme named by `dots.sddm.theme` / `dots.theme` | Rebuild — the greeter and Spicetify theme are generated at build time |

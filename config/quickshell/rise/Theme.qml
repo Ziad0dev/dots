@@ -1970,6 +1970,7 @@ Item {
     readonly property string idleStatePath: Quickshell.env("HOME") + "/.local/state/dots/indicators/stay-awake"
     readonly property string voxPhasePath: Quickshell.env("HOME") + "/.local/state/dots/voxtype/phase"
     property bool notifSilenced: false        // notification do-not-disturb mode
+    property var notifService: null           // NotificationService, set by VariantRoot
     property bool _notifBackendChecked: false
     property bool _notifNixOSShellBackend: false
     property bool _notifNixOSShellSystem: false
@@ -2214,7 +2215,9 @@ Item {
 
     Process {
         id: dndProc
-        command: ["dunstctl", "mode"]
+        // fallback when the dots-shell notifications backend is missing; the
+        // quickshell notification service keeps DND in the same state file
+        command: ["bash", "-c", "grep -q '\"dnd\":true' ~/.local/state/dots/notifications.json 2>/dev/null && echo do-not-disturb || echo default"]
         running: false
         onExited: (exitCode) => {
             if (exitCode !== 0 && !theme._notifNixOSShellSystem) theme.notifSilenced = false

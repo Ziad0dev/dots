@@ -17,6 +17,10 @@ Item {
 
     function toggleOverview() { if (!theme.overviewVisible) theme.activateFocusedPopupScreen(); theme.overviewVisible = !theme.overviewVisible }
 
+    function toggleNotifications() { if (!theme.notifVisible) theme.activateFocusedPopupScreen(); theme.notifVisible = !theme.notifVisible }
+
+    function clearNotifications() { notifService.clearAll() }
+
     function toggleAppLauncher() { if (!theme.appLauncherVisible) theme.activateFocusedPopupScreen(); theme.appLauncherVisible = !theme.appLauncherVisible }
 
     required property var variantHost
@@ -29,6 +33,12 @@ Item {
     Theme {
         id: theme
         variantHost: root.variantHost
+        notifService: notifService
+    }
+
+    NotificationService {
+        id: notifService
+        theme: theme
     }
 
     function closePopups() { theme.closePopups() }
@@ -251,6 +261,7 @@ Item {
 
     TooltipOverlay { root: theme }
     OsdPanel { root: theme }
+    NotificationPopups { root: theme }
     CalendarPopup { root: theme }
     PowerProfilePanel { root: theme }
     MemoryPanel { root: theme }

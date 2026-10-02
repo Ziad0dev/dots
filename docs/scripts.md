@@ -24,7 +24,7 @@ Every `dots-*` name below is a symlink to one script, `scripts/dots-compat.sh`, 
 | `dots-theme-set <name>` | `themectl set <name>` |
 | `dots-theme-bg-set <path>` | `themectl bg set <path>` |
 | `dots-toggle-idle` | Stop/start the `hypridle` user unit; prints `on`/`off` |
-| `dots-toggle-notification-silencing` | Pause/resume dunst; writes `~/.local/state/dots/notifications.json` |
+| `dots-toggle-notification-silencing` | Toggle do-not-disturb in `~/.local/state/dots/notifications.json` (the Quickshell notification service watches it) |
 | `dots-audio-input-mute` | Toggle mute on the default PipeWire source |
 | `dots-llm [status\|next\|off]` | Which LLM unit is running / cycle to the next / stop all (order: `llama-cpp llama-sec llama-agent llama-gemma llama-coder llama-fim ollama`) |
 | `dots-shell lock` | `quickshell -c lock` |
@@ -135,7 +135,7 @@ Fish starts in vi mode and sources the themed fzf colours.
 |---|---|---|
 | `quickshell` | user | the bar; bound to `hyprland-session.target` |
 | `hypridle` | user | idle → lock → DPMS |
-| `swayosd`, `dotsDunstTheme`, `cliphist` | user | session plumbing |
+| `swayosd`, `cliphist`, `dunst` + `dotsDunstTheme` (sway only) | user | session plumbing |
 | `dots-gammastep` | user | night light (on demand) |
 | `dots-usb-sound`, `dots-screentime` | user | USB plug sounds, app focus log |
 | `gsr-replay` | user | replay buffer (on demand) |

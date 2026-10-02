@@ -35,13 +35,13 @@ case "$CMD" in
         ;;
 
     dots-toggle-notification-silencing)
-        if command -v dunstctl >/dev/null 2>&1; then
-            dunstctl set-paused toggle
-            paused=$(dunstctl is-paused)
-            mkdir -p "$HOME/.local/state/dots"
-            printf '{"dnd":%s}\n' "$paused" >"$HOME/.local/state/dots/notifications.json"
-            printf '%s\n' "$paused"
-        fi
+        # the quickshell notification service watches this file
+        state="$HOME/.local/state/dots/notifications.json"
+        paused=true
+        grep -q '"dnd":true' "$state" 2>/dev/null && paused=false
+        mkdir -p "${state%/*}"
+        printf '{"dnd":%s}\n' "$paused" >"$state"
+        printf '%s\n' "$paused"
         exit 0
         ;;
 
@@ -257,8 +257,7 @@ case "$CMD" in
                 case "${2:-}" in
                     ping) echo ok ;;
                     status)
-                        command -v dunstctl >/dev/null 2>&1 || exit 1
-                        printf '{"dnd":%s}\n' "$(dunstctl is-paused)"
+                        cat "$HOME/.local/state/dots/notifications.json" 2>/dev/null || printf '{"dnd":false}\n'
                         ;;
                     *) exit 1 ;;
                 esac

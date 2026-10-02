@@ -102,7 +102,6 @@ in
 
   home.file = {
     ".config/hypr".source = link "hypr";
-    ".config/dunst".source = link "dunst";
     ".config/Kvantum/KvGlass".source = link "kvantum/KvGlass";
     ".config/Kvantum/Glass-Kv".source = link "kvantum/Glass-Kv";
     ".config/quickshell".source = link "quickshell";
@@ -123,7 +122,6 @@ in
       adwaita-icon-theme
       hicolor-icon-theme
       papirus-icon-theme
-      dunst
       ghostty
       hypridle
       hyprpicker
