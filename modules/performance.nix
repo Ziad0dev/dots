@@ -77,7 +77,7 @@ in
     if isPassive then "schedutil" else "performance"
   );
 
-  boot.kernelParams = lib.mkIf isPassive [ "intel_pstate=passive" ];
+  boot.kernelParams = [ "zswap.enabled=0" ] ++ lib.optional isPassive "intel_pstate=passive";
 
   systemd.services.cpu-epp = lib.mkIf setsEPP {
     description = "Set HWP energy_performance_preference to performance";
