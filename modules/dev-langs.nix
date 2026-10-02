@@ -31,12 +31,7 @@
     ruff
     pyright
 
-    (sbcl.withPackages (
-      ps: with ps; [
-        swank
-        alexandria
-      ]
-    ))
+    sbcl
     rlwrap
   ];
 

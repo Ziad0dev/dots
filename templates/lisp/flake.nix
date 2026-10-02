@@ -18,12 +18,7 @@
         default = pkgs.mkShell {
           packages = with pkgs; [
 
-            (sbcl.withPackages (
-              ps: with ps; [
-                swank
-                alexandria
-              ]
-            ))
+            sbcl
             rlwrap
           ];
 
@@ -31,9 +26,6 @@
             echo "Common Lisp — $(sbcl --version)"
             echo "  rlwrap sbcl     bare REPL with line editing"
             echo "  nvim x.lisp     then <localleader>cc to connect nvlime"
-            echo ""
-            echo "  Deps are declarative: add systems to sbcl.withPackages in"
-            echo "  flake.nix. ocicl/qlot are not packaged in nixpkgs."
           '';
         };
       });
