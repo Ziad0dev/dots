@@ -45,7 +45,7 @@ in
 
   systemd.services.hello-page-serve = {
     description = "publish the page to the tailnet";
-    wantedBy = [ "multi-user.target" ];
+    wantedBy = [ "tailscaled.service" ];
     after = [
       "tailscaled.service"
       "hello-page.service"
