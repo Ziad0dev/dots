@@ -181,7 +181,7 @@ case "$CMD" in
         ;;
 
     dots-llm)
-        llm_units="llama-cpp llama-sec llama-agent llama-gemma llama-coder llama-fim ollama"
+        llm_units="llama-cpp llama-uncensored llama-hermes llama-sec llama-agent llama-gemma llama-coder llama-fim ollama"
         llm_active=""
         for u in $llm_units; do
             if systemctl is-active --quiet "$u.service" 2>/dev/null; then
