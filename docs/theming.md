@@ -43,6 +43,8 @@ Or: `SUPER + CTRL + SHIFT + Space` (theme picker), `SUPER + SHIFT + T` (next the
 | base16 | `base00` … `base0F` |
 | Named | `red` `green` `yellow` `blue` `magenta` `cyan` `pink` |
 
+The Quickshell bar and lock screen take their muted text from `color8` but lift it toward `foreground` until it reaches a 4.5:1 contrast against `background` (`Palette.js`) — terminal "bright black" is often far darker (oled: 1.85:1).
+
 themectl adds five derived colours — `dim`, `muted` (foreground blended 35 % / 60 % toward background), `surface` (background 8 % toward foreground), `accent_dim` and `accent_container` (accent blended 25 % / 72 % toward background). Several palettes have `base03 == base04 == base05`; templates that need a readable grey ramp should use these instead.
 
 Other files in a theme directory:
