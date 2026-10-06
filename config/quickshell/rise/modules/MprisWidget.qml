@@ -240,6 +240,7 @@ Item {
 
             function resetMarquee() {
                 marqueeAnim.stop()
+                marqueeAnim.phase = 0
                 marqueeText.x = 0
                 if (rootMod.visible && rootMod.playing && marqueeText.implicitWidth > marqueeClip.width)
                     marqueeAnim.start()
@@ -251,18 +252,21 @@ Item {
                 function onVisibleChanged() { marqueeClip.resetMarquee() }   // stop/restart the scroll when the widget is hidden (toggle off)
             }
 
-            SequentialAnimation {
+            // Whole-pixel steps on a timer (50 px/s, 2 s hold, 0.9 s hold at the end).
+            // A NumberAnimation redraws the bar every display frame, and each redraw
+            // makes Hyprland re-composite the screen: 240 times a second on DP-1.
+            Timer {
                 id: marqueeAnim
-                loops: Animation.Infinite
-                PauseAnimation  { duration: 2000 }
-                NumberAnimation {
-                    target: marqueeText; property: "x"
-                    to: -(marqueeText.implicitWidth - marqueeClip.width + 4)
-                    duration: Math.max(100, marqueeText.implicitWidth - marqueeClip.width + 4) * 20
-                    easing.type: Easing.Linear
+                property int phase: 0   // 0 = hold at start, 1 = scrolling, 2 = hold at end
+                interval: phase === 1 ? 20 : phase === 0 ? 2000 : 900
+                repeat: true
+                onTriggered: {
+                    if (phase === 0) { phase = 1; return }
+                    if (phase === 2) { marqueeText.x = 0; phase = 0; return }
+                    var end = -(marqueeText.implicitWidth - marqueeClip.width + 4)
+                    marqueeText.x = Math.max(end, marqueeText.x - 1)
+                    if (marqueeText.x <= end) phase = 2
                 }
-                PauseAnimation  { duration: 900 }
-                NumberAnimation { target: marqueeText; property: "x"; to: 0; duration: 0 }
             }
         }
 
