@@ -29,7 +29,7 @@ One flake for a NixOS + Hyprland desktop, a nix-darwin Mac, and standalone home-
 | **Desktop** | Hyprland (Lua config), a heavily reworked [Quickshell](https://quickshell.org) bar with launcher, overview and control panel, Quickshell lock screen, custom SDDM greeter |
 | **Themes** | 46 palettes, 13 app templates, live switching with `themectl set <name>` — no rebuild, no git diff |
 | **Hardware** | CachyOS kernel via chaotic-nyx, NVIDIA open driver, 10-bit HDR on the OLED, RAPL/EPP tuning |
-| **Services** | Jellyfin with NVENC, a WireGuard-confined download stack, local LLMs on llama.cpp (Vulkan), restic backups |
+| **Services** | Jellyfin with NVENC, a WireGuard-confined download stack, local LLMs on llama.cpp (CUDA), restic backups |
 | **Dev** | Nine `nix flake init` templates, curated infosec and maths tool flakes, a disposable agent VM |
 | **Portable** | Same flake builds `nixos`, `mac` and four home-manager profiles — see [architecture](docs/architecture.md) |
 

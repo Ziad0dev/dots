@@ -105,41 +105,12 @@
         chaotic.nixosModules.nyx-overlay
       ];
 
+      # every file under modules/ is a desktop NixOS module, so adding one is just
+      # creating the file (git add it — untracked files are invisible to the flake)
       desktopModules = [
         inputs.vpn-confinement.nixosModules.default
-        ./modules/lan.nix
-        ./modules/vpn.nix
-        ./modules/quality.nix
-        ./modules/backup.nix
-        ./modules/virt.nix
-        ./modules/gaming.nix
-        ./modules/llm.nix
-        ./modules/agents.nix
-        ./modules/ollama.nix
-        ./modules/audio.nix
-        ./modules/dev.nix
-        ./modules/gaming-extras.nix
-        ./modules/recording.nix
-        ./modules/media.nix
-        ./modules/mullvad.nix
-        ./modules/media-extras.nix
-        ./modules/immich.nix
-        ./modules/arr-automation.nix
-        ./modules/performance.nix
-        ./modules/secrets.nix
-        ./modules/storage.nix
-        ./modules/hdr.nix
-        ./modules/dev-langs.nix
-        ./modules/osd.nix
-        ./modules/lockscreen.nix
-        ./modules/sway.nix
-        ./modules/sddm.nix
-        ./modules/foreign.nix
-        ./modules/flatpak.nix
-        ./modules/hello-page.nix
-        ./modules/cleanup.nix
-        ./modules/waydroid.nix
-      ];
+      ]
+      ++ builtins.filter (lib.hasSuffix ".nix") (lib.filesystem.listFilesRecursive ./modules);
 
     in
     {

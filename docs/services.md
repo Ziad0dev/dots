@@ -71,6 +71,8 @@ Mullvad for the host itself is separate (`modules/mullvad.nix`, the GUI and `dot
 | Unit | Model | Port | For |
 |---|---|---|---|
 | `llama-cpp` | Qwen3.5-9B Q6_K | 8080 | general / coding / maths |
+| `llama-uncensored` | Huihui Qwen3.5-9B abliterated Q6_K | 8080 | uncensored general |
+| `llama-hermes` | Hermes 4 14B IQ4_XS | 8080 | steerable general, 8k context |
 | `llama-sec` | WhiteRabbitNeo V3 7B Q5_K_M | 8080 | security |
 | `llama-agent` | Qwen2.5-Coder-14B-Instruct Q4_K_M | 8080 | tool calling |
 | `llama-gemma` | Gemma 4 12B Q4_K_M | 8080 | general, vision, audio |
@@ -80,7 +82,7 @@ Mullvad for the host itself is separate (`modules/mullvad.nix`, the GUI and `dot
 
 How they behave:
 
-- **Vulkan** build of llama.cpp (`llama-cpp-vulkan`) — cached, unlike the CUDA build. All layers on GPU (`-ngl 99`), 16k context, flash attention, `--jinja` chat templates.
+- **CUDA** build of llama.cpp, kernels for the RTX 3060 (sm_86) only. No binary cache carries it, so it builds locally (~14 min) — measured +32% prompt processing over the Vulkan build. All layers on GPU (`-ngl 99`), 16k context unless noted, flash attention, `--jinja` chat templates.
 - **One at a time.** Every llama unit `Conflicts=` every other llama unit, so starting one stops the last. Before starting, `free-gpu` asks Ollama to unload whatever it holds. Ollama keeps at most one model loaded and drops it after 5 minutes idle.
 - **Never at boot.** `wantedBy` is forced empty on all of them, Ollama included.
 - **No sudo.** A polkit rule lets your active local session start and stop these units.
