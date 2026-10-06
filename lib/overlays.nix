@@ -5,6 +5,7 @@
   inputs.obsidian-extensions.overlays.default
   (final: _prev: {
     soulseek-rs = final.callPackage ../pkgs/soulseek-rs.nix { };
+    caelestia-blobs = final.callPackage ../pkgs/caelestia-blobs { };
   })
   (final: prev: {
     feather =
