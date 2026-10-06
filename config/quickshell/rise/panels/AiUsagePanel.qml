@@ -62,10 +62,7 @@ PanelWindow {
 
     property real reveal: root.aiUsageVisible ? 1 : 0
     Behavior on reveal {
-        NumberAnimation {
-            duration: root.aiUsageVisible ? 160 : 120
-            easing.type: root.aiUsageVisible ? Easing.OutCubic : Easing.InCubic
-        }
+        Anim { kind: root.aiUsageVisible ? "spatial" : "exit" }
     }
     visible: reveal > 0.001
     WlrLayershell.keyboardFocus: root.aiUsageVisible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
@@ -105,7 +102,7 @@ PanelWindow {
                 width: parent.width * Math.min(100, parent ? pct : 0) / 100
                 height: parent.height; radius: 4
                 color: pct >= 90 ? aiPanel.root.sealRaw : aiPanel.root.seal
-                Behavior on width { NumberAnimation { duration: 300 } }
+                Behavior on width { Anim { kind: "size"; ms: 300 } }
             }
         }
     }
@@ -167,7 +164,7 @@ PanelWindow {
                 width: parent.width * Math.max(0, Math.min(100, pct)) / 100
                 height: parent.height; radius: 3
                 color: aiPanel.root.seal
-                Behavior on width { NumberAnimation { duration: 300 } }
+                Behavior on width { Anim { kind: "size"; ms: 300 } }
             }
         }
         UiText {
@@ -188,7 +185,7 @@ PanelWindow {
         width: 360
         height: Math.min(col.implicitHeight + 24, parent.height - 2 * (barBottom + gap))
         radius: reveal > 0.001 ? root.pillRadius : 0
-        color: root.bg
+        color: root.cardBg
         border.color: root.pillBorder
         border.width: root.pillBorderW
         PillShadow { theme: root }
@@ -197,7 +194,7 @@ PanelWindow {
         y: root.barPosition === "bottom" ? (parent.height - barBottom - gap - height) : (barBottom + gap)
         opacity: aiPanel.reveal
         transformOrigin: root.barPosition === "bottom" ? Item.Bottom : Item.Top
-        scale: root.motionHover ? (0.955 + 0.045 * aiPanel.reveal) : 1
+        scale: root.motionHover ? (0.92 + 0.08 * aiPanel.reveal) : 1
         focus: root.aiUsageVisible
 
         Keys.onPressed: function(event) {
@@ -243,7 +240,7 @@ PanelWindow {
                         text: "✕"
                         color: closeMa.containsMouse ? root.seal : root.sumi
                         font.pixelSize: 12
-                        Behavior on color { ColorAnimation { duration: 120 } }
+                        Behavior on color { CAnim { ms: 120 } }
                         MouseArea {
                             id: closeMa
                             anchors.fill: parent
@@ -270,7 +267,7 @@ PanelWindow {
                                   : segMa.containsMouse ? root.fillHover : root.fillIdle
                             border.color: (active || segMa.containsMouse) ? root.seal : root.sep
                             border.width: 1
-                            Behavior on color { ColorAnimation { duration: 120 } }
+                            Behavior on color { CAnim { ms: 120 } }
                             UiText {
                                 anchors.centerIn: parent
                                 text: modelData.label

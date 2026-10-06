@@ -20,7 +20,7 @@ Item {
     implicitWidth: root.modVolume ? row.implicitWidth + 18 : 0
     implicitHeight: 28
     opacity: root.modVolume ? 1 : 0
-    Behavior on opacity      { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
+    Behavior on opacity      { Anim { kind: "effects"; ms: 140 } }
 
     Rectangle {
         x: 0; anchors.verticalCenter: parent.verticalCenter
@@ -46,16 +46,15 @@ Item {
         anchors.centerIn: parent
         spacing: root.compactVolume ? 4 : 5
 
-        UiText {
+        BarLabel {
+            root: rootMod.root
             anchors.verticalCenter: parent.verticalCenter
             visible: !root.compactVolume
-            text: "VOL"
-            color: rootMod.muted
+            label: "VOL"
+            glyph: "volume_up"
+            tint: rootMod.muted
                 ? Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.25)
                 : Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.6)
-            font.family: root.mono
-            font.pixelSize: 12
-            font.letterSpacing: 0.5
         }
 
         // ── workspace-capsule style slider ──
@@ -85,7 +84,7 @@ Item {
                 height: 8
                 radius: 4
                 color: root.seal
-                Behavior on width { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
+                Behavior on width { Anim { kind: "size"; ms: 250 } }
             }
         }
 
@@ -109,7 +108,7 @@ Item {
             font.pixelSize: 15
             font.weight: Font.Medium
             fill: 1
-            Behavior on color { ColorAnimation { duration: 160 } }
+            Behavior on color { CAnim { ms: 160 } }
         }
 
         UiText {
@@ -121,7 +120,7 @@ Item {
                 : root.seal
             font.family: root.mono
             font.pixelSize: 12
-            Behavior on color { ColorAnimation { duration: 160 } }
+            Behavior on color { CAnim { ms: 160 } }
         }
 
     }

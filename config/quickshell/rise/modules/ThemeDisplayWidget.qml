@@ -17,7 +17,7 @@ Item {
         color: root.imagePickerVisible
             ? root.seal
             : Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.65)
-        Behavior on color { ColorAnimation { duration: 150 } }
+        Behavior on color { CAnim { ms: 150 } }
     }
 
     TooltipMixin {

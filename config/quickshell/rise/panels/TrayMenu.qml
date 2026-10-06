@@ -52,7 +52,7 @@ PanelWindow {
         width: 220
         height: col.implicitHeight + 16
         radius: reveal > 0.001 ? root.pillRadius : 0
-        color: root.bg
+        color: root.cardBg
         border.color: root.pillBorder
         border.width: root.pillBorderW
         PillShadow { theme: root }
@@ -61,7 +61,7 @@ PanelWindow {
         y: root.barPosition === "bottom" ? (parent.height - barBottom - gap - height) : (barBottom + gap)
         opacity: trayMenu.reveal
         transformOrigin: root.barPosition === "bottom" ? Item.Bottom : Item.Top
-        scale: root.motionHover ? (0.955 + 0.045 * trayMenu.reveal) : 1
+        scale: root.motionHover ? (0.92 + 0.08 * trayMenu.reveal) : 1
         focus: root.trayMenuVisible
 
         Keys.onPressed: function(event) {
@@ -118,7 +118,7 @@ PanelWindow {
                     text: "\u2715"
                     color: closeMa.containsMouse ? root.seal : root.sumi
                     font.pixelSize: 12
-                    Behavior on color { ColorAnimation { duration: 120 } }
+                    Behavior on color { CAnim { ms: 120 } }
 
                     MouseArea {
                         id: closeMa
@@ -180,7 +180,7 @@ PanelWindow {
                         radius: root.tileRadius
                         color: (entryMa.containsMouse && entry.modelData.enabled)
                             ? root.fillActive : "transparent"
-                        Behavior on color { ColorAnimation { duration: 100 } }
+                        Behavior on color { CAnim { ms: 100 } }
 
                         // check / radio indicator
                         UiText {

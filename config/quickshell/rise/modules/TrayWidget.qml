@@ -88,7 +88,7 @@ Item {
                 color: toggleMa.containsMouse
                     ? root.ink
                     : Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.7)
-                Behavior on color { ColorAnimation { duration: 150 } }
+                Behavior on color { CAnim { ms: 150 } }
             }
 
             // count badge — top-right

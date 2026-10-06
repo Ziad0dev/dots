@@ -12,7 +12,7 @@ Item {
     implicitHeight: 28
     opacity: root.modMemory ? 1 : 0
 
-    Behavior on opacity { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
+    Behavior on opacity { Anim { kind: "effects"; ms: 140 } }
 
     readonly property int percent: root.systemMemPercent
     readonly property real usedGiB: root.systemMemUsedGiB
@@ -37,14 +37,12 @@ Item {
         anchors.horizontalCenterOffset: root.compactMemory ? -1 : 0
         spacing: root.compactMemory ? 4 : 5
 
-        UiText {
+        BarLabel {
+            root: rootMod.root
             anchors.verticalCenter: parent.verticalCenter
             visible: !root.compactMemory
-            text: "MEM"
-            color: Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.6)
-            font.family: root.mono
-            font.pixelSize: 12
-            font.letterSpacing: 0.5
+            label: "MEM"
+            glyph: "memory"
         }
 
         Canvas {

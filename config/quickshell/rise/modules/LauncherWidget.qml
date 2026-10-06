@@ -77,7 +77,7 @@ Item {
             // gone when idle. Fades so it appears/disappears smoothly.
             opacity: (ma.containsMouse || root.controlVisible) ? 0.55 : 0
             visible: opacity > 0.001
-            Behavior on opacity { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
+            Behavior on opacity { Anim { kind: "effects"; ms: 220 } }
 
             onPaint: {
                 var ctx = getContext("2d")
@@ -224,7 +224,7 @@ Item {
             renderType: Text.QtRendering
             font.family: root.launcherLogoIconFont(root.launcherLogoIcon)
             font.pixelSize: root.launcherLogoIconSize(root.launcherLogoIcon)
-            Behavior on color { ColorAnimation { duration: 200 } }
+            Behavior on color { CAnim { ms: 200 } }
         }
     }
 

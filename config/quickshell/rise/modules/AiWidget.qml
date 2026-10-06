@@ -102,7 +102,7 @@ Item {
     implicitHeight: 28
     opacity: shown ? 1 : 0
 
-    Behavior on opacity { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
+    Behavior on opacity { Anim { kind: "effects"; ms: 140 } }
 
     // ── process detection ──
     Process {
@@ -172,7 +172,7 @@ Item {
                     height: rootMod.pct5hStep > 0
                         ? Math.min(parent.height, Math.max(parent.height * rootMod.pct5hStep / 100, parent.height * 0.22))
                         : 0
-                    Behavior on height { NumberAnimation { duration: 600; easing.type: Easing.OutCubic } }
+                    Behavior on height { Anim { kind: "size"; ms: 600 } }
                     Image {
                         width: iconItem.width; height: iconItem.height
                         anchors.bottom: parent.bottom
@@ -198,7 +198,7 @@ Item {
             color: Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.85)
             font.family: root.mono
             font.pixelSize: 12
-            Behavior on color { ColorAnimation { duration: 200 } }
+            Behavior on color { CAnim { ms: 200 } }
         }
     }
 

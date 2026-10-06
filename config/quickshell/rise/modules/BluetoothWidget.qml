@@ -26,7 +26,7 @@ Item {
     implicitHeight: 28
     opacity: shown ? 1 : 0
 
-    Behavior on opacity { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
+    Behavior on opacity { Anim { kind: "effects"; ms: 140 } }
 
     Rectangle {
         x: 0; anchors.verticalCenter: parent.verticalCenter
@@ -61,7 +61,7 @@ Item {
                 ? root.seal
                 : Qt.rgba(root.ink.r, root.ink.g, root.ink.b, rootMod.btOn ? 0.7 : 0.3)
             font.pixelSize: 14
-            Behavior on color { ColorAnimation { duration: 200 } }
+            Behavior on color { CAnim { ms: 200 } }
         }
 
         UiText {

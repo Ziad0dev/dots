@@ -23,10 +23,7 @@ PanelWindow {
 
     property real reveal: root.githubVisible ? 1 : 0
     Behavior on reveal {
-        NumberAnimation {
-            duration: root.githubVisible ? 160 : 120
-            easing.type: root.githubVisible ? Easing.OutCubic : Easing.InCubic
-        }
+        Anim { kind: root.githubVisible ? "spatial" : "exit" }
     }
     visible: reveal > 0.001
     WlrLayershell.keyboardFocus: root.githubVisible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
@@ -163,7 +160,7 @@ PanelWindow {
             : (ghPanel.barBottom + ghPanel.gap)
         opacity: ghPanel.reveal
         transformOrigin: root.barPosition === "bottom" ? Item.Bottom : Item.Top
-        scale: root.motionHover ? (0.955 + 0.045 * ghPanel.reveal) : 1
+        scale: root.motionHover ? (0.92 + 0.08 * ghPanel.reveal) : 1
         focus: ghPanel.root.githubVisible
 
         Keys.onPressed: function (event) {

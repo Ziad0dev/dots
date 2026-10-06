@@ -93,7 +93,7 @@ PanelWindow {
         id: pill
         anchors.fill: parent
         radius: root.pillRadius
-        color: root.bg
+        color: root.cardBg
         border.color: root.pillBorder
         border.width: root.pillBorderW
         opacity: osd.reveal
@@ -155,7 +155,7 @@ PanelWindow {
                     height: parent.height
                     radius: 3
                     color: osd.alert ? root.sumi : root.seal
-                    Behavior on width { NumberAnimation { duration: 90 } }
+                    Behavior on width { Anim { kind: "size"; ms: 250 } }
                 }
             }
         }

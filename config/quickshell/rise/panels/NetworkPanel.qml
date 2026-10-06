@@ -388,10 +388,7 @@ PanelWindow {
 
     property real reveal: root.networkVisible ? 1 : 0
     Behavior on reveal {
-        NumberAnimation {
-            duration: root.networkVisible ? 160 : 120
-            easing.type: root.networkVisible ? Easing.OutCubic : Easing.InCubic
-        }
+        Anim { kind: root.networkVisible ? "spatial" : "exit" }
     }
     visible: reveal > 0.001
     WlrLayershell.keyboardFocus: root.networkVisible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
@@ -403,7 +400,7 @@ PanelWindow {
         width: 300
         height: col.implicitHeight + 24
         radius: reveal > 0.001 ? root.pillRadius : 0
-        color: root.bg
+        color: root.cardBg
         border.color: root.pillBorder
         border.width: root.pillBorderW
         PillShadow { theme: root }
@@ -412,7 +409,7 @@ PanelWindow {
         y: root.barPosition === "bottom" ? (parent.height - barBottom - gap - height) : (barBottom + gap)
         opacity: netPanel.reveal
         transformOrigin: root.barPosition === "bottom" ? Item.Bottom : Item.Top
-        scale: root.motionHover ? (0.955 + 0.045 * netPanel.reveal) : 1
+        scale: root.motionHover ? (0.92 + 0.08 * netPanel.reveal) : 1
         focus: root.networkVisible
 
         Keys.onPressed: function(event) {
@@ -479,7 +476,7 @@ PanelWindow {
                 UiText {
                     anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
                     text: "✕"; color: closeMa.containsMouse ? root.seal : root.sumi; font.pixelSize: 12
-                    Behavior on color { ColorAnimation { duration: 120 } }
+                    Behavior on color { CAnim { ms: 120 } }
                     MouseArea { id: closeMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: root.networkVisible = false }
                 }
             }
@@ -508,7 +505,7 @@ PanelWindow {
                     Rectangle {
                         width: parent.width * (netPanel.mode === "wifi" ? netPanel.signal / 100 : (netPanel.mode === "ethernet" ? 1 : 0))
                         height: parent.height; radius: 4; color: root.seal
-                        Behavior on width { NumberAnimation { duration: 300 } }
+                        Behavior on width { Anim { kind: "size"; ms: 300 } }
                     }
                 }
             }
@@ -587,7 +584,7 @@ PanelWindow {
                         color: speedTestMa.containsMouse ? root.fillHover : root.fillIdle
                         border.color: speedTestMa.containsMouse ? root.seal : root.sep
                         border.width: 1
-                        Behavior on color { ColorAnimation { duration: 120 } }
+                        Behavior on color { CAnim { ms: 120 } }
 
                         UiText {
                             anchors.centerIn: parent
@@ -696,7 +693,7 @@ PanelWindow {
                     width: parent.width
                     height: speedFooter.visible ? speedFooter.implicitHeight : 0
                     clip: true
-                    Behavior on height { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
+                    Behavior on height { Anim { kind: "size"; ms: 250 } }
 
                     UiText {
                         id: speedFooter
@@ -765,7 +762,7 @@ PanelWindow {
                             border.color: active || pending || dnsMa.containsMouse ? root.seal : root.sep
                             border.width: 1
                             opacity: netPanel.dnsManaged ? 1 : 0.5
-                            Behavior on color { ColorAnimation { duration: 120 } }
+                            Behavior on color { CAnim { ms: 120 } }
 
                             UiText {
                                 anchors.centerIn: parent
@@ -817,7 +814,7 @@ PanelWindow {
                                                  : root.fillIdle
                     border.color: (wifiToggleMa.containsMouse || !netPanel.wifiBlocked) ? root.seal : root.sep
                     border.width: 1
-                    Behavior on color { ColorAnimation { duration: 120 } }
+                    Behavior on color { CAnim { ms: 120 } }
                     UiText {
                         anchors.centerIn: parent
                         text: netPanel.wifiBlocked ? "OFF" : "ON"
@@ -856,7 +853,7 @@ PanelWindow {
                         color: active ? root.fillActive : tabMa.containsMouse ? root.fillHover : root.fillIdle
                         border.color: active || tabMa.containsMouse ? root.seal : root.sep
                         border.width: 1
-                        Behavior on color { ColorAnimation { duration: 120 } }
+                        Behavior on color { CAnim { ms: 120 } }
 
                         UiText {
                             anchors.centerIn: parent
@@ -894,7 +891,7 @@ PanelWindow {
                     text: netPanel.scanning ? "scanning…" : "rescan"
                     color: rescanMa.containsMouse ? root.fillPrimaryHover : root.seal
                     font.family: root.mono; font.pixelSize: 10
-                    Behavior on color { ColorAnimation { duration: 120 } }
+                    Behavior on color { CAnim { ms: 120 } }
                     MouseArea { id: rescanMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: netPanel.scan() }
                 }
             }
@@ -951,7 +948,7 @@ PanelWindow {
                                 color: modelData.conn ? root.fillActive : active ? root.fillHover : root.fillIdle
                                 border.color: modelData.conn || active ? root.seal : root.sep
                                 border.width: 1
-                                Behavior on color { ColorAnimation { duration: 120 } }
+                                Behavior on color { CAnim { ms: 120 } }
 
                                 Row {
                                     anchors.left: parent.left; anchors.leftMargin: 8
@@ -1046,7 +1043,7 @@ PanelWindow {
                                 color: root.fillIdle
                                 border.color: root.sep
                                 border.width: netTile.expanded ? 1 : 0
-                                Behavior on height { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
+                                Behavior on height { Anim { kind: "size"; ms: 250 } }
 
                                 Column {
                                     id: detailColumn
@@ -1230,7 +1227,7 @@ PanelWindow {
                                 : root.fillIdle
                             border.color: passwordSubmitMa.enabled ? root.seal : root.sep
                             border.width: 1
-                            Behavior on color { ColorAnimation { duration: 120 } }
+                            Behavior on color { CAnim { ms: 120 } }
                             UiText {
                                 anchors.centerIn: parent
                                 text: netPanel.nmConnecting ? "connecting…" : "connect"
@@ -1255,7 +1252,7 @@ PanelWindow {
                             color: passwordCancelMa.containsMouse ? root.fillHover : root.fillIdle
                             border.color: passwordCancelMa.containsMouse ? root.seal : root.sep
                             border.width: 1
-                            Behavior on color { ColorAnimation { duration: 120 } }
+                            Behavior on color { CAnim { ms: 120 } }
                             UiText {
                                 anchors.centerIn: parent
                                 text: "cancel"
@@ -1283,7 +1280,7 @@ PanelWindow {
                 visible: root.useNM && netPanel.hasWifi && !netPanel.nmAdapterReady
                 color: nmMa.containsMouse ? root.fillHover : root.fillIdle
                 border.color: nmMa.containsMouse ? root.seal : root.sep; border.width: 1
-                Behavior on color { ColorAnimation { duration: 120 } }
+                Behavior on color { CAnim { ms: 120 } }
                 Column {
                     anchors.centerIn: parent; spacing: 3; width: parent.width - 24
                     UiText {
@@ -1311,7 +1308,7 @@ PanelWindow {
                 width: parent.width
                 height: 28; radius: root.tileRadius
                 color: netSetMa.containsMouse ? root.fillPrimaryHover : root.seal
-                Behavior on color { ColorAnimation { duration: 120 } }
+                Behavior on color { CAnim { ms: 120 } }
                 UiText { anchors.centerIn: parent; text: "Network settings"; color: root.paper; font.family: root.mono; font.pixelSize: 11 }
                 MouseArea {
                     id: netSetMa

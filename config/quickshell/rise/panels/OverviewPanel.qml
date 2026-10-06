@@ -21,10 +21,7 @@ PanelWindow {
 
     property real reveal: root.overviewVisible ? 1 : 0
     Behavior on reveal {
-        NumberAnimation {
-            duration: root.overviewVisible ? 180 : 130
-            easing.type: root.overviewVisible ? Easing.OutCubic : Easing.InCubic
-        }
+        Anim { kind: root.overviewVisible ? "spatial" : "exit" }
     }
 
     property int sel: 0
@@ -109,7 +106,7 @@ PanelWindow {
                     color: win.island
                     border.width: 2
                     border.color: index === win.sel ? root.seal : root.pillBorder
-                    Behavior on border.color { ColorAnimation { duration: 120 } }
+                    Behavior on border.color { CAnim { ms: 120 } }
 
                     readonly property bool isActive:
                         Hyprland.focusedWorkspace

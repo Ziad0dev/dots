@@ -20,7 +20,7 @@ Item {
     visible: implicitWidth > 0.5
     opacity: shown ? 1 : 0
 
-    Behavior on opacity { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
+    Behavior on opacity { Anim { kind: "effects"; ms: 140 } }
 
     function refreshBrightness() {
         briProc.running = false
@@ -87,7 +87,7 @@ Item {
                 height: 6.5
                 radius: 3.25
                 color: sun.sunColor
-                Behavior on color { ColorAnimation { duration: 200 } }
+                Behavior on color { CAnim { ms: 200 } }
             }
 
             Repeater {
@@ -105,9 +105,9 @@ Item {
                         radius: 0.75
                         color: sun.sunColor
                         opacity: 0.35 + 0.65 * sun.ratio
-                        Behavior on height  { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
-                        Behavior on opacity { NumberAnimation { duration: 250 } }
-                        Behavior on color   { ColorAnimation  { duration: 200 } }
+                        Behavior on height  { Anim { kind: "size"; ms: 250 } }
+                        Behavior on opacity { Anim { kind: "effects"; ms: 250 } }
+                        Behavior on color   { CAnim { ms: 200 } }
                     }
                 }
             }
@@ -121,7 +121,7 @@ Item {
                 : Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.85)
             font.family: root.mono
             font.pixelSize: 12
-            Behavior on color { ColorAnimation { duration: 200 } }
+            Behavior on color { CAnim { ms: 200 } }
         }
     }
 

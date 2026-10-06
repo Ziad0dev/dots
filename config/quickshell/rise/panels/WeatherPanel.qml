@@ -114,10 +114,7 @@ PanelWindow {
 
     property real reveal: root.weatherVisible ? 1 : 0
     Behavior on reveal {
-        NumberAnimation {
-            duration: root.weatherVisible ? 160 : 120
-            easing.type: root.weatherVisible ? Easing.OutCubic : Easing.InCubic
-        }
+        Anim { kind: root.weatherVisible ? "spatial" : "exit" }
     }
     visible: reveal > 0.001
     WlrLayershell.keyboardFocus: root.weatherVisible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
@@ -129,7 +126,7 @@ PanelWindow {
         width: 300
         height: col.implicitHeight + 24
         radius: reveal > 0.001 ? root.pillRadius : 0
-        color: root.bg
+        color: root.cardBg
         border.color: root.pillBorder
         border.width: root.pillBorderW
         PillShadow { theme: root }
@@ -138,7 +135,7 @@ PanelWindow {
         y: root.barPosition === "bottom" ? (parent.height - barBottom - gap - height) : (barBottom + gap)
         opacity: wxPanel.reveal
         transformOrigin: root.barPosition === "bottom" ? Item.Bottom : Item.Top
-        scale: root.motionHover ? (0.955 + 0.045 * wxPanel.reveal) : 1
+        scale: root.motionHover ? (0.92 + 0.08 * wxPanel.reveal) : 1
         focus: root.weatherVisible
 
         Keys.onPressed: function(event) {
@@ -165,7 +162,7 @@ PanelWindow {
                 UiText {
                     anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
                     text: "✕"; color: closeMa.containsMouse ? root.seal : root.sumi; font.pixelSize: 12
-                    Behavior on color { ColorAnimation { duration: 120 } }
+                    Behavior on color { CAnim { ms: 120 } }
                     MouseArea { id: closeMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: root.weatherVisible = false }
                 }
             }
@@ -295,7 +292,7 @@ PanelWindow {
                     height: 28; radius: root.tileRadius
                     color: wxPanel.refreshing ? Qt.rgba(root.seal.r, root.seal.g, root.seal.b, 0.45)
                            : wxBtnMa.containsMouse ? root.fillPrimaryHover : root.seal
-                    Behavior on color { ColorAnimation { duration: 120 } }
+                    Behavior on color { CAnim { ms: 120 } }
                     UiText {
                         anchors.centerIn: parent
                         text: wxPanel.refreshing ? "Refreshing…" : "Refresh"
@@ -315,14 +312,14 @@ PanelWindow {
                     color: unitMa.containsMouse ? root.fillHover : root.fillIdle
                     border.color: unitMa.containsMouse ? root.seal : root.sep
                     border.width: 1
-                    Behavior on color { ColorAnimation { duration: 120 } }
-                    Behavior on border.color { ColorAnimation { duration: 120 } }
+                    Behavior on color { CAnim { ms: 120 } }
+                    Behavior on border.color { CAnim { ms: 120 } }
                     UiText {
                         anchors.centerIn: parent
                         text: root.weatherImperial ? "metric" : "imperial"
                         color: unitMa.containsMouse ? root.seal : root.ink
                         font.family: root.mono; font.pixelSize: 11
-                        Behavior on color { ColorAnimation { duration: 120 } }
+                        Behavior on color { CAnim { ms: 120 } }
                     }
                     MouseArea {
                         id: unitMa

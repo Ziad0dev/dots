@@ -24,10 +24,7 @@ PanelWindow {
 
     property real reveal: root.trayVisible ? 1 : 0
     Behavior on reveal {
-        NumberAnimation {
-            duration: root.trayVisible ? 160 : 120
-            easing.type: root.trayVisible ? Easing.OutCubic : Easing.InCubic
-        }
+        Anim { kind: root.trayVisible ? "spatial" : "exit" }
     }
 
     visible: reveal > 0.001
@@ -56,7 +53,7 @@ PanelWindow {
         width: popupW
         height: col.implicitHeight + 24
         radius: reveal > 0.001 ? root.pillRadius : 0
-        color: root.bg
+        color: root.cardBg
         border.color: root.pillBorder
         border.width: root.pillBorderW
         PillShadow { theme: root }
@@ -65,7 +62,7 @@ PanelWindow {
         y: root.barPosition === "bottom" ? (parent.height - barBottom - gap - height) : (barBottom + gap)
         opacity: trayPanel.reveal
         transformOrigin: root.barPosition === "bottom" ? Item.Bottom : Item.Top
-        scale: root.motionHover ? (0.955 + 0.045 * trayPanel.reveal) : 1
+        scale: root.motionHover ? (0.92 + 0.08 * trayPanel.reveal) : 1
         focus: root.trayVisible
 
         Keys.onPressed: function(event) {
@@ -117,7 +114,7 @@ PanelWindow {
                     text: "\u2715"
                     color: closeMa.containsMouse ? root.seal : root.sumi
                     font.pixelSize: 12
-                    Behavior on color { ColorAnimation { duration: 120 } }
+                    Behavior on color { CAnim { ms: 120 } }
 
                     MouseArea {
                         id: closeMa
@@ -197,7 +194,7 @@ PanelWindow {
                                     color: activateMa.containsMouse ? root.fillHover : root.fillIdle
                                     border.color: activateMa.containsMouse ? root.seal : root.sep
                                     border.width: 1
-                                    Behavior on color { ColorAnimation { duration: 120 } }
+                                    Behavior on color { CAnim { ms: 120 } }
 
                                     Image {
                                         id: appIcon
@@ -265,7 +262,7 @@ PanelWindow {
                                     color: pinMa.containsMouse ? root.fillHover : root.fillIdle
                                     border.color: pinMa.containsMouse ? root.seal : root.sep
                                     border.width: 1
-                                    Behavior on color { ColorAnimation { duration: 120 } }
+                                    Behavior on color { CAnim { ms: 120 } }
 
                                     UiText {
                                         anchors.centerIn: parent
@@ -300,7 +297,7 @@ PanelWindow {
                                         : Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.10)
                                     border.width: 1
                                     opacity: appRow.modelData.hasMenu ? 1.0 : 0.42
-                                    Behavior on color { ColorAnimation { duration: 120 } }
+                                    Behavior on color { CAnim { ms: 120 } }
 
                                     UiText {
                                         anchors.centerIn: parent

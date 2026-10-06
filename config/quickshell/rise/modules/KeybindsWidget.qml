@@ -13,7 +13,7 @@ Item {
         text: "\uE312"
         color: rootMod.root.keybindsVisible ? rootMod.root.seal : rootMod.root.ink
         font.pixelSize: 14
-        Behavior on color { ColorAnimation { duration: 120 } }
+        Behavior on color { CAnim { ms: 120 } }
     }
 
     TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: "Keybinds" }

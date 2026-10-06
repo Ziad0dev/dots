@@ -42,10 +42,7 @@ PanelWindow {
 
     property real reveal: root.batteryVisible ? 1 : 0
     Behavior on reveal {
-        NumberAnimation {
-            duration: root.batteryVisible ? 160 : 120
-            easing.type: root.batteryVisible ? Easing.OutCubic : Easing.InCubic
-        }
+        Anim { kind: root.batteryVisible ? "spatial" : "exit" }
     }
     visible: reveal > 0.001
     WlrLayershell.keyboardFocus: root.batteryVisible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
@@ -57,7 +54,7 @@ PanelWindow {
         width: 300
         height: col.implicitHeight + 24
         radius: reveal > 0.001 ? root.pillRadius : 0
-        color: root.bg
+        color: root.cardBg
         border.color: root.pillBorder
         border.width: root.pillBorderW
         PillShadow { theme: root }
@@ -66,7 +63,7 @@ PanelWindow {
         y: root.barPosition === "bottom" ? (parent.height - barBottom - gap - height) : (barBottom + gap)
         opacity: batPanel.reveal
         transformOrigin: root.barPosition === "bottom" ? Item.Bottom : Item.Top
-        scale: root.motionHover ? (0.955 + 0.045 * batPanel.reveal) : 1
+        scale: root.motionHover ? (0.92 + 0.08 * batPanel.reveal) : 1
         focus: root.batteryVisible
 
         Keys.onPressed: function(event) {
@@ -93,7 +90,7 @@ PanelWindow {
                 UiText {
                     anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
                     text: "✕"; color: closeMa.containsMouse ? root.seal : root.sumi; font.pixelSize: 12
-                    Behavior on color { ColorAnimation { duration: 120 } }
+                    Behavior on color { CAnim { ms: 120 } }
                     MouseArea { id: closeMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: root.batteryVisible = false }
                 }
             }
@@ -118,7 +115,7 @@ PanelWindow {
                         width: parent.width * batPanel.percent / 100
                         height: parent.height; radius: 4
                         color: batPanel.charging ? root.indigo : root.seal
-                        Behavior on width { NumberAnimation { duration: 300 } }
+                        Behavior on width { Anim { kind: "size"; ms: 300 } }
                     }
                 }
             }
@@ -173,7 +170,7 @@ PanelWindow {
                 width: parent.width
                 height: 28; radius: root.tileRadius
                 color: btopMa.containsMouse ? root.fillPrimaryHover : root.seal
-                Behavior on color { ColorAnimation { duration: 120 } }
+                Behavior on color { CAnim { ms: 120 } }
                 UiText { anchors.centerIn: parent; text: "Open btop"; color: root.paper; font.family: root.mono; font.pixelSize: 11 }
                 MouseArea {
                     id: btopMa

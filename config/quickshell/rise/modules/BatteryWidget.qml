@@ -65,14 +65,12 @@ Item {
         anchors.centerIn: parent
         spacing: 5
 
-        UiText {
+        BarLabel {
+            root: rootMod.root
             anchors.verticalCenter: parent.verticalCenter
             visible: !root.compactBattery
-            text: "BAT"
-            color: Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.6)
-            font.family: root.mono
-            font.pixelSize: 12
-            font.letterSpacing: 0.5
+            label: "BAT"
+            glyph: "battery_full"
         }
 
         // drawn landscape battery — body + stepless fill + terminal nub
@@ -104,7 +102,7 @@ Item {
                 color: "transparent"
                 border.width: 1.2
                 border.color: rootMod.battColor
-                Behavior on border.color { ColorAnimation { duration: 200 } }
+                Behavior on border.color { CAnim { ms: 200 } }
 
                 // faint indigo wash so a charging cell reads "active" at any level
                 Rectangle {
@@ -125,8 +123,8 @@ Item {
                     radius: 1.2
                     clip: true
                     color: rootMod.battColor
-                    Behavior on width { NumberAnimation { duration: 350; easing.type: Easing.OutCubic } }
-                    Behavior on color { ColorAnimation { duration: 200 } }
+                    Behavior on width { Anim { kind: "size"; ms: 350 } }
+                    Behavior on color { CAnim { ms: 200 } }
 
                     // font-free charging shimmer that sweeps across the fill
                     Rectangle {
@@ -185,7 +183,7 @@ Item {
                 height: 5
                 radius: 1.2
                 color: rootMod.battColor
-                Behavior on color { ColorAnimation { duration: 200 } }
+                Behavior on color { CAnim { ms: 200 } }
             }
         }
 
@@ -195,7 +193,7 @@ Item {
             color: rootMod.battColor
             font.family: root.mono
             font.pixelSize: 12
-            Behavior on color { ColorAnimation { duration: 200 } }
+            Behavior on color { CAnim { ms: 200 } }
         }
     }
 

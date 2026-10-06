@@ -28,10 +28,7 @@ PanelWindow {
 
     property real reveal: root.gpuVisible ? 1 : 0
     Behavior on reveal {
-        NumberAnimation {
-            duration: root.gpuVisible ? 160 : 120
-            easing.type: root.gpuVisible ? Easing.OutCubic : Easing.InCubic
-        }
+        Anim { kind: root.gpuVisible ? "spatial" : "exit" }
     }
     visible: reveal > 0.001
     WlrLayershell.keyboardFocus: root.gpuVisible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
@@ -46,7 +43,7 @@ PanelWindow {
         width: 320
         height: col.implicitHeight + 24
         radius: reveal > 0.001 ? root.pillRadius : 0
-        color: root.bg
+        color: root.cardBg
         border.color: root.pillBorder
         border.width: root.pillBorderW
         PillShadow { theme: root }
@@ -55,7 +52,7 @@ PanelWindow {
         y: root.barPosition === "bottom" ? (parent.height - barBottom - gap - height) : (barBottom + gap)
         opacity: gpuPanel.reveal
         transformOrigin: root.barPosition === "bottom" ? Item.Bottom : Item.Top
-        scale: root.motionHover ? (0.955 + 0.045 * gpuPanel.reveal) : 1
+        scale: root.motionHover ? (0.92 + 0.08 * gpuPanel.reveal) : 1
         focus: root.gpuVisible
 
         Keys.onPressed: function(event) {
@@ -92,7 +89,7 @@ PanelWindow {
                     text: "\u2715"
                     color: closeMa.containsMouse ? root.seal : root.sumi
                     font.pixelSize: 12
-                    Behavior on color { ColorAnimation { duration: 120 } }
+                    Behavior on color { CAnim { ms: 120 } }
                     MouseArea {
                         id: closeMa
                         anchors.fill: parent
@@ -165,7 +162,7 @@ PanelWindow {
                             height: parent.height
                             radius: parent.radius
                             color: root.seal
-                            Behavior on width { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
+                            Behavior on width { Anim { kind: "size"; ms: 250 } }
                         }
                     }
                 }

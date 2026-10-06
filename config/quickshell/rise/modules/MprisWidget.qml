@@ -105,10 +105,10 @@ Item {
     implicitHeight: 28
     opacity: root.modMpris ? 1 : 0
 
-    Behavior on opacity { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
+    Behavior on opacity { Anim { kind: "effects"; ms: 140 } }
 
     Behavior on implicitWidth {
-        NumberAnimation { duration: 220; easing.type: Easing.OutCubic }
+        Anim { kind: "size"; ms: 250 }
     }
 
     Rectangle {
@@ -154,7 +154,7 @@ Item {
             color: (rootMod.player && rootMod.player.canGoPrevious)
                 ? Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.7)
                 : Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.22)
-            Behavior on color { ColorAnimation { duration: 150 } }
+            Behavior on color { CAnim { ms: 150 } }
             MouseArea {
                 anchors.fill: parent; cursorShape: Qt.PointingHandCursor
                 onClicked: if (rootMod.player) rootMod.player.previous()
@@ -181,7 +181,7 @@ Item {
             color: (rootMod.player && rootMod.player.canGoNext)
                 ? Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.7)
                 : Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.22)
-            Behavior on color { ColorAnimation { duration: 150 } }
+            Behavior on color { CAnim { ms: 150 } }
             MouseArea {
                 anchors.fill: parent; cursorShape: Qt.PointingHandCursor
                 onClicked: if (rootMod.player) rootMod.player.next()
@@ -234,7 +234,7 @@ Item {
                 font.family: root.mono
                 font.pixelSize: 12
                 x: 0
-                Behavior on color { ColorAnimation { duration: 200 } }
+                Behavior on color { CAnim { ms: 200 } }
                 onTextChanged: marqueeClip.resetMarquee()
             }
 

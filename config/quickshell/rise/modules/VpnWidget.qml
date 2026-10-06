@@ -50,8 +50,8 @@ Item {
             ? root.seal
             : Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.45)
         opacity: rootMod.busy ? 0.5 : 1.0
-        Behavior on color { ColorAnimation { duration: 150 } }
-        Behavior on opacity { NumberAnimation { duration: 150 } }
+        Behavior on color { CAnim { ms: 150 } }
+        Behavior on opacity { Anim { kind: "effects"; ms: 150 } }
     }
 
     TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText }

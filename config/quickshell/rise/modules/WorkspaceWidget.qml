@@ -131,7 +131,7 @@ Item {
 
                 // hover feedback works in every style (the old code scaled the
                 // default-only `dot`, invisible in numbers/magic)
-                Behavior on scale { NumberAnimation { duration: 120 } }
+                Behavior on scale { Anim { kind: "spatialFast" } }
 
                 readonly property bool isFocused: Hyprland.focusedWorkspace !== null
                                                && Number(Hyprland.focusedWorkspace.name) === wsId
@@ -157,7 +157,7 @@ Item {
                 implicitHeight: 28
 
                 Behavior on implicitWidth {
-                    NumberAnimation { duration: 200; easing.type: Easing.OutCubic }
+                    Anim { kind: "size"; ms: 250 }
                 }
 
                 // ── DEFAULT style: glow + dot ──
@@ -174,8 +174,8 @@ Item {
                         ? Qt.rgba(root.seal.r, root.seal.g, root.seal.b, 0.18)
                         : Qt.rgba(root.seal.r, root.seal.g, root.seal.b, 0.06)
 
-                    Behavior on width { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
-                    Behavior on color { ColorAnimation { duration: 200 } }
+                    Behavior on width { Anim { kind: "size"; ms: 250 } }
+                    Behavior on color { CAnim { ms: 200 } }
                 }
 
                 // pill / kreis
@@ -192,8 +192,8 @@ Item {
                         ? root.seal
                         : Qt.rgba(root.seal.r, root.seal.g, root.seal.b, 0.25)
 
-                    Behavior on width { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
-                    Behavior on color { ColorAnimation { duration: 200 } }
+                    Behavior on width { Anim { kind: "size"; ms: 250 } }
+                    Behavior on color { CAnim { ms: 200 } }
                 }
 
                 // ── NUMBERS style: a digit on a rounded badge (radius follows
@@ -207,7 +207,7 @@ Item {
                     color: isFocused  ? Qt.rgba(root.seal.r, root.seal.g, root.seal.b, 0.30)
                          : isOccupied ? Qt.rgba(root.seal.r, root.seal.g, root.seal.b, 0.12)
                                       : Qt.rgba(root.seal.r, root.seal.g, root.seal.b, 0.04)
-                    Behavior on color { ColorAnimation { duration: 200 } }
+                    Behavior on color { CAnim { ms: 200 } }
                     Text {
                         anchors.centerIn: parent
                         text: wsId
@@ -232,7 +232,7 @@ Item {
                     font.family: root.mono
                     font.pixelSize: 12
                     font.weight: wsCell.isFocused ? Font.Bold : Font.Normal
-                    Behavior on color { ColorAnimation { duration: 200 } }
+                    Behavior on color { CAnim { ms: 200 } }
                 }
 
                 // ── MAGIC style: the 3 ORIGINAL sparkle glyphs (filled / hollow / dot),
@@ -251,7 +251,7 @@ Item {
                     font.family: "Adwaita Mono"   // all 3 sparkle glyphs live here → one consistent metric
                     font.pixelSize: isFocused ? 22 : 18
                     renderType: Text.NativeRendering   // crisp hinted raster (default QtRendering softens small symbols)
-                    Behavior on color { ColorAnimation { duration: 200 } }
+                    Behavior on color { CAnim { ms: 200 } }
                 }
 
                 MouseArea {
