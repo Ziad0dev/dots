@@ -46,8 +46,48 @@ function mapKeys(raw) {
     return out;
 }
 
+// Muted text comes from color8, a terminal's "bright black", which many
+// palettes keep barely above the background (oled: #3a3a3a on black, 1.85:1).
+// Lift it toward the foreground until it is readable, keeping its hue.
+const MIN_MUTED_CONTRAST = 4.5;
+
 function parse(text) {
-    return mapKeys(parseAll(text));
+    const out = mapKeys(parseAll(text));
+    if (out.sumi && out.paper && out.ink)
+        out.sumi = readable(out.sumi, out.paper, out.ink, MIN_MUTED_CONTRAST);
+    return out;
+}
+
+function hexRgb(h) {
+    return [1, 3, 5].map(function (i) { return parseInt(h.substr(i, 2), 16) / 255; });
+}
+
+function rgbHex(c) {
+    return "#" + c.map(function (v) {
+        return Math.round(Math.max(0, Math.min(1, v)) * 255).toString(16).padStart(2, "0");
+    }).join("");
+}
+
+// WCAG relative luminance and contrast ratio
+function luminance(c) {
+    const f = function (v) { return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+    return 0.2126 * f(c[0]) + 0.7152 * f(c[1]) + 0.0722 * f(c[2]);
+}
+
+function contrast(a, b) {
+    const la = luminance(a), lb = luminance(b);
+    return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
+}
+
+// fg mixed toward `toward` in 5% steps until it reaches `min` against bg
+function readable(fg, bg, toward, min) {
+    const f = hexRgb(fg), b = hexRgb(bg), t = hexRgb(toward);
+    for (let k = 0; k <= 20; k++) {
+        const m = k / 20;
+        const c = f.map(function (v, i) { return v + (t[i] - v) * m; });
+        if (contrast(c, b) >= min) return rgbHex(c);
+    }
+    return toward;
 }
 
 function validColor(value) {
