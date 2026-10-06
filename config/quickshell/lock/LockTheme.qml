@@ -21,9 +21,21 @@ Item {
     property color color07:    "#c8c093"
     property color accentHint: "#7e9cd8"
     readonly property color bg:   paper
-    readonly property color seal: accentHint
+    // the accent picked in the bar's control panel (settings.json barColor,
+    // "color01"…"color07"), so lock and bar match; the palette's own accent
+    // whenever that can't be read
+    property string barColor: ""
+    readonly property color seal: /^color0[1-7]$/.test(barColor) ? theme[barColor] : accentHint
     readonly property color err:  color01
     readonly property string mono: "JetBrainsMono Nerd Font"
+
+    FileView {
+        path: Quickshell.env("HOME") + "/.local/state/dots/shell/settings.json"
+        printErrors: false
+        onLoaded: {
+            try { theme.barColor = String(JSON.parse(text()).barColor || "") } catch (e) { theme.barColor = "" }
+        }
+    }
 
     Process {
         id: paletteReader
