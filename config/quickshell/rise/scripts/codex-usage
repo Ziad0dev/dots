@@ -9,7 +9,7 @@ so the cache stores bucket/window metadata instead of assuming Claude's fixed
 5h/7d model.
 """
 import json, os, select, shutil, subprocess, sys, time
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
 
 CODEX_HOME = Path(os.environ.get("CODEX_HOME") or (Path.home() / ".codex"))
@@ -523,7 +523,6 @@ def scan_activity() -> tuple[int, int, dict[int, dict]]:
             minutes = as_int(item.get("minutes"))
             reset = as_int(item.get("reset"))
             event_epoch = as_float(item.get("eventEpoch"))
-            timestamp = str(item.get("timestamp") or "")
             if minutes <= 0 or reset <= now or event_epoch <= 0:
                 continue
             if event_epoch > now + EVENT_CLOCK_SKEW_SECS:
