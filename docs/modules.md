@@ -1,6 +1,6 @@
 # System modules
 
-Everything in `modules/` is imported by `desktopModules` in `flake.nix`, together with chaotic's `nyx-cache`, `nyx-overlay` and `nyx-registry`. Order doesn't matter except where noted. Anything with more moving parts is covered in [Services](services.md) or [Desktop](desktop.md).
+Every `.nix` file under `modules/` is imported automatically by `desktopModules` in `flake.nix`, together with chaotic's `nyx-cache`, `nyx-overlay` and `nyx-registry`. Order doesn't matter except where noted. Anything with more moving parts is covered in [Services](services.md) or [Desktop](desktop.md).
 
 ## Host: `hosts/nixos/configuration.nix`
 
@@ -85,7 +85,7 @@ Per-user: MangoHud in `home/gaming-home.nix` (hidden by default, `Right Shift + 
 | `vpn.nix` | WireGuard namespace `wg`; qBittorrent, Prowlarr, FlareSolverr confined to it | [Services](services.md#vpn-namespace) |
 | `mullvad.nix` | Mullvad daemon + GUI for the host; systemd-resolved with LLMNR off | |
 | `lan.nix` | Jellyfin ports on the LAN interface only | |
-| `llm.nix` | Six llama.cpp units (Vulkan), mutually exclusive, user-startable without sudo | [Services](services.md#local-llms) |
+| `llm.nix` | Eight llama.cpp units (CUDA, sm_86), mutually exclusive, user-startable without sudo | [Services](services.md#local-llms) |
 | `ollama.nix` | Ollama (Vulkan) on `127.0.0.1:11434`, not autostarted | [Services](services.md#local-llms) |
 | `backup.nix` | Daily restic of `$HOME` to `/mnt/backup/restic` | [Services](services.md#backups) |
 | `immich.nix` | Immich (NVENC) on `:2283`, tailnet only; data in `/data/immich`, added to the restic backup | [Services](services.md#immich) |
@@ -96,8 +96,7 @@ Per-user: MangoHud in `home/gaming-home.nix` (hidden by default, `Right Shift + 
 ## Adding a module
 
 1. Create `modules/<thing>.nix`. Module arguments available: `config lib pkgs inputs username hostname system profile`.
-2. Add `./modules/<thing>.nix` to `desktopModules` in `flake.nix`.
-3. `git add -A` — the pre-commit hook fails on a flake reference to an untracked file.
-4. `update`.
+2. `git add -A` — `desktopModules` imports every file under `modules/`, but the flake only sees tracked files (and the pre-commit hook fails on a flake reference to an untracked file).
+3. `update`.
 
 Service modules follow a common shape: `openFirewall = false`, `unitConfig.RequiresMountsFor` on any external mount the service reads, and `serviceConfig = import ../lib/hardening.nix // { … }` with the exceptions it needs.

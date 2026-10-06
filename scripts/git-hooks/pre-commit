@@ -11,6 +11,15 @@ while read -r ref; do
         echo "pre-commit: flake references UNTRACKED file: $f  (git add it)"; fail=1; }
 done < <(grep -oE '\./[A-Za-z0-9_./-]+\.nix' flake.nix | sort -u)
 
+#    modules/ is imported by directory listing, so an untracked module there is
+#    not an error — it is silently left out of the system. Refuse that too.
+untracked=$(git ls-files --others --exclude-standard -- modules/ | grep '\.nix$')
+if [ -n "$untracked" ]; then
+    echo "pre-commit: untracked module(s) would be silently skipped (git add them):"
+    echo "$untracked" | sed 's/^/    /'
+    fail=1
+fi
+
 # 2. Legacy hyprctl dispatch strings fail SILENTLY under the Lua config
 #    (hyprctl still exits 0), so nothing else would catch these.
 if grep -rn "hyprctl dispatch" --include="*.conf" --include="*.jsonc" --include="*.sh" \
@@ -30,13 +39,15 @@ fi
 # 4. Full eval — catches duplicate attrs, bad option names, type errors.
 #    Evaluating only the nixos host let a broken homeConfigurations output sit
 #    unnoticed, so every output that builds an activation package is checked.
+# CI runs this hook too; there whoami is the runner, not the flake's username.
+user="${DOTS_USERNAME:-$(whoami)}"
 if command -v nix >/dev/null; then
     for out in \
         "nixosConfigurations.nixos.config.system.build.toplevel" \
-        "homeConfigurations.\"$(whoami)@linux\".activationPackage" \
-        "homeConfigurations.\"$(whoami)@linux-desktop\".activationPackage" \
-        "homeConfigurations.\"$(whoami)@aarch64-linux\".activationPackage" \
-        "homeConfigurations.\"$(whoami)@mac\".activationPackage" \
+        "homeConfigurations.\"${user}@linux\".activationPackage" \
+        "homeConfigurations.\"${user}@linux-desktop\".activationPackage" \
+        "homeConfigurations.\"${user}@aarch64-linux\".activationPackage" \
+        "homeConfigurations.\"${user}@mac\".activationPackage" \
         "darwinConfigurations.mac.system"
     do
         echo "pre-commit: evaluating $out"
