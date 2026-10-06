@@ -97,7 +97,7 @@ in
   # 8.1 GB of weights: 8k context with a q8 KV cache keeps it on a 12 GB card
   # next to the desktop's own VRAM use
   systemd.services.llama-hermes = lib.recursiveUpdate (gpuUnit "llama-hermes.service") {
-    description = "Hermes 4 14B (steerable; pairs with Hermes Agent)";
+    description = "Hermes 4 14B (steerable)";
     serviceConfig = sandbox // {
       ExecStart = ''
         ${llama}/bin/llama-server \

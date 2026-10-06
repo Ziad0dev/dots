@@ -164,7 +164,6 @@
   programs.agents = {
     codex.enable = true;
     opencode.enable = true;
-    hermes.enable = true;
     pi.enable = true;
   };
 
