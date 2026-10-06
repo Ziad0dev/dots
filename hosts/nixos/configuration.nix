@@ -133,13 +133,11 @@
   };
   services.blueman.enable = false;
 
-  virtualisation.docker = {
+  # rootless only (started on first use by the `docker` fish function); the
+  # root daemon and /run/docker.sock were never used
+  virtualisation.docker.rootless = {
     enable = true;
-    enableOnBoot = false;
-    rootless = {
-      enable = true;
-      setSocketVariable = true;
-    };
+    setSocketVariable = true;
   };
 
   systemd.user.services.docker.wantedBy = lib.mkForce [ ];
