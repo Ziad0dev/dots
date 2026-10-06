@@ -48,7 +48,8 @@
     nixcord = {
       url = "github:FlameFlag/nixcord";
       inputs.nixpkgs.follows = "nixpkgs";
-      inputs.nixpkgs-nixcord.follows = "nixpkgs";
+      inputs.nixpkgs-packages.follows = "nixpkgs";
+      inputs.nixpkgs-ci.follows = "nixpkgs";
       inputs.home-manager.follows = "home-manager";
       inputs.nix-darwin.follows = "nix-darwin";
     };
@@ -68,11 +69,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    hermes-agent = {
-      url = "github:NousResearch/hermes-agent";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.home-manager.follows = "home-manager";
-    };
+    # no nixpkgs follows: keeps numtide's binary cache hitting
+    llm-agents.url = "github:numtide/llm-agents.nix";
 
     vm-curator = {
       url = "github:mroboff/vm-curator";
