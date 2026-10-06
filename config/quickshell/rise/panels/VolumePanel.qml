@@ -50,14 +50,13 @@ PanelWindow {
         return Math.max(0, Math.min(1, (db - micNoiseFloorDb) / -micNoiseFloorDb))
     }
 
-    Timer {
-        interval: 45
-        repeat: true
+    FrameAnimation {
         running: root.volVisible && volPanel.micMeterAvailable
         onTriggered: {
             var sample = volPanel.micMuted ? 0 : volPanel.peakToMeter(volPanel.micPeakValue)
+            var fall = Math.pow(0.78, Math.min(frameTime, 0.1) / 0.045)   // tuned per 45 ms tick
             volPanel.micLevel = sample >= volPanel.micLevel
-                ? sample : Math.max(sample, volPanel.micLevel * 0.78)
+                ? sample : Math.max(sample, volPanel.micLevel * fall)
         }
         onRunningChanged: if (!running) volPanel.micLevel = 0
     }

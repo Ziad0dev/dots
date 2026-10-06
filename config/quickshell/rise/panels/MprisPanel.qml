@@ -120,11 +120,12 @@ PanelWindow {
     }
 
     // ── idle wave: only when active+paused (cava drives the bars while playing) ─
-    Timer {
-        interval: 33; repeat: true
+    FrameAnimation {
         running: mprisPanel.visible && mprisPanel.active && !mprisPanel.playing
         onTriggered: {
-            mprisPanel.phase += 0.12
+            var k = Math.min(frameTime, 0.1) / 0.033   // tuned per 30 Hz tick
+            var ease = 1 - Math.pow(0.75, k)
+            mprisPanel.phase += 0.12 * k
             var out = []
             var lv = mprisPanel.levels
             for (var i = 0; i < mprisPanel.bands; i++) {
@@ -138,7 +139,7 @@ PanelWindow {
                                 * (1 - d / mprisPanel.bands)
                 }
                 var cur = lv[i] === undefined ? 0.06 : lv[i]
-                out.push(cur + (goal - cur) * 0.25)   // gentle ease for the idle state
+                out.push(cur + (goal - cur) * ease)   // gentle ease for the idle state
             }
             mprisPanel.levels = out
         }

@@ -216,6 +216,12 @@ def main():
         for p in check_file(path, index):
             print(f"qml-check: {path.relative_to(ROOT.parent.parent.parent)}: {p}")
             fail = 1
+    # Quickshell confines imports to each config's own root, so the lock screen
+    # keeps its own Palette.js copy; they must not drift apart.
+    lock_palette = ROOT.parent / "lock" / "Palette.js"
+    if lock_palette.read_bytes() != (ROOT / "Palette.js").read_bytes():
+        print("qml-check: config/quickshell/lock/Palette.js differs from rise/Palette.js")
+        fail = 1
     if not fail:
         print("qml-check: ok")
     return fail
