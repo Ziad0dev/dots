@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 import re
+import os
+import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -222,6 +225,18 @@ def main():
     if lock_palette.read_bytes() != (ROOT / "Palette.js").read_bytes():
         print("qml-check: config/quickshell/lock/Palette.js differs from rise/Palette.js")
         fail = 1
+    # A parse error makes Quickshell drop the whole type (and with BarSlot, the
+    # bar) — the reference check above can't see that. qmllint tags those [syntax].
+    qmllint = os.environ.get("QMLLINT") or shutil.which("qmllint")
+    if qmllint:
+        files = sorted(str(p) for p in ROOT.parent.rglob("*.qml"))   # rise + lock
+        res = subprocess.run([qmllint, *files], capture_output=True, text=True)
+        for line in (res.stdout + res.stderr).splitlines():
+            if "[syntax]" in line:
+                print("qml-check: " + line.replace(str(ROOT.parent.parent.parent) + "/", ""))
+                fail = 1
+    else:
+        print("qml-check: qmllint not found (set QMLLINT); syntax not checked", file=sys.stderr)
     if not fail:
         print("qml-check: ok")
     return fail

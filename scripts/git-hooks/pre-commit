@@ -33,6 +33,12 @@ fi
 # 3. QML: unresolved id/property references render as a blank element with
 #    nothing in the journal and nothing from qmllint.
 if command -v python3 >/dev/null; then
+    # qmllint for the syntax pass, from the same Qt the shell runs on
+    if [ -z "${QMLLINT:-}" ] && command -v nix >/dev/null; then
+        decl=$(nix build --no-link --print-out-paths --no-warn-dirty \
+            .#nixosConfigurations.nixos.pkgs.qt6.qtdeclarative 2>/dev/null) \
+            && export QMLLINT="$decl/bin/qmllint"
+    fi
     python3 "$(dirname "$0")/../qml-check.py" || fail=1
 fi
 
