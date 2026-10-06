@@ -2,11 +2,16 @@
 
 -- Frost blur behind the bar island and pills. ignore_alpha sits under the pill fill (0.18)
 -- so pills blur, but above shadow tails and the transparent rest of the bar strip.
+-- xray: the bar and frame reserve their space, so only the wallpaper is ever behind them.
+-- The bar is one fullscreen surface and Qt damages all of it on every redraw, so live
+-- blur re-blurred the whole screen each frame (~40 W while media played); xray reuses
+-- the cached wallpaper blur.
 hl.layer_rule({
     name         = "rise-bar",
     match        = { namespace = "^quickshell$" },
     blur         = true,
     ignore_alpha = 0.12,
+    xray         = true,
 })
 
 -- Panels animate their own reveal; a compositor fade/slide on top doubles the motion.
