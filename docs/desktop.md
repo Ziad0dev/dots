@@ -148,6 +148,9 @@ The bar, launcher, control panel, pickers and notifications UI. Vendored in `con
 
 - `shell.qml` is the entry; `modules/` holds bar widgets, `panels/` the pop-outs, `core/` the IPC router and state, `scripts/` the helpers it shells out to (AI-quota fetchers, keybind scraper, bar control).
 - It reads colours from `~/.local/state/dots/shell/current/theme/colors.sh` — a symlink themectl maintains to the active palette.
+- `Theme.qml` is one object split across an inheritance chain for size: `ThemeTelemetry` ← `ThemeGithub` ← `ThemeAiUsage` ← `Theme`. Everything is still read as `theme.<name>`; ids don't cross files.
+- Motion goes through `modules/Anim.qml` / `CAnim.qml` and the curve table in `modules/Motion.js` (Material 3 Expressive): `kind: "spatialFast"` for moves and scale (springy), `"size"` for width/height (no overshoot), `"effects"` for opacity and colour, `"spatial"`/`"exit"` for panel reveals. Use these instead of a bare `NumberAnimation`.
+- Compositor side: `config/hypr/modules/71-layers.lua` blurs the bar (`quickshell`) and panels (`dots-*`) and turns off Hyprland's own layer animation for panels, which animate themselves.
 - The unit's PATH is pinned: the `dots-*` shims, wallpaper helpers and a fixed tool set come first, so the bar behaves the same regardless of your login environment. `DOTS_SHELL_PATH` points at the repo copy.
 - Bar widgets include workspaces, clock/calendar, media (MPRIS), audio, network, CPU/GPU/memory/temps, storage and mount health, power profile, weather, VPN, night light, idle inhibitor, notification silencing, dictation state, LLM unit, qBittorrent speeds, update indicator, screen recording, tray, and AI usage (Codex / OpenCode / OpenRouter quotas refreshed every 10 minutes by `dots-ai-usage.timer`).
 
