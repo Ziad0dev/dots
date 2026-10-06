@@ -11,7 +11,7 @@ Item {
     implicitWidth: root.modCpu ? row.implicitWidth + 18 : 0
     implicitHeight: 28
     opacity: root.modCpu ? 1 : 0
-    Behavior on opacity      { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
+    Behavior on opacity      { Anim { kind: "effects"; ms: 140 } }
 
     readonly property int percent: root.systemCpuPercent
     readonly property var history: root.systemCpuHistory
@@ -34,14 +34,12 @@ Item {
         anchors.centerIn: parent
         spacing: root.compactCpu ? 4 : 5
 
-        UiText {
+        BarLabel {
+            root: rootMod.root
             anchors.verticalCenter: parent.verticalCenter
             visible: !root.compactCpu
-            text: "CPU"
-            color: Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.6)
-            font.family: root.mono
-            font.pixelSize: 12
-            font.letterSpacing: 0.5
+            label: "CPU"
+            glyph: "developer_board"
         }
 
         Canvas {

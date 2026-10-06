@@ -3,6 +3,7 @@ import QtQuick.Shapes
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Io
+import "../modules"
 import "ImagePickerModel.js" as Model
 
 // Hearthstone (card-deck) variant — original felt look (dark table, dark card
@@ -561,7 +562,7 @@ PanelWindow {
                     Rectangle {
                         anchors.fill: parent; color: "black"
                         opacity: card.dim
-                        Behavior on opacity { NumberAnimation { duration: 180 } }
+                        Behavior on opacity { Anim { kind: "effects"; ms: 180 } }
                     }
                 }
                 // passepartout — rounded outer + rounded inner hole (OddEven), drawn
@@ -607,7 +608,7 @@ PanelWindow {
                         fillColor: "transparent"
                         strokeColor: card.focused ? root.seal : "transparent"
                         strokeWidth: card.focused ? 2 : 0
-                        Behavior on strokeColor { ColorAnimation { duration: 160 } }
+                        Behavior on strokeColor { CAnim { ms: 160 } }
                         startX: frameShape.ro; startY: 0
                         PathLine { x: frameShape.w - frameShape.ro; y: 0 }
                         PathArc  { x: frameShape.w; y: frameShape.ro; radiusX: frameShape.ro; radiusY: frameShape.ro }
@@ -688,7 +689,7 @@ PanelWindow {
                 text: "by " + (panel.selMeta ? panel.selMeta.author : "") + "  ↗"
                 color: authorMa.containsMouse ? root.seal : panel.textDim
                 font.family: root.mono; font.pixelSize: 11
-                Behavior on color { ColorAnimation { duration: 120 } }
+                Behavior on color { CAnim { ms: 120 } }
                 MouseArea {
                     id: authorMa
                     anchors.fill: parent; hoverEnabled: true

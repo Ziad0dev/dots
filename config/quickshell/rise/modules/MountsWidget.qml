@@ -18,8 +18,8 @@ Item {
     implicitWidth: alert ? row.implicitWidth + 18 : 0
     implicitHeight: 28
     opacity: alert ? 1 : 0
-    Behavior on implicitWidth { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
-    Behavior on opacity       { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
+    Behavior on implicitWidth { Anim { kind: "size"; ms: 250 } }
+    Behavior on opacity       { Anim { kind: "effects"; ms: 140 } }
 
     Process {
         id: query

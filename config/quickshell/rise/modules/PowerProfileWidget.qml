@@ -42,7 +42,7 @@ Item {
     implicitHeight: 28
     opacity: root.modPower ? 1 : 0
 
-    Behavior on opacity { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
+    Behavior on opacity { Anim { kind: "effects"; ms: 140 } }
 
     Rectangle {
         x: 0; anchors.verticalCenter: parent.verticalCenter
@@ -60,14 +60,12 @@ Item {
         anchors.centerIn: parent
         spacing: 5
 
-        UiText {
+        BarLabel {
+            root: rootMod.root
             anchors.verticalCenter: parent.verticalCenter
             visible: !root.compactPower
-            text: "PWR"
-            color: Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.6)
-            font.family: root.mono
-            font.pixelSize: 12
-            font.letterSpacing: 0.5
+            label: "PWR"
+            glyph: "bolt"
         }
 
         UiText {
@@ -78,7 +76,7 @@ Item {
             color: rootMod.profileColor
             font.family: root.mono
             font.pixelSize: rootMod.isBalanced ? 13 : 14
-            Behavior on color { ColorAnimation { duration: 200 } }
+            Behavior on color { CAnim { ms: 200 } }
         }
 
         UiText {
@@ -88,7 +86,7 @@ Item {
             color: rootMod.profileColor
             font.family: root.mono
             font.pixelSize: 12
-            Behavior on color { ColorAnimation { duration: 200 } }
+            Behavior on color { CAnim { ms: 200 } }
         }
     }
 

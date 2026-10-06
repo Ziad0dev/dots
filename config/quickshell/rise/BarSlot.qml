@@ -76,7 +76,7 @@ PanelWindow {
         opacity: barSlot.root.barUnlocked ? 0.4 : 0.0
         visible: opacity > 0.001
         z: 1
-        Behavior on opacity { NumberAnimation { duration: 180 } }
+        Behavior on opacity { Anim { kind: "effects"; ms: 180 } }
         MouseArea {
             anchors.fill: parent
             enabled: barSlot.root.barUnlocked
@@ -254,10 +254,10 @@ PanelWindow {
         // dim while dragging over empty space (no valid drop → snap-back)
         opacity: barSlot.dragActive ? (barSlot.dropModel ? 0.95 : 0.45) : 0.92
         scale: barSlot.dragActive ? 1.06 : 1.0
-        Behavior on opacity { NumberAnimation { duration: 120 } }
-        Behavior on x { enabled: !barSlot.dragActive; NumberAnimation { duration: 230; easing.type: Easing.OutCubic } }
-        Behavior on y { enabled: !barSlot.dragActive; NumberAnimation { duration: 230; easing.type: Easing.OutCubic } }
-        Behavior on scale { NumberAnimation { duration: 120 } }
+        Behavior on opacity { Anim { kind: "effects"; ms: 120 } }
+        Behavior on x { enabled: !barSlot.dragActive; Anim { kind: "spatialFast" } }
+        Behavior on y { enabled: !barSlot.dragActive; Anim { kind: "spatialFast" } }
+        Behavior on scale { Anim { kind: "spatialFast" } }
     }
 
     // ─────────────────────────── group registry ───────────────────────────
@@ -270,8 +270,8 @@ PanelWindow {
             implicitWidth: barSlot.root.modStatus ? Math.round(statusRow.implicitWidth) + 10 : 0
             implicitHeight: 28
             opacity: barSlot.root.modStatus ? 1 : 0
-            Behavior on implicitWidth { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
-            Behavior on opacity      { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
+            Behavior on implicitWidth { Anim { kind: "size"; ms: 250 } }
+            Behavior on opacity      { Anim { kind: "effects"; ms: 140 } }
             Rectangle {
                 anchors.centerIn: parent
                 width: parent.implicitWidth; height: barSlot.root.pillH; radius: barSlot.root.pillRadius
@@ -368,8 +368,8 @@ PanelWindow {
                     height: 28
                     clip: true
                     opacity: g8.showWeather ? 1 : 0
-                    Behavior on width   { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
-                    Behavior on opacity { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
+                    Behavior on width   { Anim { kind: "size"; ms: 250 } }
+                    Behavior on opacity { Anim { kind: "effects"; ms: 140 } }
                     WeatherWidget {
                         id: weather
                         anchors.fill: parent
@@ -383,8 +383,8 @@ PanelWindow {
                     height: 28
                     clip: true
                     opacity: g8.showDate ? 1 : 0
-                    Behavior on width   { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
-                    Behavior on opacity { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
+                    Behavior on width   { Anim { kind: "size"; ms: 250 } }
+                    Behavior on opacity { Anim { kind: "effects"; ms: 140 } }
                     UiText {
                         id: dateLabel
                         anchors.verticalCenter: parent.verticalCenter
@@ -415,8 +415,8 @@ PanelWindow {
                     height: 28
                     clip: true
                     opacity: g8.showIcons ? 1 : 0
-                    Behavior on width   { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
-                    Behavior on opacity { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
+                    Behavior on width   { Anim { kind: "size"; ms: 250 } }
+                    Behavior on opacity { Anim { kind: "effects"; ms: 140 } }
                     Row {
                         id: iconsRow
                         anchors.verticalCenter: parent.verticalCenter
@@ -451,8 +451,8 @@ PanelWindow {
             implicitWidth: barSlot.root.modQuick ? Math.round(qcRow.implicitWidth) + 16 : 0
             implicitHeight: 28
             opacity: barSlot.root.modQuick ? 1 : 0
-            Behavior on implicitWidth { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
-            Behavior on opacity      { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
+            Behavior on implicitWidth { Anim { kind: "size"; ms: 250 } }
+            Behavior on opacity      { Anim { kind: "effects"; ms: 140 } }
             Rectangle {
                 anchors.centerIn: parent
                 width: parent.implicitWidth; height: barSlot.root.pillH; radius: barSlot.root.pillRadius
@@ -498,6 +498,7 @@ PanelWindow {
 
     // ───────────────────── reusable region row of slots ─────────────────────
     component SlotRow: Row {
+        id: slotRow
         property var rmodel
         property var splitsArr          // per-gap split flags (split AFTER slot i)
         property var toggleGap          // function(i): toggle the split after slot i
@@ -515,6 +516,36 @@ PanelWindow {
                 if (it && it.hasContent && it.autoShown) last = k
             }
             return last
+        }
+        // One highlight per row that glides between hovered pills instead of each
+        // pill lighting up on its own. Its host is reparented next to the row and
+        // tracks its geometry (a positioner neither lays out nor shows zero-size
+        // children, and any sized child would be laid out as a slot).
+        // Drawn OVER the pills as a faint state layer: pill fills are near-opaque in
+        // most styles, so an underlay would never show.
+        property Item hoverSlot: null
+        Item {
+            parent: slotRow.parent
+            x: slotRow.x; y: slotRow.y; z: slotRow.z + 1
+            width: slotRow.width; height: slotRow.height
+            Rectangle {
+                id: hoverGlide
+                readonly property Item target: hoverSlot
+                property real lastX: 0
+                property real lastW: 0
+                onTargetChanged: if (target) { lastX = target.x; lastW = target.glideW }
+                x: target ? target.x : lastX
+                width: target ? target.glideW : lastW
+                y: Math.round(16 - barSlot.root.pillH / 2)   // slots are 32 high, pills centred
+                height: barSlot.root.pillH
+                radius: barSlot.root.pillRadius
+                color: Qt.rgba(barSlot.root.seal.r, barSlot.root.seal.g, barSlot.root.seal.b, 0.12)
+                opacity: target && !barSlot.root.barUnlocked ? 1 : 0
+                // from nothing: appear in place; between pills: glide
+                Behavior on x { enabled: hoverGlide.opacity > 0.05; Anim { kind: "spatialFast" } }
+                Behavior on width { enabled: hoverGlide.opacity > 0.05; Anim { kind: "spatialFast" } }
+                Behavior on opacity { Anim { kind: "effects"; ms: 160 } }
+            }
         }
         Repeater {
             id: repeater
@@ -546,16 +577,26 @@ PanelWindow {
                 readonly property real budgetSlotWidth: Math.round(ldr.implicitWidth) + 2 * pad
                     + ((hasGapAfter && splitsArr[index] && hasContent) ? 16 : 0)
                 readonly property bool autoShown: island.groupVisibleAtStage(slot.gid, island.narrowStage)
+                readonly property real glideW: Math.round(ldr.implicitWidth) + 2 * pad   // the drawn pill
+                readonly property bool glideHover: motion.hovered && autoShown
+                onGlideHoverChanged: {
+                    if (glideHover) hoverSlot = slot
+                    else if (hoverSlot === slot) hoverSlot = null
+                }
                 onBudgetSlotWidthChanged: island.scheduleNarrowUpdate()
                 width: autoShown ? naturalSlotWidth : 0
                 height: 32
                 visible: hasContent && (autoShown || width > 0.5)   // stays visible while collapsing
                 opacity: autoShown ? 1 : 0
-                Behavior on opacity { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
-                Behavior on width { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+                Behavior on opacity { Anim { kind: "effects"; ms: 140 } }
+                Behavior on width { Anim { kind: "size"; ms: 250 } }
+                // on the slot (parent of the widget) so hover still registers over the
+                // widget's own tooltip MouseArea — handlers on parents always see hover
+                HoverHandler { id: slotHover; enabled: motion.active }
                 PillMotion {
                     id: motion
                     anchors.fill: parent
+                    externalHover: slotHover.hovered
                     active: barSlot.root.motionHover && !barSlot.root.barUnlocked
                     introDelay: 70 + slot.index * 45
                 }
@@ -614,7 +655,7 @@ PanelWindow {
                         color: slot.splitAfter ? barSlot.root.seal : barSlot.root.sumi
                         font.pixelSize: 10; font.family: barSlot.root.mono
                         opacity: mkMa.containsMouse ? 0.9 : 0.0          // hover-revealed
-                        Behavior on opacity { NumberAnimation { duration: 120 } }
+                        Behavior on opacity { Anim { kind: "effects"; ms: 120 } }
                     }
                     MouseArea {
                         id: mkMa
@@ -636,8 +677,8 @@ PanelWindow {
         anchors.verticalCenter: undefined
         width: barSlot.shellTargetWidth
         x: Math.round((parent.width - width) / 2)
-        Behavior on width { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
-        Behavior on x     { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
+        Behavior on width { Anim { kind: "size"; ms: 250 } }
+        Behavior on x     { Anim { kind: "size"; ms: 250 } }
         height: 32
         y: barSlot.root.barPosition === "bottom" ? (parent.height - height - 3) : 3
         z: 2                                  // above the dim backdrop
@@ -932,7 +973,7 @@ PanelWindow {
             // no centerIn: x is clamped between the side rows on narrow monitors
             anchors.verticalCenter: parent.verticalCenter
             x: island.centerTargetX
-            Behavior on x { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
+            Behavior on x { Anim { kind: "size"; ms: 250 } }
             rmodel: centerModel
         }
         SlotRow {
@@ -1013,7 +1054,7 @@ PanelWindow {
                 color: bm.splitOn ? barSlot.root.seal : barSlot.root.sumi
                 font.pixelSize: 10; font.family: barSlot.root.mono
                 opacity: bMa.containsMouse ? 0.9 : 0.0     // hover-revealed
-                Behavior on opacity { NumberAnimation { duration: 120 } }
+                Behavior on opacity { Anim { kind: "effects"; ms: 120 } }
             }
             MouseArea {
                 id: bMa

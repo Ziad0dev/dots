@@ -4,6 +4,7 @@ import QtQuick.Shapes
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Io
+import "../modules"
 import "ImagePickerModel.js" as Model
 
 // Carousel variant of the theme/wallpaper picker — skewed slices, one expands in
@@ -577,9 +578,9 @@ PanelWindow {
                 height: selected ? panel.expandedH : panel.sliceH
                 z: selected ? 100 : 50 - Math.min(Math.abs(relIdx), 40)
 
-                Behavior on x     { enabled: slice.nearby; NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
-                Behavior on y     { enabled: slice.nearby; NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
-                Behavior on width { enabled: slice.nearby; NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
+                Behavior on x     { enabled: slice.nearby; Anim { kind: "spatialFast" } }
+                Behavior on y     { enabled: slice.nearby; Anim { kind: "spatialFast" } }
+                Behavior on width { enabled: slice.nearby; Anim { kind: "size"; ms: 250 } }
 
                 readonly property real skAbs:    Math.abs(panel.skew)
                 readonly property real topLeft:  panel.skew >= 0 ? skAbs : 0
@@ -647,7 +648,7 @@ PanelWindow {
                             Rectangle {
                                 anchors.fill: parent
                                 color: Qt.rgba(panel.dimColor.r, panel.dimColor.g, panel.dimColor.b, slice.selected ? 0 : 0.42)
-                                Behavior on color { ColorAnimation { duration: 200 } }
+                                Behavior on color { CAnim { ms: 200 } }
                             }
                         }
 
@@ -658,7 +659,7 @@ PanelWindow {
                                 fillColor: "transparent"
                                 strokeColor: slice.selected ? panel.selBorder : panel.unselBorder
                                 strokeWidth: slice.selected ? 3 : 1
-                                Behavior on strokeColor { ColorAnimation { duration: 150 } }
+                                Behavior on strokeColor { CAnim { ms: 150 } }
                                 startX: slice.topLeft; startY: 0
                                 PathLine { x: slice.topRight; y: 0 }
                                 PathLine { x: slice.botRight; y: slice.height }

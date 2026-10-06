@@ -17,7 +17,7 @@ Item {
     implicitWidth: shown ? row.implicitWidth + 18 : 0
     implicitHeight: 28
     opacity: shown ? 1 : 0
-    Behavior on opacity { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
+    Behavior on opacity { Anim { kind: "effects"; ms: 140 } }
 
     readonly property string tooltipText: {
         if (broken) return "GitHub: " + root.ghError
@@ -65,7 +65,7 @@ Item {
                     : root.widgetContentColor(rootMod.gid, root.seal)
                 font.family: root.mono
                 font.pixelSize: 14
-                Behavior on color { ColorAnimation { duration: 200 } }
+                Behavior on color { CAnim { ms: 200 } }
             }
 
             Rectangle {
@@ -88,7 +88,7 @@ Item {
                 : root.widgetContentColor(rootMod.gid, Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.85))
             font.family: root.mono
             font.pixelSize: 12
-            Behavior on color { ColorAnimation { duration: 200 } }
+            Behavior on color { CAnim { ms: 200 } }
         }
     }
 

@@ -56,10 +56,7 @@ PanelWindow {
 
     property real reveal: root.bluetoothVisible ? 1 : 0
     Behavior on reveal {
-        NumberAnimation {
-            duration: root.bluetoothVisible ? 160 : 120
-            easing.type: root.bluetoothVisible ? Easing.OutCubic : Easing.InCubic
-        }
+        Anim { kind: root.bluetoothVisible ? "spatial" : "exit" }
     }
     visible: reveal > 0.001
     WlrLayershell.keyboardFocus: root.bluetoothVisible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
@@ -71,7 +68,7 @@ PanelWindow {
         width: 300
         height: col.implicitHeight + 24
         radius: reveal > 0.001 ? root.pillRadius : 0
-        color: root.bg
+        color: root.cardBg
         border.color: root.pillBorder
         border.width: root.pillBorderW
         PillShadow { theme: root }
@@ -80,7 +77,7 @@ PanelWindow {
         y: root.barPosition === "bottom" ? (parent.height - barBottom - gap - height) : (barBottom + gap)
         opacity: btPanel.reveal
         transformOrigin: root.barPosition === "bottom" ? Item.Bottom : Item.Top
-        scale: root.motionHover ? (0.955 + 0.045 * btPanel.reveal) : 1
+        scale: root.motionHover ? (0.92 + 0.08 * btPanel.reveal) : 1
         focus: root.bluetoothVisible
 
         Keys.onPressed: function(event) {
@@ -137,13 +134,13 @@ PanelWindow {
                                             : root.fillIdle
                         border.color: btPanel.btOn ? root.seal : root.sep
                         border.width: 1
-                        Behavior on color { ColorAnimation { duration: 150 } }
+                        Behavior on color { CAnim { ms: 150 } }
                         Rectangle {
                             width: 14; height: 14; radius: 7
                             anchors.verticalCenter: parent.verticalCenter
                             x: btPanel.btOn ? parent.width - width - 3 : 3
                             color: btPanel.btOn ? root.seal : root.sumi
-                            Behavior on x { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
+                            Behavior on x { Anim { kind: "spatialFast" } }
                         }
                         MouseArea {
                             anchors.fill: parent
@@ -154,7 +151,7 @@ PanelWindow {
                     UiText {
                         anchors.verticalCenter: parent.verticalCenter
                         text: "✕"; color: closeMa.containsMouse ? root.seal : root.sumi; font.pixelSize: 12
-                        Behavior on color { ColorAnimation { duration: 120 } }
+                        Behavior on color { CAnim { ms: 120 } }
                         MouseArea { id: closeMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: root.bluetoothVisible = false }
                     }
                 }
@@ -182,7 +179,7 @@ PanelWindow {
                        : hovered ? root.fillHover : root.fillIdle
                 border.color: (btPanel.scanning || hovered) ? root.seal : root.sep
                 border.width: 1
-                Behavior on color { ColorAnimation { duration: 120 } }
+                Behavior on color { CAnim { ms: 120 } }
                 UiText {
                     anchors.centerIn: parent
                     text: btPanel.scanning ? "Scanning…" : "Scan for devices"
@@ -217,7 +214,7 @@ PanelWindow {
                         border.color: modelData.connected ? root.seal
                                       : hovered ? root.seal : root.sep
                         border.width: 1
-                        Behavior on color { ColorAnimation { duration: 120 } }
+                        Behavior on color { CAnim { ms: 120 } }
 
                         MouseArea {
                             id: tileHover
@@ -291,7 +288,7 @@ PanelWindow {
                 width: parent.width
                 height: 28; radius: root.tileRadius
                 color: btSetMa.containsMouse ? root.fillPrimaryHover : root.seal
-                Behavior on color { ColorAnimation { duration: 120 } }
+                Behavior on color { CAnim { ms: 120 } }
                 UiText { anchors.centerIn: parent; text: "Bluetooth settings"; color: root.paper; font.family: root.mono; font.pixelSize: 11 }
                 MouseArea {
                     id: btSetMa

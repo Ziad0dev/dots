@@ -33,7 +33,7 @@ Item {
         color: rootMod.on
             ? root.seal
             : Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.45)
-        Behavior on color { ColorAnimation { duration: 150 } }
+        Behavior on color { CAnim { ms: 150 } }
     }
 
     TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText }

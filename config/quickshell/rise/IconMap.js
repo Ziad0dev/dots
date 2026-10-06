@@ -26,6 +26,10 @@ var icons = {
     "speed": "\uE9E4",
     "package_2": "\uF569",
     "language": "\uE894",
+    "developer_board": "\uE30D",
+    "battery_full": "\uE1A4",
+    "swap_vert": "\uE8D5",
+    "bolt": "\uEA0B",
 }
 
 function icon(name) {

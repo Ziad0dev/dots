@@ -269,7 +269,7 @@ PanelWindow {
                 height: modelData.image ? 76 : 40
                 radius: 6
                 color: index === win.sel ? win.island : "transparent"
-                Behavior on color { ColorAnimation { duration: 120 } }
+                Behavior on color { CAnim { ms: 120 } }
 
                 Rectangle {
                     anchors { left: parent.left; verticalCenter: parent.verticalCenter }

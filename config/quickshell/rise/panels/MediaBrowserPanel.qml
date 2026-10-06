@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Wayland
 import Quickshell.Io
 import Quickshell.Widgets
+import "../modules"
 import "ImagePickerModel.js" as Model
 
 // Tanzaku filmstrip browser for screenshots & videos. Same language as the
@@ -440,9 +441,9 @@ PanelWindow {
                 visible: near
                 opacity: near ? 1 : 0
 
-                Behavior on x       { enabled: item.animate; NumberAnimation { duration: 260; easing.type: Easing.OutCubic } }
-                Behavior on width   { enabled: item.animate; NumberAnimation { duration: 260; easing.type: Easing.OutCubic } }
-                Behavior on opacity { enabled: item.animate; NumberAnimation { duration: 200 } }
+                Behavior on x       { enabled: item.animate; Anim { kind: "spatialFast" } }
+                Behavior on width   { enabled: item.animate; Anim { kind: "size"; ms: 260 } }
+                Behavior on opacity { enabled: item.animate; Anim { kind: "effects"; ms: 200 } }
 
                 // ── lazy cached thumbnail (480px jpg) — videos via ffmpegthumbnailer,
                 // screenshots via magick; full-size sources are never decoded live ──
@@ -464,7 +465,7 @@ PanelWindow {
                     color: panel.frameBg
                     border.width: 1
                     border.color: item.focused ? root.seal : root.sep
-                    Behavior on border.color { ColorAnimation { duration: 180 } }
+                    Behavior on border.color { CAnim { ms: 180 } }
 
                     ClippingRectangle {
                         anchors.fill: parent
@@ -500,7 +501,7 @@ PanelWindow {
                             anchors.fill: parent
                             color: root.paper
                             opacity: item.focused ? 0 : (Math.abs(item.relIdx) === 1 ? 0.28 : 0.5)
-                            Behavior on opacity { NumberAnimation { duration: 200 } }
+                            Behavior on opacity { Anim { kind: "effects"; ms: 200 } }
                         }
                     }
                 }

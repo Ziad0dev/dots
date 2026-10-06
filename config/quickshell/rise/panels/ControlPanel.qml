@@ -36,10 +36,7 @@ PanelWindow {
 
     property real reveal: root.controlVisible ? 1 : 0
     Behavior on reveal {
-        NumberAnimation {
-            duration: root.controlVisible ? 160 : 120
-            easing.type: root.controlVisible ? Easing.OutCubic : Easing.InCubic
-        }
+        Anim { kind: root.controlVisible ? "spatial" : "exit" }
     }
     visible: reveal > 0.001
     onRevealChanged: if (reveal < 0.01) { powerOpen = false; wsOpen = false; compactOpen = false; root.splitsSubVisible = false; root.wwSubVisible = false }  // reset when closed
@@ -57,7 +54,7 @@ PanelWindow {
         color: active ? Qt.rgba(accent.r, accent.g, accent.b, root.fillActiveAlpha) : _ma.containsMouse ? Qt.rgba(accent.r, accent.g, accent.b, root.fillHoverAlpha) : root.fillIdle
         border.color: (active || _ma.containsMouse) ? accent : root.sep
         border.width: 1
-        Behavior on color { ColorAnimation { duration: 120 } }
+        Behavior on color { CAnim { ms: 120 } }
         Text {
             anchors.centerIn: parent
             text: parent.label
@@ -88,7 +85,7 @@ PanelWindow {
             font.family: root.mono
             font.pixelSize: 11
             font.weight: parent.active ? Font.Medium : Font.Normal
-            Behavior on color { ColorAnimation { duration: 120 } }
+            Behavior on color { CAnim { ms: 120 } }
         }
         Rectangle {
             anchors.right: parent.right
@@ -99,7 +96,7 @@ PanelWindow {
             color: parent.active ? root.fillActive : toggleMa.containsMouse ? root.fillHover : root.fillIdle
             border.color: (parent.active || toggleMa.containsMouse) ? root.seal : root.sep
             border.width: 1
-            Behavior on color { ColorAnimation { duration: 120 } }
+            Behavior on color { CAnim { ms: 120 } }
             Rectangle {
                 width: 10
                 height: 10
@@ -107,8 +104,8 @@ PanelWindow {
                 anchors.verticalCenter: parent.verticalCenter
                 x: parent.parent.active ? parent.width - width - 3 : 3
                 color: parent.parent.active ? root.seal : root.sumi
-                Behavior on x { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
-                Behavior on color { ColorAnimation { duration: 120 } }
+                Behavior on x { Anim { kind: "spatialFast" } }
+                Behavior on color { CAnim { ms: 120 } }
             }
         }
         MouseArea {
@@ -127,7 +124,7 @@ PanelWindow {
         width: 240
         height: col.implicitHeight + 24
         radius: ctrlPanel.reveal > 0.001 ? root.pillRadius : 0
-        color: root.bg
+        color: root.cardBg
         border.color: root.pillBorder
         border.width: root.pillBorderW
         PillShadow { theme: root }
@@ -136,7 +133,7 @@ PanelWindow {
         y: root.barPosition === "bottom" ? (parent.height - barBottom - gap - height) : (barBottom + gap)
         opacity: ctrlPanel.reveal
         transformOrigin: root.barPosition === "bottom" ? Item.Bottom : Item.Top
-        scale: root.motionHover ? (0.955 + 0.045 * ctrlPanel.reveal) : 1
+        scale: root.motionHover ? (0.92 + 0.08 * ctrlPanel.reveal) : 1
         focus: root.controlVisible
 
         Keys.onPressed: function(event) {
@@ -164,7 +161,7 @@ PanelWindow {
                 UiText {
                     anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
                     text: "✕"; color: closeMa.containsMouse ? root.seal : root.sumi; font.pixelSize: 12
-                    Behavior on color { ColorAnimation { duration: 120 } }
+                    Behavior on color { CAnim { ms: 120 } }
                     MouseArea { id: closeMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: root.controlVisible = false }
                 }
             }
@@ -266,9 +263,9 @@ PanelWindow {
                         border.width: 1
                         scale: hovered ? 1.04 : 1.0
                         z: hovered ? 1 : 0
-                        Behavior on color { ColorAnimation { duration: 120 } }
+                        Behavior on color { CAnim { ms: 120 } }
                         Behavior on scale {
-                            NumberAnimation { duration: 120; easing.type: Easing.OutCubic }
+                            Anim { kind: "spatialFast" }
                         }
                         UiText {
                             anchors.centerIn: parent
@@ -367,7 +364,7 @@ PanelWindow {
                         color: on ? root.fillActive : hovered ? root.fillHover : root.fillIdle
                         border.color: (on || hovered) ? root.seal : root.sep
                         border.width: 1
-                        Behavior on color { ColorAnimation { duration: 120 } }
+                        Behavior on color { CAnim { ms: 120 } }
                         UiText {
                             anchors.centerIn: parent
                             text: pickTile.modelData.label
@@ -395,7 +392,7 @@ PanelWindow {
         width: 248
         height: splitCol.implicitHeight + 24
         radius: (root.controlVisible && root.splitsSubVisible) ? root.pillRadius : 0
-        color: root.bg
+        color: root.cardBg
         border.color: root.pillBorder
         border.width: root.pillBorderW
         PillShadow { theme: root }
@@ -449,7 +446,7 @@ PanelWindow {
                         color: on ? root.fillActive : hovered ? root.fillHover : root.fillIdle
                         border.color: (on || hovered) ? root.seal : root.sep
                         border.width: 1
-                        Behavior on color { ColorAnimation { duration: 120 } }
+                        Behavior on color { CAnim { ms: 120 } }
                         UiText {
                             anchors.centerIn: parent
                             text: root.barAnim === animTile.modelData.alt ? animTile.modelData.label + " 2"
@@ -522,7 +519,7 @@ PanelWindow {
         width: 248
         height: wwCol.implicitHeight + 24
         radius: (root.controlVisible && root.wwSubVisible) ? root.pillRadius : 0
-        color: root.bg
+        color: root.cardBg
         border.color: root.pillBorder
         border.width: root.pillBorderW
         PillShadow { theme: root }
@@ -737,7 +734,7 @@ PanelWindow {
                             color: on ? root.fillActive : hovered ? root.fillHover : root.fillIdle
                             border.color: (on || hovered) ? root.seal : root.sep
                             border.width: 1
-                            Behavior on color { ColorAnimation { duration: 120 } }
+                            Behavior on color { CAnim { ms: 120 } }
                             UiText {
                                 anchors.centerIn: parent
                                 text: wsmTile.modelData.label
@@ -773,7 +770,7 @@ PanelWindow {
                             color: on ? root.fillActive : hovered ? root.fillHover : root.fillIdle
                             border.color: (on || hovered) ? root.seal : root.sep
                             border.width: 1
-                            Behavior on color { ColorAnimation { duration: 120 } }
+                            Behavior on color { CAnim { ms: 120 } }
                             UiText {
                                 anchors.centerIn: parent
                                 text: wssTile.modelData.label
@@ -797,14 +794,16 @@ PanelWindow {
             Row {
                 width: parent.width; spacing: 4
                 // independent toggles: each highlights when ON, click flips it (Border+Frost+Shadow combinable)
-                Tile { width: root.evenW((wwCol.width - 8) / 3); label: "Border"; active: root.styleBorder; onActivated: root.styleBorder = !root.styleBorder }
-                Tile { width: root.evenW((wwCol.width - 8) / 3); label: "Frost";  active: root.styleFrost;  onActivated: root.styleFrost = !root.styleFrost }
-                Tile { width: root.evenW((wwCol.width - 8) / 3); label: "Shadow"; active: root.styleShadow; onActivated: root.styleShadow = !root.styleShadow }
+                Tile { width: root.evenW((wwCol.width - 12) / 4); label: "Border"; active: root.styleBorder; onActivated: root.styleBorder = !root.styleBorder }
+                Tile { width: root.evenW((wwCol.width - 12) / 4); label: "Frost";  active: root.styleFrost;  onActivated: root.styleFrost = !root.styleFrost }
+                Tile { width: root.evenW((wwCol.width - 12) / 4); label: "Shadow"; active: root.styleShadow; onActivated: root.styleShadow = !root.styleShadow }
+                Tile { width: root.evenW((wwCol.width - 12) / 4); label: "Depth";  active: root.styleDepth;  onActivated: root.styleDepth = !root.styleDepth }
             }
             Row {
                 width: parent.width; spacing: 4
-                Tile { width: root.evenW((wwCol.width - 4) / 2); label: "Radius 12"; active: !root.styleRadiusSmall; onActivated: root.styleRadiusSmall = false }
-                Tile { width: root.evenW((wwCol.width - 4) / 2); label: "Radius 6";  active: root.styleRadiusSmall;  onActivated: root.styleRadiusSmall = true }
+                Tile { width: root.evenW((wwCol.width - 8) / 3); label: "Radius 12"; active: !root.styleRadiusSmall; onActivated: root.styleRadiusSmall = false }
+                Tile { width: root.evenW((wwCol.width - 8) / 3); label: "Radius 6";  active: root.styleRadiusSmall;  onActivated: root.styleRadiusSmall = true }
+                Tile { width: root.evenW((wwCol.width - 8) / 3); label: "Icons";     active: root.styleIconLabels;   onActivated: root.styleIconLabels = !root.styleIconLabels }
             }
 
             Rectangle { width: parent.width; height: 1; color: root.sep }

@@ -54,7 +54,7 @@ Item {
     implicitWidth: active ? row.implicitWidth + 4 : 0
     implicitHeight: 28
     clip: true
-    Behavior on implicitWidth { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
+    Behavior on implicitWidth { Anim { kind: "size"; ms: 250 } }
 
     Row {
         id: row

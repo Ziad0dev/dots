@@ -136,6 +136,15 @@ Item {
     readonly property color barBg:  Qt.rgba(paper.r, paper.g, paper.b,
                                             styleFrost ? Math.min(barOpacity, 0.68) : barOpacity)
     readonly property color pill:   Qt.rgba(paper.r, paper.g, paper.b, pillOpacity)
+    // ── tonal depth (M3-style surface container) ──
+    // panel cards sit one tone above the bar (paper stepped toward ink, so it
+    // scales with every palette); inputs keep `bg` and read as recessed wells.
+    property bool styleDepth: true
+    function surfaceTone(t, a) {
+        return Qt.rgba(paper.r + (ink.r - paper.r) * t, paper.g + (ink.g - paper.g) * t,
+                       paper.b + (ink.b - paper.b) * t, a)
+    }
+    readonly property color cardBg: styleDepth ? surfaceTone(0.06, barOpacity) : bg
     readonly property color fg:     ink
     readonly property color muted:  sumi
     readonly property color accent: seal
@@ -508,6 +517,7 @@ Item {
     property bool styleFrost:       false   // lower bar-island opacity; theme blur may show through
     property bool styleRadiusSmall: false   // radius 12 ⇄ 6
     property bool styleHeightMin:   false   // inner pill 24 ⇄ 20 (slot stays 28)
+    property bool styleIconLabels:  false   // CPU/MEM/VOL/… text labels ⇄ Material Symbols glyphs
     readonly property int   pillRadius:   styleRadiusSmall ? 6 : 12
     readonly property int   pillH:        styleHeightMin ? 20 : 24
     readonly property int   pillBorderW:  styleBorder ? 1 : 0
@@ -2600,6 +2610,8 @@ Item {
     onStyleShadowChanged:      if (_widgetsLoaded) saveWidgets()
     onStyleFrostChanged:       if (_widgetsLoaded) saveWidgets()
     onStyleRadiusSmallChanged: if (_widgetsLoaded) saveWidgets()
+    onStyleIconLabelsChanged:  if (_widgetsLoaded) saveWidgets()
+    onStyleDepthChanged:       if (_widgetsLoaded) saveWidgets()
     onWorkspaceStyleChanged:   if (_widgetsLoaded) saveWidgets()
     onBarPositionChanged:      if (_widgetsLoaded) saveWidgets()
     onMotionHoverChanged:      if (_widgetsLoaded) saveWidgets()
@@ -2648,7 +2660,9 @@ Item {
                  + (modGithub         ? "1" : "0") + " "  // +33 github inbox pill
                  + (motionHover       ? "1" : "0") + " "  // +34
                  + (motionSweep       ? "1" : "0") + " "  // +35
-                 + (motionDigits      ? "1" : "0")        // +36
+                 + (motionDigits      ? "1" : "0") + " "  // +36
+                 + (styleIconLabels   ? "1" : "0") + " "  // +37 icon glyphs instead of text labels
+                 + (styleDepth        ? "1" : "0")        // +38 tonal panel cards
         widgetSaveProc.command = ["bash", "-c",
             "printf '%s\\n' \"$1\" > \"$2\"", "_", line, widgetsCachePath]
         widgetSaveProc.running = false
@@ -2861,6 +2875,8 @@ Item {
                     if (parts.length > wsField + 34) theme.motionHover       = parts[wsField + 34] !== "0"
                     if (parts.length > wsField + 35) theme.motionSweep       = parts[wsField + 35] !== "0"
                     if (parts.length > wsField + 36) theme.motionDigits      = parts[wsField + 36] !== "0"
+                    if (parts.length > wsField + 37) theme.styleIconLabels   = parts[wsField + 37] === "1"
+                    if (parts.length > wsField + 38) theme.styleDepth        = parts[wsField + 38] !== "0"
                 }
                 theme._widgetsLoaded = true
             }

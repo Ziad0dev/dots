@@ -21,10 +21,7 @@ PanelWindow {
 
     property real reveal: root.workspaceVisible ? 1 : 0
     Behavior on reveal {
-        NumberAnimation {
-            duration: root.workspaceVisible ? 160 : 120
-            easing.type: root.workspaceVisible ? Easing.OutCubic : Easing.InCubic
-        }
+        Anim { kind: root.workspaceVisible ? "spatial" : "exit" }
     }
     visible: reveal > 0.001
     WlrLayershell.keyboardFocus: root.workspaceVisible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
@@ -36,7 +33,7 @@ PanelWindow {
         width: 240
         height: col.implicitHeight + 24
         radius: reveal > 0.001 ? root.pillRadius : 0
-        color: root.bg
+        color: root.cardBg
         border.color: root.pillBorder
         border.width: root.pillBorderW
         PillShadow { theme: root }
@@ -45,7 +42,7 @@ PanelWindow {
         y: root.barPosition === "bottom" ? (parent.height - barBottom - gap - height) : (barBottom + gap)
         opacity: wsPanel.reveal
         transformOrigin: root.barPosition === "bottom" ? Item.Bottom : Item.Top
-        scale: root.motionHover ? (0.955 + 0.045 * wsPanel.reveal) : 1
+        scale: root.motionHover ? (0.92 + 0.08 * wsPanel.reveal) : 1
         focus: root.workspaceVisible
 
         Keys.onPressed: function(event) {
@@ -72,7 +69,7 @@ PanelWindow {
                 UiText {
                     anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
                     text: "✕"; color: closeMa.containsMouse ? root.seal : root.sumi; font.pixelSize: 12
-                    Behavior on color { ColorAnimation { duration: 120 } }
+                    Behavior on color { CAnim { ms: 120 } }
                     MouseArea { id: closeMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: root.workspaceVisible = false }
                 }
             }
@@ -95,7 +92,7 @@ PanelWindow {
                                 : ma.containsMouse ? root.fillHover : root.fillIdle
                         border.color: (ma.containsMouse || isActive) ? root.seal : root.sep
                         border.width: 1
-                        Behavior on color { ColorAnimation { duration: 120 } }
+                        Behavior on color { CAnim { ms: 120 } }
 
                         UiText {
                             anchors.left: parent.left; anchors.leftMargin: 10

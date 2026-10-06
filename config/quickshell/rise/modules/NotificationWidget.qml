@@ -20,7 +20,7 @@ Item {
         color: root.notifCount > 0
             ? root.seal
             : Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.4)
-        Behavior on color { ColorAnimation { duration: 150 } }
+        Behavior on color { CAnim { ms: 150 } }
     }
 
     // count badge — top-right, theme red with high-contrast text

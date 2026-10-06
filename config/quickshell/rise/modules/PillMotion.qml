@@ -9,7 +9,11 @@ Item {
     property int  introDelay: 0
     property bool introEnabled: true
 
-    readonly property bool hovered: motion.active && hh.hovered
+    // a HoverHandler on a parent of the widget (see BarSlot): the widget's own
+    // hover-enabled MouseArea accepts hover, so this sibling's hh never sees it there
+    property bool externalHover: false
+
+    readonly property bool hovered: motion.active && (hh.hovered || motion.externalHover)
     readonly property bool held: motion.active && ph.active
 
     property real amount: motion.held ? motion.pressScale : motion.hovered ? motion.hoverScale : 1.0

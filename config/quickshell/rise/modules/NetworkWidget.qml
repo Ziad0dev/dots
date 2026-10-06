@@ -79,16 +79,15 @@ Item {
         spacing: 5
 
         // ── label ──
-        UiText {
+        BarLabel {
+            root: rootMod.root
             anchors.verticalCenter: parent.verticalCenter
             visible: !root.compactNetwork
-            text: "NET"
-            color: mode === "none"
+            label: "NET"
+            glyph: "swap_vert"
+            tint: mode === "none"
                 ? Qt.rgba(root.seal.r, root.seal.g, root.seal.b, 0.7)
                 : Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.6)
-            font.family: root.mono
-            font.pixelSize: 12
-            font.letterSpacing: 0.5
         }
 
         // ── ethernet: dual sparkline ──
@@ -193,7 +192,7 @@ Item {
             text: IconMap.icon(rootMod.wifiIconName)
             color: root.compactNetwork ? root.seal : root.ink
             font.pixelSize: root.compactNetwork ? 15 : 14
-            Behavior on color { ColorAnimation { duration: 160 } }
+            Behavior on color { CAnim { ms: 160 } }
         }
 
         IconText {
@@ -204,7 +203,7 @@ Item {
                 ? root.seal
                 : Qt.rgba(root.seal.r, root.seal.g, root.seal.b, 0.65)
             font.pixelSize: rootMod.mode === "ethernet" ? 14 : 15
-            Behavior on color { ColorAnimation { duration: 160 } }
+            Behavior on color { CAnim { ms: 160 } }
         }
 
         // ── wifi: ssid ──

@@ -89,7 +89,7 @@ PanelWindow {
                 height: entry ? body.implicitHeight + 20 : 0
                 visible: entry !== null
                 radius: root.pillRadius
-                color: root.bg
+                color: root.cardBg
                 border.color: critical ? root.sealRaw : hover.hovered ? root.seal : root.pillBorder
                 border.width: critical ? 1 : Math.max(1, root.pillBorderW)
                 PillShadow { theme: root }

@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Wayland
 import Quickshell.Io
 import Quickshell.Widgets
+import "../modules"
 import "ImagePickerModel.js" as Model
 
 // Tanzaku filmstrip picker for theme & wallpaper.
@@ -541,9 +542,9 @@ PanelWindow {
                 visible: near
                 opacity: near ? 1 : 0
 
-                Behavior on x       { enabled: item.animate; NumberAnimation { duration: 260; easing.type: Easing.OutCubic } }
-                Behavior on width   { enabled: item.animate; NumberAnimation { duration: 260; easing.type: Easing.OutCubic } }
-                Behavior on opacity { enabled: item.animate; NumberAnimation { duration: 200 } }
+                Behavior on x       { enabled: item.animate; Anim { kind: "spatialFast" } }
+                Behavior on width   { enabled: item.animate; Anim { kind: "size"; ms: 260 } }
+                Behavior on opacity { enabled: item.animate; Anim { kind: "effects"; ms: 200 } }
 
                 // hairline frame; the photo is clipped to the rounded INNER shape
                 // (ClippingRectangle = AA shader mask) so its corners round to match
@@ -555,7 +556,7 @@ PanelWindow {
                     color: panel.frameBg
                     border.width: 1
                     border.color: item.focused ? root.seal : root.sep
-                    Behavior on border.color { ColorAnimation { duration: 180 } }
+                    Behavior on border.color { CAnim { ms: 180 } }
 
                     ClippingRectangle {
                         anchors.fill: parent
@@ -592,7 +593,7 @@ PanelWindow {
                             anchors.fill: parent
                             color: root.paper
                             opacity: item.focused ? 0 : (Math.abs(item.relIdx) === 1 ? 0.28 : 0.5)
-                            Behavior on opacity { NumberAnimation { duration: 200 } }
+                            Behavior on opacity { Anim { kind: "effects"; ms: 200 } }
                         }
                     }
                 }
@@ -682,7 +683,7 @@ PanelWindow {
                 text: "by " + (panel.selMeta ? panel.selMeta.author : "") + "  ↗"
                 color: authorMa.containsMouse ? root.seal : panel.uiDim
                 font.family: root.mono; font.pixelSize: 11
-                Behavior on color { ColorAnimation { duration: 120 } }
+                Behavior on color { CAnim { ms: 120 } }
                 MouseArea {
                     id: authorMa
                     anchors.fill: parent

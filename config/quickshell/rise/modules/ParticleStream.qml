@@ -31,7 +31,7 @@ Item {
     readonly property real ambientRiseStep8: 0.16
 
     opacity: active ? 1.0 : 0.0
-    Behavior on opacity { NumberAnimation { duration: 500; easing.type: Easing.InOutCubic } }
+    Behavior on opacity { Anim { kind: "effects"; ms: 500 } }
 
     function requestFrame() {
         if (!active || !visible || width <= 0 || height <= 0) return

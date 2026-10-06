@@ -79,10 +79,7 @@ PanelWindow {
 
     property real reveal: root.mprisVisible ? 1 : 0
     Behavior on reveal {
-        NumberAnimation {
-            duration: root.mprisVisible ? 160 : 120
-            easing.type: root.mprisVisible ? Easing.OutCubic : Easing.InCubic
-        }
+        Anim { kind: root.mprisVisible ? "spatial" : "exit" }
     }
     visible: reveal > 0.001
     WlrLayershell.keyboardFocus: root.mprisVisible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
@@ -154,7 +151,7 @@ PanelWindow {
         width: 320
         height: col.implicitHeight + 24
         radius: reveal > 0.001 ? root.pillRadius : 0
-        color: root.bg
+        color: root.cardBg
         border.color: root.pillBorder
         border.width: root.pillBorderW
         PillShadow { theme: root }
@@ -163,7 +160,7 @@ PanelWindow {
         y: root.barPosition === "bottom" ? (parent.height - barBottom - gap - height) : (barBottom + gap)
         opacity: mprisPanel.reveal
         transformOrigin: root.barPosition === "bottom" ? Item.Bottom : Item.Top
-        scale: root.motionHover ? (0.955 + 0.045 * mprisPanel.reveal) : 1
+        scale: root.motionHover ? (0.92 + 0.08 * mprisPanel.reveal) : 1
         focus: root.mprisVisible
 
         Keys.onPressed: function(event) {
@@ -204,7 +201,7 @@ PanelWindow {
                     UiText {
                         anchors.verticalCenter: parent.verticalCenter
                         text: "✕"; color: closeMa.containsMouse ? root.seal : root.sumi; font.pixelSize: 12
-                        Behavior on color { ColorAnimation { duration: 120 } }
+                        Behavior on color { CAnim { ms: 120 } }
                         MouseArea { id: closeMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: root.mprisVisible = false }
                     }
                 }
@@ -283,7 +280,7 @@ PanelWindow {
                         color: root.seal
                         width: parent.width * (mprisPanel.curLen > 0
                             ? Math.min(1, mprisPanel.curPos / mprisPanel.curLen) : 0)
-                        Behavior on width { NumberAnimation { duration: 450 } }
+                        Behavior on width { Anim { kind: "size"; ms: 450 } }
                     }
                 }
                 UiText {

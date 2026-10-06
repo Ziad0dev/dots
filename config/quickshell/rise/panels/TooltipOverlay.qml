@@ -23,10 +23,7 @@ PanelWindow {
 
     property real reveal: root.tooltipShown ? 1 : 0
     Behavior on reveal {
-        NumberAnimation {
-            duration: root.tooltipShown ? 160 : 120
-            easing.type: root.tooltipShown ? Easing.OutCubic : Easing.InCubic
-        }
+        Anim { kind: root.tooltipShown ? "spatial" : "exit" }
     }
     visible: reveal > 0.001
 

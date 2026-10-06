@@ -11,7 +11,7 @@ Item {
     implicitWidth: (root.modStorage && root.storageAvailable) ? row.implicitWidth + 18 : 0
     implicitHeight: 28
     opacity: implicitWidth > 0.5 ? 1 : 0
-    Behavior on opacity { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
+    Behavior on opacity { Anim { kind: "effects"; ms: 140 } }
 
     readonly property bool low: root.storagePercent >= 90
 

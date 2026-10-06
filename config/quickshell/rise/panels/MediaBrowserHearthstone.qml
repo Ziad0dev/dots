@@ -3,6 +3,7 @@ import QtQuick.Shapes
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Io
+import "../modules"
 import "ImagePickerModel.js" as Model
 
 // Hearthstone (card-deck) variant of the screenshot/video browser. Original felt
@@ -429,10 +430,10 @@ PanelWindow {
                 z: focused ? 1000 : 500 - Math.min(Math.abs(relIdx), 40)
                 opacity: panel.dealT
 
-                Behavior on x        { enabled: card.nearby; NumberAnimation { duration: 240; easing.type: Easing.OutCubic } }
-                Behavior on y        { enabled: card.nearby; NumberAnimation { duration: 240; easing.type: Easing.OutCubic } }
-                Behavior on rotation { enabled: card.nearby; NumberAnimation { duration: 240; easing.type: Easing.OutCubic } }
-                Behavior on scale    { enabled: card.nearby; NumberAnimation { duration: 240; easing.type: Easing.OutCubic } }
+                Behavior on x        { enabled: card.nearby; Anim { kind: "spatialFast" } }
+                Behavior on y        { enabled: card.nearby; Anim { kind: "spatialFast" } }
+                Behavior on rotation { enabled: card.nearby; Anim { kind: "spatialFast" } }
+                Behavior on scale    { enabled: card.nearby; Anim { kind: "spatialFast" } }
 
                 // photo/poster (raster) — edges hidden behind the passepartout
                 Item {
@@ -476,7 +477,7 @@ PanelWindow {
                     Rectangle {
                         anchors.fill: parent; color: "black"
                         opacity: card.dim
-                        Behavior on opacity { NumberAnimation { duration: 180 } }
+                        Behavior on opacity { Anim { kind: "effects"; ms: 180 } }
                     }
                 }
                 // passepartout — crisp rounded outer + inner hole over the photo
@@ -518,7 +519,7 @@ PanelWindow {
                         fillColor: "transparent"
                         strokeColor: card.focused ? root.seal : "transparent"
                         strokeWidth: card.focused ? 2 : 0
-                        Behavior on strokeColor { ColorAnimation { duration: 160 } }
+                        Behavior on strokeColor { CAnim { ms: 160 } }
                         startX: frameShape.ro; startY: 0
                         PathLine { x: frameShape.w - frameShape.ro; y: 0 }
                         PathArc  { x: frameShape.w; y: frameShape.ro; radiusX: frameShape.ro; radiusY: frameShape.ro }

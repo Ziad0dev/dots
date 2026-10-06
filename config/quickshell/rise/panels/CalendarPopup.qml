@@ -20,10 +20,7 @@ PanelWindow {
 
     property real reveal: root.calendarVisible ? 1 : 0
     Behavior on reveal {
-        NumberAnimation {
-            duration: root.calendarVisible ? 160 : 120
-            easing.type: root.calendarVisible ? Easing.OutCubic : Easing.InCubic
-        }
+        Anim { kind: root.calendarVisible ? "spatial" : "exit" }
     }
     visible: reveal > 0.001
     WlrLayershell.keyboardFocus: root.calendarVisible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
@@ -38,7 +35,7 @@ PanelWindow {
         width: 280
         height: col.implicitHeight + 24
         radius: reveal > 0.001 ? root.pillRadius : 0
-        color: root.bg
+        color: root.cardBg
         border.color: root.pillBorder
         border.width: root.pillBorderW
         PillShadow { theme: root }
@@ -47,7 +44,7 @@ PanelWindow {
         y: root.barPosition === "bottom" ? (parent.height - barBottom - gap - height) : (barBottom + gap)
         opacity: calPopup.reveal
         transformOrigin: root.barPosition === "bottom" ? Item.Bottom : Item.Top
-        scale: root.motionHover ? (0.955 + 0.045 * calPopup.reveal) : 1
+        scale: root.motionHover ? (0.92 + 0.08 * calPopup.reveal) : 1
         focus: root.calendarVisible
 
         Keys.onPressed: function(event) {
