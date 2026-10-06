@@ -144,15 +144,16 @@ PanelWindow {
         }
     }
 
+    FrameCard { root: ghPanel.root; card: card; reveal: ghPanel.reveal }
     Rectangle {
         id: card
         width: 420
         height: Math.min(col.implicitHeight + 24, parent.height - 2 * (barBottom + gap))
         radius: reveal > 0.001 ? ghPanel.root.pillRadius : 0
-        color: ghPanel.root.bg
+        color: ghPanel.root.frameCardBg
         border.color: ghPanel.root.pillBorder
-        border.width: ghPanel.root.pillBorderW
-        PillShadow { theme: ghPanel.root }
+        border.width: ghPanel.root.frameCardBorderW
+        PillShadow { theme: ghPanel.root ; visible: ghPanel.root.styleShadow && !ghPanel.root.frameOn }
 
         x: Math.round(Math.max(6, Math.min(ghPanel.root.githubBarX - width / 2, parent.width - width - 6)))
         y: ghPanel.root.barPosition === "bottom"

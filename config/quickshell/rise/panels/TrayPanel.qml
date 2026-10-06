@@ -48,15 +48,16 @@ PanelWindow {
     // click-outside-to-close: full-overlay dismiss area behind the card
     MouseArea { anchors.fill: parent; onClicked: root.trayVisible = false }
 
+    FrameCard { root: trayPanel.root; card: card; reveal: trayPanel.reveal }
     Rectangle {
         id: card
         width: popupW
         height: col.implicitHeight + 24
         radius: reveal > 0.001 ? root.pillRadius : 0
-        color: root.cardBg
+        color: root.frameCardBg
         border.color: root.pillBorder
-        border.width: root.pillBorderW
-        PillShadow { theme: root }
+        border.width: root.frameCardBorderW
+        PillShadow { theme: root ; visible: root.styleShadow && !root.frameOn }
 
         x: Math.round(Math.max(6, Math.min(root.trayBarX, parent.width - width - 6)))
         y: root.barPosition === "bottom" ? (parent.height - barBottom - gap - height) : (barBottom + gap)

@@ -147,15 +147,16 @@ PanelWindow {
 
     MouseArea { anchors.fill: parent; onClicked: root.mprisVisible = false }
 
+    FrameCard { root: mprisPanel.root; card: card; reveal: mprisPanel.reveal }
     Rectangle {
         id: card
         width: 320
         height: col.implicitHeight + 24
         radius: reveal > 0.001 ? root.pillRadius : 0
-        color: root.cardBg
+        color: root.frameCardBg
         border.color: root.pillBorder
-        border.width: root.pillBorderW
-        PillShadow { theme: root }
+        border.width: root.frameCardBorderW
+        PillShadow { theme: root ; visible: root.styleShadow && !root.frameOn }
 
         x: Math.round(Math.max(6, Math.min(root.mprisBarX - width / 2, parent.width - width - 6)))
         y: root.barPosition === "bottom" ? (parent.height - barBottom - gap - height) : (barBottom + gap)
@@ -294,6 +295,18 @@ PanelWindow {
                     text: mprisPanel.fmtTime(mprisPanel.curLen)
                     color: root.sumiHi; font.family: root.mono; font.pixelSize: 9
                 }
+            }
+
+            // ── synced lyrics (LRCLIB; fetched only while this panel is open) ──
+            SyncedLyrics {
+                width: parent.width
+                root: mprisPanel.root
+                active: root.mprisVisible && mprisPanel.active
+                title: mprisPanel.player ? (mprisPanel.player.trackTitle || "") : ""
+                artist: mprisPanel.player ? (mprisPanel.player.trackArtist || "") : ""
+                album: mprisPanel.player ? (mprisPanel.player.trackAlbum || "") : ""
+                length: mprisPanel.curLen
+                position: mprisPanel.curPos
             }
 
             // ── visualizer + no-song message (shared canvas) ──

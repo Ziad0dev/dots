@@ -577,7 +577,6 @@ Item {
         interval: 3000; running: true; repeat: false
         onTriggered: {
             root.armed7 = true
-            root.lastNotifC = root.notifC
             root.lastNet7 = root.netMode7
         }
     }

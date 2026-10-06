@@ -87,14 +87,15 @@ PanelWindow {
 
     MouseArea { anchors.fill: parent; onClicked: root.keybindsVisible = false }
 
+    FrameCard { root: kbPanel.root; card: card; reveal: kbPanel.reveal }
     Rectangle {
         id: card
         width: 360
         height: Math.min(col.implicitHeight + 24, parent.height - kbPanel.barBottom - kbPanel.gap * 2)
         radius: root.pillRadius
-        color: root.cardBg
+        color: root.frameCardBg
         border.color: root.pillBorder
-        border.width: root.pillBorderW
+        border.width: root.frameCardBorderW
 
         x: Math.round(Math.max(6, Math.min(root.quickActionsBarX - width / 2, parent.width - width - 6)))
         y: root.barPosition === "bottom"

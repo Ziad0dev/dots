@@ -8,7 +8,8 @@ import Quickshell.Wayland
 // Notification popups, stacked under the bar's right edge on the focused
 // monitor. Hover pauses the timeout, click runs the default action, right
 // click or ✕ dismisses. Only the cards take input; the rest of the window is
-// click-through.
+// click-through. With the frame on, each card is a blob that melts out of the
+// right frame edge (FrameCard "right", offset to the window's screen position).
 PanelWindow {
     id: popups
     required property var root
@@ -37,7 +38,7 @@ PanelWindow {
     anchors.right: true
     margins.top: barBottom + gap
     margins.bottom: barBottom + gap
-    margins.right: 8
+    margins.right: root.frameOn ? root.frameThickness : 8
     implicitWidth: 360
     implicitHeight: Math.max(1, stack.implicitHeight)
     exclusionMode: ExclusionMode.Ignore
@@ -66,10 +67,15 @@ PanelWindow {
         return Quickshell.iconPath(icon, true)
     }
 
+    // where this window sits on its screen (anchored to the right edge)
+    readonly property real screenX: screen ? screen.width - implicitWidth - margins.right : 0
+    readonly property real screenY: !screen ? 0 : root.barPosition === "bottom"
+        ? screen.height - margins.bottom - implicitHeight : margins.top
+
     Column {
         id: stack
         width: parent.width
-        spacing: 6
+        spacing: 8
 
         Repeater {
             // ScriptModel diffs the key list, so existing cards (and their
@@ -89,15 +95,26 @@ PanelWindow {
                 height: entry ? body.implicitHeight + 20 : 0
                 visible: entry !== null
                 radius: root.pillRadius
-                color: root.cardBg
+                color: root.frameOn ? "transparent" : root.cardBg
                 border.color: critical ? root.sealRaw : hover.hovered ? root.seal : root.pillBorder
-                border.width: critical ? 1 : Math.max(1, root.pillBorderW)
-                PillShadow { theme: root }
+                border.width: critical ? 1 : root.frameOn ? 0 : Math.max(1, root.pillBorderW)
+                PillShadow { theme: root; visible: root.styleShadow && !root.frameOn }
+
+                // background as a blob out of the right frame edge
+                FrameCard {
+                    root: popups.root
+                    card: card
+                    reveal: card.enter
+                    edge: "right"
+                    screenName: popups.screen ? popups.screen.name : ""
+                    offsetX: popups.screenX
+                    offsetY: popups.screenY
+                }
 
                 // slide in from the right edge
                 property real enter: 0
                 Component.onCompleted: enter = 1
-                Behavior on enter { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
+                Behavior on enter { Anim { kind: "spatial" } }
                 opacity: enter
                 transform: Translate { x: (1 - card.enter) * 40 }
 
