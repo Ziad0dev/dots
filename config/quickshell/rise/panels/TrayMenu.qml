@@ -47,15 +47,16 @@ PanelWindow {
 
     MouseArea { anchors.fill: parent; onClicked: root.trayMenuVisible = false }
 
+    FrameCard { root: trayMenu.root; card: card; reveal: trayMenu.reveal }
     Rectangle {
         id: card
         width: 220
         height: col.implicitHeight + 16
         radius: reveal > 0.001 ? root.pillRadius : 0
-        color: root.cardBg
+        color: root.frameCardBg
         border.color: root.pillBorder
-        border.width: root.pillBorderW
-        PillShadow { theme: root }
+        border.width: root.frameCardBorderW
+        PillShadow { theme: root ; visible: root.styleShadow && !root.frameOn }
 
         x: parent ? Math.max(6, Math.min(root.trayMenuX, parent.width - width - 6)) : 6
         y: root.barPosition === "bottom" ? (parent.height - barBottom - gap - height) : (barBottom + gap)

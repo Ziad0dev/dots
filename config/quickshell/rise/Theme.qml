@@ -135,7 +135,9 @@ ThemeAiUsage {
     // already blurs Quickshell layer surfaces.
     readonly property color barBg:  Qt.rgba(paper.r, paper.g, paper.b,
                                             styleFrost ? Math.min(barOpacity, 0.68) : barOpacity)
-    readonly property color pill:   Qt.rgba(paper.r, paper.g, paper.b, pillOpacity)
+    // widgets sit straight on the frame (its band is the bar background), so
+    // in frame mode their pills have no fill of their own
+    readonly property color pill:   frameOn ? "transparent" : Qt.rgba(paper.r, paper.g, paper.b, pillOpacity)
     // ── tonal depth (M3-style surface container) ──
     // panel cards sit one tone above the bar (paper stepped toward ink, so it
     // scales with every palette); inputs keep `bg` and read as recessed wells.
@@ -145,6 +147,57 @@ ThemeAiUsage {
                        paper.b + (ink.b - paper.b) * t, a)
     }
     readonly property color cardBg: styleDepth ? surfaceTone(0.06, barOpacity) : bg
+
+    // ── frame (Caelestia-style, FrameBlobs.qml) ──
+    // The bar becomes the thick edge of one rounded frame around the screen, and
+    // panels attached to the bar register their card (FrameCard) so its
+    // background is drawn as a blob in the frame's group and melts out of it.
+    property bool styleFrame: true
+    // false when Caelestia.Blobs can't load (no QML_IMPORT_PATH): the bar then
+    // keeps the classic island look instead of failing to start
+    property bool frameAvailable: true
+    readonly property bool frameOn: styleFrame && frameAvailable
+    property bool styleFrameEdge: true      // accent rim along the frame's inner edge
+    property bool styleAutoHide: false      // bar collapses to the frame edge until hovered
+    property bool styleDeskClock: true      // large clock on the wallpaper (DeskClock.qml)
+    // panels opened by hovering a frame edge close again when the pointer leaves
+    // them, and don't take keyboard focus
+    property bool notifHoverOpened: false
+    property bool utilitiesHoverOpened: false
+    property bool dashboardHoverOpened: false
+    property bool drawerHoverOpened: false
+    readonly property int frameThickness: 10
+    readonly property int frameRounding: 0     // square inner corners
+    // the edge rim matches the window borders: Hyprland's active border runs
+    // color0 → color1 (themes/_templates/hyprland.lua.in); color1 is its bright end
+    readonly property color frameEdge: color01
+    // the frame layer's alpha: with Frost, low enough that Hyprland's layer blur
+    // (71-layers.lua) reads through the bar band and the panels
+    readonly property real frameOpacity: styleFrost ? 0.55 : barOpacity
+    readonly property color frameColor: styleDepth ? surfaceTone(0.03, 1) : Qt.rgba(paper.r, paper.g, paper.b, 1)
+    // attached cards hand their background to the frame
+    readonly property color frameCardBg: frameOn ? "transparent" : cardBg
+    readonly property int frameCardBorderW: frameOn ? 0 : pillBorderW
+    // every assignment rebuilds FrameBlobs' delegates, so changes made in the
+    // same tick (all panels registering at startup) land as one update
+    property var frameCards: []
+    property var _frameCardsPending: null
+    function _editFrameCards(fn) {
+        if (_frameCardsPending === null) {
+            _frameCardsPending = frameCards.slice()
+            Qt.callLater(function () {
+                theme.frameCards = theme._frameCardsPending
+                theme._frameCardsPending = null
+            })
+        }
+        fn(_frameCardsPending)
+    }
+    function registerFrameCard(c) {
+        _editFrameCards(function (a) { if (a.indexOf(c) < 0) a.push(c) })
+    }
+    function unregisterFrameCard(c) {
+        _editFrameCards(function (a) { var i = a.indexOf(c); if (i >= 0) a.splice(i, 1) })
+    }
     readonly property color fg:     ink
     readonly property color muted:  sumi
     readonly property color accent: seal
@@ -181,7 +234,8 @@ ThemeAiUsage {
         || memVisible || volVisible || langVisible || controlVisible || networkVisible || bluetoothVisible
         || batteryVisible || brightnessVisible || mprisVisible || weatherVisible || keybindsVisible
         || workspaceVisible || imagePickerVisible || mediaBrowserVisible || notifVisible
-        || powerProfileVisible || trayVisible || trayMenuVisible
+        || powerProfileVisible || trayVisible || trayMenuVisible || utilitiesVisible
+        || dashboardVisible || drawerVisible || sessionVisible
     readonly property bool keyboardPopupVisible: imagePickerVisible || mediaBrowserVisible
 
     function registerBarLayoutController(screenName, controller) {
@@ -456,6 +510,10 @@ ThemeAiUsage {
         if (except !== "trayVisible") trayVisible = false
         if (except !== "trayMenuVisible") trayMenuVisible = false
         if (except !== "githubVisible") githubVisible = false
+        if (except !== "utilitiesVisible") utilitiesVisible = false
+        if (except !== "dashboardVisible") dashboardVisible = false
+        if (except !== "drawerVisible") drawerVisible = false
+        if (except !== "sessionVisible") sessionVisible = false
         hideTooltip()
         _closingPopups = false
     }
@@ -520,7 +578,7 @@ ThemeAiUsage {
     property bool styleIconLabels:  false   // CPU/MEM/VOL/… text labels ⇄ Material Symbols glyphs
     readonly property int   pillRadius:   styleRadiusSmall ? 6 : 12
     readonly property int   pillH:        styleHeightMin ? 20 : 24
-    readonly property int   pillBorderW:  styleBorder ? 1 : 0
+    readonly property int   pillBorderW:  styleBorder && !frameOn ? 1 : 0
     readonly property int   islandRadius: styleRadiusSmall ? 8 : 16
     readonly property int   tileRadius:   pillRadius - 2   // inner panel buttons: 2 less than global (10 ⇄ 4)
     readonly property int v2ActionIconCellWidth: 22
@@ -703,6 +761,23 @@ ThemeAiUsage {
     onThermalVisibleChanged: popupOpened("thermalVisible")
     property bool storageVisible: false
     onStorageVisibleChanged: popupOpened("storageVisible")
+    property bool utilitiesVisible: false
+    property bool dashboardVisible: false
+    onDashboardVisibleChanged: {
+        if (!dashboardVisible) dashboardHoverOpened = false
+        popupOpened("dashboardVisible")
+    }
+    property bool sessionVisible: false
+    onSessionVisibleChanged: popupOpened("sessionVisible")
+    property bool drawerVisible: false
+    onDrawerVisibleChanged: {
+        if (!drawerVisible) drawerHoverOpened = false
+        popupOpened("drawerVisible")
+    }
+    onUtilitiesVisibleChanged: {
+        if (!utilitiesVisible) utilitiesHoverOpened = false
+        popupOpened("utilitiesVisible")
+    }
 
 
 
@@ -826,32 +901,15 @@ ThemeAiUsage {
     readonly property string splitsCachePath: Quickshell.env("HOME") + "/.cache/quickshell_splits"
     property bool _splitsLoaded: false
 
-    onSplitArchChanged:      if (_splitsLoaded) saveSplits()
-    onSplitMonChanged:       if (_splitsLoaded) saveSplits()
-    onSplitNetChanged:       if (_splitsLoaded) saveSplits()
-    onSplitMprisLChanged:    if (_splitsLoaded) saveSplits()
-    onBarAnimChanged:        if (_splitsLoaded) saveSplits()
-    onBarColorChanged:       if (_splitsLoaded) saveSplits()
 
     // Build the command imperatively (not as a binding): a bound `command` can
     // still hold the pre-toggle value when the Process runs, saving stale state.
-    function saveSplits() {
-        var line = (splitArch   ? "1" : "0") + " "
-                 + (splitMon     ? "1" : "0") + " "
-                 + (splitMprisL  ? "1" : "0") + " "
-                 + (splitNet     ? "1" : "0") + " "
-                 + barAnim + " "
-                 + barColor
-        splitSaveProc.command = ["bash", "-c",
-            "mkdir -p \"$(dirname \"$2\")\" && printf '%s\\n' \"$1\" > \"$2\"", "_", line, splitsCachePath]
-        splitSaveProc.running = false
-        splitSaveProc.running = true
-    }
+    function saveSplits() { scheduleSettingsSave() }
 
     Process {
         id: splitLoadProc
         command: ["cat", theme.splitsCachePath]
-        running: true
+        running: false
         stdout: StdioCollector {
             onStreamFinished: {
                 var parts = this.text.trim().split(" ")
@@ -870,11 +928,11 @@ ThemeAiUsage {
                     }
                 }
                 theme._splitsLoaded = true
+                theme._finishLegacyMigration()
             }
         }
     }
 
-    Process { id: splitSaveProc }   // command is set imperatively in saveSplits()
 
     // ── module enable flags (controlled by ControlPanel) ──
     property bool modStatus:     true
@@ -1475,125 +1533,28 @@ ThemeAiUsage {
     readonly property string widgetColorsCachePath:
         Quickshell.env("HOME") + "/.cache/quickshell_widget_colors"
 
-    function saveWidgetColors() {
-        widgetColorSaveProc.command = ["bash", "-c",
-            "mkdir -p \"$(dirname \"$2\")\" && printf '%s\\n' \"$1\" > \"$2\"",
-            "_", serializeWidgetColorStyles(), widgetColorsCachePath]
-        widgetColorSaveProc.running = false
-        widgetColorSaveProc.running = true
-    }
+    function saveWidgetColors() { scheduleSettingsSave() }
 
-    Process { id: widgetColorSaveProc }
 
     Process {
         id: widgetColorLoadProc
-        running: true
+        running: false
         command: ["cat", theme.widgetColorsCachePath]
         stdout: StdioCollector {
             onStreamFinished: {
                 theme.widgetColorStyles =
                     theme.parseWidgetColorStyles(String(this.text || "").trim())
                 theme._widgetColorsLoaded = true
+                theme._finishLegacyMigration()
             }
         }
-        onExited: theme._widgetColorsLoaded = true
+        onExited: { theme._widgetColorsLoaded = true; theme._finishLegacyMigration() }
     }
     property bool _widgetsLoaded: false
     property bool _compactResetting: false
 
-    onModMemoryChanged:     if (_widgetsLoaded) saveWidgets()
-    onModBrightnessChanged: if (_widgetsLoaded) saveWidgets()
-    onModAiChanged:         if (_widgetsLoaded) saveWidgets()
-    onModPowerChanged:      if (_widgetsLoaded) saveWidgets()
-    onModBluetoothChanged:  if (_widgetsLoaded) saveWidgets()
-    onModNetworkChanged:    if (_widgetsLoaded) saveWidgets()
-    onModStatusChanged:     if (_widgetsLoaded) saveWidgets()
-    onModQuickChanged:      if (_widgetsLoaded) saveWidgets()
-    onModCpuChanged:        if (_widgetsLoaded) saveWidgets()
-    onModVolumeChanged:     if (_widgetsLoaded) saveWidgets()
-    onModMprisChanged:      if (_widgetsLoaded) saveWidgets()
-    onAiToolChanged:        if (_widgetsLoaded) saveWidgets()
-    onWorkspaceModeChanged: if (_widgetsLoaded) saveWidgets()
-    onPickerStyleChanged:   if (_widgetsLoaded) saveWidgets()
-    onLauncherLogoModeChanged: if (_widgetsLoaded) saveWidgets()
-    onLauncherLogoTextChanged: if (_widgetsLoaded) saveWidgets()
-    onLauncherLogoIconChanged: if (_widgetsLoaded) saveWidgets()
-    onWeatherImperialChanged: if (_widgetsLoaded) saveWidgets()
-    onClock12hChanged:        if (_widgetsLoaded) saveWidgets()
-    onArchBadgePackagesChanged: if (_widgetsLoaded) saveWidgets()
-    onArchBadgeThemesChanged:   if (_widgetsLoaded) saveWidgets()
-    onArchBadgeShellChanged:    if (_widgetsLoaded) saveWidgets()
-    onCompactNetworkChanged:    if (_widgetsLoaded && !_compactResetting) saveWidgets()
-    onCompactBatteryChanged:    if (_widgetsLoaded && !_compactResetting) saveWidgets()
-    onCompactBrightnessChanged: if (_widgetsLoaded && !_compactResetting) saveWidgets()
-    onCompactCpuChanged:        if (_widgetsLoaded && !_compactResetting) saveWidgets()
-    onCompactMemoryChanged:     if (_widgetsLoaded && !_compactResetting) saveWidgets()
-    onCompactVolumeChanged:     if (_widgetsLoaded && !_compactResetting) saveWidgets()
-    onCompactBluetoothChanged:  if (_widgetsLoaded && !_compactResetting) saveWidgets()
-    onCompactPowerChanged:      if (_widgetsLoaded && !_compactResetting) saveWidgets()
-    onCompactMprisChanged:      if (_widgetsLoaded && !_compactResetting) saveWidgets()
-    onStyleBorderChanged:      if (_widgetsLoaded) saveWidgets()
-    onStyleShadowChanged:      if (_widgetsLoaded) saveWidgets()
-    onStyleFrostChanged:       if (_widgetsLoaded) saveWidgets()
-    onStyleRadiusSmallChanged: if (_widgetsLoaded) saveWidgets()
-    onStyleIconLabelsChanged:  if (_widgetsLoaded) saveWidgets()
-    onStyleDepthChanged:       if (_widgetsLoaded) saveWidgets()
-    onWorkspaceStyleChanged:   if (_widgetsLoaded) saveWidgets()
-    onBarPositionChanged:      if (_widgetsLoaded) saveWidgets()
-    onMotionHoverChanged:      if (_widgetsLoaded) saveWidgets()
-    onMotionSweepChanged:      if (_widgetsLoaded) saveWidgets()
-    onMotionDigitsChanged:     if (_widgetsLoaded) saveWidgets()
 
-    function saveWidgets() {
-        var line = (modMemory    ? "1" : "0") + " "
-                 + (modBrightness ? "1" : "0") + " "
-                 + (modAi        ? "1" : "0") + " "
-                 + (modPower     ? "1" : "0") + " "
-                 + (modBluetooth ? "1" : "0") + " "
-                 + workspaceMode + " "
-                 + pickerStyle + " "
-                 + (weatherImperial ? "1" : "0") + " "
-                 + (clock12h        ? "1" : "0") + " "
-                 + (modNetwork      ? "1" : "0") + " "
-                 + (styleShadow      ? "1" : "0") + " "   // field +5 (was styleBorderless; value-compatible)
-                 + (styleRadiusSmall ? "1" : "0") + " "
-                 + (styleHeightMin   ? "1" : "0") + " "
-                 + workspaceStyle + " "
-                 + barPosition + " "
-                 + (styleBorder      ? "1" : "0") + " "   // +10 (new; old caches → derived from styleShadow)
-                 + (modStatus ? "1" : "0") + " "          // +11 group pill: status (arch/tray/notif)
-                 + (modQuick  ? "1" : "0") + " "          // +12 group pill: quick (idle/media/theme)
-                 + (modCpu    ? "1" : "0") + " "          // +13
-                 + (modVolume ? "1" : "0") + " "          // +14
-                 + (modMpris  ? "1" : "0") + " "          // +15 now-playing / mpris
-                 + aiTool + " "                           // +16 AI tool shown in bar (codex/opencode)
-                 + (styleFrost ? "1" : "0") + " "         // +17 frost / lowered island opacity
-                 + launcherLogoMode + " "                 // +18 launcher logo mode (text/icon)
-                 + launcherLogoText + " "                 // +19 text logo id
-                 + launcherLogoIcon + " "                 // +20 icon logo id
-                 + (archBadgePackages ? "1" : "0") + " "  // +21 updater package badge
-                 + (archBadgeThemes   ? "1" : "0") + " "  // +22 updater clean-theme badge
-                 + (compactNetwork    ? "1" : "0") + " "  // +23 compact network pill
-                 + (compactBattery    ? "1" : "0") + " "  // +24
-                 + (compactBrightness ? "1" : "0") + " "  // +25
-                 + (compactCpu        ? "1" : "0") + " "  // +26
-                 + (compactMemory     ? "1" : "0") + " "  // +27
-                 + (compactVolume     ? "1" : "0") + " "  // +28
-                 + (compactBluetooth  ? "1" : "0") + " "  // +29
-                 + (compactPower      ? "1" : "0") + " "  // +30
-                 + (archBadgeShell    ? "1" : "0") + " "  // +31 updater shell badge
-                 + (compactMpris      ? "1" : "0") + " "  // +32 V2 FULL / muse presentation
-                 + (modGithub         ? "1" : "0") + " "  // +33 github inbox pill
-                 + (motionHover       ? "1" : "0") + " "  // +34
-                 + (motionSweep       ? "1" : "0") + " "  // +35
-                 + (motionDigits      ? "1" : "0") + " "  // +36
-                 + (styleIconLabels   ? "1" : "0") + " "  // +37 icon glyphs instead of text labels
-                 + (styleDepth        ? "1" : "0")        // +38 tonal panel cards
-        widgetSaveProc.command = ["bash", "-c",
-            "printf '%s\\n' \"$1\" > \"$2\"", "_", line, widgetsCachePath]
-        widgetSaveProc.running = false
-        widgetSaveProc.running = true
-    }
+    function saveWidgets() { scheduleSettingsSave() }
 
     readonly property var launcherLogoTextOptions: ["nixos", "hyprland"]
     readonly property var launcherLogoIconOptions: ["dots", "hyprland", "arch", "grid", "spark", "power", "dragon", "mark", "nix", "branch", "rebel"]
@@ -1704,7 +1665,7 @@ ThemeAiUsage {
     Process {
         id: widgetLoadProc
         command: ["cat", theme.widgetsCachePath]
-        running: true
+        running: false
         stdout: StdioCollector {
             onStreamFinished: {
                 var parts = this.text.trim().split(" ")
@@ -1805,11 +1766,142 @@ ThemeAiUsage {
                     if (parts.length > wsField + 38) theme.styleDepth        = parts[wsField + 38] !== "0"
                 }
                 theme._widgetsLoaded = true
+                theme._finishLegacyMigration()
             }
         }
     }
 
-    Process { id: widgetSaveProc }
+
+    // ── Settings: ~/.local/state/dots/shell/settings.json ──
+    // One JSON object keyed by property name, validated per key on load (a bad or
+    // unknown value keeps the default). Every key's change signal schedules a
+    // save, so a new setting only needs a schema entry. The positional caches in
+    // ~/.cache (quickshell_widgets / _splits / _widget_colors) are read once to
+    // migrate when settings.json does not exist yet, then left alone.
+    readonly property string settingsPath: Quickshell.env("HOME") + "/.local/state/dots/shell/settings.json"
+    property bool _settingsReady: false
+    readonly property var _settingsSchema: ({
+        modStatus: "bool", modQuick: "bool", modMemory: "bool", modCpu: "bool",
+        modVolume: "bool", modMpris: "bool", modBrightness: "bool", modAi: "bool",
+        modPower: "bool", modBluetooth: "bool", modNetwork: "bool", modGithub: "bool",
+        modGpu: "bool", modWeather: "bool", modStorage: "bool", modCpuTemperature: "bool",
+        compactNetwork: "bool", compactBattery: "bool", compactBrightness: "bool",
+        compactCpu: "bool", compactMemory: "bool", compactVolume: "bool",
+        compactBluetooth: "bool", compactPower: "bool", compactMpris: "bool",
+        archBadgePackages: "bool", archBadgeThemes: "bool", archBadgeShell: "bool",
+        styleBorder: "bool", styleShadow: "bool", styleFrost: "bool",
+        styleRadiusSmall: "bool", styleIconLabels: "bool", styleDepth: "bool",
+        styleFrame: "bool", styleFrameEdge: "bool", styleAutoHide: "bool", styleDeskClock: "bool",
+        motionHover: "bool", motionSweep: "bool", motionDigits: "bool",
+        weatherImperial: "bool", clock12h: "bool",
+        splitArch: "bool", splitMon: "bool", splitMprisL: "bool", splitNet: "bool",
+        workspaceMode: ["10", "5", "active"],
+        workspaceStyle: ["default", "numbers", "magic", "comet"],
+        pickerStyle: ["hearthstone", "carousel", "tanzaku"],
+        barPosition: ["top", "bottom"],
+        aiTool: ["codex", "opencode"],
+        launcherLogoMode: ["text", "icon"],
+        launcherLogoText: function (v) { return theme.launcherLogoTextValid(v) },
+        launcherLogoIcon: function (v) { return theme.launcherLogoIconValid(v) },
+        barAnim: function (v) { return Number.isInteger(v) && v >= 0 && v <= 14 },
+        barColor: function (v) { return typeof v === "string" && theme.barColorValid(v) },
+        widgetColorStyles: "widgetColors"
+    })
+
+    function _settingValid(rule, v) {
+        if (rule === "bool") return typeof v === "boolean"
+        if (Array.isArray(rule)) return rule.indexOf(v) >= 0
+        if (typeof rule === "function") return rule(v)
+        return false
+    }
+    function _widgetColorsFromJson(obj) {
+        // reuse the legacy validator: rebuild its gid~color~mode~tone entries
+        var parts = []
+        for (var gid in obj) {
+            var e = obj[gid] || {}
+            parts.push([gid, e.color, e.mode, e.tone].join("~"))
+        }
+        return parseWidgetColorStyles(parts.length ? parts.join(",") : "-")
+    }
+    function applySettings(obj) {
+        if (!obj || typeof obj !== "object") return
+        for (var key in _settingsSchema) {
+            if (!(key in obj)) continue
+            var rule = _settingsSchema[key], v = obj[key]
+            if (rule === "widgetColors") {
+                if (v && typeof v === "object") widgetColorStyles = _widgetColorsFromJson(v)
+            } else if (_settingValid(rule, v)) {
+                theme[key] = key === "barColor" ? normalizedPaletteId(v) : v
+            } else {
+                console.warn("[settings] ignoring invalid " + key + ": " + JSON.stringify(v))
+            }
+        }
+    }
+    function settingsSnapshot() {
+        var out = { version: 1 }
+        for (var key in _settingsSchema) {
+            if (_settingsSchema[key] === "widgetColors") {
+                var colors = {}
+                for (var gid in widgetColorStyles) colors[gid] = widgetColorStyles[gid]
+                out[key] = colors
+            } else {
+                out[key] = theme[key]
+            }
+        }
+        return out
+    }
+    function scheduleSettingsSave() {
+        if (_settingsReady) settingsSaveDebounce.restart()
+    }
+    function _markSettingsReady() {
+        _widgetsLoaded = true
+        _splitsLoaded = true
+        _widgetColorsLoaded = true
+        _settingsReady = true
+    }
+    function _finishLegacyMigration() {
+        if (_settingsReady || !_widgetsLoaded || !_splitsLoaded || !_widgetColorsLoaded) return
+        _markSettingsReady()
+        settingsSaveDebounce.restart()   // write settings.json once from the migrated values
+    }
+
+    Timer {
+        id: settingsSaveDebounce
+        interval: 150
+        onTriggered: settingsFile.setText(JSON.stringify(theme.settingsSnapshot(), null, 2) + "\n")
+    }
+
+    FileView {
+        id: settingsFile
+        path: theme.settingsPath
+        atomicWrites: true
+        printErrors: false
+        onLoaded: {
+            var obj = null
+            try { obj = JSON.parse(settingsFile.text()) } catch (e) {
+                console.warn("[settings] " + theme.settingsPath + " is not valid JSON; using defaults")
+            }
+            theme.applySettings(obj)
+            theme._markSettingsReady()
+        }
+        onLoadFailed: function (error) {
+            // no settings.json yet: migrate from the legacy positional caches
+            splitLoadProc.running = true
+            widgetLoadProc.running = true
+            widgetColorLoadProc.running = true
+        }
+        onSaveFailed: function (error) {
+            console.warn("[settings] could not write " + theme.settingsPath + ": " + error)
+        }
+    }
+
+    Component.onCompleted: {
+        for (var key in _settingsSchema) {
+            var sig = theme[key + "Changed"]
+            if (sig) sig.connect(theme.scheduleSettingsSave)
+            else console.warn("[settings] schema key without a property: " + key)
+        }
+    }
 
     // ── New widget panel states ──
     property bool networkVisible:   false
@@ -1842,7 +1934,10 @@ ThemeAiUsage {
     property bool   idleInhibited:       false
     // ── Notification state ──
     property bool notifVisible: false
-    onNotifVisibleChanged: popupOpened("notifVisible")
+    onNotifVisibleChanged: {
+        if (!notifVisible) notifHoverOpened = false
+        popupOpened("notifVisible")
+    }
     property int  notifCount:   0
     property real notifBarX:    0
 

@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Wayland
 import Quickshell.Widgets
 import "../modules"
+import "../modules/Calc.js" as Calc
 
 PanelWindow {
     id: win
@@ -27,7 +28,7 @@ PanelWindow {
         root.paper.g + (root.ink.g - root.paper.g) * 0.07,
         root.paper.b + (root.ink.b - root.paper.b) * 0.07, 1.0)
 
-    readonly property var entries: {
+    readonly property var apps: {
         var all = []
         var vals = DesktopEntries.applications.values
         for (var i = 0; i < vals.length; i++)
@@ -62,6 +63,52 @@ PanelWindow {
         return out
     }
 
+    // ── calculator: maths in the query shows "= result" first; Enter copies it ──
+    readonly property string calcResult: {
+        var v = Calc.evaluate(query)
+        return v === null ? "" : Calc.format(v)
+    }
+
+    // ── actions: ">" lists shell actions, filtered by what follows ──
+    readonly property bool actionMode: query.trim().charAt(0) === ">"
+    function openPopup(prop) { close(); root.activateFocusedPopupScreen(); root[prop] = true }
+    function sh(args) { close(); Quickshell.execDetached(args) }
+    readonly property var actions: [
+        { name: "Lock", comment: "lock the screen", glyph: "\uE897", run: function () { win.sh(["loginctl", "lock-session"]) } },
+        { name: "Suspend", comment: "sleep now", glyph: "\uEF44", run: function () { win.sh(["systemctl", "suspend"]) } },
+        { name: "Log out", comment: "leave Hyprland", glyph: "\uE9BA", run: function () { win.openPopup("sessionVisible") } },
+        { name: "Restart", comment: "via the session menu (confirms)", glyph: "\uF053", run: function () { win.openPopup("sessionVisible") } },
+        { name: "Shut down", comment: "via the session menu (confirms)", glyph: "\uE8AC", run: function () { win.openPopup("sessionVisible") } },
+        { name: "Dashboard", comment: "clock, weather, media, resources", glyph: "\uE871", run: function () { win.openPopup("dashboardVisible") } },
+        { name: "Notifications", comment: "notification centre", glyph: "\uE7F4", run: function () { win.openPopup("notifVisible") } },
+        { name: "Utilities", comment: "quick toggles and captures", glyph: "\uE1BD", run: function () { win.openPopup("utilitiesVisible") } },
+        { name: "Themes", comment: "theme / wallpaper drawer", glyph: "\uE40A", run: function () { win.openPopup("drawerVisible") } },
+        { name: "Wallpapers", comment: "wallpaper picker", glyph: "\uE1BC", run: function () { win.close(); root.ipcOpenPicker("wallpaper") } },
+        { name: "Clipboard", comment: "clipboard history", glyph: "\uE14F", run: function () { win.openPopup("clipboardVisible") } },
+        { name: "Overview", comment: "all workspaces", glyph: "\uE9B0", run: function () { win.openPopup("overviewVisible") } },
+        { name: "Settings", comment: "bar control panel", glyph: "\uE8B8", run: function () { win.openPopup("controlVisible") } },
+        { name: "Screenshot", comment: "select a region", glyph: "\uF7D2", run: function () { win.sh(["bash", "-c", "sleep 0.3; dots-shot region"]) } },
+        { name: "Night light", comment: "toggle", glyph: "\uF03D", run: function () { win.sh(["dots-nightlight", "toggle"]) } },
+        { name: "Silence", comment: "toggle do-not-disturb", glyph: "\uE7F6", run: function () {
+            win.sh(["bash", "-c", "command -v dots-toggle-notification-silencing >/dev/null && exec dots-toggle-notification-silencing; exec dots toggle notification silencing"]) } }
+    ]
+
+    // one list for the view: { kind: app | calc | action, name, comment, icon | glyph }
+    readonly property var entries: {
+        if (actionMode) {
+            var q = query.trim().slice(1).trim().toLowerCase()
+            return actions.filter(function (a) {
+                return q === "" || a.name.toLowerCase().indexOf(q) >= 0 || a.comment.indexOf(q) >= 0
+            }).map(function (a) { return { kind: "action", name: a.name, comment: a.comment, glyph: a.glyph, action: a } })
+        }
+        var out = apps.map(function (d) {
+            return { kind: "app", name: d.name || "", comment: d.comment || d.genericName || "", icon: d.icon || "", entry: d }
+        })
+        if (calcResult !== "")
+            out.unshift({ kind: "calc", name: "= " + calcResult, comment: query.trim() + "   ·   Enter copies", glyph: "\uEA5F" })
+        return out
+    }
+
     onEntriesChanged: sel = 0
 
     function close() {
@@ -73,10 +120,12 @@ PanelWindow {
     function launch() {
         if (sel < 0 || sel >= entries.length) return
         var e = entries[sel]
+        if (e.kind === "calc") { Quickshell.execDetached(["wl-copy", calcResult]); close(); return }
+        if (e.kind === "action") { e.action.run(); return }
 
         // Just use the DesktopEntry's own execute().
         // systemd-run --scope breaks Flatpaks (Tauon, etc.) on NixOS.
-        e.execute()
+        e.entry.execute()
         close()
     }
 
@@ -139,7 +188,7 @@ PanelWindow {
                 Text {
                     anchors.fill: parent
                     visible: input.text === ""
-                    text: "search applications"
+                    text: "search apps  ·  type maths  ·  > for actions"
                     font: input.font
                     color: root.sumiHi
                     verticalAlignment: Text.AlignVCenter
@@ -189,8 +238,16 @@ PanelWindow {
                 IconImage {
                     anchors { left: parent.left; leftMargin: 16; verticalCenter: parent.verticalCenter }
                     implicitSize: 28
-                    source: modelData.icon ? Quickshell.iconPath(modelData.icon, true) : ""
+                    source: modelData.kind === "app" && modelData.icon ? Quickshell.iconPath(modelData.icon, true) : ""
                     visible: source !== ""
+                }
+                IconText {
+                    anchors { left: parent.left; leftMargin: 18; verticalCenter: parent.verticalCenter }
+                    visible: modelData.kind !== "app"
+                    text: modelData.glyph || ""
+                    fill: index === win.sel ? 1 : 0
+                    color: modelData.kind === "calc" || index === win.sel ? root.seal : root.ink
+                    font.pixelSize: 24
                 }
 
                 Column {
@@ -204,14 +261,14 @@ PanelWindow {
                     Text {
                         width: parent.width
                         text: modelData.name || ""
-                        color: root.ink
+                        color: modelData.kind === "calc" ? root.seal : root.ink
                         font.family: root.mono
-                        font.pixelSize: 13
+                        font.pixelSize: modelData.kind === "calc" ? 16 : 13
                         elide: Text.ElideRight
                     }
                     Text {
                         width: parent.width
-                        text: modelData.comment || modelData.genericName || ""
+                        text: modelData.comment || ""
                         color: root.sumiHi
                         font.family: root.mono
                         font.pixelSize: 10

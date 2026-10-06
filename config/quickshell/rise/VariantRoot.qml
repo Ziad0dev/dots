@@ -23,6 +23,14 @@ Item {
 
     function clearNotifications() { notifService.clearAll() }
 
+    function toggleDashboard() { if (!theme.dashboardVisible) theme.activateFocusedPopupScreen(); theme.dashboardVisible = !theme.dashboardVisible }
+
+    function toggleDrawer() { if (!theme.drawerVisible) theme.activateFocusedPopupScreen(); theme.drawerVisible = !theme.drawerVisible }
+
+    function toggleSession() { if (!theme.sessionVisible) theme.activateFocusedPopupScreen(); theme.sessionVisible = !theme.sessionVisible }
+
+    function toggleUtilities() { if (!theme.utilitiesVisible) theme.activateFocusedPopupScreen(); theme.utilitiesVisible = !theme.utilitiesVisible }
+
     function toggleAppLauncher() { if (!theme.appLauncherVisible) theme.activateFocusedPopupScreen(); theme.appLauncherVisible = !theme.appLauncherVisible }
 
     required property var variantHost
@@ -252,6 +260,32 @@ Item {
         model: root.barScreens
 
         delegate: Component {
+            DeskClock {
+                required property var modelData
+
+                root: theme
+                screen: modelData
+            }
+        }
+    }
+
+    Variants {
+        model: root.barScreens
+
+        delegate: Component {
+            FrameExclusions {
+                required property var modelData
+
+                root: theme
+                screen: modelData
+            }
+        }
+    }
+
+    Variants {
+        model: root.barScreens
+
+        delegate: Component {
             PopupDismissLayer {
                 required property var modelData
 
@@ -279,6 +313,24 @@ Item {
     LanguagePanel { root: theme }
     TrayPanel { root: theme }
     NotificationPanel { root: theme }
+    // Panels holding images (wallpaper, covers, thumbnails) exist only while
+    // open and for their exit animation, so closing them frees that memory.
+    component Linger: Timer { interval: 700 }
+    Linger { id: dashLinger }
+    Linger { id: drawerLinger }
+    Linger { id: utilLinger }
+    Linger { id: sessionLinger }
+    Connections {
+        target: theme
+        function onDashboardVisibleChanged() { if (!theme.dashboardVisible) dashLinger.restart() }
+        function onDrawerVisibleChanged() { if (!theme.drawerVisible) drawerLinger.restart() }
+        function onUtilitiesVisibleChanged() { if (!theme.utilitiesVisible) utilLinger.restart() }
+        function onSessionVisibleChanged() { if (!theme.sessionVisible) sessionLinger.restart() }
+    }
+    LazyLoader { active: theme.dashboardVisible || dashLinger.running; DashboardPanel { root: theme } }
+    LazyLoader { active: theme.drawerVisible || drawerLinger.running; StyleDrawer { root: theme } }
+    LazyLoader { active: theme.utilitiesVisible || utilLinger.running; UtilitiesPanel { root: theme } }
+    LazyLoader { active: theme.sessionVisible || sessionLinger.running; SessionMenu { root: theme } }
     NetworkPanel { root: theme }
     BluetoothPanel { root: theme }
     BatteryPanel { root: theme }

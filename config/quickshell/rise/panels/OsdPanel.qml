@@ -75,12 +75,15 @@ PanelWindow {
     Timer { id: hideTimer; interval: 1400; onTriggered: osd.shown = false }
 
     property real reveal: shown ? 1 : 0
-    Behavior on reveal { NumberAnimation { duration: osd.shown ? 140 : 220; easing.type: Easing.OutCubic } }
+    Behavior on reveal { Anim { kind: osd.shown ? "spatialFast" : "exit" } }
 
+    // a pill-sized window: with the frame on it sits on the bottom band and
+    // grows out of it (FrameCard "bottom", offset to its screen position);
+    // without it, it floats 96px above the bottom as before
     visible: reveal > 0.001
     color: "transparent"
     anchors.bottom: true
-    margins.bottom: 96
+    margins.bottom: root.frameOn ? bottomBand : 96
     implicitWidth: 300
     implicitHeight: 56
     exclusionMode: ExclusionMode.Ignore
@@ -89,16 +92,29 @@ PanelWindow {
     WlrLayershell.namespace: "dots-osd"
     mask: Region {}
 
+    readonly property int bottomBand: root.barPosition === "bottom" ? 35 : (root.frameOn ? root.frameThickness : 0)
+
+    FrameCard {
+        root: osd.root
+        card: pill
+        reveal: osd.reveal
+        edge: "bottom"
+        screenName: osd.screen ? osd.screen.name : ""
+        // the window is centred on the bottom edge
+        offsetX: osd.screen ? Math.round((osd.screen.width - osd.implicitWidth) / 2) : 0
+        offsetY: osd.screen ? osd.screen.height - osd.margins.bottom - osd.implicitHeight : 0
+    }
     Rectangle {
         id: pill
         anchors.fill: parent
         radius: root.pillRadius
-        color: root.cardBg
+        color: root.frameOn ? "transparent" : root.cardBg
         border.color: root.pillBorder
-        border.width: root.pillBorderW
+        border.width: root.frameOn ? 0 : root.pillBorderW
         opacity: osd.reveal
-        scale: 0.94 + 0.06 * osd.reveal
-        PillShadow { theme: root }
+        scale: root.frameOn ? 1 : 0.94 + 0.06 * osd.reveal
+        transform: Translate { y: root.frameOn ? (1 - osd.reveal) * 24 : 0 }
+        PillShadow { theme: root; visible: root.styleShadow && !root.frameOn }
 
         IconText {
             id: glyph

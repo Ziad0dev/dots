@@ -38,14 +38,46 @@ PanelWindow {
         bottom: barSlot.root.barPosition === "bottom"
     }
     implicitHeight: barSlot.screen ? barSlot.screen.height : 1440
-    exclusionMode: ExclusionMode.Normal
+    // frame mode: this window draws the whole screen frame, so it ignores zones
+    // and FrameExclusions reserves the space (the top keeps the same 38px)
+    // (auto-hide without the frame: reserve nothing, the bar overlays windows)
+    // exclusiveZone stays a constant: assigning it switches Quickshell back to
+    // ExclusionMode.Normal, which would undo the Ignore above
+    exclusionMode: barSlot.root.frameOn || barSlot.autoHide ? ExclusionMode.Ignore : ExclusionMode.Normal
     exclusiveZone: 38        // 35 bar + 3px breathing room
+    // input: the bar strip (a thin hover strip while auto-hidden), the whole
+    // screen while unlocked, plus the right frame band's hover triggers
     mask: Region {
         x: 0
         y: barSlot.root.barUnlocked ? 0
-           : (barSlot.root.barPosition === "bottom" ? barSlot.height - 35 : 0)
+           : (barSlot.root.barPosition === "bottom" ? barSlot.height - barSlot.inputBand : 0)
         width: barSlot.width
-        height: barSlot.root.barUnlocked ? barSlot.height : 35
+        height: barSlot.root.barUnlocked ? barSlot.height : barSlot.inputBand
+        Region {
+            x: rightEdgeZone.x; y: rightEdgeZone.y
+            width: rightEdgeZone.visible ? rightEdgeZone.width : 0
+            height: rightEdgeZone.visible ? rightEdgeZone.height : 0
+        }
+        Region {
+            x: leftEdgeZone.x; y: leftEdgeZone.y
+            width: leftEdgeZone.visible ? leftEdgeZone.width : 0
+            height: leftEdgeZone.visible ? leftEdgeZone.height : 0
+        }
+        Region {
+            x: leftCornerZone.x; y: leftCornerZone.y
+            width: leftCornerZone.visible ? leftCornerZone.width : 0
+            height: leftCornerZone.visible ? leftCornerZone.height : 0
+        }
+        Region {
+            x: drawerZone.x; y: drawerZone.y
+            width: drawerZone.visible ? drawerZone.width : 0
+            height: drawerZone.visible ? drawerZone.height : 0
+        }
+        Region {
+            x: cornerZone.x; y: cornerZone.y
+            width: cornerZone.visible ? cornerZone.width : 0
+            height: cornerZone.visible ? cornerZone.height : 0
+        }
     }
     // grab keyboard while unlocked so ESC can exit
     WlrLayershell.keyboardFocus: barSlot.root.barUnlocked ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
@@ -68,6 +100,127 @@ PanelWindow {
     }
 
     readonly property color accent: barSlot.root.seal
+
+    // ── auto-hide (STYLE → Auto-hide) ──
+    // The bar band shrinks to the frame edge and the widgets fade out; hovering
+    // the strip brings them back. Stays shown while a popup or edit mode is up.
+    readonly property bool autoHide: barSlot.root.styleAutoHide
+    readonly property bool barOnTop: barSlot.root.barPosition !== "bottom"
+    property bool pointerOnBar: false
+    readonly property bool barShown: !autoHide || pointerOnBar
+        || barSlot.root.anyPopupVisible || barSlot.root.barUnlocked
+    property real shownAmount: barShown ? 1 : 0
+    Behavior on shownAmount { Anim { kind: barSlot.barShown ? "spatial" : "exit" } }
+    readonly property int hiddenBand: barSlot.root.frameOn ? barSlot.root.frameThickness : 3
+    readonly property real bandHeight: hiddenBand + (35 - hiddenBand) * Math.min(1, shownAmount)
+    readonly property int inputBand: barShown ? 35 : hiddenBand + 2
+
+    Item {
+        x: 0
+        width: barSlot.width
+        height: barSlot.inputBand
+        y: barSlot.barOnTop ? 0 : barSlot.height - height
+        HoverHandler {
+            onHoveredChanged: {
+                if (hovered) { barHideDelay.stop(); barSlot.pointerOnBar = true }
+                else barHideDelay.restart()
+            }
+        }
+    }
+    Timer { id: barHideDelay; interval: 450; onTriggered: barSlot.pointerOnBar = false }
+
+    // ── frame-edge hover triggers (frame on, locked bar only) ──
+    // right band → notification sidebar; the bottom band's right end (the corner
+    // the cursor rests in, since nothing is below a screen) → utilities. A right
+    // edge shared with another monitor doesn't stop the cursor, so the corner
+    // lives on the bottom band where it always does.
+    readonly property int cornerSpan: 140
+    function openByHover(which) {
+        var r = barSlot.root
+        if (which === "notif" && !r.notifVisible) {
+            r.activatePopupScreen(barSlot.screen); r.notifHoverOpened = true; r.notifVisible = true
+        } else if (which === "utilities" && !r.utilitiesVisible) {
+            r.activatePopupScreen(barSlot.screen); r.utilitiesHoverOpened = true; r.utilitiesVisible = true
+        } else if (which === "dashboard" && !r.dashboardVisible) {
+            r.activatePopupScreen(barSlot.screen); r.dashboardHoverOpened = true; r.dashboardVisible = true
+        } else if (which === "drawer" && !r.drawerVisible) {
+            r.activatePopupScreen(barSlot.screen); r.drawerHoverOpened = true; r.drawerVisible = true
+        }
+    }
+    component EdgeZone: Item {
+        id: zone
+        required property string opens
+        readonly property bool armed: hover.hovered
+        HoverHandler { id: hover; onHoveredChanged: hovered ? dwell.restart() : dwell.stop() }
+        Timer { id: dwell; interval: 120; onTriggered: if (hover.hovered) barSlot.openByHover(zone.opens) }
+    }
+    EdgeZone {
+        id: rightEdgeZone
+        opens: "notif"
+        visible: barSlot.root.frameOn && !barSlot.root.barUnlocked
+        x: barSlot.width - barSlot.root.frameThickness
+        width: barSlot.root.frameThickness
+        y: barSlot.barOnTop ? 35 : barSlot.root.frameThickness
+        height: barSlot.height - y - (barSlot.barOnTop ? barSlot.root.frameThickness : 35)
+    }
+    // dashboard: only the lower-left corner (the left band's bottom end and the
+    // bottom band's left end), so passing the whole left edge doesn't open it
+    EdgeZone {
+        id: leftEdgeZone
+        opens: "dashboard"
+        visible: barSlot.root.frameOn && !barSlot.root.barUnlocked
+        x: 0
+        width: barSlot.root.frameThickness
+        height: 160
+        y: barSlot.height - height - (barSlot.barOnTop ? barSlot.root.frameThickness : 35)
+    }
+    EdgeZone {
+        id: leftCornerZone
+        opens: "dashboard"
+        visible: barSlot.root.frameOn && !barSlot.root.barUnlocked && barSlot.barOnTop
+        x: 0
+        width: barSlot.cornerSpan
+        y: barSlot.height - barSlot.root.frameThickness
+        height: barSlot.root.frameThickness
+    }
+    EdgeZone {
+        id: drawerZone
+        opens: "drawer"
+        visible: barSlot.root.frameOn && !barSlot.root.barUnlocked && barSlot.barOnTop
+        width: 320
+        x: Math.round((barSlot.width - width) / 2)
+        y: barSlot.height - barSlot.root.frameThickness
+        height: barSlot.root.frameThickness
+    }
+    EdgeZone {
+        id: cornerZone
+        opens: "utilities"
+        // the bottom band (the bar's band when the bar sits at the bottom: skip)
+        visible: barSlot.root.frameOn && !barSlot.root.barUnlocked && barSlot.barOnTop
+        x: barSlot.width - barSlot.cornerSpan
+        width: barSlot.cornerSpan
+        y: barSlot.height - barSlot.root.frameThickness
+        height: barSlot.root.frameThickness
+    }
+
+    // ── Caelestia-style frame + melting panel backgrounds (behind everything) ──
+    // loaded by URL so a missing plugin only disables the frame, not the bar
+    Loader {
+        anchors.fill: parent
+        z: -1
+        active: barSlot.root.styleFrame
+        source: "FrameBlobs.qml"
+        onStatusChanged: {
+            if (status === Loader.Error) {
+                console.warn("[frame] Caelestia.Blobs unavailable; using the classic bar")
+                barSlot.root.frameAvailable = false
+            } else if (status === Loader.Ready) {
+                item.root = barSlot.root
+                item.screenName = Qt.binding(function () { return barSlot.screenName })
+                item.barEdge = Qt.binding(function () { return barSlot.bandHeight })
+            }
+        }
+    }
 
     // ── dim backdrop while unlocked (edit mode); click empty → lock ──
     Rectangle {
@@ -680,7 +833,11 @@ PanelWindow {
         Behavior on width { Anim { kind: "size"; ms: 250 } }
         Behavior on x     { Anim { kind: "size"; ms: 250 } }
         height: 32
-        y: barSlot.root.barPosition === "bottom" ? (parent.height - height - 3) : 3
+        y: barSlot.root.barPosition === "bottom"
+            ? (parent.height - height - 3 + (1 - barSlot.shownAmount) * 14)
+            : 3 - (1 - barSlot.shownAmount) * 14
+        opacity: Math.max(0, Math.min(1, barSlot.shownAmount))
+        visible: opacity > 0.01
         z: 2                                  // above the dim backdrop
         focus: barSlot.root.barUnlocked       // receive keys while unlocked
         Keys.onEscapePressed: barSlot.root.barUnlocked = false
@@ -890,10 +1047,10 @@ PanelWindow {
                 width: Math.max(0, modelData.w)
                 height: island.height
                 radius: barSlot.root.islandRadius
-                color: barSlot.root.barBg
+                color: barSlot.root.frameOn ? "transparent" : barSlot.root.barBg
                 border.color: barSlot.root.islandBorder
-                border.width: barSlot.root.pillBorderW
-                PillShadow { theme: barSlot.root }
+                border.width: barSlot.root.frameOn ? 0 : barSlot.root.pillBorderW
+                PillShadow { theme: barSlot.root; visible: barSlot.root.styleShadow && !barSlot.root.frameOn }
                 // no Behavior: tracks the slot positions directly as the gap opens
             }
         }

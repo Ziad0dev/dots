@@ -156,4 +156,24 @@ Item {
         function toggle(): void { router.invoke("toggleAppLauncher") }
     }
 
+    IpcHandler {
+        target: "utilities"
+        function toggle(): void { router.invoke("toggleUtilities") }
+    }
+
+    IpcHandler {
+        target: "session"
+        function toggle(): void { router.invoke("toggleSession") }
+    }
+
+    IpcHandler {
+        target: "dashboard"
+        function toggle(): void { router.invoke("toggleDashboard") }
+    }
+
+    IpcHandler {
+        target: "drawer"
+        function toggle(): void { router.invoke("toggleDrawer") }
+    }
+
 }

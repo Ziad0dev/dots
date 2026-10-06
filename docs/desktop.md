@@ -81,6 +81,10 @@ HDR: the profile runs DP-1 in 10-bit HDR permanently. That costs compositor CPU 
 |---|---|
 | `SUPER + D` | App launcher (Rise) |
 | `SUPER + A` | Overview |
+| `SUPER + U` | Utilities corner (quick toggles, recent captures) |
+| `SUPER + I` | Dashboard (clock, weather, now playing, resources, calendar, shortcuts) |
+| `SUPER + W` | Theme / wallpaper drawer |
+| `SUPER + SHIFT + Escape` | Session menu (lock, suspend, log out, restart, shut down) |
 | `SUPER + B` / `O` / `C` | Focus-or-launch Zen / Obsidian / Discord |
 | `SUPER + SHIFT + O` | OpenRouter panel |
 | `SUPER + period` | Emoji picker (bemoji) |
@@ -150,6 +154,18 @@ The bar, launcher, control panel, pickers and notifications UI. Vendored in `con
 - It reads colours from `~/.local/state/dots/shell/current/theme/colors.sh` — a symlink themectl maintains to the active palette.
 - `Theme.qml` is one object split across an inheritance chain for size: `ThemeTelemetry` ← `ThemeGithub` ← `ThemeAiUsage` ← `Theme`. Everything is still read as `theme.<name>`; ids don't cross files.
 - Motion goes through `modules/Anim.qml` / `CAnim.qml` and the curve table in `modules/Motion.js` (Material 3 Expressive): `kind: "spatialFast"` for moves and scale (springy), `"size"` for width/height (no overshoot), `"effects"` for opacity and colour, `"spatial"`/`"exit"` for panel reveals. Use these instead of a bare `NumberAnimation`.
+- **Frame** (STYLE → Frame, on by default): the bar is the thick edge of one rounded frame around each screen, and the 23 panels that hang off the bar register their card with `modules/FrameCard.qml`, so `FrameBlobs.qml` draws their background as a blob in the same group — they melt out of the bar and retract into it. The shapes come from Caelestia's `Caelestia.Blobs` QML module (SDF smooth-union, GPL-3.0, [caelestia-dots/shell](https://github.com/caelestia-dots/shell)), built on its own from a pinned upstream rev by `pkgs/caelestia-blobs` and put on the unit's `QML_IMPORT_PATH`; no Caelestia code is copied into this repo. `FrameExclusions.qml` reserves the frame's space with four 1×1 windows per screen. If the module can't load, the bar falls back to the classic island and logs `[frame] Caelestia.Blobs unavailable`. The frame has square inner corners; the widgets sit flat on its top band (no pill fill, border or shadow of their own). With Frost on, the frame layer is 55% opaque so Hyprland's blur reads through the bar and the panels. Next to the Frame tile: **Edge** draws a 2px rim in the window-border colour (`color1`, the bright end of Hyprland's active border gradient) along the frame's inner edge and around every panel (a second blob group, grown by 2px, behind the fill), and **Auto-hide** shrinks the bar band to the frame edge until you hover it — windows then only reserve the edge. With the frame on, the frame's edges open things on hover: the bottom-left corner (the left band's bottom 160px and the bottom band's left end) the dashboard, the right band the notification sidebar, the middle of the bottom band the theme / wallpaper drawer, and pushing into the bottom-right corner (the bottom band's last 140px, where the cursor rests even when another monitor sits to the right) opens the utilities corner; panels opened that way close when the pointer leaves and never take keyboard focus. The frame layer follows Frost, which is what lets the layer blur show through.
+- **Utilities corner** (`panels/UtilitiesPanel.qml`, `SUPER + U`): quick toggles — Wi-Fi and Bluetooth when the hardware exists, silence, stay awake, caffeine, night light, screen recording — each running the same command as its bar widget, plus the four latest screenshots. Grows out of the bottom-right frame corner.
+- **Dashboard** (`panels/DashboardPanel.qml`, `SUPER + I`): your current wallpaper behind it (dimmed toward the bottom, glass cards on top), three tabs (click, `1`–`3` or Tab). **Overview**: avatar (`~/.face`, else a monogram) and greeting, hero clock, weather (wttr.in, fetched while open, at most every 10 min), now playing on its blurred cover, ring gauges (CPU / RAM / GPU or disk / temperature, polled while open even if those bar widgets are off), the month, a quote from `quotes.txt`, and Lock / Shot / Themes / Settings / Power at the bottom. **Performance**: area graphs of CPU, RAM, GPU and temperature history plus live network rates from `/proc/net/dev`. **Media**: big cover, seekable progress, shuffle / previous / play / next / repeat, and synced lyrics. Grows out of the left frame edge.
+- **Theme / wallpaper drawer** (`panels/StyleDrawer.qml`, `SUPER + W`): previews of every theme and wallpaper in two tabs (Tab switches), the current one ringed, scrolled sideways with the wheel; click applies with `dots-theme-set` / `dots-theme-bg-set` and the drawer stays open. Grows out of the bottom band's centre.
+- **Session menu** (`panels/SessionMenu.qml`, `SUPER + SHIFT + Escape`, dashboard Power, launcher `>`): lock, suspend, log out, restart, shut down, docked mid-height on the right frame edge. The last three arm on the first press and run on a second press within 4s. Never opened by hover.
+- **Launcher** (`SUPER + D`): apps as before; maths in the query shows `= result` first and Enter copies it (`modules/Calc.js`, a small parser — never `eval`); `>` lists shell actions (lock, suspend, dashboard, themes, wallpapers, clipboard, screenshot, night light, …; restart / shut down go through the session menu).
+- **Desk clock** (`DeskClock.qml`, STYLE → Desk clock): large time and date bottom-left on the wallpaper, on the Bottom layer so windows cover it; no input.
+- Resource use: the frame's shadow blur only runs with STYLE → Shadow, the rim shapes only with Edge, and a panel's blob shapes exist only while it's open. The dashboard, theme drawer, utilities and session menu are loaded on open and unloaded after their exit animation, so their images don't stay in memory; their graph history lives in telemetry. Toasts and the OSD use content-sized windows (their blobs are offset to the window's screen position).
+- With the frame on, notification toasts melt out of the right frame edge (each card a blob, stacked cards flow into one column) and the volume / mic / caps-lock OSD rises out of the bottom band; with input limited to the cards.
+- **Lock screen** (`config/quickshell/lock/LockSurface.qml`) has the same look — blurred wallpaper, the rounded frame with its accent rim (the bar's accent, read from `settings.json`), light clock, a glass card with the password field — in plain QtQuick, without the blob plugin, so it always loads.
+- **Synced lyrics** in the media panel (`modules/SyncedLyrics.qml`): fetched from [LRCLIB](https://lrclib.net) only while the panel is open — that sends the playing track's artist and title there — and cached in `~/.cache/dots-lyrics` (misses too; network errors retry).
+- Settings live in `~/.local/state/dots/shell/settings.json` (one key per control-panel toggle, validated on load) — add a setting by adding its property to `_settingsSchema` in `Theme.qml`.
 - Compositor side: `config/hypr/modules/71-layers.lua` blurs the bar (`quickshell`) and panels (`dots-*`) and turns off Hyprland's own layer animation for panels, which animate themselves.
 - The unit's PATH is pinned: the `dots-*` shims, wallpaper helpers and a fixed tool set come first, so the bar behaves the same regardless of your login environment. `DOTS_SHELL_PATH` points at the repo copy.
 - Bar widgets include workspaces, clock/calendar, media (MPRIS), audio, network, CPU/GPU/memory/temps, storage and mount health, power profile, weather, VPN, night light, idle inhibitor, notification silencing, dictation state, LLM unit, qBittorrent speeds, update indicator, screen recording, tray, and AI usage (Codex / OpenCode / OpenRouter quotas refreshed every 10 minutes by `dots-ai-usage.timer`).
@@ -164,6 +180,11 @@ qs -c rise ipc call <target> <function>
 |---|---|
 | `launcher` | `toggle` |
 | `overview` | `toggle` |
+| `notifications` | `toggle`, `clear` |
+| `utilities` | `toggle` |
+| `session` | `toggle` |
+| `dashboard` | `toggle` |
+| `drawer` | `toggle` |
 | `openrouter` | `toggle` |
 | `picker` | `theme`, `wallpaper`, `screenshots`, `videos` |
 | `theme` | `reload`, `apply <json>`, `applyLauncher <json>` |
@@ -183,7 +204,7 @@ qs -c rise ipc call <target> <function>
 
 ## Notifications, OSD, clipboard
 
-- **Notifications** — Quickshell is the notification daemon (`rise/NotificationService.qml`): popups under the bar on the focused monitor (`panels/NotificationPopups.qml`, hover pauses, click runs the default action, right click dismisses) and a persisted history in the notification center. `qs -c rise ipc call notifications toggle|clear`; do-not-disturb is `dots-toggle-notification-silencing`, which flips `~/.local/state/dots/notifications.json`.
+- **Notifications** — Quickshell is the notification daemon (`rise/NotificationService.qml`): popups under the bar on the focused monitor (`panels/NotificationPopups.qml`, hover pauses, click runs the default action, right click dismisses) and a persisted history in the notification centre — a right-hand sidebar that, with the frame on, grows out of the right frame edge; grouped by app (fold or dismiss a whole app), with each notification's action buttons. `qs -c rise ipc call notifications toggle|clear`; do-not-disturb is `dots-toggle-notification-silencing`, which flips `~/.local/state/dots/notifications.json`.
 - **OSD** — `panels/OsdPanel.qml` shows volume, mic mute, output-device switches and caps lock, driven by PipeWire and the capslock LEDs, so any source of change shows it. swayosd is still used for brightness; style is the rendered `swayosd.css`.
 - **Polkit** — Quickshell is the authentication agent under Hyprland (`panels/PolkitPanel.qml`, a dimmed prompt on the focused monitor); sway still starts `hyprpolkitagent`.
 - **Clipboard** — cliphist records history (user service); `SUPER + SHIFT + V` opens the Quickshell clipboard panel (`panels/ClipboardPanel.qml`): search, image thumbnails, Enter to copy, Delete to remove, wipe with a second click.

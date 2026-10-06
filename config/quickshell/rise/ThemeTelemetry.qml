@@ -18,6 +18,21 @@ Item {
     // per-widget bash/awk polling for CPU and memory, so adding monitors does not
     // multiply these status process chains.
     property int systemCpuPercent: 0
+    // short histories for the dashboard's performance tab; kept here so the
+    // dashboard itself can unload while closed
+    readonly property int histLen: 60
+    property var cpuHist: []
+    property var memHist: []
+    property var gpuHist: []
+    property var tempHist: []
+    function _pushHist(arr, v) { var a = arr.slice(); a.push(v); if (a.length > histLen) a.shift(); return a }
+    Connections {
+        target: theme
+        function onSystemCpuPercentChanged() { theme.cpuHist = theme._pushHist(theme.cpuHist, theme.systemCpuPercent) }
+        function onSystemMemPercentChanged() { theme.memHist = theme._pushHist(theme.memHist, theme.systemMemPercent) }
+        function onGpuPercentChanged() { theme.gpuHist = theme._pushHist(theme.gpuHist, theme.gpuPercent) }
+        function onCpuTemperatureCChanged() { theme.tempHist = theme._pushHist(theme.tempHist, theme.cpuTemperatureC) }
+    }
     property var systemCpuHistory: []
     readonly property int systemCpuMaxSamples: 30
     property real _systemCpuPrevIdle: -1
@@ -581,7 +596,7 @@ Item {
     }
 
     Timer {
-        interval: (theme.modCpu || theme.cpuVisible || theme.modMemory || theme.memVisible) ? 2000 : 10000
+        interval: (theme.modCpu || theme.cpuVisible || theme.modMemory || theme.memVisible || theme.dashboardVisible) ? 2000 : 10000
         running: true; repeat: true; triggeredOnStart: true
         onTriggered: {
             systemCpuFile.reload()
@@ -608,7 +623,7 @@ Item {
 
     Timer {
         interval: 2500
-        running: theme.modGpu || theme.gpuVisible || theme.thermalVisible
+        running: theme.modGpu || theme.gpuVisible || theme.thermalVisible || theme.dashboardVisible
         repeat: true
         triggeredOnStart: true
         onTriggered: if (!gpuTelemetryProc.running) gpuTelemetryProc.running = true
@@ -616,7 +631,7 @@ Item {
 
     Timer {
         interval: 5000
-        running: theme.modCpuTemperature || theme.cpuVisible || theme.thermalVisible
+        running: theme.modCpuTemperature || theme.cpuVisible || theme.thermalVisible || theme.dashboardVisible
         repeat: true
         triggeredOnStart: true
         onTriggered: if (!cpuTemperatureProc.running) cpuTemperatureProc.running = true
@@ -624,7 +639,7 @@ Item {
 
     Timer {
         interval: 30000
-        running: theme.modStorage || theme.storageVisible
+        running: theme.modStorage || theme.storageVisible || theme.dashboardVisible
         repeat: true
         triggeredOnStart: true
         onTriggered: if (!storageTelemetryProc.running) storageTelemetryProc.running = true
@@ -632,7 +647,7 @@ Item {
 
     Timer {
         interval: theme.storageVisible ? 5000 : 60000
-        running: theme.modStorage || theme.storageVisible
+        running: theme.modStorage || theme.storageVisible || theme.dashboardVisible
         repeat: true
         triggeredOnStart: true
         onTriggered: if (!storageInventoryProc.running) storageInventoryProc.running = true

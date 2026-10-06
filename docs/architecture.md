@@ -109,6 +109,7 @@ Declared twice, in two namespaces, both defaulting to `~/dots`:
 | `~/.local/state/dots/theme/current` | `themectl set` | `themectl current`, `next`, `prev` |
 | `~/.local/state/dots/theme/wallpaper` | `dots-set-wallpaper` | `dots-current-wallpaper`, pickers |
 | `~/.local/state/dots/shell/current/` | `themectl` (`shell_compat`) | Quickshell Rise and the lock screen: `theme/colors.sh`, `background`, `theme.name` |
+| `~/.local/state/dots/shell/settings.json` | Quickshell Rise (control panel toggles) | Rise on start — one key per setting, validated per key; migrated once from the old `~/.cache/quickshell_*` files |
 | `~/.local/state/dots/indicators/` | hypridle, gammastep units | bar widgets (`stay-awake`, `nightlight`) |
 | `~/.local/state/dots/voxtype/` | `voxtype` | bar widget (`phase`), model choice |
 | `/var/lib/dots-theme/sddm.json` | `themectl` (`sddm_compat`) | the SDDM greeter, before login |

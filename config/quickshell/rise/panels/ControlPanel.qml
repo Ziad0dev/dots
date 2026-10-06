@@ -119,15 +119,16 @@ PanelWindow {
 
     MouseArea { anchors.fill: parent; onClicked: root.controlVisible = false }
 
+    FrameCard { root: ctrlPanel.root; card: card; reveal: ctrlPanel.reveal }
     Rectangle {
         id: card
         width: 240
         height: col.implicitHeight + 24
         radius: ctrlPanel.reveal > 0.001 ? root.pillRadius : 0
-        color: root.cardBg
+        color: root.frameCardBg
         border.color: root.pillBorder
-        border.width: root.pillBorderW
-        PillShadow { theme: root }
+        border.width: root.frameCardBorderW
+        PillShadow { theme: root ; visible: root.styleShadow && !root.frameOn }
 
         x: Math.round(Math.max(6, Math.min(root.launcherBarX - width / 2, parent.width - width - 6)))
         y: root.barPosition === "bottom" ? (parent.height - barBottom - gap - height) : (barBottom + gap)
@@ -566,6 +567,8 @@ PanelWindow {
                 Tile { width: root.evenW((wwCol.width - 8) / 2); label: "Battery";     visible: root.hasBattery; active: true; enabled: false }
                 Tile { width: root.evenW((wwCol.width - 8) / 2); label: "Storage";      active: root.modStorage;        onActivated: root.modStorage = !root.modStorage }
                 Tile { width: root.evenW((wwCol.width - 8) / 2); label: "CPU temp";     active: root.modCpuTemperature; onActivated: root.modCpuTemperature = !root.modCpuTemperature }
+                Tile { width: root.evenW((wwCol.width - 8) / 2); label: "GPU";          active: root.modGpu;            onActivated: root.modGpu = !root.modGpu }
+                Tile { width: root.evenW((wwCol.width - 8) / 2); label: "Weather";      active: root.modWeather;        onActivated: root.modWeather = !root.modWeather }
             }
             Rectangle { width: parent.width; height: 1; color: root.sep }
 
@@ -804,6 +807,16 @@ PanelWindow {
                 Tile { width: root.evenW((wwCol.width - 8) / 3); label: "Radius 12"; active: !root.styleRadiusSmall; onActivated: root.styleRadiusSmall = false }
                 Tile { width: root.evenW((wwCol.width - 8) / 3); label: "Radius 6";  active: root.styleRadiusSmall;  onActivated: root.styleRadiusSmall = true }
                 Tile { width: root.evenW((wwCol.width - 8) / 3); label: "Icons";     active: root.styleIconLabels;   onActivated: root.styleIconLabels = !root.styleIconLabels }
+            }
+            Row {
+                width: parent.width; spacing: 4
+                Tile { width: root.evenW((wwCol.width - 8) / 3); label: "Frame";     active: root.styleFrame;     onActivated: root.styleFrame = !root.styleFrame }
+                Tile { width: root.evenW((wwCol.width - 8) / 3); label: "Edge";      active: root.styleFrameEdge; onActivated: root.styleFrameEdge = !root.styleFrameEdge }
+                Tile { width: root.evenW((wwCol.width - 8) / 3); label: "Auto-hide"; active: root.styleAutoHide;  onActivated: root.styleAutoHide = !root.styleAutoHide }
+            }
+            Row {
+                width: parent.width; spacing: 4
+                Tile { width: wwCol.width; label: "Desk clock"; active: root.styleDeskClock; onActivated: root.styleDeskClock = !root.styleDeskClock }
             }
 
             Rectangle { width: parent.width; height: 1; color: root.sep }

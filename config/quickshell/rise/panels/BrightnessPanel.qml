@@ -64,15 +64,16 @@ PanelWindow {
         runner.running = true
     }
 
+    FrameCard { root: briPanel.root; card: card; reveal: briPanel.reveal }
     Rectangle {
         id: card
         width: 280
         height: col.implicitHeight + 24
         radius: reveal > 0.001 ? root.pillRadius : 0
-        color: root.cardBg
+        color: root.frameCardBg
         border.color: root.pillBorder
-        border.width: root.pillBorderW
-        PillShadow { theme: root }
+        border.width: root.frameCardBorderW
+        PillShadow { theme: root ; visible: root.styleShadow && !root.frameOn }
 
         x: Math.round(Math.max(6, Math.min(root.brightnessBarX - width / 2, parent.width - width - 6)))
         y: root.barPosition === "bottom" ? (parent.height - barBottom - gap - height) : (barBottom + gap)
