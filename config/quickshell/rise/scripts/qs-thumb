@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# qs-thumb SRC DST — the theme / wallpaper pickers' thumbnail: shortest side
+# 512px ("cover"), auto-oriented, metadata stripped, JPEG q82.
+#
+# libvips streams the decode: ~200 MB peak on an 11520x6480 PNG. ImageMagick
+# here is the Q16-HDRI build (16 bytes per pixel), ~1 GB for the same file, and
+# three of those in parallel pushed the whole session into swap — so it is only
+# the fallback, memory-capped.
+set -u
+src=$1
+dst=$2
+
+if command -v vipsthumbnail >/dev/null 2>&1 && command -v vipsheader >/dev/null 2>&1; then
+    w=$(vipsheader -f width "$src" 2>/dev/null || echo 0)
+    h=$(vipsheader -f height "$src" 2>/dev/null || echo 0)
+    if [ "$w" -gt 0 ] && [ "$h" -gt 0 ]; then
+        # fit inside a box unbounded on the long side: the short side lands on 512
+        if [ "$w" -ge "$h" ]; then size=100000x512; else size=512x100000; fi
+        vipsthumbnail "$src" --size "$size" -o "${dst}[Q=82,keep=none]" 2>/dev/null && exit 0
+    fi
+fi
+
+exec magick -limit memory 256MiB -limit map 512MiB -define jpeg:size=1024x1024 \
+    "${src}[0]" -auto-orient -strip -thumbnail '512x512^' -quality 82 "$dst"
