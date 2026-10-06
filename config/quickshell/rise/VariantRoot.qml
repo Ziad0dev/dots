@@ -315,22 +315,25 @@ Item {
     NotificationPanel { root: theme }
     // Panels holding images (wallpaper, covers, thumbnails) exist only while
     // open and for their exit animation, so closing them frees that memory.
-    component Linger: Timer { interval: 700 }
-    Linger { id: dashLinger }
-    Linger { id: drawerLinger }
-    Linger { id: utilLinger }
-    Linger { id: sessionLinger }
-    Connections {
-        target: theme
-        function onDashboardVisibleChanged() { if (!theme.dashboardVisible) dashLinger.restart() }
-        function onDrawerVisibleChanged() { if (!theme.drawerVisible) drawerLinger.restart() }
-        function onUtilitiesVisibleChanged() { if (!theme.utilitiesVisible) utilLinger.restart() }
-        function onSessionVisibleChanged() { if (!theme.sessionVisible) sessionLinger.restart() }
+    // `alive` is set the moment a panel opens and cleared only when the linger
+    // timer fires after it closes. (A binding on visible || timer.running let the
+    // loader see "closed" before the timer restarted, destroying the panel — and
+    // any command it had just started — mid-click.)
+    component PanelLife: QtObject {
+        id: life
+        required property bool open
+        property bool alive: false
+        onOpenChanged: if (open) { linger.stop(); alive = true } else linger.restart()
+        property Timer linger: Timer { interval: 700; onTriggered: life.alive = false }
     }
-    LazyLoader { active: theme.dashboardVisible || dashLinger.running; DashboardPanel { root: theme } }
-    LazyLoader { active: theme.drawerVisible || drawerLinger.running; StyleDrawer { root: theme } }
-    LazyLoader { active: theme.utilitiesVisible || utilLinger.running; UtilitiesPanel { root: theme } }
-    LazyLoader { active: theme.sessionVisible || sessionLinger.running; SessionMenu { root: theme } }
+    PanelLife { id: dashLife; open: theme.dashboardVisible }
+    PanelLife { id: drawerLife; open: theme.drawerVisible }
+    PanelLife { id: utilLife; open: theme.utilitiesVisible }
+    PanelLife { id: sessionLife; open: theme.sessionVisible }
+    LazyLoader { active: dashLife.alive; DashboardPanel { root: theme } }
+    LazyLoader { active: drawerLife.alive; StyleDrawer { root: theme } }
+    LazyLoader { active: utilLife.alive; UtilitiesPanel { root: theme } }
+    LazyLoader { active: sessionLife.alive; SessionMenu { root: theme } }
     NetworkPanel { root: theme }
     BluetoothPanel { root: theme }
     BatteryPanel { root: theme }

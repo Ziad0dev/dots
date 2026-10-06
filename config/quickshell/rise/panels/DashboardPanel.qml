@@ -123,11 +123,10 @@ PanelWindow {
     }
 
     // ── shortcuts ──
-    Process { id: runner }
+    // detached: the dashboard unloads after closing, which would kill a child
     function run(cmd) {
         root.dashboardVisible = false
-        runner.command = ["bash", "-c", cmd]
-        runner.running = false; runner.running = true
+        Quickshell.execDetached(["bash", "-c", cmd])
     }
     function tint(c, a) { return Qt.rgba(c.r, c.g, c.b, a) }
     // card fill over the wallpaper: the theme background, mostly opaque
