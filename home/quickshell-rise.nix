@@ -159,6 +159,7 @@ let
     ++ (with pkgs; [
       bash
       coreutils
+      curl # SyncedLyrics (lrclib.net)
       ffmpegthumbnailer
       findutils
       gawk
@@ -209,6 +210,8 @@ in
       Environment = [
         "PATH=${risePath}:${dotsShims}/bin:/etc/profiles/per-user/${config.home.username}/bin:${homeDir}/.nix-profile/bin:/run/wrappers/bin:/run/current-system/sw/bin"
         "DOTS_SHELL_PATH=${dots}/config/quickshell/rise"
+        # Caelestia.Blobs: the SDF frame + melting panel backgrounds
+        "QML_IMPORT_PATH=${pkgs.caelestia-blobs}/${pkgs.qt6.qtbase.qtQmlPrefix}"
       ];
       Slice = "app-graphical.slice";
       KillMode = "process";
