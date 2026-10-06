@@ -69,15 +69,14 @@ PanelWindow {
         wallScan.running = false; wallScan.running = true
     }
 
-    Process { id: applyProc }
+    // detached: dots-theme-set takes a moment and must survive the drawer
+    // closing (it unloads)
     function applyTheme(name) {
-        applyProc.command = ["env", "DOTS_SHELL_PATH=" + root.dotsShellRoot, "dots-theme-set", name]
-        applyProc.running = false; applyProc.running = true
+        Quickshell.execDetached(["env", "DOTS_SHELL_PATH=" + root.dotsShellRoot, "dots-theme-set", name])
     }
     function applyWallpaper(path) {
         currentWallpaper = path
-        applyProc.command = ["dots-theme-bg-set", path]
-        applyProc.running = false; applyProc.running = true
+        Quickshell.execDetached(["dots-theme-bg-set", path])
     }
 
     // loaded on open (VariantRoot): start closed so the reveal animates

@@ -47,10 +47,11 @@ PanelWindow {
         "| sort -rn | head -4 | cut -f2- | sed 's/^/shot=/'"
 
     function refresh() { stateProc.running = false; stateProc.running = true }
+    // detached, so closing the panel (it unloads) can't kill a toggle mid-way;
+    // the state is re-read once it has had time to land
     function run(cmd) {
-        runner.command = ["bash", "-c", cmd]
-        runner.running = false
-        runner.running = true
+        Quickshell.execDetached(["bash", "-c", cmd])
+        stateRefresh.restart()
     }
 
     Process {
@@ -73,10 +74,10 @@ PanelWindow {
             }
         }
     }
-    // toggles re-read the state once their command has finished
-    Process {
-        id: runner
-        onExited: {
+    Timer {
+        id: stateRefresh
+        interval: 700
+        onTriggered: {
             utilPanel.refresh()
             root.refreshStatusIndicators()
             root.refreshRecordingStatus()
