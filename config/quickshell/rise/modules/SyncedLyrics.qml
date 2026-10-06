@@ -33,7 +33,13 @@ Item {
         return best
     }
 
-    readonly property int lineH: 20
+    property int lineH: 20
+    // look (defaults: the bar's mono face); the dashboard sets its own
+    property string family: root.mono
+    property color currentColor: root.ink
+    property color otherColor: root.sumi
+    property real currentSize: 12
+    property real otherSize: 11
     implicitHeight: hasLyrics ? visibleLines * lineH : 0
     Behavior on implicitHeight { Anim { kind: "size"; ms: 300 } }
     visible: hasLyrics
@@ -118,10 +124,10 @@ Item {
                 verticalAlignment: Text.AlignVCenter
                 elide: Text.ElideRight
                 text: modelData.text === "" ? "♪" : modelData.text
-                color: index === lyr.current ? lyr.root.ink : lyr.root.sumi
+                color: index === lyr.current ? lyr.currentColor : lyr.otherColor
                 opacity: index === lyr.current ? 1 : Math.max(0.15, 0.6 - 0.18 * dist)
-                font.family: lyr.root.mono
-                font.pixelSize: index === lyr.current ? 12 : 11
+                font.family: lyr.family
+                font.pixelSize: index === lyr.current ? lyr.currentSize : lyr.otherSize
                 font.weight: index === lyr.current ? Font.Medium : Font.Normal
                 Behavior on opacity { Anim { kind: "effects"; ms: 220 } }
                 Behavior on color { CAnim { ms: 220 } }
