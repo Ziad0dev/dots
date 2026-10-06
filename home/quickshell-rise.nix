@@ -38,6 +38,27 @@ let
     '';
   };
 
+  # KillMode=process keeps apps launched from the bar alive across a restart
+  # (they detach into their own sessions), so the bar's own helpers are reaped
+  # here: whatever is still in its cgroup in the session of the instance that
+  # just stopped. Path matching failed both ways — `pkill -f …/rise/scripts/`
+  # killed the dots-github-inbox timer's run (another unit, same path) and
+  # missed the helpers started as ~/.config/quickshell/…, so every restart
+  # leaked a qs-kb-wait socat|grep pipeline.
+  reapHelpers = pkgs.writeShellApplication {
+    name = "dots-quickshell-reap-helpers";
+    runtimeInputs = [ pkgs.systemd pkgs.procps ];
+    text = ''
+      main=$(systemctl --user show -p ExecMainPID --value quickshell.service)
+      cg="/sys/fs/cgroup$(systemctl --user show -p ControlGroup --value quickshell.service)"
+      [ -n "$main" ] && [ "$main" != 0 ] && [ -r "$cg/cgroup.procs" ] || exit 0
+      while read -r pid; do
+        [ "$(ps -o sid= -p "$pid" | tr -d ' ')" = "$main" ] && kill "$pid" 2>/dev/null
+      done < "$cg/cgroup.procs"
+      exit 0
+    '';
+  };
+
   thumbPrune = pkgs.writeShellApplication {
     name = "dots-thumb-prune";
     runtimeInputs = [
@@ -216,7 +237,7 @@ in
       Slice = "app-graphical.slice";
       KillMode = "process";
       ExecStopPost = [
-        "-${pkgs.procps}/bin/pkill -f ${dots}/config/quickshell/rise/scripts/"
+        "-${reapHelpers}/bin/dots-quickshell-reap-helpers"
       ];
       RestartSec = 2;
     };
