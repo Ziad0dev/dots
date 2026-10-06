@@ -195,6 +195,7 @@ let
       socat
       systemd
       util-linux
+      vips # qs-thumb: picker thumbnails without ImageMagick's multi-GB peaks
       wireplumber
       xdg-user-dirs
     ])
