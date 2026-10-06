@@ -213,6 +213,8 @@ in
     pkgs.wireplumber
     pkgs.nvtopPackages.nvidia
     pkgs.material-symbols
+    pkgs.google-sans-flex # dashboard text (Caelestia-style)
+    pkgs.rubik # dashboard clock
     pkgs.nerd-fonts.jetbrains-mono
   ];
 

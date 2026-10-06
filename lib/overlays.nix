@@ -6,6 +6,7 @@
   (final: _prev: {
     soulseek-rs = final.callPackage ../pkgs/soulseek-rs.nix { };
     caelestia-blobs = final.callPackage ../pkgs/caelestia-blobs { };
+    google-sans-flex = final.callPackage ../pkgs/google-sans-flex { };
   })
   (final: prev: {
     feather =
