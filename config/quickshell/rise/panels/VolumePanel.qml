@@ -145,389 +145,401 @@ PanelWindow {
 
     property real reveal: root.volVisible ? 1 : 0
     Behavior on reveal {
-        Anim { kind: root.volVisible ? "spatial" : "exit" }
+        Anim { kind: "effects" }
     }
     visible: reveal > 0.001
-    WlrLayershell.keyboardFocus: root.volVisible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+        || (root.popout.last === "volVisible" && root.popout.shown)
+    WlrLayershell.keyboardFocus: root.volVisible && !root.popout.hoverMode
+        ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+    mask: Region {
+        readonly property bool hover: volPanel.root.popout.hoverMode
+        readonly property int gap: volPanel.root.popout.gap
+        x: hover ? popClip.x : 0
+        y: hover ? popClip.y - (volPanel.root.popout.barOnTop ? gap : 0) : 0
+        width: hover ? popClip.width : volPanel.width
+        height: hover ? popClip.height + gap : volPanel.height
+    }
 
     MouseArea {
         anchors.fill: parent
         onClicked: root.volVisible = false
     }
 
-    FrameCard { root: volPanel.root; card: card; reveal: volPanel.reveal }
-    Rectangle {
-        id: card
-        width: 280
-        height: col.implicitHeight + 24
-        radius: reveal > 0.001 ? root.pillRadius : 0
-        color: root.frameCardBg
-        border.color: root.pillBorder
-        border.width: root.frameCardBorderW
-        PillShadow { theme: root ; visible: root.styleShadow && !root.frameOn }
+    PopoutClip {
+        id: popClip
+        root: volPanel.root
+        flag: "volVisible"
+        card: card
+        Rectangle {
+            id: card
+            width: 280
+            height: col.implicitHeight + 24
+            radius: reveal > 0.001 ? root.pillRadius : 0
+            color: "transparent"
+            border.color: root.pillBorder
+            border.width: 0
 
-        x: Math.round(Math.max(6, Math.min(root.volumeBarX - width / 2, parent.width - width - 6)))
-        y: root.barPosition === "bottom" ? (parent.height - barBottom - gap - height) : (barBottom + gap)
-        opacity: volPanel.reveal
-        transformOrigin: root.barPosition === "bottom" ? Item.Bottom : Item.Top
-        scale: root.motionHover ? (0.92 + 0.08 * volPanel.reveal) : 1
-        focus: root.volVisible
+            x: popClip.cardX
+            y: popClip.cardY
+            opacity: volPanel.reveal
+            focus: root.volVisible
 
-        Keys.onPressed: function(event) {
-            if (event.key === Qt.Key_Escape) {
-                root.volVisible = false;
-                event.accepted = true;
-            }
-        }
-
-        MouseArea { anchors.fill: parent; onClicked: {} }
-
-        Column {
-            id: col
-            anchors.fill: parent
-            anchors.margins: 12
-            spacing: 8
-
-            // ── header ──
-            Item {
-                width: parent.width
-                height: 24
-                UiText {
-                    anchors.left: parent.left
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: "Volume"
-                    color: root.ink
-                    font.family: root.mono
-                    font.pixelSize: 13
-                    font.letterSpacing: 2
-                    font.weight: Font.Medium
-                }
-                UiText {
-                    anchors.right: parent.right
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: "✕"
-                    color: closeMa.containsMouse ? root.seal : root.sumi
-                    font.pixelSize: 12
-                    Behavior on color { CAnim { ms: 120 } }
-                    MouseArea {
-                        id: closeMa
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: root.volVisible = false
-                    }
+            Keys.onPressed: function(event) {
+                if (event.key === Qt.Key_Escape) {
+                    root.volVisible = false;
+                    event.accepted = true;
                 }
             }
 
-            Rectangle { width: parent.width; height: 1; color: root.sep }
+            MouseArea { anchors.fill: parent; onClicked: {} }
 
-            // ── volume bar ──
-            UiText {
-                text: "OUTPUT"
-                color: root.sumiHi
-                font.family: root.mono; font.pixelSize: 10; font.letterSpacing: 1
-            }
-
-            Item {
-                width: parent.width
-                height: 30
-                UiText {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    anchors.top: parent.top
-                    text: volPanel.muted ? "Muted" : volPanel.volume + "%"
-                    color: volPanel.muted
-                        ? Qt.rgba(root.seal.r, root.seal.g, root.seal.b, 0.4)
-                        : root.seal
-                    font.family: root.mono; font.pixelSize: 11; font.weight: Font.Medium
-                }
-                Rectangle {
-                    anchors.bottom: parent.bottom
-                    width: parent.width; height: 8; radius: 4
-                    color: root.fillActive
-                    Rectangle {
-                        width: parent.width * (volPanel.muted ? 0 : Math.min(volPanel.volume / 100, 1))
-                        height: parent.height; radius: 4
-                        color: root.seal
-                        Behavior on width { Anim { kind: "size"; ms: 300 } }
-                    }
-                }
-            }
-
-            // ── output device switcher ──
-            UiText {
-                text: "OUTPUT DEVICE"
-                color: root.sumiHi
-                font.family: root.mono; font.pixelSize: 10; font.letterSpacing: 1
-            }
             Column {
-                width: parent.width
-                spacing: 4
-                Repeater {
-                    model: volPanel.sinks
-                    delegate: Rectangle {
-                        id: devTile
-                        required property var modelData
-                        readonly property bool isDef:   devTile.modelData.name === volPanel.defaultSink
-                        readonly property bool hovered: devMa.containsMouse
-                        width: parent.width
-                        height: 26; radius: root.tileRadius
-                        color: isDef     ? root.fillActive
-                             : hovered ? root.fillHover : root.fillIdle
-                        border.color: (isDef || hovered) ? root.seal : root.sep
-                        border.width: 1
+                id: col
+                anchors.fill: parent
+                anchors.margins: 12
+                spacing: 8
+
+                // ── header ──
+                Item {
+                    width: parent.width
+                    height: 24
+                    UiText {
+                        anchors.left: parent.left
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: "Volume"
+                        color: root.ink
+                        font.family: root.gothic
+                        font.pixelSize: 20
+                        font.letterSpacing: 0.5
+                        font.weight: Font.Medium
+                    }
+                    UiText {
+                        anchors.right: parent.right
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: "✕"
+                        color: closeMa.containsMouse ? root.seal : root.sumi
+                        font.pixelSize: 12
                         Behavior on color { CAnim { ms: 120 } }
-                        Row {
-                            anchors.fill: parent
-                            anchors.leftMargin: 8; anchors.rightMargin: 8
-                            spacing: 6
-                            UiText {
-                                anchors.verticalCenter: parent.verticalCenter
-                                text: devTile.isDef ? "●" : "○"
-                                color: devTile.isDef ? root.seal : root.sumi
-                                font.family: root.mono; font.pixelSize: 10
-                            }
-                            UiText {
-                                anchors.verticalCenter: parent.verticalCenter
-                                width: parent.width - 22
-                                text: devTile.modelData.desc
-                                color: (devTile.isDef || devTile.hovered) ? root.seal : root.ink
-                                font.family: root.mono; font.pixelSize: 11
-                                elide: Text.ElideRight
-                            }
-                        }
                         MouseArea {
-                            id: devMa
+                            id: closeMa
                             anchors.fill: parent
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                volPanel.setDefaultSink(devTile.modelData)
-                            }
+                            onClicked: root.volVisible = false
                         }
                     }
                 }
-            }
 
-            Rectangle { width: parent.width; height: 1; color: root.sep }
+                GrimRule { root: volPanel.root; width: parent.width }
 
-            // ── mute toggle ──
-            Rectangle {
-                width: parent.width
-                height: 28; radius: root.tileRadius
-                color: volPanel.muted ? root.fillActive
-                    : muteMa.containsMouse ? root.fillHover
-                    : root.fillIdle
-                border.color: (muteMa.containsMouse || volPanel.muted) ? root.seal : root.sep
-                border.width: 1
-                Behavior on color { CAnim { ms: 120 } }
+                // ── volume bar ──
                 UiText {
-                    anchors.centerIn: parent
-                    text: volPanel.muted ? "Unmute volume" : "Mute volume"
-                    color: (muteMa.containsMouse || volPanel.muted) ? root.seal : root.sumi
-                    font.family: root.mono; font.pixelSize: 11
+                    text: "OUTPUT"
+                    color: root.sumiHi
+                    font.family: root.mono; font.pixelSize: 10; font.letterSpacing: 1
                 }
-                MouseArea {
-                    id: muteMa
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: {
-                        if (!muteRunner.running) muteRunner.running = true
+
+                Item {
+                    width: parent.width
+                    height: 30
+                    UiText {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        anchors.top: parent.top
+                        text: volPanel.muted ? "Muted" : volPanel.volume + "%"
+                        color: volPanel.muted
+                            ? Qt.rgba(root.seal.r, root.seal.g, root.seal.b, 0.4)
+                            : root.seal
+                        font.family: root.mono; font.pixelSize: 11; font.weight: Font.Medium
+                    }
+                    Rectangle {
+                        anchors.bottom: parent.bottom
+                        width: parent.width; height: 8; radius: 4
+                        color: root.fillActive
+                        Rectangle {
+                            width: parent.width * (volPanel.muted ? 0 : Math.min(volPanel.volume / 100, 1))
+                            height: parent.height; radius: 4
+                            color: root.seal
+                            Behavior on width { Anim { kind: "size"; ms: 300 } }
+                        }
                     }
                 }
-            }
 
-            // ── per-app mixer ──
-            Rectangle { width: parent.width; height: 1; color: root.sep; visible: volPanel.apps.length > 0 }
-            UiText {
-                visible: volPanel.apps.length > 0
-                text: "APPS"
-                color: root.sumiHi
-                font.family: root.mono; font.pixelSize: 10; font.letterSpacing: 1
-            }
-            Column {
-                width: parent.width
-                spacing: 8
-                Repeater {
-                    model: volPanel.apps
-                    delegate: Item {
-                        id: appRow
-                        required property var modelData
-                        width: parent.width
-                        height: 32
-                        property int liveVol: modelData.vol
-
-                        // mute glyph
-                        IconText {
-                            id: appMute
-                            anchors.left: parent.left
-                            anchors.top: parent.top
-                            text: appRow.modelData.muted ? String.fromCodePoint(0xE04F) : String.fromCodePoint(0xE050)
-                            font.pixelSize: 15
-                            color: appRow.modelData.muted ? Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.4) : root.seal
+                // ── output device switcher ──
+                UiText {
+                    text: "OUTPUT DEVICE"
+                    color: root.sumiHi
+                    font.family: root.mono; font.pixelSize: 10; font.letterSpacing: 1
+                }
+                Column {
+                    width: parent.width
+                    spacing: 4
+                    Repeater {
+                        model: volPanel.sinks
+                        delegate: Rectangle {
+                            id: devTile
+                            required property var modelData
+                            readonly property bool isDef:   devTile.modelData.name === volPanel.defaultSink
+                            readonly property bool hovered: devMa.containsMouse
+                            width: parent.width
+                            height: 26; radius: root.tileRadius
+                            color: isDef     ? root.fillActive
+                                 : hovered ? root.fillHover : root.fillIdle
+                            border.color: (isDef || hovered) ? root.seal : root.sep
+                            border.width: 1
+                            Behavior on color { CAnim { ms: 120 } }
+                            Row {
+                                anchors.fill: parent
+                                anchors.leftMargin: 8; anchors.rightMargin: 8
+                                spacing: 6
+                                UiText {
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    text: devTile.isDef ? "●" : "○"
+                                    color: devTile.isDef ? root.seal : root.sumi
+                                    font.family: root.mono; font.pixelSize: 10
+                                }
+                                UiText {
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    width: parent.width - 22
+                                    text: devTile.modelData.desc
+                                    color: (devTile.isDef || devTile.hovered) ? root.seal : root.ink
+                                    font.family: root.mono; font.pixelSize: 11
+                                    elide: Text.ElideRight
+                                }
+                            }
                             MouseArea {
-                                anchors.fill: parent; anchors.margins: -3
+                                id: devMa
+                                anchors.fill: parent
+                                hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
                                 onClicked: {
-                                    volPanel.run("pactl set-sink-input-mute " + appRow.modelData.idx + " toggle")
-                                    Qt.callLater(function() { volPanel.refreshAll() })
-                                }
-                            }
-                        }
-                        UiText {
-                            anchors.left: appMute.right; anchors.leftMargin: 6
-                            anchors.verticalCenter: appMute.verticalCenter
-                            anchors.verticalCenterOffset: 1
-                            anchors.right: appPct.left; anchors.rightMargin: 6
-                            text: appRow.modelData.name
-                            color: appRow.modelData.muted ? root.sumi : root.ink
-                            font.family: root.mono; font.pixelSize: 11
-                            elide: Text.ElideRight
-                        }
-                        UiText {
-                            id: appPct
-                            anchors.right: parent.right
-                            anchors.verticalCenter: appMute.verticalCenter
-                            anchors.verticalCenterOffset: 1
-                            text: appRow.liveVol + "%"
-                            color: root.seal
-                            font.family: root.mono; font.pixelSize: 11; font.weight: Font.Medium
-                        }
-
-                        // draggable volume bar
-                        Rectangle {
-                            id: appTrack
-                            anchors.left: parent.left; anchors.right: parent.right
-                            anchors.bottom: parent.bottom
-                            height: 8; radius: 4
-                            color: root.fillActive
-                            Rectangle {
-                                width: parent.width * Math.min(appRow.liveVol / 100, 1)
-                                height: parent.height; radius: 4
-                                color: appRow.modelData.muted ? Qt.rgba(root.seal.r, root.seal.g, root.seal.b, 0.4) : root.seal
-                            }
-                            MouseArea {
-                                anchors.fill: parent; anchors.topMargin: -8; anchors.bottomMargin: -4
-                                cursorShape: Qt.PointingHandCursor
-                                function setFromX(x) {
-                                    appRow.liveVol = Math.max(0, Math.min(100, Math.round(x / appTrack.width * 100)))
-                                }
-                                onPressed:          function(m) { setFromX(m.x) }
-                                onPositionChanged:  function(m) { if (pressed) setFromX(m.x) }
-                                onReleased: {
-                                    volPanel.run("pactl set-sink-input-volume " + appRow.modelData.idx + " " + appRow.liveVol + "%")
+                                    volPanel.setDefaultSink(devTile.modelData)
                                 }
                             }
                         }
                     }
                 }
-            }
 
-            Rectangle { width: parent.width; height: 1; color: root.sep }
+                Rectangle { width: parent.width; height: 1; color: root.sep }
 
-            // ── mic section ──
-            UiText {
-                text: "INPUT"
-                color: root.sumiHi
-                font.family: root.mono; font.pixelSize: 10; font.letterSpacing: 1
-            }
-
-            Row {
-                width: parent.width
-                UiText {
-                    text: "Microphone"
-                    color: root.sumiHi
-                    font.family: root.mono; font.pixelSize: 11
-                    width: parent.width * 0.5
-                }
-                UiText {
-                    text: volPanel.micMuted ? "Muted" : "Active"
-                    color: volPanel.micMuted
-                        ? Qt.rgba(root.seal.r, root.seal.g, root.seal.b, 0.5)
-                        : Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.7)
-                    font.family: root.mono; font.pixelSize: 11
-                    width: parent.width * 0.5
-                    horizontalAlignment: Text.AlignRight
-                }
-            }
-
-            Item {
-                width: parent.width
-                height: visible ? 8 : 0
-                visible: volPanel.micMeterAvailable
-
+                // ── mute toggle ──
                 Rectangle {
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.verticalCenter: parent.verticalCenter
-                    height: 4
-                    radius: 2
-                    color: root.fillIdle
-                    border.color: root.sep
+                    width: parent.width
+                    height: 28; radius: root.tileRadius
+                    color: volPanel.muted ? root.fillActive
+                        : muteMa.containsMouse ? root.fillHover
+                        : root.fillIdle
+                    border.color: (muteMa.containsMouse || volPanel.muted) ? root.seal : root.sep
                     border.width: 1
+                    Behavior on color { CAnim { ms: 120 } }
+                    UiText {
+                        anchors.centerIn: parent
+                        text: volPanel.muted ? "Unmute volume" : "Mute volume"
+                        color: (muteMa.containsMouse || volPanel.muted) ? root.seal : root.sumi
+                        font.family: root.mono; font.pixelSize: 11
+                    }
+                    MouseArea {
+                        id: muteMa
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            if (!muteRunner.running) muteRunner.running = true
+                        }
+                    }
+                }
+
+                // ── per-app mixer ──
+                Rectangle { width: parent.width; height: 1; color: root.sep; visible: volPanel.apps.length > 0 }
+                UiText {
+                    visible: volPanel.apps.length > 0
+                    text: "APPS"
+                    color: root.sumiHi
+                    font.family: root.mono; font.pixelSize: 10; font.letterSpacing: 1
+                }
+                Column {
+                    width: parent.width
+                    spacing: 8
+                    Repeater {
+                        model: volPanel.apps
+                        delegate: Item {
+                            id: appRow
+                            required property var modelData
+                            width: parent.width
+                            height: 32
+                            property int liveVol: modelData.vol
+
+                            // mute glyph
+                            IconText {
+                                id: appMute
+                                anchors.left: parent.left
+                                anchors.top: parent.top
+                                text: appRow.modelData.muted ? String.fromCodePoint(0xE04F) : String.fromCodePoint(0xE050)
+                                font.pixelSize: 15
+                                color: appRow.modelData.muted ? Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.4) : root.seal
+                                MouseArea {
+                                    anchors.fill: parent; anchors.margins: -3
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        volPanel.run("pactl set-sink-input-mute " + appRow.modelData.idx + " toggle")
+                                        Qt.callLater(function() { volPanel.refreshAll() })
+                                    }
+                                }
+                            }
+                            UiText {
+                                anchors.left: appMute.right; anchors.leftMargin: 6
+                                anchors.verticalCenter: appMute.verticalCenter
+                                anchors.verticalCenterOffset: 1
+                                anchors.right: appPct.left; anchors.rightMargin: 6
+                                text: appRow.modelData.name
+                                color: appRow.modelData.muted ? root.sumi : root.ink
+                                font.family: root.mono; font.pixelSize: 11
+                                elide: Text.ElideRight
+                            }
+                            UiText {
+                                id: appPct
+                                anchors.right: parent.right
+                                anchors.verticalCenter: appMute.verticalCenter
+                                anchors.verticalCenterOffset: 1
+                                text: appRow.liveVol + "%"
+                                color: root.seal
+                                font.family: root.mono; font.pixelSize: 11; font.weight: Font.Medium
+                            }
+
+                            // draggable volume bar
+                            Rectangle {
+                                id: appTrack
+                                anchors.left: parent.left; anchors.right: parent.right
+                                anchors.bottom: parent.bottom
+                                height: 8; radius: 4
+                                color: root.fillActive
+                                Rectangle {
+                                    width: parent.width * Math.min(appRow.liveVol / 100, 1)
+                                    height: parent.height; radius: 4
+                                    color: appRow.modelData.muted ? Qt.rgba(root.seal.r, root.seal.g, root.seal.b, 0.4) : root.seal
+                                }
+                                MouseArea {
+                                    anchors.fill: parent; anchors.topMargin: -8; anchors.bottomMargin: -4
+                                    cursorShape: Qt.PointingHandCursor
+                                    function setFromX(x) {
+                                        appRow.liveVol = Math.max(0, Math.min(100, Math.round(x / appTrack.width * 100)))
+                                    }
+                                    onPressed:          function(m) { setFromX(m.x) }
+                                    onPositionChanged:  function(m) { if (pressed) setFromX(m.x) }
+                                    onReleased: {
+                                        volPanel.run("pactl set-sink-input-volume " + appRow.modelData.idx + " " + appRow.liveVol + "%")
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Rectangle { width: parent.width; height: 1; color: root.sep }
+
+                // ── mic section ──
+                UiText {
+                    text: "INPUT"
+                    color: root.sumiHi
+                    font.family: root.mono; font.pixelSize: 10; font.letterSpacing: 1
+                }
+
+                Row {
+                    width: parent.width
+                    UiText {
+                        text: "Microphone"
+                        color: root.sumiHi
+                        font.family: root.mono; font.pixelSize: 11
+                        width: parent.width * 0.5
+                    }
+                    UiText {
+                        text: volPanel.micMuted ? "Muted" : "Active"
+                        color: volPanel.micMuted
+                            ? Qt.rgba(root.seal.r, root.seal.g, root.seal.b, 0.5)
+                            : Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.7)
+                        font.family: root.mono; font.pixelSize: 11
+                        width: parent.width * 0.5
+                        horizontalAlignment: Text.AlignRight
+                    }
+                }
+
+                Item {
+                    width: parent.width
+                    height: visible ? 8 : 0
+                    visible: volPanel.micMeterAvailable
 
                     Rectangle {
                         anchors.left: parent.left
-                        anchors.top: parent.top
-                        anchors.bottom: parent.bottom
-                        width: parent.width * volPanel.micLevel
-                        radius: parent.radius
-                        color: volPanel.micMuted
-                            ? Qt.rgba(root.seal.r, root.seal.g, root.seal.b, 0.25)
-                            : root.seal
+                        anchors.right: parent.right
+                        anchors.verticalCenter: parent.verticalCenter
+                        height: 4
+                        radius: 2
+                        color: root.fillIdle
+                        border.color: root.sep
+                        border.width: 1
+
+                        Rectangle {
+                            anchors.left: parent.left
+                            anchors.top: parent.top
+                            anchors.bottom: parent.bottom
+                            width: parent.width * volPanel.micLevel
+                            radius: parent.radius
+                            color: volPanel.micMuted
+                                ? Qt.rgba(root.seal.r, root.seal.g, root.seal.b, 0.25)
+                                : root.seal
+                        }
                     }
                 }
-            }
 
-            Rectangle {
-                width: parent.width
-                height: 28; radius: root.tileRadius
-                color: volPanel.micMuted ? root.fillActive
-                    : micMuteMa.containsMouse ? root.fillHover
-                    : root.fillIdle
-                border.color: (micMuteMa.containsMouse || volPanel.micMuted) ? root.seal : root.sep
-                border.width: 1
-                Behavior on color { CAnim { ms: 120 } }
-                UiText {
-                    anchors.centerIn: parent
-                    text: volPanel.micMuted ? "Unmute mic" : "Mute mic"
-                    color: (micMuteMa.containsMouse || volPanel.micMuted) ? root.seal : root.sumi
-                    font.family: root.mono; font.pixelSize: 11
-                }
-                MouseArea {
-                    id: micMuteMa
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: {
-                        if (!micMuteRunner.running) micMuteRunner.running = true
+                Rectangle {
+                    width: parent.width
+                    height: 28; radius: root.tileRadius
+                    color: volPanel.micMuted ? root.fillActive
+                        : micMuteMa.containsMouse ? root.fillHover
+                        : root.fillIdle
+                    border.color: (micMuteMa.containsMouse || volPanel.micMuted) ? root.seal : root.sep
+                    border.width: 1
+                    Behavior on color { CAnim { ms: 120 } }
+                    UiText {
+                        anchors.centerIn: parent
+                        text: volPanel.micMuted ? "Unmute mic" : "Mute mic"
+                        color: (micMuteMa.containsMouse || volPanel.micMuted) ? root.seal : root.sumi
+                        font.family: root.mono; font.pixelSize: 11
+                    }
+                    MouseArea {
+                        id: micMuteMa
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            if (!micMuteRunner.running) micMuteRunner.running = true
+                        }
                     }
                 }
-            }
 
-            Rectangle { width: parent.width; height: 1; color: root.sep }
+                Rectangle { width: parent.width; height: 1; color: root.sep }
 
-            // ── open audio ──
-            Rectangle {
-                width: parent.width
-                height: 28; radius: root.tileRadius
-                color: audioBtnMa.containsMouse ? root.fillPrimaryHover : root.seal
-                Behavior on color { CAnim { ms: 120 } }
-                UiText {
-                    anchors.centerIn: parent
-                    text: "Open audio"
-                    color: root.paper
-                    font.family: root.mono; font.pixelSize: 11
-                }
-                MouseArea {
-                    id: audioBtnMa
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: {
-                        root.volVisible = false
-                        audioRunner.running = false
-                        audioRunner.running = true
+                // ── open audio ──
+                Rectangle {
+                    width: parent.width
+                    height: 28; radius: root.tileRadius
+                    color: audioBtnMa.containsMouse ? root.fillPrimaryHover : root.seal
+                    Behavior on color { CAnim { ms: 120 } }
+                    UiText {
+                        anchors.centerIn: parent
+                        text: "Open audio"
+                        color: root.paper
+                        font.family: root.mono; font.pixelSize: 11
+                    }
+                    MouseArea {
+                        id: audioBtnMa
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            root.volVisible = false
+                            audioRunner.running = false
+                            audioRunner.running = true
+                        }
                     }
                 }
             }

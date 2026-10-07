@@ -106,7 +106,7 @@ Item {
         onTriggered: { btProc.result = ""; btProc.running = false; btProc.running = true }
     }
 
-    TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText }
+    TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText; popout: "bluetoothVisible" }
 
     Process { id: clickRunner; command: ["bash", "-c", root.launchBtCmd] }
 
@@ -123,7 +123,7 @@ Item {
             if (e.button === Qt.RightButton) { btTui.running = false; btTui.running = true; return }
             tip.hide()
             if (e.button === Qt.RightButton) { clickRunner.running = false; clickRunner.running = true }
-            else root.bluetoothVisible = !root.bluetoothVisible
+            else root.popout.click("bluetoothVisible")
         }
     }
 }

@@ -20,196 +20,208 @@ PanelWindow {
 
     property real reveal: root.calendarVisible ? 1 : 0
     Behavior on reveal {
-        Anim { kind: root.calendarVisible ? "spatial" : "exit" }
+        Anim { kind: "effects" }
     }
     visible: reveal > 0.001
-    WlrLayershell.keyboardFocus: root.calendarVisible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+        || (root.popout.last === "calendarVisible" && root.popout.shown)
+    WlrLayershell.keyboardFocus: root.calendarVisible && !root.popout.hoverMode
+        ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+    mask: Region {
+        readonly property bool hover: calPopup.root.popout.hoverMode
+        readonly property int gap: calPopup.root.popout.gap
+        x: hover ? popClip.x : 0
+        y: hover ? popClip.y - (calPopup.root.popout.barOnTop ? gap : 0) : 0
+        width: hover ? popClip.width : calPopup.width
+        height: hover ? popClip.height + gap : calPopup.height
+    }
 
     MouseArea {
         anchors.fill: parent
         onClicked: root.calendarVisible = false
     }
 
-    FrameCard { root: calPopup.root; card: card; reveal: calPopup.reveal }
-    Rectangle {
-        id: card
-        width: 280
-        height: col.implicitHeight + 24
-        radius: reveal > 0.001 ? root.pillRadius : 0
-        color: root.frameCardBg
-        border.color: root.pillBorder
-        border.width: root.frameCardBorderW
-        PillShadow { theme: root ; visible: root.styleShadow && !root.frameOn }
+    PopoutClip {
+        id: popClip
+        root: calPopup.root
+        flag: "calendarVisible"
+        card: card
+        Rectangle {
+            id: card
+            width: 280
+            height: col.implicitHeight + 24
+            radius: reveal > 0.001 ? root.pillRadius : 0
+            color: "transparent"
+            border.color: root.pillBorder
+            border.width: 0
 
-        x: Math.round((parent.width - width) / 2)
-        y: root.barPosition === "bottom" ? (parent.height - barBottom - gap - height) : (barBottom + gap)
-        opacity: calPopup.reveal
-        transformOrigin: root.barPosition === "bottom" ? Item.Bottom : Item.Top
-        scale: root.motionHover ? (0.92 + 0.08 * calPopup.reveal) : 1
-        focus: root.calendarVisible
+            x: popClip.cardX
+            y: popClip.cardY
+            opacity: calPopup.reveal
+            focus: root.calendarVisible
 
-        Keys.onPressed: function(event) {
-            if (event.key === Qt.Key_Escape) {
-                root.calendarVisible = false;
-                event.accepted = true;
-            }
-        }
-
-        MouseArea { anchors.fill: parent; onClicked: {} }
-
-        Column {
-            id: col
-            anchors.fill: parent
-            anchors.margins: 12
-            spacing: 10
-
-            // ── header: month name + navigation chevrons ──
-            Item {
-                width: parent.width
-                height: 24
-
-                // ‹ previous month
-                Rectangle {
-                    id: prevBtn
-                    anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
-                    width: 24; height: 24; radius: root.tileRadius
-                    color: "transparent"
-                    UiText {
-                        anchors.centerIn: parent
-                        text: "‹"   // ‹
-                        color: prevMa.containsMouse ? root.seal : root.sumi
-                        font.family: root.mono; font.pixelSize: 16
-                    }
-                    MouseArea {
-                        id: prevMa
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: root.calendarMonthOffset--
-                    }
-                }
-
-                // month + year — click to jump back to today
-                UiText {
-                    anchors.centerIn: parent
-                    text: root.calendarMonthName + "  " + root.calendarYear
-                    color: monthMa.containsMouse && root.calendarMonthOffset !== 0 ? root.seal : root.ink
-                    font.family: root.mono
-                    font.pixelSize: 12
-                    font.letterSpacing: 2
-                    font.weight: Font.Medium
-                    MouseArea {
-                        id: monthMa
-                        anchors.fill: parent; anchors.margins: -6
-                        hoverEnabled: true
-                        cursorShape: root.calendarMonthOffset !== 0 ? Qt.PointingHandCursor : Qt.ArrowCursor
-                        onClicked: root.calendarMonthOffset = 0
-                    }
-                }
-
-                // › next month
-                Rectangle {
-                    id: nextBtn
-                    anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
-                    width: 24; height: 24; radius: root.tileRadius
-                    color: "transparent"
-                    UiText {
-                        anchors.centerIn: parent
-                        text: "›"   // ›
-                        color: nextMa.containsMouse ? root.seal : root.sumi
-                        font.family: root.mono; font.pixelSize: 16
-                    }
-                    MouseArea {
-                        id: nextMa
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: root.calendarMonthOffset++
-                    }
+            Keys.onPressed: function(event) {
+                if (event.key === Qt.Key_Escape) {
+                    root.calendarVisible = false;
+                    event.accepted = true;
                 }
             }
 
-            Rectangle { width: parent.width; height: 1; color: root.sep }
+            MouseArea { anchors.fill: parent; onClicked: {} }
 
-            // ── weekday headers ──
-            Row {
-                width: parent.width
-                Repeater {
-                    model: ["MO","TU","WE","TH","FR","SA","SU"]
-                    delegate: Item {
-                        required property string modelData
-                        required property int index
-                        width: parent.width / 7
-                        height: 20
+            Column {
+                id: col
+                anchors.fill: parent
+                anchors.margins: 12
+                spacing: 10
+
+                // ── header: month name + navigation chevrons ──
+                Item {
+                    width: parent.width
+                    height: 24
+
+                    // ‹ previous month
+                    Rectangle {
+                        id: prevBtn
+                        anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
+                        width: 24; height: 24; radius: root.tileRadius
+                        color: "transparent"
                         UiText {
                             anchors.centerIn: parent
-                            text: modelData
-                            color: index >= 5 ? root.seal : root.inkDeep
-                            opacity: index >= 5 ? 0.85 : 0.7
-                            font.family: root.mono
-                            font.pixelSize: 10
-                            font.letterSpacing: 2
+                            text: "‹"   // ‹
+                            color: prevMa.containsMouse ? root.seal : root.sumi
+                            font.family: root.mono; font.pixelSize: 16
                         }
-                    }
-                }
-            }
-
-            // ── day grid ──
-            Grid {
-                columns: 7
-                rowSpacing: 2
-                columnSpacing: 0
-                width: parent.width
-                Repeater {
-                    model: root.calendarCells
-                    delegate: Item {
-                        required property var modelData
-                        required property int index
-                        width: parent.width / 7
-                        height: 28
-
-                        readonly property int dayOfWeek: index % 7
-                        readonly property bool isCurrentMonth: modelData.day !== 0
-                        readonly property bool isToday: modelData.today
-                        readonly property bool isSelected: isCurrentMonth && root.selectedDay === modelData.day && root.calendarMonthOffset === 0
-
-                        readonly property color textColor: {
-                            if (isToday) return root.seal.hsvValue < 0.5 ? root.ink : root.paper;
-                            if (!isCurrentMonth) return root.inkDeep;
-                            return dayOfWeek >= 5 ? root.seal : root.ink;
-                        }
-
-                        Rectangle {
-                            anchors.centerIn: parent
-                            width: 24; height: 24; radius: 12
-                            color: root.seal
-                            visible: isToday
-                        }
-
-                        Rectangle {
-                            anchors.centerIn: parent
-                            width: 24; height: 24; radius: 12
-                            border.color: root.seal; border.width: 1
-                            color: "transparent"
-                            visible: isSelected && !isToday
-                        }
-
-                        UiText {
-                            anchors.centerIn: parent
-                            text: modelData.day === 0 ? "" : modelData.day
-                            color: textColor
-                            opacity: isCurrentMonth ? 1.0 : 0.35
-                            font.family: root.mono
-                            font.pixelSize: 12
-                            font.weight: isToday ? Font.Medium : Font.Light
-                        }
-
                         MouseArea {
+                            id: prevMa
                             anchors.fill: parent
-                            hoverEnabled: isCurrentMonth
-                            enabled: isCurrentMonth
-                            cursorShape: isCurrentMonth ? Qt.PointingHandCursor : Qt.ArrowCursor
-                            onClicked: root.selectedDay = modelData.day
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: root.calendarMonthOffset--
+                        }
+                    }
+
+                    // month + year — click to jump back to today
+                    UiText {
+                        anchors.centerIn: parent
+                        text: root.calendarMonthName + "  " + root.calendarYear
+                        color: monthMa.containsMouse && root.calendarMonthOffset !== 0 ? root.seal : root.ink
+                        font.family: root.mono
+                        font.pixelSize: 12
+                        font.letterSpacing: 2
+                        font.weight: Font.Medium
+                        MouseArea {
+                            id: monthMa
+                            anchors.fill: parent; anchors.margins: -6
+                            hoverEnabled: true
+                            cursorShape: root.calendarMonthOffset !== 0 ? Qt.PointingHandCursor : Qt.ArrowCursor
+                            onClicked: root.calendarMonthOffset = 0
+                        }
+                    }
+
+                    // › next month
+                    Rectangle {
+                        id: nextBtn
+                        anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
+                        width: 24; height: 24; radius: root.tileRadius
+                        color: "transparent"
+                        UiText {
+                            anchors.centerIn: parent
+                            text: "›"   // ›
+                            color: nextMa.containsMouse ? root.seal : root.sumi
+                            font.family: root.mono; font.pixelSize: 16
+                        }
+                        MouseArea {
+                            id: nextMa
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: root.calendarMonthOffset++
+                        }
+                    }
+                }
+
+                Rectangle { width: parent.width; height: 1; color: root.sep }
+
+                // ── weekday headers ──
+                Row {
+                    width: parent.width
+                    Repeater {
+                        model: ["MO","TU","WE","TH","FR","SA","SU"]
+                        delegate: Item {
+                            required property string modelData
+                            required property int index
+                            width: parent.width / 7
+                            height: 20
+                            UiText {
+                                anchors.centerIn: parent
+                                text: modelData
+                                color: index >= 5 ? root.seal : root.inkDeep
+                                opacity: index >= 5 ? 0.85 : 0.7
+                                font.family: root.mono
+                                font.pixelSize: 10
+                                font.letterSpacing: 2
+                            }
+                        }
+                    }
+                }
+
+                // ── day grid ──
+                Grid {
+                    columns: 7
+                    rowSpacing: 2
+                    columnSpacing: 0
+                    width: parent.width
+                    Repeater {
+                        model: root.calendarCells
+                        delegate: Item {
+                            required property var modelData
+                            required property int index
+                            width: parent.width / 7
+                            height: 28
+
+                            readonly property int dayOfWeek: index % 7
+                            readonly property bool isCurrentMonth: modelData.day !== 0
+                            readonly property bool isToday: modelData.today
+                            readonly property bool isSelected: isCurrentMonth && root.selectedDay === modelData.day && root.calendarMonthOffset === 0
+
+                            readonly property color textColor: {
+                                if (isToday) return root.seal.hsvValue < 0.5 ? root.ink : root.paper;
+                                if (!isCurrentMonth) return root.inkDeep;
+                                return dayOfWeek >= 5 ? root.seal : root.ink;
+                            }
+
+                            Rectangle {
+                                anchors.centerIn: parent
+                                width: 24; height: 24; radius: 12
+                                color: root.seal
+                                visible: isToday
+                            }
+
+                            Rectangle {
+                                anchors.centerIn: parent
+                                width: 24; height: 24; radius: 12
+                                border.color: root.seal; border.width: 1
+                                color: "transparent"
+                                visible: isSelected && !isToday
+                            }
+
+                            UiText {
+                                anchors.centerIn: parent
+                                text: modelData.day === 0 ? "" : modelData.day
+                                color: textColor
+                                opacity: isCurrentMonth ? 1.0 : 0.35
+                                font.family: root.mono
+                                font.pixelSize: 12
+                                font.weight: isToday ? Font.Medium : Font.Light
+                            }
+
+                            MouseArea {
+                                anchors.fill: parent
+                                hoverEnabled: isCurrentMonth
+                                enabled: isCurrentMonth
+                                cursorShape: isCurrentMonth ? Qt.PointingHandCursor : Qt.ArrowCursor
+                                onClicked: root.selectedDay = modelData.day
+                            }
                         }
                     }
                 }

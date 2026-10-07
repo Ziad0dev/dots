@@ -62,10 +62,20 @@ PanelWindow {
 
     property real reveal: root.aiUsageVisible ? 1 : 0
     Behavior on reveal {
-        Anim { kind: root.aiUsageVisible ? "spatial" : "exit" }
+        Anim { kind: "effects" }
     }
     visible: reveal > 0.001
-    WlrLayershell.keyboardFocus: root.aiUsageVisible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+        || (root.popout.last === "aiUsageVisible" && root.popout.shown)
+    WlrLayershell.keyboardFocus: root.aiUsageVisible && !root.popout.hoverMode
+        ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+    mask: Region {
+        readonly property bool hover: aiPanel.root.popout.hoverMode
+        readonly property int gap: aiPanel.root.popout.gap
+        x: hover ? popClip.x : 0
+        y: hover ? popClip.y - (aiPanel.root.popout.barOnTop ? gap : 0) : 0
+        width: hover ? popClip.width : aiPanel.width
+        height: hover ? popClip.height + gap : aiPanel.height
+    }
 
     MouseArea {
         anchors.fill: parent
@@ -180,209 +190,211 @@ PanelWindow {
         }
     }
 
-    FrameCard { root: aiPanel.root; card: card; reveal: aiPanel.reveal }
-    Rectangle {
-        id: card
-        width: 360
-        height: Math.min(col.implicitHeight + 24, parent.height - 2 * (barBottom + gap))
-        radius: reveal > 0.001 ? root.pillRadius : 0
-        color: root.frameCardBg
-        border.color: root.pillBorder
-        border.width: root.frameCardBorderW
-        PillShadow { theme: root ; visible: root.styleShadow && !root.frameOn }
+    PopoutClip {
+        id: popClip
+        root: aiPanel.root
+        flag: "aiUsageVisible"
+        card: card
+        Rectangle {
+            id: card
+            width: 360
+            height: Math.min(col.implicitHeight + 24, aiPanel.height - 2 * (barBottom + gap))
+            radius: reveal > 0.001 ? root.pillRadius : 0
+            color: "transparent"
+            border.color: root.pillBorder
+            border.width: 0
 
-        x: Math.round(Math.max(6, Math.min(root.aiBarX - width / 2, parent.width - width - 6)))
-        y: root.barPosition === "bottom" ? (parent.height - barBottom - gap - height) : (barBottom + gap)
-        opacity: aiPanel.reveal
-        transformOrigin: root.barPosition === "bottom" ? Item.Bottom : Item.Top
-        scale: root.motionHover ? (0.92 + 0.08 * aiPanel.reveal) : 1
-        focus: root.aiUsageVisible
+            x: popClip.cardX
+            y: popClip.cardY
+            opacity: aiPanel.reveal
+            focus: root.aiUsageVisible
 
-        Keys.onPressed: function(event) {
-            if (event.key === Qt.Key_Escape) {
-                root.aiUsageVisible = false;
-                event.accepted = true;
-            }
-        }
-
-        MouseArea { anchors.fill: parent; onClicked: {} }
-
-        Flickable {
-            id: scroller
-            anchors.fill: parent
-            anchors.margins: 12
-            contentWidth: width
-            contentHeight: col.implicitHeight
-            clip: true
-            boundsBehavior: Flickable.StopAtBounds
-
-            Column {
-                id: col
-                width: scroller.width
-                spacing: 8
-
-                // ── header ──
-                Item {
-                    width: parent.width
-                    height: 24
-                    UiText {
-                        anchors.left: parent.left
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: "AI USAGE"
-                        color: root.ink
-                        font.family: root.mono
-                        font.pixelSize: 13
-                        font.letterSpacing: 2
-                        font.weight: Font.Medium
-                    }
-                    UiText {
-                        anchors.right: parent.right
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: "✕"
-                        color: closeMa.containsMouse ? root.seal : root.sumi
-                        font.pixelSize: 12
-                        Behavior on color { CAnim { ms: 120 } }
-                        MouseArea {
-                            id: closeMa
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: root.aiUsageVisible = false
-                        }
-                    }
+            Keys.onPressed: function(event) {
+                if (event.key === Qt.Key_Escape) {
+                    root.aiUsageVisible = false;
+                    event.accepted = true;
                 }
+            }
 
-                // ── segmented switch: which tool the bar shows ──
-                Row {
-                    width: parent.width
-                    height: 28
-                    spacing: 6
-                    Repeater {
-                        model: [ { id: "codex", label: "Codex" }, { id: "opencode", label: "OpenCode" } ]
-                        Rectangle {
-                            required property var modelData
-                            width: root.evenW((parent.width - 6) / 2)
-                            height: 28; radius: root.tileRadius
-                            readonly property bool active: root.aiTool === modelData.id
-                            color: active ? root.fillActive
-                                  : segMa.containsMouse ? root.fillHover : root.fillIdle
-                            border.color: (active || segMa.containsMouse) ? root.seal : root.sep
-                            border.width: 1
+            MouseArea { anchors.fill: parent; onClicked: {} }
+
+            Flickable {
+                id: scroller
+                anchors.fill: parent
+                anchors.margins: 12
+                contentWidth: width
+                contentHeight: col.implicitHeight
+                clip: true
+                boundsBehavior: Flickable.StopAtBounds
+
+                Column {
+                    id: col
+                    width: scroller.width
+                    spacing: 8
+
+                    // ── header ──
+                    Item {
+                        width: parent.width
+                        height: 24
+                        UiText {
+                            anchors.left: parent.left
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: "Ai Usage"
+                            color: root.ink
+                            font.family: root.gothic
+                            font.pixelSize: 20
+                            font.letterSpacing: 0.5
+                            font.weight: Font.Medium
+                        }
+                        UiText {
+                            anchors.right: parent.right
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: "✕"
+                            color: closeMa.containsMouse ? root.seal : root.sumi
+                            font.pixelSize: 12
                             Behavior on color { CAnim { ms: 120 } }
-                            UiText {
-                                anchors.centerIn: parent
-                                text: modelData.label
-                                color: (parent.active || segMa.containsMouse) ? root.seal : root.ink
-                                font.family: root.mono; font.pixelSize: 11
-                                font.weight: parent.active ? Font.Medium : Font.Normal
-                            }
                             MouseArea {
-                                id: segMa
+                                id: closeMa
                                 anchors.fill: parent
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
-                                onClicked: root.aiTool = parent.modelData.id
+                                onClicked: root.aiUsageVisible = false
                             }
                         }
                     }
-                }
 
-                Rectangle { width: parent.width; height: 1; color: root.sep }
+                    // ── segmented switch: which tool the bar shows ──
+                    Row {
+                        width: parent.width
+                        height: 28
+                        spacing: 6
+                        Repeater {
+                            model: [ { id: "codex", label: "Codex" }, { id: "opencode", label: "OpenCode" } ]
+                            Rectangle {
+                                required property var modelData
+                                width: root.evenW((parent.width - 6) / 2)
+                                height: 28; radius: root.tileRadius
+                                readonly property bool active: root.aiTool === modelData.id
+                                color: active ? root.fillActive
+                                      : segMa.containsMouse ? root.fillHover : root.fillIdle
+                                border.color: (active || segMa.containsMouse) ? root.seal : root.sep
+                                border.width: 1
+                                Behavior on color { CAnim { ms: 120 } }
+                                UiText {
+                                    anchors.centerIn: parent
+                                    text: modelData.label
+                                    color: (parent.active || segMa.containsMouse) ? root.seal : root.ink
+                                    font.family: root.mono; font.pixelSize: 11
+                                    font.weight: parent.active ? Font.Medium : Font.Normal
+                                }
+                                MouseArea {
+                                    id: segMa
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: root.aiTool = parent.modelData.id
+                                }
+                            }
+                        }
+                    }
 
-                Rectangle { visible: false; width: parent.width; height: 1; color: root.sep }
+                    Rectangle { width: parent.width; height: 1; color: root.sep }
 
-                // ── OpenAI Codex ──
-                Item {
-                    visible: aiPanel.showCodex
-                    width: parent.width; height: 16
-                    UiText {
-                        anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
-                        text: "OpenAI Codex" + (aiPanel.cxPlan ? "  · " + aiPanel.cxPlan : "")
-                        color: root.ink
-                        font.family: root.mono; font.pixelSize: 12; font.weight: Font.Medium
+                    Rectangle { visible: false; width: parent.width; height: 1; color: root.sep }
+
+                    // ── OpenAI Codex ──
+                    Item {
+                        visible: aiPanel.showCodex
+                        width: parent.width; height: 16
+                        UiText {
+                            anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
+                            text: "OpenAI Codex" + (aiPanel.cxPlan ? "  · " + aiPanel.cxPlan : "")
+                            color: root.ink
+                            font.family: root.mono; font.pixelSize: 12; font.weight: Font.Medium
+                        }
+                        UiText {
+                            anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
+                            text: aiPanel.cxFresh ? "live" : "stale"
+                            color: aiPanel.cxFresh ? root.sumi : root.sealRaw
+                            font.family: root.mono; font.pixelSize: 10
+                        }
                     }
                     UiText {
-                        anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
-                        text: aiPanel.cxFresh ? "live" : "stale"
-                        color: aiPanel.cxFresh ? root.sumi : root.sealRaw
-                        font.family: root.mono; font.pixelSize: 10
+                        visible: aiPanel.showCodex && !aiPanel.cxHas
+                        width: parent.width
+                        text: "no data — run codex"
+                        color: root.sumiHi; font.family: root.mono; font.pixelSize: 11
                     }
-                }
-                UiText {
-                    visible: aiPanel.showCodex && !aiPanel.cxHas
-                    width: parent.width
-                    text: "no data — run codex"
-                    color: root.sumiHi; font.family: root.mono; font.pixelSize: 11
-                }
-                UsageRow { visible: aiPanel.showCodex && aiPanel.cxWin0 !== null; label: aiPanel.cxWin0 ? aiPanel.cxWin0.label : ""; pct: aiPanel.cxWin0 ? aiPanel.cxWin0.pct : 0; dim: !aiPanel.cxFresh }
-                UsageRow { visible: aiPanel.showCodex && aiPanel.cxWin1 !== null; label: aiPanel.cxWin1 ? aiPanel.cxWin1.label : ""; pct: aiPanel.cxWin1 ? aiPanel.cxWin1.pct : 0; dim: !aiPanel.cxFresh }
-                DetailRow { visible: aiPanel.showCodex && aiPanel.cxWin0 !== null; k: (aiPanel.cxWin0 ? aiPanel.cxWin0.label : "") + " resets in"; v: root.aiFmtResetDetail(aiPanel.cxWin0 ? aiPanel.cxWin0.resetTs : 0) || "—" }
-                DetailRow { visible: aiPanel.showCodex && aiPanel.cxWin1 !== null; k: (aiPanel.cxWin1 ? aiPanel.cxWin1.label : "") + " resets in"; v: root.aiFmtResetDetail(aiPanel.cxWin1 ? aiPanel.cxWin1.resetTs : 0) || "—" }
-                DetailRow { visible: aiPanel.showCodex && aiPanel.cxHas; k: "General limit"; v: root.aiCodexStatusLabel(aiPanel.cxLimitStatus, aiPanel.cxLimitReachedType) }
-                DetailRow { visible: aiPanel.showCodex && aiPanel.cxHas && aiPanel.cxRate !== "";   k: "Local activity (1h, incl. cached)"; v: aiPanel.cxRate }
-                DetailRow { visible: aiPanel.showCodex && aiPanel.cxHas && aiPanel.cxToday > 0; k: "Today"; v: (aiPanel.cxToday / 1e6).toFixed(2) + "M tok" }
+                    UsageRow { visible: aiPanel.showCodex && aiPanel.cxWin0 !== null; label: aiPanel.cxWin0 ? aiPanel.cxWin0.label : ""; pct: aiPanel.cxWin0 ? aiPanel.cxWin0.pct : 0; dim: !aiPanel.cxFresh }
+                    UsageRow { visible: aiPanel.showCodex && aiPanel.cxWin1 !== null; label: aiPanel.cxWin1 ? aiPanel.cxWin1.label : ""; pct: aiPanel.cxWin1 ? aiPanel.cxWin1.pct : 0; dim: !aiPanel.cxFresh }
+                    DetailRow { visible: aiPanel.showCodex && aiPanel.cxWin0 !== null; k: (aiPanel.cxWin0 ? aiPanel.cxWin0.label : "") + " resets in"; v: root.aiFmtResetDetail(aiPanel.cxWin0 ? aiPanel.cxWin0.resetTs : 0) || "—" }
+                    DetailRow { visible: aiPanel.showCodex && aiPanel.cxWin1 !== null; k: (aiPanel.cxWin1 ? aiPanel.cxWin1.label : "") + " resets in"; v: root.aiFmtResetDetail(aiPanel.cxWin1 ? aiPanel.cxWin1.resetTs : 0) || "—" }
+                    DetailRow { visible: aiPanel.showCodex && aiPanel.cxHas; k: "General limit"; v: root.aiCodexStatusLabel(aiPanel.cxLimitStatus, aiPanel.cxLimitReachedType) }
+                    DetailRow { visible: aiPanel.showCodex && aiPanel.cxHas && aiPanel.cxRate !== "";   k: "Local activity (1h, incl. cached)"; v: aiPanel.cxRate }
+                    DetailRow { visible: aiPanel.showCodex && aiPanel.cxHas && aiPanel.cxToday > 0; k: "Today"; v: (aiPanel.cxToday / 1e6).toFixed(2) + "M tok" }
 
-                Rectangle { visible: false; width: parent.width; height: 1; color: root.sep }
+                    Rectangle { visible: false; width: parent.width; height: 1; color: root.sep }
 
-                // ── OpenCode ──
-                Item {
-                    visible: aiPanel.showOpenCode
-                    width: parent.width; height: 16
-                    UiText {
-                        anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
-                        text: "OpenCode" + (aiPanel.ocPlan ? "  · " + aiPanel.ocPlan : "")
-                        color: root.ink
-                        font.family: root.mono; font.pixelSize: 12; font.weight: Font.Medium
+                    // ── OpenCode ──
+                    Item {
+                        visible: aiPanel.showOpenCode
+                        width: parent.width; height: 16
+                        UiText {
+                            anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
+                            text: "OpenCode" + (aiPanel.ocPlan ? "  · " + aiPanel.ocPlan : "")
+                            color: root.ink
+                            font.family: root.mono; font.pixelSize: 12; font.weight: Font.Medium
+                        }
+                        UiText {
+                            anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
+                            text: aiPanel.ocFresh ? "live" : "stale"
+                            color: aiPanel.ocFresh ? root.sumi : root.sealRaw
+                            font.family: root.mono; font.pixelSize: 10
+                        }
                     }
                     UiText {
-                        anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
-                        text: aiPanel.ocFresh ? "live" : "stale"
-                        color: aiPanel.ocFresh ? root.sumi : root.sealRaw
-                        font.family: root.mono; font.pixelSize: 10
+                        visible: aiPanel.showOpenCode && !aiPanel.ocHas
+                        width: parent.width
+                        text: "no data — run opencode"
+                        color: root.sumiHi; font.family: root.mono; font.pixelSize: 11
                     }
-                }
-                UiText {
-                    visible: aiPanel.showOpenCode && !aiPanel.ocHas
-                    width: parent.width
-                    text: "no data — run opencode"
-                    color: root.sumiHi; font.family: root.mono; font.pixelSize: 11
-                }
-                UsageRow { visible: aiPanel.showOpenCode && aiPanel.ocHas; label: "5h"; pct: aiPanel.ocPct5h; dim: !aiPanel.ocFresh }
-                UsageRow { visible: aiPanel.showOpenCode && aiPanel.ocHas; label: "7d"; pct: aiPanel.ocPct7d; dim: !aiPanel.ocFresh }
-                DetailRow { visible: aiPanel.showOpenCode && aiPanel.ocHas && aiPanel.ocTokens !== ""; k: "Tokens"; v: aiPanel.ocTokens }
-                DetailRow { visible: aiPanel.showOpenCode && aiPanel.ocHas && aiPanel.ocRate !== "";   k: "Rate"; v: aiPanel.ocRate }
-                DetailRow { visible: aiPanel.showOpenCode && aiPanel.ocHas && aiPanel.ocToday > 0; k: "Today"; v: (aiPanel.ocToday / 1e6).toFixed(2) + "M tok" }
-                DetailRow { visible: aiPanel.showOpenCode && aiPanel.ocHas && aiPanel.ocModel !== ""; k: "Latest"; v: aiPanel.ocModel }
+                    UsageRow { visible: aiPanel.showOpenCode && aiPanel.ocHas; label: "5h"; pct: aiPanel.ocPct5h; dim: !aiPanel.ocFresh }
+                    UsageRow { visible: aiPanel.showOpenCode && aiPanel.ocHas; label: "7d"; pct: aiPanel.ocPct7d; dim: !aiPanel.ocFresh }
+                    DetailRow { visible: aiPanel.showOpenCode && aiPanel.ocHas && aiPanel.ocTokens !== ""; k: "Tokens"; v: aiPanel.ocTokens }
+                    DetailRow { visible: aiPanel.showOpenCode && aiPanel.ocHas && aiPanel.ocRate !== "";   k: "Rate"; v: aiPanel.ocRate }
+                    DetailRow { visible: aiPanel.showOpenCode && aiPanel.ocHas && aiPanel.ocToday > 0; k: "Today"; v: (aiPanel.ocToday / 1e6).toFixed(2) + "M tok" }
+                    DetailRow { visible: aiPanel.showOpenCode && aiPanel.ocHas && aiPanel.ocModel !== ""; k: "Latest"; v: aiPanel.ocModel }
 
-                Item {
-                    visible: aiPanel.showOpenCode && aiPanel.ocHas && aiPanel.ocModels.length > 0
-                    width: parent.width; height: 16
-                    UiText {
-                        anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
-                        text: "MODELS"
-                        color: root.sumiHi
-                        font.family: root.mono; font.pixelSize: 10; font.letterSpacing: 1
+                    Item {
+                        visible: aiPanel.showOpenCode && aiPanel.ocHas && aiPanel.ocModels.length > 0
+                        width: parent.width; height: 16
+                        UiText {
+                            anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
+                            text: "MODELS"
+                            color: root.sumiHi
+                            font.family: root.mono; font.pixelSize: 10; font.letterSpacing: 1
+                        }
+                        UiText {
+                            anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
+                            text: "recent"
+                            color: root.sumi
+                            font.family: root.mono; font.pixelSize: 10
+                        }
                     }
-                    UiText {
-                        anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
-                        text: "recent"
-                        color: root.sumi
-                        font.family: root.mono; font.pixelSize: 10
-                    }
-                }
-                Repeater {
-                    model: (aiPanel.showOpenCode && aiPanel.ocHas) ? aiPanel.ocModels : []
-                    ModelUsageRow {
-                        width: col.width
-                        name: modelData.name || ""
-                        totalLabel: modelData.totalLabel || ""
-                        inputLabel: modelData.inputLabel || "0"
-                        outputLabel: modelData.outputLabel || "0"
-                        reasoningLabel: modelData.reasoningLabel || "0"
-                        cacheReadLabel: modelData.cacheReadLabel || "0"
-                        cacheWriteLabel: modelData.cacheWriteLabel || "0"
-                        todayLabel: modelData.todayLabel || "0"
-                        pct: parseInt(modelData.pct) || 0
+                    Repeater {
+                        model: (aiPanel.showOpenCode && aiPanel.ocHas) ? aiPanel.ocModels : []
+                        ModelUsageRow {
+                            width: col.width
+                            name: modelData.name || ""
+                            totalLabel: modelData.totalLabel || ""
+                            inputLabel: modelData.inputLabel || "0"
+                            outputLabel: modelData.outputLabel || "0"
+                            reasoningLabel: modelData.reasoningLabel || "0"
+                            cacheReadLabel: modelData.cacheReadLabel || "0"
+                            cacheWriteLabel: modelData.cacheWriteLabel || "0"
+                            todayLabel: modelData.todayLabel || "0"
+                            pct: parseInt(modelData.pct) || 0
+                        }
                     }
                 }
             }

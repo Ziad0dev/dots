@@ -125,7 +125,7 @@ Item {
 
     }
 
-    TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText }
+    TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText; popout: "volVisible" }
 
     property bool audioErrorNotified: false
     property int pendingVolumeSteps: 0
@@ -197,7 +197,7 @@ Item {
         onClicked: (e) => {
             tip.hide()
             if (e.button === Qt.RightButton) { if (!muteRunner.running) muteRunner.running = true }
-            else                             { root.volVisible = !root.volVisible }
+            else                             { root.popout.click("volVisible") }
         }
     }
 }

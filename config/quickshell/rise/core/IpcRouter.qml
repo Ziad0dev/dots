@@ -109,6 +109,15 @@ Item {
         function clear(): void { router.invoke("runReactor", "clear", "") }
     }
 
+    // the morphing bar popouts by name ("volume", "network", …; PopoutMorph):
+    // open = pinned, hover = as if the pointer were on the widget
+    IpcHandler {
+        target: "popout"
+        function open(name: string): void { router.invoke("popoutCommand", "open", name) }
+        function hover(name: string): void { router.invoke("popoutCommand", "hover", name) }
+        function close(): void { router.invoke("popoutCommand", "close", "") }
+    }
+
     IpcHandler {
         target: "theme"
         function apply(payload: string): void { router.applyTheme(payload) }

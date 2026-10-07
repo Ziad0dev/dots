@@ -25,7 +25,8 @@ Item {
     // "color01"…"color07"), so lock and bar match; the palette's own accent
     // whenever that can't be read
     property string barColor: ""
-    readonly property color seal: /^color0[1-7]$/.test(barColor) ? theme[barColor] : accentHint
+    readonly property color seal: /^color0[1-7]$/.test(barColor) ? theme[barColor]
+        : barColor === "border" ? _pb : accentHint
     readonly property color err:  color01
     // frame band colour, as the bar's Theme.frameEdge: color1, or the theme's
     // optional `border` key toned down toward paper

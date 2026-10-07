@@ -26,10 +26,20 @@ PanelWindow {
 
     property real reveal: root.brightnessVisible ? 1 : 0
     Behavior on reveal {
-        Anim { kind: root.brightnessVisible ? "spatial" : "exit" }
+        Anim { kind: "effects" }
     }
     visible: reveal > 0.001
-    WlrLayershell.keyboardFocus: root.brightnessVisible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+        || (root.popout.last === "brightnessVisible" && root.popout.shown)
+    WlrLayershell.keyboardFocus: root.brightnessVisible && !root.popout.hoverMode
+        ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+    mask: Region {
+        readonly property bool hover: briPanel.root.popout.hoverMode
+        readonly property int gap: briPanel.root.popout.gap
+        x: hover ? popClip.x : 0
+        y: hover ? popClip.y - (briPanel.root.popout.barOnTop ? gap : 0) : 0
+        width: hover ? popClip.width : briPanel.width
+        height: hover ? popClip.height + gap : briPanel.height
+    }
 
     MouseArea { anchors.fill: parent; onClicked: root.brightnessVisible = false }
 
@@ -64,131 +74,133 @@ PanelWindow {
         runner.running = true
     }
 
-    FrameCard { root: briPanel.root; card: card; reveal: briPanel.reveal }
-    Rectangle {
-        id: card
-        width: 280
-        height: col.implicitHeight + 24
-        radius: reveal > 0.001 ? root.pillRadius : 0
-        color: root.frameCardBg
-        border.color: root.pillBorder
-        border.width: root.frameCardBorderW
-        PillShadow { theme: root ; visible: root.styleShadow && !root.frameOn }
+    PopoutClip {
+        id: popClip
+        root: briPanel.root
+        flag: "brightnessVisible"
+        card: card
+        Rectangle {
+            id: card
+            width: 280
+            height: col.implicitHeight + 24
+            radius: reveal > 0.001 ? root.pillRadius : 0
+            color: "transparent"
+            border.color: root.pillBorder
+            border.width: 0
 
-        x: Math.round(Math.max(6, Math.min(root.brightnessBarX - width / 2, parent.width - width - 6)))
-        y: root.barPosition === "bottom" ? (parent.height - barBottom - gap - height) : (barBottom + gap)
-        opacity: briPanel.reveal
-        transformOrigin: root.barPosition === "bottom" ? Item.Bottom : Item.Top
-        scale: root.motionHover ? (0.92 + 0.08 * briPanel.reveal) : 1
-        focus: root.brightnessVisible
+            x: popClip.cardX
+            y: popClip.cardY
+            opacity: briPanel.reveal
+            focus: root.brightnessVisible
 
-        Keys.onPressed: function(event) {
-            if (event.key === Qt.Key_Escape) { root.brightnessVisible = false; event.accepted = true }
-        }
-
-        MouseArea { anchors.fill: parent; onClicked: {} }
-
-        Column {
-            id: col
-            anchors.fill: parent
-            anchors.margins: 12
-            spacing: 8
-
-            Item {
-                width: parent.width
-                height: 24
-                UiText {
-                    anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
-                    text: "Brightness"
-                    color: root.ink; font.family: root.mono; font.pixelSize: 13
-                    font.letterSpacing: 2; font.weight: Font.Medium
-                }
-                UiText {
-                    anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
-                    text: "✕"; color: closeMa.containsMouse ? root.seal : root.sumi; font.pixelSize: 12
-                    Behavior on color { CAnim { ms: 120 } }
-                    MouseArea { id: closeMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: root.brightnessVisible = false }
-                }
+            Keys.onPressed: function(event) {
+                if (event.key === Qt.Key_Escape) { root.brightnessVisible = false; event.accepted = true }
             }
 
-            Rectangle { width: parent.width; height: 1; color: root.sep }
+            MouseArea { anchors.fill: parent; onClicked: {} }
 
-            // ── interactive bar ──
-            Item {
-                width: parent.width
-                height: 30
-                UiText {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    anchors.top: parent.top
-                    text: briPanel.percent + "%"
-                    color: root.seal
-                    font.family: root.mono; font.pixelSize: 11; font.weight: Font.Medium
-                }
-                Rectangle {
-                    id: track
-                    anchors.bottom: parent.bottom
-                    width: parent.width; height: 8; radius: 4
-                    color: root.fillActive
-                    Rectangle {
-                        width: parent.width * briPanel.percent / 100
-                        height: parent.height; radius: 4; color: root.seal
-                        Behavior on width { Anim { kind: "size"; ms: 250 } }
+            Column {
+                id: col
+                anchors.fill: parent
+                anchors.margins: 12
+                spacing: 8
+
+                Item {
+                    width: parent.width
+                    height: 24
+                    UiText {
+                        anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
+                        text: "Brightness"
+                        color: root.ink; font.family: root.gothic; font.pixelSize: 20
+                        font.letterSpacing: 0.5; font.weight: Font.Medium
                     }
-                    MouseArea {
-                        anchors.fill: parent
-                        cursorShape: Qt.PointingHandCursor
-                        onPressed: (e) => setFromX(e.x)
-                        onPositionChanged: (e) => { if (pressed) setFromX(e.x) }
-                        function setFromX(px) {
-                            var p = Math.max(1, Math.min(100, Math.round(px / track.width * 100)))
-                            briPanel.requestSetPercent(p)
+                    UiText {
+                        anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
+                        text: "✕"; color: closeMa.containsMouse ? root.seal : root.sumi; font.pixelSize: 12
+                        Behavior on color { CAnim { ms: 120 } }
+                        MouseArea { id: closeMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: root.brightnessVisible = false }
+                    }
+                }
+
+                GrimRule { root: briPanel.root; width: parent.width }
+
+                // ── interactive bar ──
+                Item {
+                    width: parent.width
+                    height: 30
+                    UiText {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        anchors.top: parent.top
+                        text: briPanel.percent + "%"
+                        color: root.seal
+                        font.family: root.mono; font.pixelSize: 11; font.weight: Font.Medium
+                    }
+                    Rectangle {
+                        id: track
+                        anchors.bottom: parent.bottom
+                        width: parent.width; height: 8; radius: 4
+                        color: root.fillActive
+                        Rectangle {
+                            width: parent.width * briPanel.percent / 100
+                            height: parent.height; radius: 4; color: root.seal
+                            Behavior on width { Anim { kind: "size"; ms: 250 } }
+                        }
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onPressed: (e) => setFromX(e.x)
+                            onPositionChanged: (e) => { if (pressed) setFromX(e.x) }
+                            function setFromX(px) {
+                                var p = Math.max(1, Math.min(100, Math.round(px / track.width * 100)))
+                                briPanel.requestSetPercent(p)
+                            }
                         }
                     }
                 }
-            }
 
-            Rectangle { width: parent.width; height: 1; color: root.sep }
+                Rectangle { width: parent.width; height: 1; color: root.sep }
 
-            // ── +/- buttons ──
-            Row {
-                width: parent.width
-                spacing: 8
-                Rectangle {
-                    id: btnDown
-                    width: root.evenW((parent.width - 8) / 2); height: 28; radius: root.tileRadius
-                    color: _dn.containsMouse ? root.fillHover : root.fillIdle
-                    border.color: _dn.containsMouse ? root.seal : root.sep
-                    border.width: 1
-                    Behavior on color { CAnim { ms: 120 } }
-                    UiText {
-                        anchors.centerIn: parent
-                        text: "− 5%"; color: _dn.containsMouse ? root.seal : root.sumi
-                        font.family: root.mono; font.pixelSize: 11
+                // ── +/- buttons ──
+                Row {
+                    width: parent.width
+                    spacing: 8
+                    Rectangle {
+                        id: btnDown
+                        width: root.evenW((parent.width - 8) / 2); height: 28; radius: root.tileRadius
+                        color: _dn.containsMouse ? root.fillHover : root.fillIdle
+                        border.color: _dn.containsMouse ? root.seal : root.sep
+                        border.width: 1
+                        Behavior on color { CAnim { ms: 120 } }
+                        UiText {
+                            anchors.centerIn: parent
+                            text: "− 5%"; color: _dn.containsMouse ? root.seal : root.sumi
+                            font.family: root.mono; font.pixelSize: 11
+                        }
+                        MouseArea {
+                            id: _dn
+                            anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                            hoverEnabled: true
+                            onClicked: briPanel.runStep(false)
+                        }
                     }
-                    MouseArea {
-                        id: _dn
-                        anchors.fill: parent; cursorShape: Qt.PointingHandCursor
-                        hoverEnabled: true
-                        onClicked: briPanel.runStep(false)
-                    }
-                }
-                Rectangle {
-                    id: btnUp
-                    width: root.evenW((parent.width - 8) / 2); height: 28; radius: root.tileRadius
-                    color: _up.containsMouse ? root.fillHover : root.fillIdle
-                    border.color: _up.containsMouse ? root.seal : root.sep
-                    border.width: 1
-                    Behavior on color { CAnim { ms: 120 } }
-                    UiText {
-                        anchors.centerIn: parent
-                        text: "+ 5%"; color: _up.containsMouse ? root.seal : root.sumi
-                        font.family: root.mono; font.pixelSize: 11
-                    }
-                    MouseArea {
-                        id: _up
-                        anchors.fill: parent; cursorShape: Qt.PointingHandCursor
-                        hoverEnabled: true
-                        onClicked: briPanel.runStep(true)
+                    Rectangle {
+                        id: btnUp
+                        width: root.evenW((parent.width - 8) / 2); height: 28; radius: root.tileRadius
+                        color: _up.containsMouse ? root.fillHover : root.fillIdle
+                        border.color: _up.containsMouse ? root.seal : root.sep
+                        border.width: 1
+                        Behavior on color { CAnim { ms: 120 } }
+                        UiText {
+                            anchors.centerIn: parent
+                            text: "+ 5%"; color: _up.containsMouse ? root.seal : root.sumi
+                            font.family: root.mono; font.pixelSize: 11
+                        }
+                        MouseArea {
+                            id: _up
+                            anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                            hoverEnabled: true
+                            onClicked: briPanel.runStep(true)
+                        }
                     }
                 }
             }

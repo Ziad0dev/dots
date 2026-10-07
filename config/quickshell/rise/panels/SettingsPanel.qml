@@ -42,7 +42,7 @@ PanelWindow {
                   o(Quickshell.screens.map(function (s) { return s.name }).concat(["all"]),
                     Quickshell.screens.map(function (s) { return s.name }).concat(["All"]))),
                 e("workspaceMode", "Workspaces", "How many workspace buttons show", o(["10", "5", "active"], ["Persist 10", "Persist 5", "Active only"])),
-                e("workspaceStyle", "Workspace style", "", o(["default", "numbers", "magic", "comet", "segments", "occupancy", "icons", "kanji"], ["Default", "Numbers", "Magic", "Comet", "Segments", "Occupancy", "Icons", "Kanji"])),
+                e("workspaceStyle", "Workspace style", "", o(["default", "numbers", "magic", "comet", "segments", "occupancy", "icons", "kanji", "runes", "planets", "roman", "lunar"], ["Default", "Numbers", "Magic", "Comet", "Segments", "Occupancy", "Icons", "Kanji", "Runes", "Planets", "Roman", "Lunar"])),
                 e("barColor", "Accent", "The palette colour the bar and panels use",
                   o(root.barColorOptions, root.barColorOptions.map(function (id) { return root.barColorLabel(id) }))),
                 e("barAnim", "Bar animation", "Runs continuously on the bar, so it costs some GPU",
@@ -81,6 +81,7 @@ PanelWindow {
         { id: "style", label: "Style", icon: "palette", sections: [
             { title: "Frame", rows: [
                 b("styleFrame", "Screen frame", "The bar as the thick edge of a frame around the screen; panels melt out of it"),
+                b("popoutHover", "Hover popouts", "Hovering a bar widget opens its popout, one box morphing between them; click pins it"),
                 b("styleFrameEdge", "Edge line", "The accent rim around the frame"),
                 b("styleAutoHide", "Auto-hide the bar", "The bar shrinks to the frame edge until you hover it")
             ] },
@@ -136,7 +137,7 @@ PanelWindow {
             "modCpu", "modCpuTemperature", "modGpu", "modMemory", "modStorage", "modWeather", "modAi", "modGithub",
             "compactMpris", "compactVolume", "compactBrightness", "compactNetwork", "compactBluetooth", "compactBattery",
             "compactPower", "compactCpu", "compactMemory", "archBadgePackages", "archBadgeThemes", "archBadgeShell",
-            "styleFrame", "styleFrameEdge", "styleAutoHide", "styleFrost", "styleShadow", "styleBorder", "styleDepth",
+            "styleFrame", "popoutHover", "styleFrameEdge", "styleAutoHide", "styleFrost", "styleShadow", "styleBorder", "styleDepth",
             "styleRadiusSmall", "styleIconLabels", "styleDeskClock", "styleDeskVisualiser", "motionHover", "motionSweep", "motionDigits",
             "pickerStyle", "clock12h", "weatherImperial", "aiTool", "widgetColorStyles"]
         for (var i = 0; i < described.length; i++) known[described[i]] = true

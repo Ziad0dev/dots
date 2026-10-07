@@ -1,5 +1,6 @@
 import QtQuick
 import "../../modules"
+import "Occult.js" as Occult
 
 // Month calendar, Monday first. Wheel or the chevrons page months; the title or
 // a middle click comes back to today, which sits on a "sunny" shape.
@@ -62,20 +63,29 @@ Item {
         Rectangle {
             anchors.centerIn: parent
             width: title.implicitWidth + 32; height: 30
-            radius: titleMa.pressed ? 8 : height / 2
-            Behavior on radius { Anim { kind: "spatialFast" } }
-            color: cal.dash.primary
+            radius: 2
+            color: cal.dash.blood
             opacity: cal.onToday ? 0 : titleMa.pressed ? 0.16 : titleMa.containsMouse ? 0.1 : 0
             Behavior on opacity { Anim { ms: 120 } }
         }
-        DText {
+        Row {
             id: title
             anchors.centerIn: parent
-            text: Qt.formatDate(cal.viewDate, "MMMM yyyy")
-            color: cal.dash.primary
-            font.pointSize: 14; font.weight: Font.Medium
+            spacing: 10
             opacity: cal.fade
             transform: Translate { x: cal.slide }
+            GText {
+                anchors.baseline: yearText.baseline
+                text: Qt.formatDate(cal.viewDate, "MMMM")
+                color: cal.dash.bone
+                font.pointSize: 18
+            }
+            DText {
+                id: yearText
+                text: Occult.roman(cal.year)
+                color: cal.dash.bloodText
+                font.pointSize: 12; font.letterSpacing: 2
+            }
         }
         MouseArea {
             id: titleMa
@@ -101,8 +111,8 @@ Item {
                 width: dow.width / 7
                 horizontalAlignment: Text.AlignHCenter
                 text: modelData
-                color: index >= 5 ? cal.dash.tertiary : cal.dash.onSurface
-                font.pointSize: 10; font.weight: Font.Medium
+                color: index >= 5 ? cal.dash.tertiary : cal.dash.ash
+                font.pointSize: 11; font.italic: true
             }
         }
     }
@@ -122,21 +132,27 @@ Item {
                 id: cell
                 required property var modelData
                 width: grid.cellW; height: 26
-                DashShape {
+                // today: a thin blood ring, a lozenge on top
+                Rectangle {
                     anchors.centerIn: parent
-                    width: 30; height: 30
+                    width: 27; height: 27; radius: width / 2
                     visible: cell.modelData.today
-                    kind: "sunny"
-                    color: cal.dash.primary
+                    color: Qt.rgba(cal.dash.blood.r, cal.dash.blood.g, cal.dash.blood.b, 0.16)
+                    border.color: cal.dash.blood; border.width: 1.5
+                    Rectangle {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        y: -3; width: 5; height: 5; rotation: 45
+                        color: cal.dash.blood
+                    }
                 }
                 DText {
                     anchors.centerIn: parent
                     text: cell.modelData.day
-                    color: cell.modelData.today ? cal.dash.onPrimary
-                         : cell.modelData.weekend ? cal.dash.tertiary : cal.dash.onSurfaceVariant
-                    opacity: cell.modelData.inMonth || cell.modelData.today ? 1 : 0.4
-                    font.pointSize: 10
-                    font.weight: cell.modelData.today ? Font.DemiBold : Font.Normal
+                    color: cell.modelData.today ? cal.dash.bone
+                         : cell.modelData.weekend ? cal.dash.tertiary : cal.dash.onSurface
+                    opacity: cell.modelData.inMonth || cell.modelData.today ? 1 : 0.32
+                    font.pointSize: 12
+                    font.weight: cell.modelData.today ? Font.Bold : Font.Medium
                 }
             }
         }
@@ -150,15 +166,16 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
         Rectangle {
             anchors.fill: parent
-            radius: 15
-            color: cal.dash.onSurface
-            opacity: chMa.pressed ? 0.14 : chMa.containsMouse ? 0.08 : 0
+            radius: 2
+            color: cal.dash.blood
+            opacity: chMa.pressed ? 0.24 : chMa.containsMouse ? 0.12 : 0
         }
-        IconText {
+        DText {
             anchors.centerIn: parent
-            text: ch.icon
-            color: cal.dash.onSurfaceVariant
-            font.pointSize: 14; font.weight: Font.Bold
+            anchors.verticalCenterOffset: -2
+            text: ch.icon === "chevron_left" ? "‹" : "›"
+            color: chMa.containsMouse ? cal.dash.bloodText : cal.dash.ash
+            font.pointSize: 20
         }
         MouseArea {
             id: chMa

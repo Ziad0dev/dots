@@ -344,7 +344,7 @@ Item {
         onTriggered: rootMod.fetchSsid()
     }
 
-    TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText }
+    TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText; popout: "networkVisible" }
 
     Process { id: clickRunner; command: ["bash", "-c", root.launchWifiCmd] }
 
@@ -361,7 +361,7 @@ Item {
             if (e.button === Qt.RightButton) { netTui.running = false; netTui.running = true; return }
             tip.hide()
             if (e.button === Qt.RightButton) { clickRunner.running = false; clickRunner.running = true }
-            else root.networkVisible = !root.networkVisible
+            else root.popout.click("networkVisible")
         }
     }
 }

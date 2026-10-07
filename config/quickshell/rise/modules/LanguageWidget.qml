@@ -50,7 +50,7 @@ Item {
         }
     }
 
-    TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText }
+    TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText; popout: "langVisible" }
 
     MouseArea {
         anchors.fill: parent
@@ -61,7 +61,7 @@ Item {
         onWheel: (e) => lang.cycle(e.angleDelta.y > 0 ? 1 : -1)
         onClicked: {
             tip.hide()
-            root.langVisible = !root.langVisible
+            root.popout.click("langVisible")
         }
     }
 }

@@ -1,11 +1,11 @@
 import QtQuick
 import "Motion.js" as Motion
 
-// ColorAnimation on the shared "effects" curve; `ms` keeps a hand-tuned duration.
+// ColorAnimation as Caelestia's CAnim: slow effects (300 ms); `ms` keeps a hand-tuned duration.
 ColorAnimation {
     property int ms: 0
 
-    duration: ms > 0 ? ms : Motion.duration("effects")
+    duration: Motion.durationOr("effectsSlow", ms)
     easing.type: Easing.BezierSpline
-    easing.bezierCurve: Motion.curve("effects")
+    easing.bezierCurve: Motion.curve("effectsSlow")
 }

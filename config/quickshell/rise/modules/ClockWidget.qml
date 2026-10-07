@@ -44,7 +44,7 @@ Item {
         font.letterSpacing: 1
     }
 
-    TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText }
+    TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText; popout: "calendarVisible" }
 
     Process {
         id: tzRunner

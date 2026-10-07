@@ -79,10 +79,20 @@ PanelWindow {
 
     property real reveal: root.mprisVisible ? 1 : 0
     Behavior on reveal {
-        Anim { kind: root.mprisVisible ? "spatial" : "exit" }
+        Anim { kind: "effects" }
     }
     visible: reveal > 0.001
-    WlrLayershell.keyboardFocus: root.mprisVisible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+        || (root.popout.last === "mprisVisible" && root.popout.shown)
+    WlrLayershell.keyboardFocus: root.mprisVisible && !root.popout.hoverMode
+        ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+    mask: Region {
+        readonly property bool hover: mprisPanel.root.popout.hoverMode
+        readonly property int gap: mprisPanel.root.popout.gap
+        x: hover ? popClip.x : 0
+        y: hover ? popClip.y - (mprisPanel.root.popout.barOnTop ? gap : 0) : 0
+        width: hover ? popClip.width : mprisPanel.width
+        height: hover ? popClip.height + gap : mprisPanel.height
+    }
 
     // ── cava: real system-audio spectrum (runs only while playing) ──
     // Captures the DEFAULT SINK's monitor explicitly — otherwise cava's "auto"
@@ -147,260 +157,262 @@ PanelWindow {
 
     MouseArea { anchors.fill: parent; onClicked: root.mprisVisible = false }
 
-    FrameCard { root: mprisPanel.root; card: card; reveal: mprisPanel.reveal }
-    Rectangle {
-        id: card
-        width: 320
-        height: col.implicitHeight + 24
-        radius: reveal > 0.001 ? root.pillRadius : 0
-        color: root.frameCardBg
-        border.color: root.pillBorder
-        border.width: root.frameCardBorderW
-        PillShadow { theme: root ; visible: root.styleShadow && !root.frameOn }
+    PopoutClip {
+        id: popClip
+        root: mprisPanel.root
+        flag: "mprisVisible"
+        card: card
+        Rectangle {
+            id: card
+            width: 320
+            height: col.implicitHeight + 24
+            radius: reveal > 0.001 ? root.pillRadius : 0
+            color: "transparent"
+            border.color: root.pillBorder
+            border.width: 0
 
-        x: Math.round(Math.max(6, Math.min(root.mprisBarX - width / 2, parent.width - width - 6)))
-        y: root.barPosition === "bottom" ? (parent.height - barBottom - gap - height) : (barBottom + gap)
-        opacity: mprisPanel.reveal
-        transformOrigin: root.barPosition === "bottom" ? Item.Bottom : Item.Top
-        scale: root.motionHover ? (0.92 + 0.08 * mprisPanel.reveal) : 1
-        focus: root.mprisVisible
+            x: popClip.cardX
+            y: popClip.cardY
+            opacity: mprisPanel.reveal
+            focus: root.mprisVisible
 
-        Keys.onPressed: function(event) {
-            if (event.key === Qt.Key_Escape) { root.mprisVisible = false; event.accepted = true }
-            else if (event.key === Qt.Key_Space && mprisPanel.player) {
-                mprisPanel.player.togglePlaying(); event.accepted = true
-            }
-        }
-
-        MouseArea { anchors.fill: parent; onClicked: {} }
-
-        Column {
-            id: col
-            anchors.fill: parent
-            anchors.margins: 12
-            spacing: 8
-
-            // ── header ──
-            Item {
-                width: parent.width
-                height: 24
-                UiText {
-                    anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
-                    text: "NOW PLAYING"
-                    color: root.ink; font.family: root.mono; font.pixelSize: 13
-                    font.letterSpacing: 2; font.weight: Font.Medium
-                }
-                Row {
-                    anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
-                    spacing: 8
-                    UiText {
-                        anchors.verticalCenter: parent.verticalCenter
-                        visible: mprisPanel.active && mprisPanel.playerName !== ""
-                        text: mprisPanel.playerName
-                        color: Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.45)
-                        font.family: root.mono; font.pixelSize: 10; font.letterSpacing: 1
-                    }
-                    UiText {
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: "✕"; color: closeMa.containsMouse ? root.seal : root.sumi; font.pixelSize: 12
-                        Behavior on color { CAnim { ms: 120 } }
-                        MouseArea { id: closeMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: root.mprisVisible = false }
-                    }
+            Keys.onPressed: function(event) {
+                if (event.key === Qt.Key_Escape) { root.mprisVisible = false; event.accepted = true }
+                else if (event.key === Qt.Key_Space && mprisPanel.player) {
+                    mprisPanel.player.togglePlaying(); event.accepted = true
                 }
             }
 
-            Rectangle { width: parent.width; height: 1; color: root.sep }
+            MouseArea { anchors.fill: parent; onClicked: {} }
 
-            // ── ACTIVE: art + track info ──
-            Row {
-                width: parent.width
-                spacing: 10
-                visible: mprisPanel.active
+            Column {
+                id: col
+                anchors.fill: parent
+                anchors.margins: 12
+                spacing: 8
 
-                // album art (falls back to a music glyph)
-                Rectangle {
-                    width: 52; height: 52; radius: 5
-                    color: root.fillActive
-                    clip: true
-                    Image {
-                        anchors.fill: parent
-                        source: mprisPanel.player ? (mprisPanel.player.trackArtUrl || "") : ""
-                        fillMode: Image.PreserveAspectCrop
-                        asynchronous: true
-                        visible: status === Image.Ready
-                    }
-                    IconText {
-                        anchors.centerIn: parent
-                        visible: !mprisPanel.player || mprisPanel.player.trackArtUrl === ""
-                        text: ""   // music_note
-                        font.pixelSize: 26
-                        color: root.seal
-                    }
-                }
-
-                Column {
-                    width: parent.width - 62
-                    anchors.verticalCenter: parent.verticalCenter
-                    spacing: 3
+                // ── header ──
+                Item {
+                    width: parent.width
+                    height: 24
                     UiText {
-                        width: parent.width
-                        text: mprisPanel.player ? (mprisPanel.player.trackTitle || "Unknown") : ""
-                        color: root.ink; font.family: root.mono; font.pixelSize: 12; font.weight: Font.Medium
-                        elide: Text.ElideRight
+                        anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
+                        text: "Now Playing"
+                        color: root.ink; font.family: root.gothic; font.pixelSize: 20
+                        font.letterSpacing: 0.5; font.weight: Font.Medium
                     }
-                    UiText {
-                        width: parent.width
-                        text: mprisPanel.player ? (mprisPanel.player.trackArtist || "") : ""
-                        color: root.sumiHi; font.family: root.mono; font.pixelSize: 11
-                        elide: Text.ElideRight
-                        visible: text !== ""
-                    }
-                    UiText {
-                        width: parent.width
-                        text: mprisPanel.player ? (mprisPanel.player.trackAlbum || "") : ""
-                        color: Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.45)
-                        font.family: root.mono; font.pixelSize: 10
-                        elide: Text.ElideRight
-                        visible: text !== ""
-                    }
-                }
-            }
-
-            // ── progress bar (only when the player reports a length) ──
-            Item {
-                width: parent.width
-                height: 14
-                visible: mprisPanel.active && mprisPanel.curLen > 0
-                Rectangle {
-                    id: track
-                    anchors.left: parent.left; anchors.right: parent.right
-                    anchors.top: parent.top
-                    height: 4; radius: 2
-                    color: root.fillActive
-                    Rectangle {
-                        height: parent.height; radius: 2
-                        color: root.seal
-                        width: parent.width * (mprisPanel.curLen > 0
-                            ? Math.min(1, mprisPanel.curPos / mprisPanel.curLen) : 0)
-                        Behavior on width { Anim { kind: "size"; ms: 450 } }
-                    }
-                }
-                UiText {
-                    anchors.left: parent.left; anchors.top: track.bottom; anchors.topMargin: 2
-                    text: mprisPanel.fmtTime(mprisPanel.curPos)
-                    color: root.sumiHi; font.family: root.mono; font.pixelSize: 9
-                }
-                UiText {
-                    anchors.right: parent.right; anchors.top: track.bottom; anchors.topMargin: 2
-                    text: mprisPanel.fmtTime(mprisPanel.curLen)
-                    color: root.sumiHi; font.family: root.mono; font.pixelSize: 9
-                }
-            }
-
-            // ── synced lyrics (LRCLIB; fetched only while this panel is open) ──
-            SyncedLyrics {
-                width: parent.width
-                root: mprisPanel.root
-                active: root.mprisVisible && mprisPanel.active
-                title: mprisPanel.player ? (mprisPanel.player.trackTitle || "") : ""
-                artist: mprisPanel.player ? (mprisPanel.player.trackArtist || "") : ""
-                album: mprisPanel.player ? (mprisPanel.player.trackAlbum || "") : ""
-                length: mprisPanel.curLen
-                position: mprisPanel.curPos
-            }
-
-            // ── visualizer + no-song message (shared canvas) ──
-            Item {
-                width: parent.width
-                height: 40
-
-                Canvas {
-                    id: viz
-                    anchors.fill: parent
-                    visible: mprisPanel.active
-                    opacity: mprisPanel.playing ? 1.0 : 0.5
-                    property color tint: root.seal
-                    onTintChanged: requestPaint()
-                    onPaint: {
-                        var ctx = getContext("2d")
-                        ctx.clearRect(0, 0, width, height)
-                        var lv = mprisPanel.levels
-                        if (!lv || lv.length === 0) return
-                        var n = lv.length
-                        var bw = 4
-                        var totalGap = width - n * bw
-                        var gap = totalGap / (n + 1)
-                        var maxH = height - 2
-                        var r = bw / 2
-                        ctx.fillStyle = viz.tint
-                        for (var i = 0; i < n; i++) {
-                            var bh = Math.max(bw, lv[i] * maxH)
-                            var x = gap + i * (bw + gap)
-                            var y = height - bh
-                            ctx.beginPath()
-                            ctx.moveTo(x + r, y)
-                            ctx.lineTo(x + bw - r, y)
-                            ctx.arcTo(x + bw, y, x + bw, y + r, r)
-                            ctx.lineTo(x + bw, y + bh)
-                            ctx.lineTo(x, y + bh)
-                            ctx.lineTo(x, y + r)
-                            ctx.arcTo(x, y, x + r, y, r)
-                            ctx.closePath()
-                            ctx.fill()
+                    Row {
+                        anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
+                        spacing: 8
+                        UiText {
+                            anchors.verticalCenter: parent.verticalCenter
+                            visible: mprisPanel.active && mprisPanel.playerName !== ""
+                            text: mprisPanel.playerName
+                            color: Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.45)
+                            font.family: root.mono; font.pixelSize: 10; font.letterSpacing: 1
+                        }
+                        UiText {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: "✕"; color: closeMa.containsMouse ? root.seal : root.sumi; font.pixelSize: 12
+                            Behavior on color { CAnim { ms: 120 } }
+                            MouseArea { id: closeMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: root.mprisVisible = false }
                         }
                     }
-                    Connections {
-                        target: mprisPanel
-                        function onLevelsChanged() { viz.requestPaint() }
+                }
+
+                GrimRule { root: mprisPanel.root; width: parent.width }
+
+                // ── ACTIVE: art + track info ──
+                Row {
+                    width: parent.width
+                    spacing: 10
+                    visible: mprisPanel.active
+
+                    // album art (falls back to a music glyph)
+                    Rectangle {
+                        width: 52; height: 52; radius: 5
+                        color: root.fillActive
+                        clip: true
+                        Image {
+                            anchors.fill: parent
+                            source: mprisPanel.player ? (mprisPanel.player.trackArtUrl || "") : ""
+                            fillMode: Image.PreserveAspectCrop
+                            asynchronous: true
+                            visible: status === Image.Ready
+                        }
+                        IconText {
+                            anchors.centerIn: parent
+                            visible: !mprisPanel.player || mprisPanel.player.trackArtUrl === ""
+                            text: ""   // music_note
+                            font.pixelSize: 26
+                            color: root.seal
+                        }
+                    }
+
+                    Column {
+                        width: parent.width - 62
+                        anchors.verticalCenter: parent.verticalCenter
+                        spacing: 3
+                        UiText {
+                            width: parent.width
+                            text: mprisPanel.player ? (mprisPanel.player.trackTitle || "Unknown") : ""
+                            color: root.ink; font.family: root.mono; font.pixelSize: 12; font.weight: Font.Medium
+                            elide: Text.ElideRight
+                        }
+                        UiText {
+                            width: parent.width
+                            text: mprisPanel.player ? (mprisPanel.player.trackArtist || "") : ""
+                            color: root.sumiHi; font.family: root.mono; font.pixelSize: 11
+                            elide: Text.ElideRight
+                            visible: text !== ""
+                        }
+                        UiText {
+                            width: parent.width
+                            text: mprisPanel.player ? (mprisPanel.player.trackAlbum || "") : ""
+                            color: Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.45)
+                            font.family: root.mono; font.pixelSize: 10
+                            elide: Text.ElideRight
+                            visible: text !== ""
+                        }
                     }
                 }
 
-                // no-song label rides on top of the idle wave
-                Column {
-                    anchors.centerIn: parent
-                    spacing: 1
-                    visible: !mprisPanel.active
+                // ── progress bar (only when the player reports a length) ──
+                Item {
+                    width: parent.width
+                    height: 14
+                    visible: mprisPanel.active && mprisPanel.curLen > 0
+                    Rectangle {
+                        id: track
+                        anchors.left: parent.left; anchors.right: parent.right
+                        anchors.top: parent.top
+                        height: 4; radius: 2
+                        color: root.fillActive
+                        Rectangle {
+                            height: parent.height; radius: 2
+                            color: root.seal
+                            width: parent.width * (mprisPanel.curLen > 0
+                                ? Math.min(1, mprisPanel.curPos / mprisPanel.curLen) : 0)
+                            Behavior on width { Anim { kind: "size"; ms: 450 } }
+                        }
+                    }
                     UiText {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        text: "No song playing"
-                        color: Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.55)
-                        font.family: root.mono; font.pixelSize: 12; font.weight: Font.Medium
+                        anchors.left: parent.left; anchors.top: track.bottom; anchors.topMargin: 2
+                        text: mprisPanel.fmtTime(mprisPanel.curPos)
+                        color: root.sumiHi; font.family: root.mono; font.pixelSize: 9
                     }
                     UiText {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        text: "no active player"
-                        color: Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.3)
-                        font.family: root.mono; font.pixelSize: 10
+                        anchors.right: parent.right; anchors.top: track.bottom; anchors.topMargin: 2
+                        text: mprisPanel.fmtTime(mprisPanel.curLen)
+                        color: root.sumiHi; font.family: root.mono; font.pixelSize: 9
                     }
                 }
-            }
 
-            // ── controls ──
-            Row {
-                visible: mprisPanel.active
-                anchors.horizontalCenter: parent.horizontalCenter
-                spacing: 18
+                // ── synced lyrics (LRCLIB; fetched only while this panel is open) ──
+                SyncedLyrics {
+                    width: parent.width
+                    root: mprisPanel.root
+                    active: root.mprisVisible && mprisPanel.active
+                    title: mprisPanel.player ? (mprisPanel.player.trackTitle || "") : ""
+                    artist: mprisPanel.player ? (mprisPanel.player.trackArtist || "") : ""
+                    album: mprisPanel.player ? (mprisPanel.player.trackAlbum || "") : ""
+                    length: mprisPanel.curLen
+                    position: mprisPanel.curPos
+                }
 
-                IconText {
-                    text: ""
-                    font.pixelSize: 20
-                    anchors.verticalCenter: parent.verticalCenter
-                    color: (mprisPanel.player && mprisPanel.player.canGoPrevious) ? root.ink : Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.25)
-                    MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (mprisPanel.player) mprisPanel.player.previous() }
+                // ── visualizer + no-song message (shared canvas) ──
+                Item {
+                    width: parent.width
+                    height: 40
+
+                    Canvas {
+                        id: viz
+                        anchors.fill: parent
+                        visible: mprisPanel.active
+                        opacity: mprisPanel.playing ? 1.0 : 0.5
+                        property color tint: root.seal
+                        onTintChanged: requestPaint()
+                        onPaint: {
+                            var ctx = getContext("2d")
+                            ctx.clearRect(0, 0, width, height)
+                            var lv = mprisPanel.levels
+                            if (!lv || lv.length === 0) return
+                            var n = lv.length
+                            var bw = 4
+                            var totalGap = width - n * bw
+                            var gap = totalGap / (n + 1)
+                            var maxH = height - 2
+                            var r = bw / 2
+                            ctx.fillStyle = viz.tint
+                            for (var i = 0; i < n; i++) {
+                                var bh = Math.max(bw, lv[i] * maxH)
+                                var x = gap + i * (bw + gap)
+                                var y = height - bh
+                                ctx.beginPath()
+                                ctx.moveTo(x + r, y)
+                                ctx.lineTo(x + bw - r, y)
+                                ctx.arcTo(x + bw, y, x + bw, y + r, r)
+                                ctx.lineTo(x + bw, y + bh)
+                                ctx.lineTo(x, y + bh)
+                                ctx.lineTo(x, y + r)
+                                ctx.arcTo(x, y, x + r, y, r)
+                                ctx.closePath()
+                                ctx.fill()
+                            }
+                        }
+                        Connections {
+                            target: mprisPanel
+                            function onLevelsChanged() { viz.requestPaint() }
+                        }
+                    }
+
+                    // no-song label rides on top of the idle wave
+                    Column {
+                        anchors.centerIn: parent
+                        spacing: 1
+                        visible: !mprisPanel.active
+                        UiText {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            text: "No song playing"
+                            color: Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.55)
+                            font.family: root.mono; font.pixelSize: 12; font.weight: Font.Medium
+                        }
+                        UiText {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            text: "no active player"
+                            color: Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.3)
+                            font.family: root.mono; font.pixelSize: 10
+                        }
+                    }
                 }
-                IconText {
-                    text: mprisPanel.playing ? "" : ""
-                    font.pixelSize: 24
-                    anchors.verticalCenter: parent.verticalCenter
-                    color: root.seal
-                    MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (mprisPanel.player) mprisPanel.player.togglePlaying() }
-                }
-                IconText {
-                    text: ""
-                    font.pixelSize: 20
-                    anchors.verticalCenter: parent.verticalCenter
-                    color: (mprisPanel.player && mprisPanel.player.canGoNext) ? root.ink : Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.25)
-                    MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (mprisPanel.player) mprisPanel.player.next() }
+
+                // ── controls ──
+                Row {
+                    visible: mprisPanel.active
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    spacing: 18
+
+                    IconText {
+                        text: ""
+                        font.pixelSize: 20
+                        anchors.verticalCenter: parent.verticalCenter
+                        color: (mprisPanel.player && mprisPanel.player.canGoPrevious) ? root.ink : Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.25)
+                        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (mprisPanel.player) mprisPanel.player.previous() }
+                    }
+                    IconText {
+                        text: mprisPanel.playing ? "" : ""
+                        font.pixelSize: 24
+                        anchors.verticalCenter: parent.verticalCenter
+                        color: root.seal
+                        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (mprisPanel.player) mprisPanel.player.togglePlaying() }
+                    }
+                    IconText {
+                        text: ""
+                        font.pixelSize: 20
+                        anchors.verticalCenter: parent.verticalCenter
+                        color: (mprisPanel.player && mprisPanel.player.canGoNext) ? root.ink : Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.25)
+                        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (mprisPanel.player) mprisPanel.player.next() }
+                    }
                 }
             }
         }

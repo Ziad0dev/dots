@@ -47,6 +47,10 @@ PanelWindow {
     property alias onPrimaryContainer: m3.onPrimaryContainer
     property alias onSecondaryContainer: m3.onSecondaryContainer
     property alias onTertiaryContainer: m3.onTertiaryContainer
+    property alias blood: m3.blood
+    property alias bloodText: m3.bloodText
+    property alias bone: m3.bone
+    property alias ash: m3.ash
 
     // ── clock / session ──
     property date now: new Date()
@@ -56,10 +60,6 @@ PanelWindow {
         onTriggered: dash.now = new Date()
     }
     readonly property string user: Quickshell.env("USER") || ""
-    readonly property string greeting: {
-        var h = now.getHours()
-        return h < 5 ? "Good night" : h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening"
-    }
     property string host: ""
     property real uptimeS: 0
     readonly property string uptimeText: {
@@ -67,10 +67,9 @@ PanelWindow {
         return d > 0 ? d + "d " + (h % 24) + "h" : h > 0 ? h + "h " + (m % 60) + "m" : m + "m"
     }
     property var quote: ({ text: "", author: "" })
-    property bool hasFace: false              // ~/.face, if you set one
     Process {
         id: sessionProc
-        command: ["bash", "-c", "cat /proc/sys/kernel/hostname; cut -d' ' -f1 /proc/uptime; shuf -n1 \"$1\" 2>/dev/null || echo; [ -r \"$HOME/.face\" ] && echo face",
+        command: ["bash", "-c", "cat /proc/sys/kernel/hostname; cut -d' ' -f1 /proc/uptime; shuf -n1 \"$1\" 2>/dev/null || echo",
                   "_", Qt.resolvedUrl("../quotes.txt").toString().replace(/^file:\/\//, "")]
         stdout: StdioCollector {
             onStreamFinished: {
@@ -79,7 +78,6 @@ PanelWindow {
                 dash.uptimeS = parseFloat(l[1] || "0") || 0
                 var q = (l[2] || "").split("|")
                 dash.quote = { text: (q[0] || "").trim(), author: (q[1] || "").trim() }
-                dash.hasFace = (l[3] || "") === "face"
             }
         }
     }
@@ -175,10 +173,10 @@ PanelWindow {
     // ── tabs ──
     property string tab: "dashboard"
     readonly property var tabs: [
-        { id: "dashboard", label: "Dashboard", icon: "dashboard" },
-        { id: "media", label: "Media", icon: "queue_music" },
-        { id: "performance", label: "Performance", icon: "speed" },
-        { id: "weather", label: "Weather", icon: "cloud" }
+        { id: "dashboard", label: "Almanac", sign: "☉" },
+        { id: "media", label: "Hymns", sign: "♀" },
+        { id: "performance", label: "Engine", sign: "☿" },
+        { id: "weather", label: "Omens", sign: "☽" }
     ]
     readonly property int tabIndex: Math.max(0, tabs.findIndex(function (t) { return t.id === dash.tab }))
     function stepTab(d) { tab = tabs[(tabIndex + d + tabs.length) % tabs.length].id }
@@ -313,34 +311,36 @@ PanelWindow {
                         required property var modelData
                         required property int index
                         readonly property bool current: dash.tab === modelData.id
-                        readonly property real contentW: Math.max(tabIcon.implicitWidth, tabLabel.implicitWidth)
+                        readonly property real contentW: tabSign.implicitWidth + 8 + tabLabel.implicitWidth
                         width: tabBar.tabW
-                        height: tabIcon.implicitHeight + tabLabel.implicitHeight
+                        height: tabLabel.implicitHeight
                         Rectangle {
                             anchors.centerIn: parent
                             width: parent.width; height: parent.height + 10
-                            radius: 12
-                            color: tabItem.current ? dash.primary : dash.onSurface
+                            radius: 2
+                            color: tabItem.current ? dash.blood : dash.onSurface
                             opacity: tabMa.pressed ? 0.14 : tabMa.containsMouse ? 0.08 : 0
                             Behavior on opacity { Anim { ms: 120 } }
                         }
-                        IconText {
-                            id: tabIcon
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            text: tabItem.modelData.icon
-                            color: tabItem.current ? dash.primary : dash.onSurfaceVariant
-                            fill: tabItem.current ? 1 : 0
-                            Behavior on fill { Anim {} }
-                            Behavior on color { CAnim {} }
-                            font.pointSize: 18
-                        }
-                        DText {
-                            id: tabLabel
-                            anchors.top: tabIcon.bottom
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            text: tabItem.modelData.label
-                            color: tabItem.current ? dash.primary : dash.onSurfaceVariant
-                            Behavior on color { CAnim {} }
+                        Row {
+                            anchors.centerIn: parent
+                            spacing: 8
+                            Glyph {
+                                id: tabSign
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: tabItem.modelData.sign
+                                color: tabItem.current ? dash.blood : dash.onSurfaceVariant
+                                Behavior on color { CAnim {} }
+                                font.pointSize: 14
+                            }
+                            GText {
+                                id: tabLabel
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: tabItem.modelData.label
+                                color: tabItem.current ? dash.bone : dash.onSurfaceVariant
+                                Behavior on color { CAnim {} }
+                                font.pointSize: 16
+                            }
                         }
                         MouseArea {
                             id: tabMa
@@ -360,13 +360,18 @@ PanelWindow {
                 x: dash.tabIndex * tabBar.tabW + (tabBar.tabW - width) / 2
                 y: tabRow.y + tabRow.height + 5
                 height: 3
-                clip: true
                 Behavior on x { Anim { kind: "spatial" } }
                 Behavior on width { Anim { kind: "spatial" } }
                 Rectangle {
-                    width: parent.width; height: 6
-                    radius: 3
-                    color: dash.primary
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: parent.width; height: 1
+                    color: dash.blood
+                }
+                Rectangle {
+                    anchors.centerIn: parent
+                    width: 6; height: 6
+                    rotation: 45
+                    color: dash.blood
                 }
             }
             Rectangle {

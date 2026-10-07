@@ -92,7 +92,7 @@ Item {
         }
     }
 
-    TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText }
+    TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText; popout: "githubVisible" }
 
     MouseArea {
         acceptedButtons: Qt.LeftButton | Qt.MiddleButton
@@ -104,7 +104,7 @@ Item {
         onClicked: function (e) {
             tip.hide()
             if (e.button === Qt.MiddleButton) { root.refreshGithub(true); return }
-            root.githubVisible = !root.githubVisible
+            root.popout.click("githubVisible")
         }
     }
 }

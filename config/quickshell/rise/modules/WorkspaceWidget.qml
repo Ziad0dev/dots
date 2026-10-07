@@ -1,6 +1,7 @@
 import Quickshell
 import Quickshell.Hyprland
 import QtQuick
+import "../panels/dash/Occult.js" as Occult
 
 Item {
     id: wsWidget
@@ -69,7 +70,7 @@ Item {
         anchors.fill: parent
         acceptedButtons: Qt.RightButton
         cursorShape: Qt.PointingHandCursor
-        onClicked: root.workspaceVisible = !root.workspaceVisible
+        onClicked: root.popout.click("workspaceVisible")
     }
 
     // kanji numerals: 1-10 一…十, 11-99 十一, 二十, 二十一 …; anything else stays arabic
@@ -93,6 +94,16 @@ Item {
         var e = DesktopEntries.heuristicLookup(appId)
         return Quickshell.iconPath(e && e.icon ? e.icon : appId.toLowerCase(), true)
     }
+
+    // occult numerals: the Elder Futhark in order, the planets (weekday order,
+    // then the outer three), Roman numerals; past their end, arabic
+    readonly property var _runes: ["ᚠ", "ᚢ", "ᚦ", "ᚨ", "ᚱ", "ᚲ", "ᚷ", "ᚹ", "ᚺ", "ᚾ", "ᛁ", "ᛃ",
+                                   "ᛇ", "ᛈ", "ᛉ", "ᛊ", "ᛏ", "ᛒ", "ᛖ", "ᛗ", "ᛚ", "ᛜ", "ᛞ", "ᛟ"]
+    readonly property var _planets: ["☉", "☽", "♂", "☿", "♃", "♀", "♄", "♅", "♆", "♇"]
+    function rune(n) { return n >= 1 && n <= _runes.length ? _runes[n - 1] : String(n) }
+    function planet(n) { return n >= 1 && n <= _planets.length ? _planets[n - 1] : String(n) }
+    readonly property bool occultGlyphs: root.workspaceStyle === "runes" || root.workspaceStyle === "planets"
+        || root.workspaceStyle === "roman"
 
     property real cometX: 0
     property real cometW: 0
@@ -208,6 +219,10 @@ Item {
                              : root.workspaceStyle === "occupancy" ? dotCount * 4 + (dotCount - 1) * 3 + 8
                              : root.workspaceStyle === "icons"     ? 22
                              : root.workspaceStyle === "kanji"     ? Math.max(22, kanjiText.implicitWidth + 8)
+                             : root.workspaceStyle === "runes"     ? 20
+                             : root.workspaceStyle === "planets"   ? 22
+                             : root.workspaceStyle === "roman"     ? Math.max(18, occultText.implicitWidth + 9)
+                             : root.workspaceStyle === "lunar"     ? 18
                              : (isFocused ? 32 : 16)
                 implicitHeight: 28
 
@@ -394,6 +409,74 @@ Item {
                     font.pixelSize: isFocused ? 14 : 13
                     font.weight: isFocused ? Font.Bold : Font.Normal
                     Behavior on color { CAnim { ms: 200 } }
+                }
+
+                // ── RUNES / PLANETS / ROMAN: occult numerals, the focused one in
+                //    the window-border red over a small lozenge ──
+                Text {
+                    id: occultText
+                    visible: wsWidget.occultGlyphs
+                    anchors.centerIn: parent
+                    anchors.verticalCenterOffset: root.workspaceStyle === "roman" ? -1 : -2
+                    text: root.workspaceStyle === "runes" ? wsWidget.rune(wsCell.wsId)
+                        : root.workspaceStyle === "planets" ? wsWidget.planet(wsCell.wsId)
+                        : Occult.roman(wsCell.wsId)
+                    color: isFocused  ? Qt.lighter(root.windowBorder, 1.3)
+                         : isOccupied ? Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.78)
+                                      : Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.28)
+                    font.family: root.workspaceStyle === "runes" ? "Noto Sans Runic"
+                               : root.workspaceStyle === "planets" ? "Libertinus Serif Display"
+                               : root.gothic
+                    font.pixelSize: root.workspaceStyle === "roman" ? (isFocused ? 17 : 15)
+                                  : (isFocused ? 17 : 15)
+                    renderType: Text.NativeRendering
+                    Behavior on color { CAnim { ms: 200 } }
+                }
+                Rectangle {
+                    visible: wsWidget.occultGlyphs
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.verticalCenterOffset: 9
+                    width: isFocused ? 4 : 0; height: width
+                    rotation: 45
+                    color: root.windowBorder
+                    Behavior on width { Anim { kind: "spatialFast" } }
+                }
+
+                // ── LUNAR: a new moon when empty, a half moon when occupied,
+                //    a full blood moon when focused ──
+                Item {
+                    visible: root.workspaceStyle === "lunar"
+                    anchors.centerIn: parent
+                    width: isFocused ? 12 : 10; height: width
+                    Behavior on width { Anim { kind: "spatialFast" } }
+                    // halo round the blood moon
+                    Rectangle {
+                        anchors.centerIn: parent
+                        width: parent.width + 8; height: width; radius: width / 2
+                        visible: isFocused
+                        color: Qt.rgba(root.windowBorder.r, root.windowBorder.g, root.windowBorder.b, 0.18)
+                    }
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: width / 2
+                        color: isFocused ? root.windowBorder : "transparent"
+                        border.width: 1
+                        border.color: isFocused ? root.windowBorder
+                                    : Qt.rgba(root.ink.r, root.ink.g, root.ink.b, isOccupied ? 0.7 : 0.3)
+                        Behavior on color { CAnim { ms: 200 } }
+                    }
+                    // the lit half of an occupied workspace's moon
+                    Item {
+                        visible: isOccupied
+                        x: parent.width / 2; width: parent.width / 2; height: parent.height
+                        clip: true
+                        Rectangle {
+                            x: -parent.width; width: parent.width * 2; height: parent.height
+                            radius: height / 2
+                            color: Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.7)
+                        }
+                    }
                 }
 
                 MouseArea {

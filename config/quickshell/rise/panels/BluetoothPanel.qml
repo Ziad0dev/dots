@@ -56,245 +56,257 @@ PanelWindow {
 
     property real reveal: root.bluetoothVisible ? 1 : 0
     Behavior on reveal {
-        Anim { kind: root.bluetoothVisible ? "spatial" : "exit" }
+        Anim { kind: "effects" }
     }
     visible: reveal > 0.001
-    WlrLayershell.keyboardFocus: root.bluetoothVisible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+        || (root.popout.last === "bluetoothVisible" && root.popout.shown)
+    WlrLayershell.keyboardFocus: root.bluetoothVisible && !root.popout.hoverMode
+        ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+    mask: Region {
+        readonly property bool hover: btPanel.root.popout.hoverMode
+        readonly property int gap: btPanel.root.popout.gap
+        x: hover ? popClip.x : 0
+        y: hover ? popClip.y - (btPanel.root.popout.barOnTop ? gap : 0) : 0
+        width: hover ? popClip.width : btPanel.width
+        height: hover ? popClip.height + gap : btPanel.height
+    }
 
     MouseArea { anchors.fill: parent; onClicked: root.bluetoothVisible = false }
 
-    FrameCard { root: btPanel.root; card: card; reveal: btPanel.reveal }
-    Rectangle {
-        id: card
-        width: 300
-        height: col.implicitHeight + 24
-        radius: reveal > 0.001 ? root.pillRadius : 0
-        color: root.frameCardBg
-        border.color: root.pillBorder
-        border.width: root.frameCardBorderW
-        PillShadow { theme: root ; visible: root.styleShadow && !root.frameOn }
+    PopoutClip {
+        id: popClip
+        root: btPanel.root
+        flag: "bluetoothVisible"
+        card: card
+        Rectangle {
+            id: card
+            width: 300
+            height: col.implicitHeight + 24
+            radius: reveal > 0.001 ? root.pillRadius : 0
+            color: "transparent"
+            border.color: root.pillBorder
+            border.width: 0
 
-        x: Math.round(Math.max(6, Math.min(root.bluetoothBarX - width / 2, parent.width - width - 6)))
-        y: root.barPosition === "bottom" ? (parent.height - barBottom - gap - height) : (barBottom + gap)
-        opacity: btPanel.reveal
-        transformOrigin: root.barPosition === "bottom" ? Item.Bottom : Item.Top
-        scale: root.motionHover ? (0.92 + 0.08 * btPanel.reveal) : 1
-        focus: root.bluetoothVisible
+            x: popClip.cardX
+            y: popClip.cardY
+            opacity: btPanel.reveal
+            focus: root.bluetoothVisible
 
-        Keys.onPressed: function(event) {
-            if (event.key === Qt.Key_Escape) { root.bluetoothVisible = false; event.accepted = true }
-        }
+            Keys.onPressed: function(event) {
+                if (event.key === Qt.Key_Escape) { root.bluetoothVisible = false; event.accepted = true }
+            }
 
-        MouseArea { anchors.fill: parent; onClicked: {} }
+            MouseArea { anchors.fill: parent; onClicked: {} }
 
-        Column {
-            id: col
-            anchors.fill: parent
-            anchors.margins: 12
-            spacing: 8
+            Column {
+                id: col
+                anchors.fill: parent
+                anchors.margins: 12
+                spacing: 8
 
-            // ── header + power toggle ──
-            Item {
-                width: parent.width
-                height: 24
-                Row {
-                    anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
-                    spacing: 8
-                    UiText {
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: "Bluetooth"
-                        color: root.ink; font.family: root.mono; font.pixelSize: 13
-                        font.letterSpacing: 2; font.weight: Font.Medium
+                // ── header + power toggle ──
+                Item {
+                    width: parent.width
+                    height: 24
+                    Row {
+                        anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
+                        spacing: 8
+                        UiText {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: "Bluetooth"
+                            color: root.ink; font.family: root.gothic; font.pixelSize: 20
+                            font.letterSpacing: 0.5; font.weight: Font.Medium
+                        }
+                        Row {
+                            anchors.verticalCenter: parent.verticalCenter
+                            visible: btPanel.btOn && btPanel.numConnected > 0
+                            spacing: 3
+                            IconText {
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: IconMap.icon("bluetooth_connected")
+                                color: root.seal
+                                font.pixelSize: 13
+                            }
+                            UiText {
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: String(btPanel.numConnected)
+                                color: root.seal
+                                font.family: root.mono; font.pixelSize: 11
+                            }
+                        }
                     }
                     Row {
-                        anchors.verticalCenter: parent.verticalCenter
-                        visible: btPanel.btOn && btPanel.numConnected > 0
-                        spacing: 3
-                        IconText {
+                        anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
+                        spacing: 10
+                        // power toggle pill
+                        Rectangle {
                             anchors.verticalCenter: parent.verticalCenter
-                            text: IconMap.icon("bluetooth_connected")
-                            color: root.seal
-                            font.pixelSize: 13
+                            width: 46; height: 20; radius: 10
+                            color: btPanel.btOn ? root.fillActive
+                                                : root.fillIdle
+                            border.color: btPanel.btOn ? root.seal : root.sep
+                            border.width: 1
+                            Behavior on color { CAnim { ms: 150 } }
+                            Rectangle {
+                                width: 14; height: 14; radius: 7
+                                anchors.verticalCenter: parent.verticalCenter
+                                x: btPanel.btOn ? parent.width - width - 3 : 3
+                                color: btPanel.btOn ? root.seal : root.sumi
+                                Behavior on x { Anim { kind: "spatialFast" } }
+                            }
+                            MouseArea {
+                                anchors.fill: parent
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: { powerProc.running = false; powerProc.running = true }
+                            }
                         }
                         UiText {
                             anchors.verticalCenter: parent.verticalCenter
-                            text: String(btPanel.numConnected)
-                            color: root.seal
-                            font.family: root.mono; font.pixelSize: 11
+                            text: "✕"; color: closeMa.containsMouse ? root.seal : root.sumi; font.pixelSize: 12
+                            Behavior on color { CAnim { ms: 120 } }
+                            MouseArea { id: closeMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: root.bluetoothVisible = false }
                         }
                     }
                 }
-                Row {
-                    anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
-                    spacing: 10
-                    // power toggle pill
-                    Rectangle {
-                        anchors.verticalCenter: parent.verticalCenter
-                        width: 46; height: 20; radius: 10
-                        color: btPanel.btOn ? root.fillActive
-                                            : root.fillIdle
-                        border.color: btPanel.btOn ? root.seal : root.sep
-                        border.width: 1
-                        Behavior on color { CAnim { ms: 150 } }
-                        Rectangle {
-                            width: 14; height: 14; radius: 7
-                            anchors.verticalCenter: parent.verticalCenter
-                            x: btPanel.btOn ? parent.width - width - 3 : 3
-                            color: btPanel.btOn ? root.seal : root.sumi
-                            Behavior on x { Anim { kind: "spatialFast" } }
-                        }
-                        MouseArea {
-                            anchors.fill: parent
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: { powerProc.running = false; powerProc.running = true }
+
+                Rectangle { width: parent.width; height: 1; color: root.sep }
+
+                // ── off state ──
+                UiText {
+                    visible: !btPanel.btOn
+                    width: parent.width; horizontalAlignment: Text.AlignHCenter
+                    text: "Bluetooth is off"
+                    color: Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.35)
+                    font.family: root.mono; font.pixelSize: 11
+                    topPadding: 4; bottomPadding: 4
+                }
+
+                // ── scan control (only when on) ──
+                Rectangle {
+                    visible: btPanel.btOn
+                    width: parent.width
+                    height: 28; radius: root.tileRadius
+                    readonly property bool hovered: scanMa.containsMouse
+                    color: btPanel.scanning ? root.fillActive
+                           : hovered ? root.fillHover : root.fillIdle
+                    border.color: (btPanel.scanning || hovered) ? root.seal : root.sep
+                    border.width: 1
+                    Behavior on color { CAnim { ms: 120 } }
+                    UiText {
+                        anchors.centerIn: parent
+                        text: btPanel.scanning ? "Scanning…" : "Scan for devices"
+                        color: btPanel.scanning ? root.seal : root.ink
+                        font.family: root.mono; font.pixelSize: 11
+                    }
+                    MouseArea {
+                        id: scanMa
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        enabled: !btPanel.scanning
+                        onClicked: { scanProc.running = false; scanProc.running = true }
+                    }
+                }
+
+                // ── device list ──
+                Column {
+                    width: parent.width
+                    spacing: 4
+                    visible: btPanel.btOn
+                    Repeater {
+                        model: btPanel.shownDevices
+                        delegate: Rectangle {
+                            id: devTile
+                            required property var modelData
+                            readonly property bool hovered: tileHover.containsMouse || actionMa.containsMouse
+                            width: col.width
+                            height: 42; radius: root.tileRadius
+                            color: modelData.connected ? root.fillActive
+                                   : hovered ? root.fillHover : root.fillIdle
+                            border.color: modelData.connected ? root.seal
+                                          : hovered ? root.seal : root.sep
+                            border.width: 1
+                            Behavior on color { CAnim { ms: 120 } }
+
+                            MouseArea {
+                                id: tileHover
+                                anchors.fill: parent
+                                acceptedButtons: Qt.NoButton
+                                hoverEnabled: true
+                            }
+
+                            Column {
+                                anchors.left: parent.left; anchors.leftMargin: 8
+                                anchors.right: actionButton.left; anchors.rightMargin: 8
+                                anchors.verticalCenter: parent.verticalCenter
+                                spacing: 1
+                                UiText {
+                                    width: parent.width
+                                    text: devTile.modelData.name
+                                    color: root.ink; font.family: root.mono; font.pixelSize: 11
+                                    elide: Text.ElideRight
+                                }
+                                UiText {
+                                    width: parent.width
+                                    text: devTile.modelData.connected ? "Connected"
+                                          : devTile.modelData.paired ? "Paired" : "Available"
+                                    color: root.ink
+                                    font.family: root.mono; font.pixelSize: 10; font.weight: Font.Medium
+                                    elide: Text.ElideRight
+                                }
+                            }
+
+                            Rectangle {
+                                id: actionButton
+                                anchors.right: parent.right; anchors.rightMargin: 8
+                                anchors.verticalCenter: parent.verticalCenter
+                                width: actionLabel.implicitWidth + 14
+                                height: 24; radius: root.tileRadius
+                                color: btPanel.deviceActionFill
+                                border.color: root.sep
+                                border.width: 1
+                                opacity: connProc.running ? 0.45 : 1
+                                UiText {
+                                    id: actionLabel
+                                    anchors.centerIn: parent
+                                    text: devTile.modelData.connected ? "Disconnect" : "Connect"
+                                    color: actionMa.containsMouse ? root.seal : root.ink
+                                    font.family: root.mono; font.pixelSize: 10
+                                }
+                                MouseArea {
+                                    id: actionMa
+                                    anchors.fill: parent
+                                    enabled: !connProc.running
+                                    hoverEnabled: true
+                                    cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+                                    onClicked: btPanel.activateDevice(devTile.modelData)
+                                }
+                            }
                         }
                     }
                     UiText {
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: "✕"; color: closeMa.containsMouse ? root.seal : root.sumi; font.pixelSize: 12
-                        Behavior on color { CAnim { ms: 120 } }
-                        MouseArea { id: closeMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: root.bluetoothVisible = false }
+                        visible: btPanel.btOn && btPanel.devices.length === 0
+                        width: parent.width; horizontalAlignment: Text.AlignHCenter
+                        text: btPanel.scanning ? "Searching…" : "No devices — tap Scan"
+                        color: Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.3)
+                        font.family: root.mono; font.pixelSize: 11
+                        topPadding: 2; bottomPadding: 2
                     }
                 }
-            }
 
-            Rectangle { width: parent.width; height: 1; color: root.sep }
+                Rectangle { width: parent.width; height: 1; color: root.sep }
 
-            // ── off state ──
-            UiText {
-                visible: !btPanel.btOn
-                width: parent.width; horizontalAlignment: Text.AlignHCenter
-                text: "Bluetooth is off"
-                color: Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.35)
-                font.family: root.mono; font.pixelSize: 11
-                topPadding: 4; bottomPadding: 4
-            }
-
-            // ── scan control (only when on) ──
-            Rectangle {
-                visible: btPanel.btOn
-                width: parent.width
-                height: 28; radius: root.tileRadius
-                readonly property bool hovered: scanMa.containsMouse
-                color: btPanel.scanning ? root.fillActive
-                       : hovered ? root.fillHover : root.fillIdle
-                border.color: (btPanel.scanning || hovered) ? root.seal : root.sep
-                border.width: 1
-                Behavior on color { CAnim { ms: 120 } }
-                UiText {
-                    anchors.centerIn: parent
-                    text: btPanel.scanning ? "Scanning…" : "Scan for devices"
-                    color: btPanel.scanning ? root.seal : root.ink
-                    font.family: root.mono; font.pixelSize: 11
-                }
-                MouseArea {
-                    id: scanMa
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    enabled: !btPanel.scanning
-                    onClicked: { scanProc.running = false; scanProc.running = true }
-                }
-            }
-
-            // ── device list ──
-            Column {
-                width: parent.width
-                spacing: 4
-                visible: btPanel.btOn
-                Repeater {
-                    model: btPanel.shownDevices
-                    delegate: Rectangle {
-                        id: devTile
-                        required property var modelData
-                        readonly property bool hovered: tileHover.containsMouse || actionMa.containsMouse
-                        width: col.width
-                        height: 42; radius: root.tileRadius
-                        color: modelData.connected ? root.fillActive
-                               : hovered ? root.fillHover : root.fillIdle
-                        border.color: modelData.connected ? root.seal
-                                      : hovered ? root.seal : root.sep
-                        border.width: 1
-                        Behavior on color { CAnim { ms: 120 } }
-
-                        MouseArea {
-                            id: tileHover
-                            anchors.fill: parent
-                            acceptedButtons: Qt.NoButton
-                            hoverEnabled: true
-                        }
-
-                        Column {
-                            anchors.left: parent.left; anchors.leftMargin: 8
-                            anchors.right: actionButton.left; anchors.rightMargin: 8
-                            anchors.verticalCenter: parent.verticalCenter
-                            spacing: 1
-                            UiText {
-                                width: parent.width
-                                text: devTile.modelData.name
-                                color: root.ink; font.family: root.mono; font.pixelSize: 11
-                                elide: Text.ElideRight
-                            }
-                            UiText {
-                                width: parent.width
-                                text: devTile.modelData.connected ? "Connected"
-                                      : devTile.modelData.paired ? "Paired" : "Available"
-                                color: root.ink
-                                font.family: root.mono; font.pixelSize: 10; font.weight: Font.Medium
-                                elide: Text.ElideRight
-                            }
-                        }
-
-                        Rectangle {
-                            id: actionButton
-                            anchors.right: parent.right; anchors.rightMargin: 8
-                            anchors.verticalCenter: parent.verticalCenter
-                            width: actionLabel.implicitWidth + 14
-                            height: 24; radius: root.tileRadius
-                            color: btPanel.deviceActionFill
-                            border.color: root.sep
-                            border.width: 1
-                            opacity: connProc.running ? 0.45 : 1
-                            UiText {
-                                id: actionLabel
-                                anchors.centerIn: parent
-                                text: devTile.modelData.connected ? "Disconnect" : "Connect"
-                                color: actionMa.containsMouse ? root.seal : root.ink
-                                font.family: root.mono; font.pixelSize: 10
-                            }
-                            MouseArea {
-                                id: actionMa
-                                anchors.fill: parent
-                                enabled: !connProc.running
-                                hoverEnabled: true
-                                cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-                                onClicked: btPanel.activateDevice(devTile.modelData)
-                            }
-                        }
+                Rectangle {
+                    width: parent.width
+                    height: 28; radius: root.tileRadius
+                    color: btSetMa.containsMouse ? root.fillPrimaryHover : root.seal
+                    Behavior on color { CAnim { ms: 120 } }
+                    UiText { anchors.centerIn: parent; text: "Bluetooth settings"; color: root.paper; font.family: root.mono; font.pixelSize: 11 }
+                    MouseArea {
+                        id: btSetMa
+                        anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
+                        onClicked: { root.bluetoothVisible = false; btRunner.running = false; btRunner.running = true }
                     }
-                }
-                UiText {
-                    visible: btPanel.btOn && btPanel.devices.length === 0
-                    width: parent.width; horizontalAlignment: Text.AlignHCenter
-                    text: btPanel.scanning ? "Searching…" : "No devices — tap Scan"
-                    color: Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.3)
-                    font.family: root.mono; font.pixelSize: 11
-                    topPadding: 2; bottomPadding: 2
-                }
-            }
-
-            Rectangle { width: parent.width; height: 1; color: root.sep }
-
-            Rectangle {
-                width: parent.width
-                height: 28; radius: root.tileRadius
-                color: btSetMa.containsMouse ? root.fillPrimaryHover : root.seal
-                Behavior on color { CAnim { ms: 120 } }
-                UiText { anchors.centerIn: parent; text: "Bluetooth settings"; color: root.paper; font.family: root.mono; font.pixelSize: 11 }
-                MouseArea {
-                    id: btSetMa
-                    anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
-                    onClicked: { root.bluetoothVisible = false; btRunner.running = false; btRunner.running = true }
                 }
             }
         }

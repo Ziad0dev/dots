@@ -74,6 +74,7 @@ ThemeAiUsage {
         if (id === "color06") return color06
         if (id === "color07") return color07
         if (id === "foreground") return foregroundSoft
+        if (id === "border") return windowBorder
         if (id === "accent") return accentHint
         return color01
     }
@@ -84,12 +85,12 @@ ThemeAiUsage {
     readonly property color seal: paletteColor(barColor)
     readonly property var barColorOptions: [
         "color01", "color02", "color03", "color04",
-        "color05", "color06", "color07", "foreground"
+        "color05", "color06", "color07", "foreground", "border"
     ]
     function paletteColorValid(id) {
         return id === "color01" || id === "color02" || id === "color03"
             || id === "color04" || id === "color05" || id === "color06"
-            || id === "color07" || id === "foreground"
+            || id === "color07" || id === "foreground" || id === "border"
     }
     function barColorValid(id) {
         return paletteColorValid(id) || id === "red" || id === "accent"
@@ -103,6 +104,7 @@ ThemeAiUsage {
         if (id === "color06") return "Color 06"
         if (id === "color07") return "Color 07"
         if (id === "foreground") return "Foreground"
+        if (id === "border") return "Window border"
         return "Color 01"
     }
     function _linearColorChannel(v) {
@@ -124,6 +126,15 @@ ThemeAiUsage {
     }
 
     readonly property string mono:  "JetBrainsMono Nerd Font"
+    // grimoire type (assets/fonts, OFL): Grenze Gotisch blackletter for
+    // headings and the clock (root.gothic), Cormorant Garamond for the
+    // dashboard's prose (dash/DText) and Noto Sans Runic for the rune
+    // workspace style; registered app-wide once loaded
+    FontLoader { id: gothicFont; source: Qt.resolvedUrl("assets/fonts/GrenzeGotisch.ttf") }
+    FontLoader { source: Qt.resolvedUrl("assets/fonts/CormorantGaramond.ttf") }
+    FontLoader { source: Qt.resolvedUrl("assets/fonts/CormorantGaramond-Italic.ttf") }
+    FontLoader { source: Qt.resolvedUrl("assets/fonts/NotoSansRunic.ttf") }
+    readonly property string gothic: gothicFont.status === FontLoader.Ready ? gothicFont.name : "serif"
 
     // ── transparency knobs (0.0 = fully transparent, 1.0 = opaque) ──
     property real barOpacity:  0.94   // große Insel / Split-Sektionen
@@ -153,6 +164,8 @@ ThemeAiUsage {
     // panels attached to the bar register their card (FrameCard) so its
     // background is drawn as a blob in the frame's group and melts out of it.
     property bool styleFrame: true
+    // Caelestia-style popouts: hovering a bar widget opens its popout
+    property bool popoutHover: true
     // false when Caelestia.Blobs can't load (no QML_IMPORT_PATH): the bar then
     // keeps the classic island look instead of failing to start
     property bool frameAvailable: true
@@ -514,6 +527,9 @@ ThemeAiUsage {
         _closingPopups = true
         if (except !== "calendarVisible") calendarVisible = false
         if (except !== "cpuVisible") cpuVisible = false
+        if (except !== "gpuVisible") gpuVisible = false
+        if (except !== "thermalVisible") thermalVisible = false
+        if (except !== "storageVisible") storageVisible = false
         if (except !== "aiUsageVisible") aiUsageVisible = false
         if (except !== "memVisible") memVisible = false
         if (except !== "volVisible") volVisible = false
@@ -665,6 +681,7 @@ ThemeAiUsage {
         : powerProfileVisible ? powerBarX
         : storageVisible ? storageBarX
         : trayVisible ? trayBarX
+        : githubVisible ? githubBarX
         : 0
 
     property real panelInsetReveal: anchoredPanelVisible ? 1 : 0
@@ -1414,7 +1431,7 @@ ThemeAiUsage {
     // ── workspace display mode ──
     property string workspaceMode: "10"   // "10", "5", "active"
     // ── workspace display style (orthogonal to mode; persisted) ──
-    property string workspaceStyle: "default"   // "default", "numbers", "magic", "comet", "segments", "occupancy", "icons", "kanji"
+    property string workspaceStyle: "default"   // "default", "numbers", "magic", "comet", "segments", "occupancy", "icons", "kanji", "runes", "planets", "roman", "lunar"
 
     // ── motion (persisted) ──
     property bool motionHover:  true
@@ -1742,7 +1759,7 @@ ThemeAiUsage {
                     // when there is no UI to undo it. (saveWidgets still writes "0".)
                     if (parts.length > wsField + 8) {
                         var wss = parts[wsField + 8]
-                        if (["default", "numbers", "magic", "comet", "segments", "occupancy", "icons", "kanji"].indexOf(wss) >= 0)
+                        if (["default", "numbers", "magic", "comet", "segments", "occupancy", "icons", "kanji", "runes", "planets", "roman", "lunar"].indexOf(wss) >= 0)
                             theme.workspaceStyle = wss
                     }
                     if (parts.length > wsField + 9) {
@@ -1825,12 +1842,12 @@ ThemeAiUsage {
         archBadgePackages: "bool", archBadgeThemes: "bool", archBadgeShell: "bool",
         styleBorder: "bool", styleShadow: "bool", styleFrost: "bool",
         styleRadiusSmall: "bool", styleIconLabels: "bool", styleDepth: "bool",
-        styleFrame: "bool", styleFrameEdge: "bool", styleAutoHide: "bool", styleDeskClock: "bool", styleDeskVisualiser: "bool",
+        styleFrame: "bool", popoutHover: "bool", styleFrameEdge: "bool", styleAutoHide: "bool", styleDeskClock: "bool", styleDeskVisualiser: "bool",
         motionHover: "bool", motionSweep: "bool", motionDigits: "bool",
         weatherImperial: "bool", clock12h: "bool",
         splitArch: "bool", splitMon: "bool", splitMprisL: "bool", splitNet: "bool",
         workspaceMode: ["10", "5", "active"],
-        workspaceStyle: ["default", "numbers", "magic", "comet", "segments", "occupancy", "icons", "kanji"],
+        workspaceStyle: ["default", "numbers", "magic", "comet", "segments", "occupancy", "icons", "kanji", "runes", "planets", "roman", "lunar"],
         pickerStyle: ["hearthstone", "carousel", "tanzaku"],
         barPosition: ["top", "bottom"],
         barMonitor: function (v) { return typeof v === "string" && v !== "" },
@@ -1905,6 +1922,10 @@ ThemeAiUsage {
         interval: 150
         onTriggered: settingsFile.setText(JSON.stringify(theme.settingsSnapshot(), null, 2) + "\n")
     }
+
+    // the shared, morphing popout box (modules/PopoutMorph.qml)
+    readonly property alias popout: popoutMorph
+    PopoutMorph { id: popoutMorph; root: theme }
 
     FileView {
         id: settingsFile

@@ -27,140 +27,152 @@ PanelWindow {
 
     property real reveal: root.powerProfileVisible ? 1 : 0
     Behavior on reveal {
-        Anim { kind: root.powerProfileVisible ? "spatial" : "exit" }
+        Anim { kind: "effects" }
     }
     visible: reveal > 0.001
-    WlrLayershell.keyboardFocus: root.powerProfileVisible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+        || (root.popout.last === "powerProfileVisible" && root.popout.shown)
+    WlrLayershell.keyboardFocus: root.powerProfileVisible && !root.popout.hoverMode
+        ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+    mask: Region {
+        readonly property bool hover: profilePanel.root.popout.hoverMode
+        readonly property int gap: profilePanel.root.popout.gap
+        x: hover ? popClip.x : 0
+        y: hover ? popClip.y - (profilePanel.root.popout.barOnTop ? gap : 0) : 0
+        width: hover ? popClip.width : profilePanel.width
+        height: hover ? popClip.height + gap : profilePanel.height
+    }
 
     MouseArea {
         anchors.fill: parent
         onClicked: root.powerProfileVisible = false
     }
 
-    FrameCard { root: profilePanel.root; card: card; reveal: profilePanel.reveal }
-    Rectangle {
-        id: card
-        width: 220
-        height: col.implicitHeight + 24
-        radius: reveal > 0.001 ? root.pillRadius : 0
-        color: root.frameCardBg
-        border.color: root.pillBorder
-        border.width: root.frameCardBorderW
-        PillShadow { theme: root ; visible: root.styleShadow && !root.frameOn }
+    PopoutClip {
+        id: popClip
+        root: profilePanel.root
+        flag: "powerProfileVisible"
+        card: card
+        Rectangle {
+            id: card
+            width: 220
+            height: col.implicitHeight + 24
+            radius: reveal > 0.001 ? root.pillRadius : 0
+            color: "transparent"
+            border.color: root.pillBorder
+            border.width: 0
 
-        x: Math.round(Math.max(6, Math.min(root.powerBarX - width / 2, parent.width - width - 6)))
-        y: root.barPosition === "bottom" ? (parent.height - barBottom - gap - height) : (barBottom + gap)
-        opacity: profilePanel.reveal
-        transformOrigin: root.barPosition === "bottom" ? Item.Bottom : Item.Top
-        scale: root.motionHover ? (0.92 + 0.08 * profilePanel.reveal) : 1
-        focus: root.powerProfileVisible
+            x: popClip.cardX
+            y: popClip.cardY
+            opacity: profilePanel.reveal
+            focus: root.powerProfileVisible
 
-        Keys.onPressed: function(event) {
-            if (event.key === Qt.Key_Escape) {
-                root.powerProfileVisible = false;
-                event.accepted = true;
-            }
-        }
-
-        MouseArea { anchors.fill: parent; onClicked: {} }
-
-        Column {
-            id: col
-            anchors.fill: parent
-            anchors.margins: 12
-            spacing: 4
-
-            // ── header ──
-            Item {
-                width: parent.width
-                height: 24
-                UiText {
-                    anchors.left: parent.left
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: "Power Profile"
-                    color: root.ink
-                    font.family: root.mono
-                    font.pixelSize: 13
-                    font.letterSpacing: 2
-                    font.weight: Font.Medium
-                }
-                UiText {
-                    anchors.right: parent.right
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: "\u2715"
-                    color: closeMa.containsMouse ? root.seal : root.sumi
-                    font.pixelSize: 12
-                    Behavior on color { CAnim { ms: 120 } }
-                    MouseArea {
-                        id: closeMa
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: root.powerProfileVisible = false
-                    }
+            Keys.onPressed: function(event) {
+                if (event.key === Qt.Key_Escape) {
+                    root.powerProfileVisible = false;
+                    event.accepted = true;
                 }
             }
 
-            Rectangle { width: parent.width; height: 1; color: root.sep }
+            MouseArea { anchors.fill: parent; onClicked: {} }
 
-            // ── profile buttons ──
-            Repeater {
-                model: profilePanel.profiles
+            Column {
+                id: col
+                anchors.fill: parent
+                anchors.margins: 12
+                spacing: 4
 
-                delegate: Item {
-                    required property var modelData
-                    required property int index
-
+                // ── header ──
+                Item {
                     width: parent.width
-                    height: 32
-
-                    property bool isActive: root.powerProfileCurrent === modelData.key
-
-                    Rectangle {
-                        anchors.fill: parent
-                        radius: root.tileRadius
-                        color: isActive ? root.fillActive
-                               : ma.containsMouse ? root.fillHover : root.fillIdle
-                        border.color: (ma.containsMouse || isActive) ? root.seal : root.sep
-                        border.width: 1
-                        Behavior on color { CAnim { ms: 120 } }
-                    }
-
-                    Row {
+                    height: 24
+                    UiText {
+                        anchors.left: parent.left
                         anchors.verticalCenter: parent.verticalCenter
-                        anchors.left: parent.left; anchors.leftMargin: 8
-                        anchors.right: parent.right; anchors.rightMargin: 8
-                        spacing: 8
-
-                        UiText {
-                            text: modelData.icon
-                            renderType: Text.QtRendering
-                            color: (ma.containsMouse || isActive) ? root.seal : root.ink
-                            font.family: root.mono
-                            font.pixelSize: 14
-                            anchors.verticalCenter: parent.verticalCenter
-                        }
-                        UiText {
-                            text: modelData.label
-                            color: (ma.containsMouse || isActive) ? root.seal : root.ink
-                            font.family: root.mono
-                            font.pixelSize: 12
-                            font.weight: isActive ? Font.Medium : Font.Normal
-                            anchors.verticalCenter: parent.verticalCenter
+                        text: "Power Profile"
+                        color: root.ink
+                        font.family: root.gothic
+                        font.pixelSize: 20
+                        font.letterSpacing: 0.5
+                        font.weight: Font.Medium
+                    }
+                    UiText {
+                        anchors.right: parent.right
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: "\u2715"
+                        color: closeMa.containsMouse ? root.seal : root.sumi
+                        font.pixelSize: 12
+                        Behavior on color { CAnim { ms: 120 } }
+                        MouseArea {
+                            id: closeMa
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: root.powerProfileVisible = false
                         }
                     }
+                }
 
-                    MouseArea {
-                        id: ma
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: {
-                            setProfileProc.command = ["powerprofilesctl", "set", modelData.key]
-                            setProfileProc.running = false
-                            setProfileProc.running = true
-                            root.powerProfileCurrent = modelData.key
-                            root.powerProfileVisible = false
+                GrimRule { root: profilePanel.root; width: parent.width }
+
+                // ── profile buttons ──
+                Repeater {
+                    model: profilePanel.profiles
+
+                    delegate: Item {
+                        required property var modelData
+                        required property int index
+
+                        width: parent.width
+                        height: 32
+
+                        property bool isActive: root.powerProfileCurrent === modelData.key
+
+                        Rectangle {
+                            anchors.fill: parent
+                            radius: root.tileRadius
+                            color: isActive ? root.fillActive
+                                   : ma.containsMouse ? root.fillHover : root.fillIdle
+                            border.color: (ma.containsMouse || isActive) ? root.seal : root.sep
+                            border.width: 1
+                            Behavior on color { CAnim { ms: 120 } }
+                        }
+
+                        Row {
+                            anchors.verticalCenter: parent.verticalCenter
+                            anchors.left: parent.left; anchors.leftMargin: 8
+                            anchors.right: parent.right; anchors.rightMargin: 8
+                            spacing: 8
+
+                            UiText {
+                                text: modelData.icon
+                                renderType: Text.QtRendering
+                                color: (ma.containsMouse || isActive) ? root.seal : root.ink
+                                font.family: root.mono
+                                font.pixelSize: 14
+                                anchors.verticalCenter: parent.verticalCenter
+                            }
+                            UiText {
+                                text: modelData.label
+                                color: (ma.containsMouse || isActive) ? root.seal : root.ink
+                                font.family: root.mono
+                                font.pixelSize: 12
+                                font.weight: isActive ? Font.Medium : Font.Normal
+                                anchors.verticalCenter: parent.verticalCenter
+                            }
+                        }
+
+                        MouseArea {
+                            id: ma
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                setProfileProc.command = ["powerprofilesctl", "set", modelData.key]
+                                setProfileProc.running = false
+                                setProfileProc.running = true
+                                root.powerProfileCurrent = modelData.key
+                                root.powerProfileVisible = false
+                            }
                         }
                     }
                 }

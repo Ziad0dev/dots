@@ -59,8 +59,9 @@ Item {
             id: storageCard
             width: storageRow.implicitWidth + 56
             height: parent.height
-            radius: 48
+            radius: 2
             color: pt.dash.surfaceContainer
+            border.color: pt.dash.outlineVariant; border.width: 1
             Row {
                 id: storageRow
                 anchors.centerIn: parent
@@ -98,7 +99,7 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: 4
                     width: 150
-                    DText {
+                    GText {
                         text: "Storage"
                         color: pt.dash.onSurface
                         font.pointSize: 16; font.weight: Font.Medium
@@ -118,15 +119,16 @@ Item {
             id: netCard
             width: 390
             height: parent.height
-            radius: 28
+            radius: 2
             color: pt.dash.surfaceContainer
+            border.color: pt.dash.outlineVariant; border.width: 1
             readonly property real peak: Math.max(1024, Math.max.apply(null, pt.dash.rxHist.concat(pt.dash.txHist).concat([0])))
             Row {
                 id: netTitle
                 x: 16; y: 16
                 spacing: 8
                 IconText { text: "swap_vert"; color: pt.dash.primary; font.pointSize: 18 }
-                DText {
+                GText {
                     anchors.verticalCenter: parent.verticalCenter
                     text: "Network"
                     color: pt.dash.onSurface
@@ -199,8 +201,9 @@ Item {
         Rectangle {
             width: pt.width - storageCard.width - netCard.width - 2 * pt.gap
             height: parent.height
-            radius: 12
+            radius: 2
             color: pt.dash.surfaceContainer
+            border.color: pt.dash.outlineVariant; border.width: 1
             Column {
                 anchors.centerIn: parent
                 spacing: 4
@@ -208,7 +211,7 @@ Item {
                     anchors.horizontalCenter: parent.horizontalCenter
                     spacing: 8
                     IconText { text: "memory_alt"; fill: 1; color: pt.dash.tertiary; font.pointSize: 18 }
-                    DText {
+                    GText {
                         anchors.verticalCenter: parent.verticalCenter
                         text: "Memory"
                         color: pt.dash.onSurface
@@ -270,8 +273,9 @@ Item {
         property var history: []
         property color accent
         height: 160
-        radius: 28
+        radius: 2
         color: pt.dash.surfaceContainer
+        border.color: pt.dash.outlineVariant; border.width: 1
         clip: true
 
         Graph {
@@ -304,10 +308,10 @@ Item {
             anchors.right: usageShape.left; anchors.rightMargin: 8
             anchors.verticalCenter: heroRing.verticalCenter
             spacing: 2
-            DText {
+            GText {
                 text: hero.label
                 color: hero.accent
-                font.pointSize: 16; font.weight: Font.Medium
+                font.pointSize: 18
             }
             DText {
                 width: parent.width

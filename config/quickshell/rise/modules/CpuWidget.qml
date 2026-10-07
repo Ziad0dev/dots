@@ -141,7 +141,7 @@ Item {
         }
     }
 
-    TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText }
+    TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText; popout: "cpuVisible" }
 
     Process { id: cpuTui; command: ["bash", "-c", "ghostty --class=com.dots.float.lg -e btop"] }
 
@@ -155,6 +155,6 @@ Item {
         onEntered: tip.show()
         onExited: { tip.hide() }
         onClicked: function (e) {
-            if (e.button === Qt.RightButton) { cpuTui.running = false; cpuTui.running = true; return } tip.hide(); root.cpuVisible = !root.cpuVisible }
+            if (e.button === Qt.RightButton) { cpuTui.running = false; cpuTui.running = true; return } tip.hide(); root.popout.click("cpuVisible") }
     }
 }

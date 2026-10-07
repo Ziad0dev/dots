@@ -76,7 +76,7 @@ Item {
         }
     }
 
-    TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText }
+    TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText; popout: "gpuVisible" }
 
     Process { id: gpuTui; command: ["bash", "-c", "ghostty --class=com.dots.float.lg -e nvtop"] }
 
@@ -94,7 +94,7 @@ Item {
                 gpuTui.running = true
                 return
             }
-            root.gpuVisible = !root.gpuVisible
+            root.popout.click("gpuVisible")
         }
     }
 }

@@ -197,13 +197,13 @@ Item {
         }
     }
 
-    TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText }
+    TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText; popout: "batteryVisible" }
 
     MouseArea {
         anchors.fill: parent
         hoverEnabled: true; cursorShape: Qt.PointingHandCursor
         onEntered: { if (rootMod.hasBattery) tip.show() }
         onExited:  { tip.hide() }
-        onClicked: { tip.hide(); root.batteryVisible = !root.batteryVisible }
+        onClicked: { tip.hide(); root.popout.click("batteryVisible") }
     }
 }

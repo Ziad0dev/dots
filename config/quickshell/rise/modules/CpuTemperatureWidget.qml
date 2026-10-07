@@ -56,7 +56,7 @@ Item {
         }
     }
 
-    TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText }
+    TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText; popout: "thermalVisible" }
 
     Process { id: tempTui; command: ["bash", "-c", "ghostty --class=com.dots.float.lg -e btop"] }
 
@@ -70,7 +70,7 @@ Item {
         onClicked: function (e) {
             tip.hide()
             if (e.button === Qt.RightButton) { tempTui.running = false; tempTui.running = true; return }
-            root.thermalVisible = !root.thermalVisible
+            root.popout.click("thermalVisible")
         }
     }
 }
