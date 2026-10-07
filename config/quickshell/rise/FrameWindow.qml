@@ -36,9 +36,19 @@ PanelWindow {
         Region { item: cornerZone.visible ? cornerZone : null }
     }
 
-    // recovery: if the compositor drops this window (output reset), bring it back
-    // and re-map the bar after it, since a new layer stacks on top
+    // Both windows are on the Top layer, where a newly mapped surface stacks
+    // above the rest. Whenever this one maps again (the frame switched back on,
+    // or recovery below) the bar is re-mapped after it, or the frame band would
+    // cover the bar's widgets (its own background is transparent in frame mode).
     visible: root.styleFrame
+    onVisibleChanged: if (visible) Qt.callLater(fw.restackBar)
+    function restackBar() {
+        if (!fw.visible) return
+        fw.bar.visible = false
+        fw.bar.visible = true
+    }
+
+    // recovery: if the compositor drops this window (output reset), bring it back
     Connections {
         target: fw
         function onResourcesLost() { recover.restart() }
@@ -52,8 +62,6 @@ PanelWindow {
             console.warn("[FrameWindow] window lost; recreating it under the bar")
             fw.visible = false
             fw.visible = Qt.binding(function () { return fw.root.styleFrame })
-            fw.bar.visible = false
-            fw.bar.visible = true
         }
     }
 
