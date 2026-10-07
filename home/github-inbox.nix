@@ -5,7 +5,7 @@
   ...
 }:
 let
-  script = "${config.dots.repoPath}/config/quickshell/rise/scripts/github-inbox";
+  script = "${config.xdg.configHome}/quickshell/rise/scripts/github-inbox";
 in
 {
   home.packages = with pkgs; [

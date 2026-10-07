@@ -28,6 +28,8 @@ let
           system
           profile
           ;
+        standalone = false;
+        hmConfigName = null;
       };
       home-manager.users.${username} = import homeModule;
     };
@@ -102,8 +104,10 @@ in
       ];
     };
 
+  # `name` is the homeConfigurations attribute, which `nh home switch -c` needs
   home =
     {
+      name,
       username,
       system,
       profile ? "minimal",
@@ -120,6 +124,8 @@ in
           system
           profile
           ;
+        standalone = true;
+        hmConfigName = name;
       };
       modules = [
         ../home/home.nix

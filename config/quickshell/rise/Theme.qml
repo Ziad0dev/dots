@@ -2101,8 +2101,8 @@ ThemeAiUsage {
         command: ["bash", "-c",
             "state=\"$HOME/.local/state/dots/current\"; legacy=\"$HOME/.local/state/dots/shell/current\"; " +
             "if command -v dots-shell >/dev/null 2>&1 && [ -d \"$state\" ] && [ -d /usr/share/dots ]; then printf '%s\\t%s\\n' \"$state\" /usr/share/dots; " +
-            "elif [ -d \"$legacy\" ]; then printf '%s\\t%s\\n' \"$legacy\" \"$HOME/dots/config/quickshell/rise\"; " +
-            "else printf '%s\\t%s\\n' \"$legacy\" \"$HOME/dots/config/quickshell/rise\"; fi"]
+            "elif [ -d \"$legacy\" ]; then printf '%s\\t%s\\n' \"$legacy\" \"${DOTS_SHELL_PATH:-$HOME/dots/config/quickshell/rise}\"; " +
+            "else printf '%s\\t%s\\n' \"$legacy\" \"${DOTS_SHELL_PATH:-$HOME/dots/config/quickshell/rise}\"; fi"]
         running: true
         stdout: StdioCollector {
             onStreamFinished: {

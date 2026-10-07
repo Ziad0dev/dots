@@ -1,10 +1,10 @@
 {
-  config,
   pkgs,
+  dotsLink,
   ...
 }:
 let
-  link = sub: config.lib.file.mkOutOfStoreSymlink "${config.dots.repoPath}/config/${sub}";
+  link = dotsLink;
 
   # Under Hyprland quickshell is the notification daemon; dunst only runs in
   # sway. It is started by path and kept out of home.packages so its D-Bus

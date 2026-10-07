@@ -123,4 +123,4 @@ secretspec get OPENROUTER_API_KEY
 
 ## Containers
 
-Docker is rootless (`DOCKER_HOST` points at `/run/user/1001/docker.sock`) and not started at boot. Podman is installed alongside and is what distrobox uses.
+Docker is rootless (`DOCKER_HOST` points at `$XDG_RUNTIME_DIR/docker.sock`) and not started at boot. Podman is installed alongside and is what distrobox uses.

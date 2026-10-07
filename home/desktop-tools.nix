@@ -121,16 +121,21 @@ let
     ]
   );
 
-  timemachine = script "dots-timemachine" (
-    with pkgs;
-    [
+  # travels the checkout, so it gets repoPath rather than dots.src
+  timemachine = pkgs.writeShellApplication {
+    name = "dots-timemachine";
+    runtimeInputs = with pkgs; [
       coreutils
       fzf
       gawk
       git
       gnused
-    ]
-  );
+    ];
+    text = ''
+      DOTS_DIR="''${DOTS_DIR:-${config.dots.repoPath}}"
+    ''
+    + builtins.readFile ../scripts/dots-timemachine.sh;
+  };
 
   gif = script "dots-gif" (
     with pkgs;
@@ -153,17 +158,20 @@ let
 
   screentime = pyScript "dots-screentime" pkgs.python3 [ pkgs.procps ];
 
-  say = pyScript "dots-say" (pkgs.python3.withPackages (ps: [
-    ps.kokoro
-    ps.spacy-models.en_core_web_sm
-  ])) (
-    with pkgs;
-    [
-      libnotify
-      pipewire
-      wl-clipboard
-    ]
-  );
+  say =
+    pyScript "dots-say"
+      (pkgs.python3.withPackages (ps: [
+        ps.kokoro
+        ps.spacy-models.en_core_web_sm
+      ]))
+      (
+        with pkgs;
+        [
+          libnotify
+          pipewire
+          wl-clipboard
+        ]
+      );
 in
 {
   options.dots.tts.enable = lib.mkOption {

@@ -73,6 +73,8 @@ case "$CMD" in
             *)
                 out="$HOME/Videos/recording-$(date +%Y%m%d-%H%M%S).mp4"
                 mkdir -p "$HOME/Videos"
+                mon=$(hyprctl monitors -j 2>/dev/null \
+                    | jq -r 'first(.[] | select(.focused)) | .name') || true
                 # a transient UNIT, not a scope: lifetime independent of this
                 # shim, so it survives us exiting. SIGINT lets gsr finalise the
                 # mp4 instead of being SIGTERMed mid-write.
@@ -80,7 +82,7 @@ case "$CMD" in
                 systemd-run --user --unit=dots-gsr --quiet --collect \
                     --property=KillSignal=SIGINT \
                     --property=TimeoutStopSec=15 \
-                    -- gpu-screen-recorder ${DOTS_GSR_ARGS:--w DP-1 -f 60 -c mp4 -k hevc -q very_high -a default_output|easyeffects_source} \
+                    -- gpu-screen-recorder ${DOTS_GSR_ARGS:--w ${mon:-screen} -f 60 -c mp4 -k hevc -q very_high -a default_output|easyeffects_source} \
                        -o "$out"
                 ;;
         esac
@@ -128,12 +130,12 @@ case "$CMD" in
         ;;
 
     dots-update)
-        launch_float "sh -c 'cd ~/dots && nh os switch; echo; echo done - press enter; read -r _'"
+        launch_float "sh -c 'cd \"$DOTS_REPO\" && nh os switch; echo; echo done - press enter; read -r _'"
         exit 0
         ;;
     dots-update-available)
         # flake.lock older than a week counts as one pending update
-        lock="$HOME/dots/flake.lock"
+        lock="$DOTS_REPO/flake.lock"
         if [ -f "$lock" ]; then
             age=$(( ( $(date +%s) - $(stat -c %Y "$lock") ) / 86400 ))
             [ "$age" -gt 7 ] && echo 1
@@ -148,7 +150,7 @@ case "$CMD" in
             cat "$cache"
             exit 0
         fi
-        locked=$(nix flake metadata "$HOME/dots" --json 2>/dev/null \
+        locked=$(nix flake metadata "$DOTS_REPO" --json 2>/dev/null \
             | jq -r '.locks.nodes.chaotic.locked.rev // empty') || true
         remote=$(git ls-remote https://github.com/chaotic-cx/nyx HEAD 2>/dev/null | cut -f1) || true
         if [ -n "${locked:-}" ] && [ -n "${remote:-}" ] && [ "$locked" != "$remote" ]; then

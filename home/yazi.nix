@@ -2,12 +2,10 @@
   config,
   lib,
   pkgs,
+  dotsLink,
   ...
 }:
-let
-  link = config.lib.file.mkOutOfStoreSymlink;
-  dots = config.dots.repoPath;
-in
+
 {
   programs.yazi = {
     enable = true;
@@ -53,9 +51,10 @@ in
   };
 
   xdg.configFile = {
-    "yazi/yazi.toml".source = link "${dots}/config/yazi/yazi.toml";
-    "yazi/keymap.toml".source = link "${dots}/config/yazi/keymap.toml";
-    "yazi/init.lua".source = link "${dots}/config/yazi/init.lua";
-    "yazi/theme.toml".source = link "${config.xdg.stateHome}/dots/theme/yazi.toml";
+    "yazi/yazi.toml".source = dotsLink "yazi/yazi.toml";
+    "yazi/keymap.toml".source = dotsLink "yazi/keymap.toml";
+    "yazi/init.lua".source = dotsLink "yazi/init.lua";
+    "yazi/theme.toml".source =
+      config.lib.file.mkOutOfStoreSymlink "${config.xdg.stateHome}/dots/theme/yazi.toml";
   };
 }

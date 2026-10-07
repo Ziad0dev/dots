@@ -74,6 +74,16 @@ render_all() {
     local name="$1" pal t out varlist k
     pal=$(palette_file "$name") || die "no colors.sh or theme.sh in theme '$name'"
 
+    # a missing key would abort every template under set -u and leave the
+    # previous theme's files in place, so refuse up front and name them
+    local missing
+    # shellcheck source=/dev/null
+    missing=$(
+        . "$pal"
+        for k in $PALETTE_KEYS; do [ -n "${!k:-}" ] || printf ' %s' "$k"; done
+    )
+    [ -z "$missing" ] || die "theme '$name' is missing palette keys:$missing"
+
     varlist=""
     for k in $PALETTE_KEYS $DERIVED_KEYS; do varlist="$varlist\${$k}\${${k}_hex}\${${k}_rgb}"; done
 

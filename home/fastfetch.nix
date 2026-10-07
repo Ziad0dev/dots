@@ -19,7 +19,7 @@ let
   # All read at RUNTIME, so adding art needs no rebuild.
   randomArt = pkgs.writeShellScript "fastfetch-random-art" ''
     set -u
-    repo="${config.dots.repoPath}"
+    repo="${config.dots.src}"
 
     pick=$(${pkgs.findutils}/bin/find \
              "$repo/config/fastfetch/art" \

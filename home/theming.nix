@@ -14,7 +14,11 @@ let
       procps
       systemd
     ];
-    text = builtins.readFile ../scripts/themectl.sh;
+    # live: the checkout's themes; pure: the ones in the store
+    text = ''
+      DOTS_DIR="''${DOTS_DIR:-${config.dots.src}}"
+    ''
+    + builtins.readFile ../scripts/themectl.sh;
   };
 
 in

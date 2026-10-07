@@ -1,4 +1,4 @@
-{ pkgs, config, ... }:
+{ pkgs, dotsLink, ... }:
 {
   programs.emacs = {
     enable = true;
@@ -24,7 +24,6 @@
     client.enable = true;
   };
 
-  xdg.configFile."emacs/init.el".source =
-    config.lib.file.mkOutOfStoreSymlink "${config.dots.repoPath}/config/emacs/init.el";
+  xdg.configFile."emacs/init.el".source = dotsLink "emacs/init.el";
 
 }

@@ -143,28 +143,24 @@
         modules = [ ./hosts/darwin ];
       };
 
-      homeConfigurations = {
+      homeConfigurations = lib.mapAttrs (name: args: mk.home ({ inherit name username; } // args)) {
 
-        "${username}@mac" = mk.home {
-          inherit username;
+        "${username}@mac" = {
           system = "aarch64-darwin";
           profile = "desktop";
         };
 
-        "${username}@linux" = mk.home {
-          inherit username;
+        "${username}@linux" = {
           system = "x86_64-linux";
           profile = "minimal";
         };
 
-        "${username}@linux-desktop" = mk.home {
-          inherit username;
+        "${username}@linux-desktop" = {
           system = "x86_64-linux";
           profile = "desktop";
         };
 
-        "${username}@aarch64-linux" = mk.home {
-          inherit username;
+        "${username}@aarch64-linux" = {
           system = "aarch64-linux";
           profile = "minimal";
         };
