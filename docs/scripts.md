@@ -105,7 +105,9 @@ These open a floating terminal (`$DOTS_TERMINAL`, default ghostty) with window c
 | Script | Usage |
 |---|---|
 | `scripts/git-hooks/pre-commit` | Run by git; see [Workflow](workflow.md#commit-checks) |
-| `config/zen/zen-theme-link.sh` | Link `config/zen/*.css`, plus the rendered `dots-palette.css` and `dots-sites.css`, into every Zen profile's `chrome/`. `SRC` / `ROOT` env override source and profile root. Launch Zen once first so a profile exists |
+| `scripts/rise-upstream.sh` | Track the upstream Rise repo the bar was vendored from: `status`, `diff [file]`, `ahead [rev]`, `pin <rev>` (the pin lives in `config/quickshell/rise/.upstream-rev`) |
+| `tests/iso-install.py` | Install the `vm` host from the ISO under QEMU and check two boots; see [Getting started](install.md#testing-in-a-vm) |
+| `config/zen/zen-theme-link.sh` | Link `config/zen/*.css`, plus the rendered `dots-palette.css` and `dots-sites.css`, into every Zen profile's `chrome/`. `SRC` (default: the directory the script is in) / `ROOT` env override source and profile root. Launch Zen once first so a profile exists |
 | `config/quickshell/rise/scripts/*` | Bar helpers: `codex-usage`, `opencode-usage`, `openrouter`, `qs-barctl`, `qs-kb-*`, `qs-proj` |
 
 ## Fish

@@ -21,6 +21,9 @@ let
       home-manager.useGlobalPkgs = true;
       home-manager.useUserPackages = true;
       home-manager.backupFileExtension = "backup";
+      # an app rewriting a managed file (mimeapps.list) a second time would
+      # otherwise find the old .backup in the way and fail the activation
+      home-manager.overwriteBackup = true;
       home-manager.extraSpecialArgs = {
         inherit
           inputs

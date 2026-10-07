@@ -18,8 +18,6 @@
   <a href="docs/troubleshooting.md">Troubleshooting</a>
 </p>
 
-![screenshot](.github/screenshot.png)
-
 One flake for a NixOS + Hyprland desktop, a nix-darwin Mac, and standalone home-manager on anything else with Nix. Config under `config/` is symlinked live, so most edits land without a rebuild; `themectl` recolours the whole session — bar, borders, terminal, lock screen, login greeter, editor — in one command.
 
 ## Highlights

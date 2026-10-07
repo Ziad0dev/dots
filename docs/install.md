@@ -29,7 +29,7 @@ The desktop output is built for one box. On anything else, go through this list 
 | Where | Value | Why it matters |
 |---|---|---|
 | `hosts/nixos/hardware-configuration.nix` | LUKS root, `/data` (LUKS2 via crypttab + keyfile), `/boot` | Replace wholesale |
-| `hosts/nixos/configuration.nix` | `hardware.nvidia` block, `fixZstdRefs pkgs.nvidia_cachyos-bore` | NVIDIA + CachyOS kernel only; drop on other GPUs |
+| `hosts/nixos/configuration.nix` | `hardware.nvidia` block (`nvidia_cachyos-bore`) | NVIDIA + CachyOS kernel only; drop on other GPUs |
 | `hosts/nixos/configuration.nix` | timezone, locale, `dots.sddm.theme` | |
 | `modules/gaming.nix` | `boot.kernelPackages = linuxPackages_cachyos-bore` | Kernel choice lives here, not in the host |
 | `modules/storage.nix`, `modules/media.nix` | exFAT drives by UUID, pool disks by label (`pool1`…), `/data/scratch` by partlabel | `nofail`, so missing drives don't block boot |

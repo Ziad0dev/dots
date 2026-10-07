@@ -17,6 +17,8 @@ Item {
         path: (Quickshell.env("XDG_STATE_HOME") || (Quickshell.env("HOME") + "/.local/state"))
               + "/dots/indicators/nightlight"
         watchChanges: true
+        // no file is the normal "off" state, not an error
+        printErrors: false
         onLoaded: rootMod.on = true
         onLoadFailed: rootMod.on = false
         onFileChanged: reload()

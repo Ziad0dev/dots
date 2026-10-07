@@ -305,7 +305,7 @@ in
     enable = true;
     settings.Connection.host = "127.0.0.1";
     settings.Bling.notify = true;
-    settings.Bling.mmKeys = true;
+    settings.Bling.mmkeys = true;
   };
 
   systemd.user.services."app-com.mitchellh.ghostty" = {

@@ -43,7 +43,7 @@ mk.darwin { hostname, username, system ? "aarch64-darwin", profile ? "desktop", 
 mk.home   { name, username, system, profile ? "minimal", repoPath ? null, homeDirectory ? null, modules ? [ ] }
 ```
 
-When home-manager rides on a system (`mk.nixos`, `mk.darwin`) it runs with `useGlobalPkgs`, `useUserPackages` and `backupFileExtension = "backup"`. There is no separate `home-manager switch` on the desktop — one `nh os switch` activates both, and one rollback reverts both.
+When home-manager rides on a system (`mk.nixos`, `mk.darwin`) it runs with `useGlobalPkgs`, `useUserPackages`, `backupFileExtension = "backup"` and `overwriteBackup` (a second clash on the same file replaces the old `.backup` instead of failing the activation). There is no separate `home-manager switch` on the desktop — one `nh os switch` activates both, and one rollback reverts both.
 
 `mk.home` imports nixpkgs itself (`mkPkgs`) with `allowUnfree` and `lib/overlays.nix`.
 
@@ -138,6 +138,7 @@ How rebuild abbrevs are chosen: `update` is `nh os switch` when home-manager rid
 | `mk.nix` | output builders | `flake.nix` |
 | `overlays.nix` | `[ zig-overlay, obsidian-extensions ]` | NixOS host, `mk.home` |
 | `hardening.nix` | plain attrset of systemd sandbox options | `vpn.nix`, `media.nix`, `media-extras.nix`, `hello-page.nix` — each merges its own exceptions over it |
-| `nvidia-zstd-refs.nix` | function `{ pkgs }: drv: drv'` | `hosts/nixos/configuration.nix` only |
+| `vpn-ready.nix` | function `pkgs: script` — waits (up to 80 s, never fails) until DNS works inside the VPN namespace | `vpn.nix` |
+| `disko.nix` | function `{ device, impermanence ? false }: module` — ESP + LUKS2 + btrfs | `hosts/vm`, new hosts ([Getting started](install.md#a-new-machine-disko--dots-install)) |
 
-`nvidia-zstd-refs.nix` must stay out of `modules/` and out of any `imports` list: it's a function, not a module, and NixOS would call it with module arguments. See [Troubleshooting](troubleshooting.md#nvidia-open-reference-check-failure).
+The functions here are not modules: keep them out of `modules/` (everything there is imported) and out of `imports` unless called first, or NixOS calls them with module arguments.
