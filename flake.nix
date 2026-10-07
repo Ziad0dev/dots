@@ -41,6 +41,9 @@
       inputs.home-manager.follows = "home-manager";
     };
 
+    # declarative flatpaks (home/flatpak.nix); no inputs of its own
+    nix-flatpak.url = "github:gmodena/nix-flatpak";
+
     vpn-confinement = {
       url = "github:Maroka-chan/VPN-Confinement";
     };

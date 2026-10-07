@@ -1,70 +1,32 @@
-{ lib, pkgs, ... }:
+{ pkgs, ... }:
 
-let
-  remotes = {
-    flathub = "https://flathub.org/repo/flathub.flatpakrepo";
-    GeForceNOW = "https://international.download.nvidia.com/GFNLinux/flatpak/geforcenow.flatpakrepo";
-  };
-
-  packages = [
-    "GeForceNOW com.nvidia.geforcenow"
-    "flathub com.github.johnfactotum.Foliate"
-    "flathub com.github.tchx84.Flatseal"
-    "flathub com.usebottles.bottles"
-    "flathub io.github.f3d_app.f3d"
-    "flathub net.meshlab.MeshLab"
-    "flathub org.blender.Blender"
-    "flathub org.gnome.SimpleScan"
-    "flathub org.kde.kdenlive"
-    "flathub org.texstudio.TeXstudio"
-  ];
-
-  appIds = map (p: lib.last (lib.splitString " " p)) packages;
-
-  reconcile = pkgs.writeShellScript "flatpak-reconcile" ''
-    set -eu
-    ${builtins.concatStringsSep "\n" (
-      builtins.attrValues (
-        builtins.mapAttrs (name: url: "flatpak remote-add --user --if-not-exists ${name} ${url}") remotes
-      )
-    )}
-    ${builtins.concatStringsSep "\n" (
-      map (p: "flatpak install --user -y --noninteractive ${p}") packages
-    )}
-    flatpak override --user --env=SDL_VIDEODRIVER=x11 com.nvidia.geforcenow
-
-    if [ -r /sys/module/nvidia/version ]; then
-      nv=$(tr . - < /sys/module/nvidia/version)
-      flatpak install --user -y --noninteractive flathub \
-        "org.freedesktop.Platform.GL.nvidia-$nv" \
-        "org.freedesktop.Platform.GL32.nvidia-$nv" || true
-    fi
-
-    declared="${builtins.concatStringsSep " " appIds}"
-    flatpak list --user --app --columns=application | while read -r id; do
-      [ -n "$id" ] || continue
-      case " $declared " in
-        *" $id "*) ;;
-        *) flatpak uninstall --user -y --noninteractive "$id" || true ;;
-      esac
-    done
-    flatpak uninstall --user -y --unused --noninteractive || true
-  '';
-in
+# Apps, remotes and overrides are declared per user in home/flatpak.nix
+# (nix-flatpak). What's left here depends on the running driver.
 {
   services.flatpak.enable = true;
 
-  systemd.user.services.flatpak-managed = {
-    description = "Reconcile declared flatpak remotes and packages";
+  # Flatpak apps need the GL extension matching the loaded NVIDIA driver; its
+  # name carries the version, so it is installed at runtime, not declared.
+  systemd.user.services.flatpak-nvidia-gl = {
+    description = "Install the flatpak GL extension for the loaded NVIDIA driver";
     wantedBy = [ "default.target" ];
-    unitConfig.ConditionUser = "!@system";
+    after = [ "flatpak-managed-install.service" ];
+    unitConfig = {
+      ConditionUser = "!@system";
+      ConditionPathExists = "/sys/module/nvidia/version";
+    };
     path = [ pkgs.flatpak ];
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
-      ExecStart = reconcile;
       Restart = "on-failure";
       RestartSec = 30;
     };
+    script = ''
+      nv=$(tr . - < /sys/module/nvidia/version)
+      flatpak install --user -y --noninteractive flathub \
+        "org.freedesktop.Platform.GL.nvidia-$nv" \
+        "org.freedesktop.Platform.GL32.nvidia-$nv"
+    '';
   };
 }

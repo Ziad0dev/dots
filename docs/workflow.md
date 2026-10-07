@@ -82,7 +82,7 @@ The bar's update indicator comes from two shims: `dots-updates` compares the loc
 
 | Thing | Declared in | Applied by |
 |---|---|---|
-| Flatpaks and remotes | `modules/flatpak.nix` | `flatpak-managed` user unit at login — installs what's listed, **uninstalls what isn't** |
+| Flatpaks and remotes | `home/flatpak.nix` | nix-flatpak's `flatpak-managed-install` after each switch — installs the pinned commits, **uninstalls what isn't listed** |
 | Obsidian vault, plugins, hotkeys | `home/obsidian.nix` | home-manager |
 | Zen `userChrome.css` / `userContent.css` | `config/zen/` | `config/zen/zen-theme-link.sh`, run by hand once per profile |
 | Git hooks | `scripts/git-hooks/` | `home/git-hooks.nix` activation |

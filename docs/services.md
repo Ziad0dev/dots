@@ -140,12 +140,12 @@ Adding a pool disk: `sgdisk -o -n 1:0:0 -t 1:8300 -c 1:poolN`, `mkfs.ext4 -m 0 -
 
 ## Flatpak
 
-`modules/flatpak.nix` declares remotes and apps; the `flatpak-managed` user unit reconciles at login. It skips system users (`ConditionUser=!@system`) — without that, the SDDM greeter's user manager ran it too and installed every app into `/var/lib/sddm`.
+`home/flatpak.nix` declares remotes, apps and overrides with [nix-flatpak](https://github.com/gmodena/nix-flatpak); its `flatpak-managed-install` user unit applies them (user installation) after each switch. Being a home-manager unit, only your user runs it — the SDDM greeter's user manager never sees it.
 
 - Remotes: Flathub and NVIDIA's GeForce NOW repo.
-- Apps: GeForce NOW, Foliate, Flatseal, Bottles, F3D, MeshLab, Blender, Simple Scan, Kdenlive, TeXstudio.
-- The reconciler also installs `GL.nvidia-<driver>` / `GL32.nvidia-<driver>` for the running driver (from `/sys/module/nvidia/version`). A driver bump otherwise leaves every flatpak on software GL until someone runs `flatpak update`; the old extension is then swept by `uninstall --unused`.
-- It installs anything listed and **uninstalls any user app that isn't** — add apps here, not with `flatpak install`.
+- Apps: GeForce NOW, Foliate, Flatseal, Bottles, F3D, MeshLab, Blender, Simple Scan, Kdenlive, TeXstudio — each **pinned to a commit**, so a switch installs exactly that build. To bump one, `flatpak remote-info --user --log <origin> <appId>`, then paste the commit. Runtimes are whatever the pinned app requires.
+- `uninstallUnmanaged`: it **uninstalls any user app that isn't listed** — add apps there, not with `flatpak install`.
+- `modules/flatpak.nix` keeps only `flatpak-nvidia-gl`, which installs `GL.nvidia-<driver>` / `GL32.nvidia-<driver>` for the loaded driver (from `/sys/module/nvidia/version`; the name carries the version, so it can't be declared). Old extensions are swept by the weekly `flatpak-prune`.
 - GeForce NOW gets `SDL_VIDEODRIVER=x11`. The desktop profile exports `SDL_VIDEODRIVER=wayland` globally, flatpak inherits it, and SDL2's Wayland backend can't capture the mouse — aim breaks in-game without the override.
 
 ## hello-page
