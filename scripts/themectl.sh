@@ -316,14 +316,9 @@ theme_wallpaper() {
     return 1
 }
 
-cmd_set() {
-    local name="$1" wp
-    [ -n "$name" ] || die "usage: themectl set <name>"
-    if [ "$name" = auto ]; then
-        gen_auto "${2:-}"
-    fi
-    [ -d "$(theme_dir "$name")" ] || die "no such theme: $name"
-
+# every file a theme produces, without touching running apps or the wallpaper
+write_theme() {
+    local name="$1"
     render_all "$name"
     mkdir -p "$STATE"
     printf '%s\n' "$name" >"$CURRENT"
@@ -333,6 +328,17 @@ cmd_set() {
     gtk_compat
     vencord_compat
     zen_compat
+}
+
+cmd_set() {
+    local name="$1" wp
+    [ -n "$name" ] || die "usage: themectl set <name>"
+    if [ "$name" = auto ]; then
+        gen_auto "${2:-}"
+    fi
+    [ -d "$(theme_dir "$name")" ] || die "no such theme: $name"
+
+    write_theme "$name"
     reload_apps
 
     if wp=$(theme_wallpaper "$name"); then
@@ -410,6 +416,7 @@ case "${1:-}" in
     next) cmd_step 1 ;;
     prev) cmd_step -1 ;;
     reload) cmd_set "$(cmd_current)" ;;
+    render) write_theme "$(cmd_current)" ;;
     bg) shift; cmd_bg "$@" ;;
-    *) die "usage: themectl {set <name>|set auto [image]|current|list|next|prev|reload|bg [set <path>|next|prev]}" ;;
+    *) die "usage: themectl {set <name>|set auto [image]|current|list|next|prev|reload|render|bg [set <path>|next|prev]}" ;;
 esac
