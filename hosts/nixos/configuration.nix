@@ -36,7 +36,9 @@
   boot.loader.systemd-boot.configurationLimit = 3;
   boot.loader.systemd-boot.editor = false;
   # flip after creating and enrolling keys: docs/secure-boot.md
-  dots.secureBoot.enable = false;
+  dots.secureBoot.enable = true;
+  # root unlocks from the TPM; enroll the keyslot first: docs/secure-boot.md
+  dots.secureBoot.tpmUnlock = [ "luks-72749c98-6a12-4a0b-b354-00fd868aa36e" ];
   boot.loader.timeout = 1;
 
   dots.sddm.theme = "demon";
