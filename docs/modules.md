@@ -15,7 +15,7 @@ What stays in the host rather than a module is what's specific to this hardware 
 | Desktop plumbing | dbus, polkit (+ rule letting the active local session mount/eject via udisks), printing, gvfs, udisks2, usbmuxd (iPhone) |
 | Off | Bluetooth, blueman |
 | Containers | Docker **rootless** (`enableOnBoot = false`), Podman |
-| User | fish, uid 1001, groups `wheel networkmanager audio video` (+ `kvm` from `virt.nix`) |
+| User | fish, uid 1001, groups `wheel networkmanager audio video` (+ `kvm` from `virt.nix`); root locked (`!`), see [Secure Boot → TPM unlock](secure-boot.md#tpm-unlock) |
 | Nix | flakes, `cache.nixos.org` + `hyprland.cachix.org`, `allowUnfree`, overlays from `lib/overlays.nix`, auto-optimise |
 | Env | `NIXOS_OZONE_WL`, `MOZ_ENABLE_WAYLAND`, `QT_QPA_PLATFORM=wayland;xcb` |
 | Packages | Rescue and system-level set only: git, curl, wget, jq, tree, zip, neovim, htop, btop, lm_sensors, usbutils, gparted, exfatprogs, libimobiledevice, ifuse, hyprpolkitagent, coolercontrol-gui, ark, qt6ct. The share picker lives in `home/profiles/linux-desktop.nix` |
@@ -88,8 +88,7 @@ Per-user: MangoHud in `home/gaming-home.nix` (hidden by default, `Right Shift + 
 | `lan.nix` | Jellyfin ports on the LAN interface only | |
 | `llm.nix` | Eight llama.cpp units (CUDA, sm_86), mutually exclusive, user-startable without sudo | [Services](services.md#local-llms) |
 | `ollama.nix` | Ollama (Vulkan) on `127.0.0.1:11434`, not autostarted | [Services](services.md#local-llms) |
-| `backup.nix` | Daily restic of `$HOME` to `/mnt/backup/restic` | [Services](services.md#backups) |
-| `immich.nix` | Immich (NVENC) on `:2283`, tailnet only; data in `/data/immich`, added to the restic backup | [Services](services.md#immich) |
+| `backup.nix` | Daily restic of `$HOME`, the media apps' state and the Secure Boot keys to `/mnt/backup/restic` | [Services](services.md#backups) |
 | `arr-automation.nix` | Clears stale *arr indexer backoff at boot and once the VPN path works again, a daily backlog search, and the `arr-status` command | [Services](services.md#vpn-namespace) |
 | `storage.nix` | `/mnt/backup` (root-only, hidden from file managers), the `/mnt/pool` mergerfs pool and its branches, `/data/scratch` (LUKS, same keyfile as `/data`) | [Services](services.md#storage) |
 | `hello-page.nix` | A small Python site from `~/the-page`, published on the tailnet with `tailscale serve` | [Services](services.md#hello-page) |

@@ -6,7 +6,19 @@
     repository = "/mnt/backup/restic";
     passwordFile = "/etc/restic/password";
 
-    paths = [ "/home/${username}" ];
+    paths = [
+      "/home/${username}"
+      # the media apps' own state: indexers, libraries, users, watch history
+      "/var/lib/sonarr"
+      "/var/lib/radarr"
+      "/var/lib/private/prowlarr" # DynamicUser
+      "/var/lib/qBittorrent"
+      "/var/lib/jellyfin"
+      "/var/lib/audiobookshelf"
+      "/var/lib/calibre-web"
+      # Secure Boot keys: losing them means clearing and re-enrolling in firmware
+      "/var/lib/sbctl"
+    ];
 
     exclude = [
       "/home/${username}/.cache"
@@ -19,6 +31,11 @@
       "/home/${username}/.local/share/umu"
       "/home/${username}/.local/share/baloo"
       "/home/${username}/.config/heroic"
+      # regenerable: artwork, scraped metadata, logs
+      "/var/lib/jellyfin/metadata"
+      "/var/lib/jellyfin/log"
+      "/var/lib/**/MediaCover"
+      "/var/lib/**/logs"
       "**/Cache"
       "**/CachedData"
       "**/Code Cache"

@@ -30,6 +30,10 @@
     };
 
     hyprland-preview-share-picker = {
+      # On the unmerged drop-hyprland-rs branch: master still builds against the
+      # hyprland-rs crate. Back to master once that branch lands; if it is
+      # deleted first, `nix flake update` fails on this input (see
+      # docs/troubleshooting.md, known rough edges).
       # url = "git+https://github.com/WhySoBad/hyprland-preview-share-picker?submodules=1";
       url = "git+https://github.com/WhySoBad/hyprland-preview-share-picker?submodules=1&ref=drop-hyprland-rs";
       inputs.nixpkgs.follows = "nixpkgs";

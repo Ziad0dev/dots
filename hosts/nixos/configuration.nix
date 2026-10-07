@@ -151,6 +151,9 @@
     powerOnBoot = false;
   };
   services.blueman.enable = false;
+  # the bar's battery widget asks UPower; without it Quickshell logs a warning
+  # on every start (and a UPS or Bluetooth battery would show up here)
+  services.upower.enable = true;
 
   # rootless only (started on first use by the `docker` fish function); the
   # root daemon and /run/docker.sock were never used
@@ -162,6 +165,11 @@
   systemd.user.services.docker.wantedBy = lib.mkForce [ ];
 
   virtualisation.podman.enable = true;
+
+  # Root has no password: with root unlocking from the TPM, an emergency shell
+  # at boot would otherwise be the way in. sudo still works for wheel; to
+  # recover a machine that won't boot, use the installer ISO.
+  users.users.root.hashedPassword = "!";
 
   users.users.${username} = {
     isNormalUser = true;

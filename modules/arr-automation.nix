@@ -22,6 +22,32 @@ let
   grep = "${pkgs.gnugrep}/bin/grep";
   ip = "${pkgs.iproute2}/bin/ip";
 
+  # Root (the databases belong to three different users), but sandboxed to
+  # their state dirs and localhost. recover additionally enters the wg netns.
+  stateDirs = [
+    "/var/lib/sonarr"
+    "/var/lib/radarr"
+    "/var/lib/private/prowlarr" # DynamicUser; /var/lib/prowlarr links here
+  ];
+  sandbox = import ../lib/hardening.nix // {
+    ProtectSystem = "strict";
+    ReadWritePaths = stateDirs;
+    CapabilityBoundingSet = [
+      "CAP_DAC_OVERRIDE"
+      "CAP_DAC_READ_SEARCH"
+      "CAP_FOWNER"
+    ];
+  };
+  # ip netns exec: setns into wg, a private mount namespace and a fresh /sys
+  netnsSandbox = sandbox // {
+    CapabilityBoundingSet = sandbox.CapabilityBoundingSet ++ [ "CAP_SYS_ADMIN" ];
+    RestrictNamespaces = [
+      "net"
+      "mnt"
+    ];
+    ProtectKernelTunables = false;
+  };
+
   blockedSql = "select count(*) from IndexerStatus where datetime(DisabledTill) > datetime('now');";
 
   resetIndexerStatus = pkgs.writeShellScript "arr-reset-indexer-status" ''
@@ -137,7 +163,7 @@ in
       "sonarr.service"
       "radarr.service"
     ];
-    serviceConfig = {
+    serviceConfig = sandbox // {
       Type = "oneshot";
       RemainAfterExit = true;
       ExecStart = "${resetIndexerStatus}";
@@ -150,9 +176,11 @@ in
       "sonarr.service"
       "radarr.service"
     ];
-    serviceConfig = {
+    serviceConfig = sandbox // {
       Type = "oneshot";
       ExecStart = "${backlogSearch}";
+      # read-only: it only talks to the APIs
+      ReadWritePaths = [ ];
     };
   };
 
@@ -168,7 +196,7 @@ in
   systemd.services.arr-recover-indexers = {
     description = "Clear *arr indexer backoff once the VPN path works again";
     after = [ "wg-resolv-options.service" ];
-    serviceConfig = {
+    serviceConfig = netnsSandbox // {
       Type = "oneshot";
       ExecStart = "${recoverIndexers}";
     };

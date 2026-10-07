@@ -42,9 +42,16 @@ in
     description = "Pin the Mullvad resolver in the WireGuard config";
     wantedBy = [ "wg.service" ];
     before = [ "wg.service" ];
-    serviceConfig = {
+    serviceConfig = hardening // {
       Type = "oneshot";
       RemainAfterExit = true;
+      PrivateNetwork = true;
+      # sed -i writes a temp file next to the target: /etc/wireguard, or the
+      # sops secret under /run when the config comes from sops
+      ReadWritePaths = [
+        "/etc/wireguard"
+        "-/run/secrets.d"
+      ];
       ExecStart = "${pkgs.gnused}/bin/sed -i --follow-symlinks 's|^DNS = .*|DNS = ${mullvadDns}|' ${wgConfig}";
     };
   };
@@ -59,9 +66,11 @@ in
       "flaresolverr.service"
       "qbittorrent.service"
     ];
-    serviceConfig = {
+    serviceConfig = hardening // {
       Type = "oneshot";
       RemainAfterExit = true;
+      PrivateNetwork = true;
+      ReadWritePaths = [ "/etc/netns/wg" ];
       ExecStart = "${pkgs.writeShellScript "wg-resolv-options" ''
         ${pkgs.coreutils}/bin/printf '%s\n' \
           "nameserver ${mullvadDns}" \

@@ -87,9 +87,13 @@ in
   systemd.services.cpu-power-limit = {
     description = "Set RAPL package power limits";
     wantedBy = [ "multi-user.target" ];
-    serviceConfig = {
+    # writes sysfs, so no ProtectKernelTunables; everything else is shut
+    serviceConfig = import ../lib/hardening.nix // {
       Type = "oneshot";
       RemainAfterExit = true;
+      PrivateNetwork = true;
+      ProtectKernelTunables = false;
+      RestrictAddressFamilies = [ "AF_UNIX" ];
     };
     script = ''
       for d in /sys/class/powercap/intel-rapl:0 /sys/class/powercap/intel-rapl-mmio:0; do

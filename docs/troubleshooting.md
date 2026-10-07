@@ -194,3 +194,4 @@ Things in the repo today that are wrong or brittle, not yet fixed:
 | Where | Issue |
 |---|---|
 | `config/yazi/keymap.toml` | `g d` jumps to `~/dots`, not `dots.repoPath` (a static TOML file can't read the option) |
+| `flake.nix` → `hyprland-preview-share-picker` | Tracks the upstream branch `drop-hyprland-rs` (master still needs hyprland-rs). If upstream deletes the branch before merging, `nix flake update` fails on this input: pin `rev=` to the locked commit, or move to master once it no longer uses hyprland-rs |
