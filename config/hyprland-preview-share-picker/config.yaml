@@ -1,5 +1,6 @@
-#stylesheets:
-#  - ~/.local/state/dots/theme/share-picker.css
+# rendered by themectl; a missing file is skipped with a warning
+stylesheets:
+  - ~/.local/state/dots/theme/share-picker.css
 
 default_page: windows
 

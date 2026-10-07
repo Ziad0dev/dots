@@ -50,6 +50,7 @@
 
   environment.shellAliases = {
     gpu-check = "systemctl list-units 'llama-*' --state=running --no-legend; ollama ps";
-    gpu-free = "systemctl stop 'llama-*'; ollama ps";
+    # stopping the units leaves Ollama's loaded models in VRAM; unload them too
+    gpu-free = "systemctl stop 'llama-*'; ollama ps | awk 'NR > 1 { print $1 }' | xargs -r -n1 ollama stop; ollama ps";
   };
 }

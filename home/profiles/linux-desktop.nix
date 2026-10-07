@@ -4,11 +4,12 @@
   inputs,
   username,
   system,
+  dotsLink,
   ...
 }:
 
 let
-  link = sub: config.lib.file.mkOutOfStoreSymlink "${config.dots.repoPath}/config/${sub}";
+  link = dotsLink;
 in
 {
   imports = [
@@ -36,7 +37,7 @@ in
   home.sessionVariables = {
     BROWSER = "zen-beta";
     SDL_VIDEODRIVER = "wayland";
-    DOCKER_HOST = "unix:///run/user/1001/docker.sock";
+    DOCKER_HOST = "unix://$XDG_RUNTIME_DIR/docker.sock";
   };
 
   programs.fish.functions.docker = {

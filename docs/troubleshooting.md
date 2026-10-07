@@ -185,7 +185,7 @@ Packaged script — `git add -A && update`.
 
 ### A theme only half-applies
 
-A key is missing from its `colors.sh`. themectl runs under `set -u`, aborts each template with `unbound variable`, and the previous theme's files stay. Compare against a complete palette — see [Theming](theming.md#palette-format).
+A template references a name that isn't a palette key and passed through unsubstituted; themectl warns `unsubstituted tokens remain in …`. A key missing from `colors.sh` no longer half-applies: `themectl set` refuses up front with `theme '<name>' is missing palette keys: …` and renders nothing. See [Theming](theming.md#palette-format).
 
 ## Known rough edges
 
@@ -193,13 +193,4 @@ Things in the repo today that are wrong or brittle, not yet fixed:
 
 | Where | Issue |
 |---|---|
-| `home/quickshell-rise.nix` | Hardcodes `${homeDir}/dots` instead of `config.dots.repoPath` — the bar's PATH, `DOTS_SHELL_PATH` and stop hook break on a checkout elsewhere |
-| `scripts/dots-compat.sh` | `dots-update`, `dots-update-available`, `dots-updates` hardcode `~/dots` |
-| `scripts/themectl.sh`, `config/zen/zen-theme-link.sh` | Default to `~/dots` (overridable via `DOTS_DIR` / `SRC`, but nothing sets them from `repoPath`) |
-| `home/profiles/base.nix` | `update` / `upall` assume nh, which only the NixOS host installs; on darwin and standalone home-manager they fail. The rebuild command is chosen by *profile*, so `ziad0dev@linux-desktop` (standalone HM) gets `nh os switch` |
-| `scripts/dots-compat.sh`, `modules/recording.nix` | Capture output `DP-1` hardcoded in two places |
-| `home/profiles/linux-desktop.nix` | `DOCKER_HOST` hardcodes uid 1001 |
-| `modules/hello-page.nix` | `Restart = always` every 5 s when `~/the-page/app.py` doesn't exist |
-| `modules/ollama.nix` | `gpu-free` stops llama units but leaves Ollama's loaded model in VRAM (`ollama stop <model>` or wait 5 min) |
-| `config/hyprland-preview-share-picker/config.yaml` | Rendered `share-picker.css` isn't loaded — the stylesheet line is commented out |
-| `scripts/themectl.sh` | The unsubstituted-token warning doesn't catch the missing-key case above |
+| `config/yazi/keymap.toml` | `g d` jumps to `~/dots`, not `dots.repoPath` (a static TOML file can't read the option) |

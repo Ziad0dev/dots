@@ -93,7 +93,7 @@ systemctl start llama-coder      # swap models
 dots-llm next                    # cycle, same as the bar widget
 dots-llm off
 gpu-check                        # which llama unit is up + ollama ps
-gpu-free                         # stop all llama units
+gpu-free                         # stop all llama units, unload Ollama models
 ```
 
 ## Backups

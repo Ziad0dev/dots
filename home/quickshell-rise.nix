@@ -47,7 +47,10 @@ let
   # leaked a qs-kb-wait socat|grep pipeline.
   reapHelpers = pkgs.writeShellApplication {
     name = "dots-quickshell-reap-helpers";
-    runtimeInputs = [ pkgs.systemd pkgs.procps ];
+    runtimeInputs = [
+      pkgs.systemd
+      pkgs.procps
+    ];
     text = ''
       main=$(systemctl --user show -p ExecMainPID --value quickshell.service)
       cg="/sys/fs/cgroup$(systemctl --user show -p ControlGroup --value quickshell.service)"
@@ -77,7 +80,6 @@ let
   };
 
   homeDir = config.home.homeDirectory;
-  dots = "${homeDir}/dots";
 
   shimNames = [
     "dots-audio-input-mute"
@@ -162,9 +164,13 @@ let
       wireplumber
       git
       nix
-
+      jq
     ];
-    text = builtins.readFile ../scripts/dots-compat.sh;
+    # the checkout dots-update rebuilds from and dots-updates reads flake.lock of
+    text = ''
+      DOTS_REPO="''${DOTS_REPO:-${config.dots.repoPath}}"
+    ''
+    + builtins.readFile ../scripts/dots-compat.sh;
   };
 
   # every shim is the same script; $0 selects the branch
@@ -233,7 +239,9 @@ in
     Service = {
       Environment = [
         "PATH=${risePath}:${dotsShims}/bin:/etc/profiles/per-user/${config.home.username}/bin:${homeDir}/.nix-profile/bin:/run/wrappers/bin:/run/current-system/sw/bin"
-        "DOTS_SHELL_PATH=${dots}/config/quickshell/rise"
+        "DOTS_SHELL_PATH=${config.xdg.configHome}/quickshell/rise"
+        # theme pickers list ''${DOTS_DIR}/config/themes
+        "DOTS_DIR=${config.dots.src}"
         # Caelestia.Blobs: the SDF frame + melting panel backgrounds
         "QML_IMPORT_PATH=${pkgs.caelestia-blobs}/${pkgs.qt6.qtbase.qtQmlPrefix}"
       ];

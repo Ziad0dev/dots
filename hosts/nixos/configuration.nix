@@ -41,6 +41,7 @@
   dots.secureBoot.tpmUnlock = [ "luks-72749c98-6a12-4a0b-b354-00fd868aa36e" ];
   boot.loader.timeout = 1;
 
+  dots.recording.monitor = "DP-1";
   dots.sddm.theme = "demon";
   networking.hostName = hostname;
   networking.networkmanager.enable = true;

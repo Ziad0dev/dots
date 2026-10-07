@@ -32,6 +32,9 @@ in
       CONTENT_DIR = "${dir}/content";
     };
 
+    # skipped, not restarted every 5 s, on a machine without the app
+    unitConfig.ConditionPathExists = "${dir}/app.py";
+
     serviceConfig = hardening // {
       ExecStart = "${pkgs.python3}/bin/python3 ${dir}/app.py";
       WorkingDirectory = dir;

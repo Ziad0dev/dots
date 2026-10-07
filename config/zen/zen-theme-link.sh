@@ -2,7 +2,8 @@
 
 set -euo pipefail
 
-SRC="${SRC:-$HOME/dots/config/zen}"
+# the directory this script lives in: the checkout or the store, whichever is linked
+SRC="${SRC:-$(dirname "$(readlink -f "$0")")}"
 THEME="${XDG_STATE_HOME:-$HOME/.local/state}/dots/theme"
 
 roots=()

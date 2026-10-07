@@ -30,17 +30,16 @@ The desktop output is built for one box. On anything else, go through this list 
 |---|---|---|
 | `hosts/nixos/hardware-configuration.nix` | LUKS root, `/data` (LUKS2 via crypttab + keyfile), `/boot` | Replace wholesale |
 | `hosts/nixos/configuration.nix` | `hardware.nvidia` block, `fixZstdRefs pkgs.nvidia_cachyos-bore` | NVIDIA + CachyOS kernel only; drop on other GPUs |
-| `hosts/nixos/configuration.nix` | `uid = 1001` | `DOCKER_HOST` in `home/profiles/linux-desktop.nix` hardcodes `/run/user/1001` |
 | `hosts/nixos/configuration.nix` | timezone, locale, `dots.sddm.theme` | |
 | `modules/gaming.nix` | `boot.kernelPackages = linuxPackages_cachyos-bore` | Kernel choice lives here, not in the host |
 | `modules/storage.nix`, `modules/media.nix` | exFAT drives by UUID, pool disks by label (`pool1`…), `/data/scratch` by partlabel | `nofail`, so missing drives don't block boot |
 | `modules/lan.nix` | `lanInterface = "enp5s0"` | Jellyfin ports are opened on this interface only |
-| `modules/recording.nix` | `monitor = "DP-1"` | Replay buffer captures nothing if the output doesn't exist |
+| `hosts/nixos/configuration.nix` | `dots.recording.monitor = "DP-1"` | Replay buffer captures nothing if the output doesn't exist (manual recordings take the focused output) |
 | `modules/performance.nix` | `cpuProfile`, `pl1Watts` / `pl2Watts` | Intel RAPL limits for a 12400F |
 | `config/hypr/hyprland.lua` | `monitorProfiles`, workspace → monitor rules | Unknown outputs fall back to `preferred/auto` |
 | `home/profiles/linux-desktop.nix` | MPD `hw:CARD=G30`, udiskie ignore list | Bit-perfect DAC output, drive UUIDs |
 | `modules/vpn.nix` | qBittorrent `AuthSubnetWhitelist`, Mullvad DNS | |
-| `modules/hello-page.nix` | expects `~/the-page/app.py` | Restarts every 5 s if the app isn't there — drop the module on other machines |
+| `modules/hello-page.nix` | expects `~/the-page/app.py` | Skipped (`ConditionPathExists`) when the app isn't there |
 
 ### Files that must exist out-of-band
 
@@ -74,7 +73,7 @@ git clone https://github.com/Ziad0dev/dots ~/dots
 sudo nix run github:nix-darwin/nix-darwin/master#darwin-rebuild -- switch --flake ~/dots#mac
 ```
 
-Rebuild afterwards with `sudo darwin-rebuild switch --flake ~/dots#mac`. The `update` abbrev on darwin expands to `nh darwin switch`, but nh is only installed by the NixOS host — see [rough edges](troubleshooting.md#known-rough-edges). Homebrew is declared in `hosts/darwin/default.nix` but `enable = false`.
+Rebuild afterwards with `sudo darwin-rebuild switch --flake ~/dots#mac`. The `update` abbrev on darwin expands to `nh darwin switch`; home-manager installs nh there. Homebrew is declared in `hosts/darwin/default.nix` but `enable = false`.
 
 ## Any other Linux
 
@@ -83,7 +82,7 @@ git clone https://github.com/Ziad0dev/dots ~/dots
 nix run github:nix-community/home-manager -- switch --flake ~/dots#ziad0dev@linux
 ```
 
-Rebuild afterwards with `home-manager switch --flake ~/dots#ziad0dev@linux` — the base profile enables `programs.home-manager`, so the CLI is on PATH. As on macOS, the `update` abbrev assumes nh.
+Rebuild afterwards with `home-manager switch --flake ~/dots#ziad0dev@linux` — the base profile enables `programs.home-manager`, so the CLI is on PATH. `update` expands to `nh home switch -c ziad0dev@linux` (the output you switched to), and home-manager installs nh.
 
 On a fresh upstream Nix install, prefix with `nix --extra-experimental-features 'nix-command flakes'` until flakes are enabled.
 
@@ -96,4 +95,8 @@ dots.repoPath = "/path/to/dots";                               # NixOS, drives n
 home-manager.users.<you>.dots.repoPath = "/path/to/dots";      # HM, drives every config/ symlink
 ```
 
-For standalone home-manager, `mk.home` takes a `repoPath` argument. Some scripts still assume `~/dots` — see [Troubleshooting → rough edges](troubleshooting.md#known-rough-edges).
+For standalone home-manager, `mk.home` takes a `repoPath` argument. Scripts get the path baked in at build time, so nothing else needs it.
+
+### No checkout at all
+
+Set `dots.liveConfig = false` and every linked config comes from the flake source in the store instead of `repoPath` — see [Architecture](architecture.md#live-config-dotslink-and-dotsliveconfig).

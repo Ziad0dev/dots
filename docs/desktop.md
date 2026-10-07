@@ -217,7 +217,7 @@ qs -c rise ipc call <target> <function>
 
 `modules/recording.nix` sets up gpu-screen-recorder with its capability wrapper and a `gsr-replay` user unit:
 
-- Captures `DP-1` at 60 fps, HEVC, very-high quality, desktop audio **plus** the EasyEffects source, into a 300 s rolling buffer.
+- Captures `dots.recording.monitor` (`DP-1`, set in the host) at 60 fps, HEVC, very-high quality, desktop audio **plus** the EasyEffects source, into a 300 s rolling buffer.
 - Not started automatically. `SUPER + ALT + R` arms/disarms; `SUPER + SHIFT + R` sends `SIGUSR1` (via `systemctl reload`) to dump the buffer to `/data/replays`.
 - `gpu-screen-recorder-gtk` for ad-hoc recording; the bar's record widget drives `dots-capture-screenrecording`.
 

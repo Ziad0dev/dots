@@ -37,7 +37,7 @@ Three builders, all passing the same `specialArgs` — `inputs`, `username`, `ho
 ```nix
 mk.nixos  { hostname, username, system ? "x86_64-linux", profile ? "desktop", modules ? [ ], homeModule ? ../home/home.nix, home ? true }
 mk.darwin { hostname, username, system ? "aarch64-darwin", profile ? "desktop", modules ? [ ], homeModule ? ../home/home.nix }
-mk.home   { username, system, profile ? "minimal", repoPath ? null, homeDirectory ? null, modules ? [ ] }
+mk.home   { name, username, system, profile ? "minimal", repoPath ? null, homeDirectory ? null, modules ? [ ] }
 ```
 
 When home-manager rides on a system (`mk.nixos`, `mk.darwin`) it runs with `useGlobalPkgs`, `useUserPackages` and `backupFileExtension = "backup"`. There is no separate `home-manager switch` on the desktop — one `nh os switch` activates both, and one rollback reverts both.
@@ -76,14 +76,23 @@ Every input that has a nixpkgs input follows ours; duplicates are what drag in a
 
 Everything under `home/` that isn't a profile is an app module imported by one of these.
 
-## Live config: the `link` pattern
+## Live config: `dotsLink` and `dots.liveConfig`
 
 ```nix
-link = sub: config.lib.file.mkOutOfStoreSymlink "${config.dots.repoPath}/config/${sub}";
-home.file.".config/hypr".source = link "hypr";
+{ dotsLink, ... }:
+{ home.file.".config/hypr".source = dotsLink "hypr"; }
 ```
 
-`mkOutOfStoreSymlink` points `~/.config/hypr` at the working tree, not a store copy, so edits land without a rebuild. The cost is that home-manager no longer knows the contents — so **each config path has exactly one owner**: either a `link` or an HM module, never both.
+`dotsLink` is a module argument set in `profiles/base.nix`. What it returns depends on `dots.liveConfig`:
+
+| `dots.liveConfig` | `~/.config/hypr` points at | Edits | Rollback |
+|---|---|---|---|
+| `true` (default) | `<repoPath>/config/hypr`, via `mkOutOfStoreSymlink` | land immediately, no rebuild | does **not** revert config — the link follows the working tree |
+| `false` | `<flake source in the store>/config/hypr` | need a rebuild | reverts with the generation; no checkout needed |
+
+Pure mode is what the `vm` host uses, and what to pick on a machine you deploy to rather than edit on. Configs are read-only there, so apps that write into their own config dir (btop saving `btop.conf`, lazy.nvim's `lazy-lock.json`) can't persist those writes.
+
+Either way home-manager doesn't know the contents of a linked directory — so **each config path has exactly one owner**: either a `dotsLink` or an HM module, never both.
 
 | Linked from `config/` | By |
 |---|---|
@@ -94,12 +103,16 @@ home.file.".config/hypr".source = link "hypr";
 
 Files linked to `~/.local/state/dots/theme/*` instead of `config/` (btop theme, yazi theme, swayosd css) are themectl output — see [Theming](theming.md).
 
-## `dots.repoPath`
+## `dots.repoPath` and `dots.src`
 
-Declared twice, in two namespaces, both defaulting to `~/dots`:
+`dots.repoPath` is the git checkout. Declared twice, in two namespaces, both defaulting to `~/dots`:
 
 - NixOS: `modules/quality.nix` — used by `programs.nh.flake`.
-- home-manager: `home/profiles/base.nix` — used by `link`, the `flakeup` abbrev, fastfetch art, git hooks, yazi, emacs, AI-usage refresh.
+- home-manager: `home/profiles/base.nix` — used by `dotsLink` in live mode, the `flakeup` abbrev, git hooks, standalone `programs.nh.flake`, and baked into the scripts that act on the checkout (`dots-update`, `dots-updates`, `dots-timemachine`; each still honours `DOTS_REPO` / `DOTS_DIR`).
+
+`dots.src` (home-manager, read-only) is where `config/` is *read* from at runtime: `repoPath` in live mode, the flake source in the store in pure mode. themectl's palettes and templates, fastfetch art and the theme pickers (`DOTS_DIR` in the Quickshell unit) use it. Scripts under `config/quickshell/rise/scripts` are reached through `~/.config/quickshell/rise`, which is right in both modes.
+
+How rebuild abbrevs are chosen: `update` is `nh os switch` when home-manager rides on NixOS, `nh darwin switch` on nix-darwin, and `nh home switch -c <output>` for a standalone `homeConfigurations` output (`mk.home` passes its attribute name). Off NixOS, home-manager installs nh itself.
 
 ## Runtime state
 

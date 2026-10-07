@@ -5,22 +5,26 @@
   inputs,
   username,
   system,
-  profile ? "minimal",
+  standalone,
+  hmConfigName,
+  dotsLink,
   ...
 }:
 
 let
   isDarwin = lib.hasSuffix "-darwin" system;
   homeDir = if isDarwin then "/Users/${username}" else "/home/${username}";
-  link = sub: config.lib.file.mkOutOfStoreSymlink "${config.dots.repoPath}/config/${sub}";
+  cfg = config.dots;
 
+  # A home-manager riding on NixOS or nix-darwin is rebuilt by the system;
+  # a standalone one by `nh home switch` against its own output name.
   rebuild =
-    if isDarwin then
+    if standalone then
+      "nh home switch -c ${hmConfigName}"
+    else if isDarwin then
       "nh darwin switch"
-    else if profile == "desktop" then
-      "nh os switch"
     else
-      "nh home switch";
+      "nh os switch";
 in
 {
   imports = [
@@ -40,6 +44,24 @@ in
     description = "Absolute path of the checked-out dots repo on this machine.";
   };
 
+  options.dots.liveConfig = lib.mkOption {
+    type = lib.types.bool;
+    default = true;
+    description = ''
+      Link config/ from the checkout at dots.repoPath, so edits land without a
+      rebuild. Off, every linked config is copied into the store instead: pure,
+      rolls back with the generation, needs no checkout, read-only at runtime.
+    '';
+  };
+
+  options.dots.src = lib.mkOption {
+    type = lib.types.str;
+    readOnly = true;
+    default = if cfg.liveConfig then cfg.repoPath else "${inputs.self}";
+    defaultText = lib.literalExpression ''if liveConfig then repoPath else "''${inputs.self}"'';
+    description = "Where config/ is read from at runtime: the checkout, or the flake source in the store.";
+  };
+
   options.dots.theme = lib.mkOption {
     type = lib.types.str;
     default = "oxocarbon";
@@ -47,11 +69,25 @@ in
   };
 
   config = {
+    # `dotsLink "hypr"` is what every module puts behind home.file.*.source
+    _module.args.dotsLink =
+      sub:
+      if cfg.liveConfig then
+        config.lib.file.mkOutOfStoreSymlink "${cfg.repoPath}/config/${sub}"
+      else
+        "${inputs.self}/config/${sub}";
+
     home.username = username;
     home.homeDirectory = lib.mkDefault homeDir;
     home.stateVersion = "24.05";
 
     programs.home-manager.enable = true;
+
+    # the NixOS host installs nh itself; everywhere else it comes from here
+    programs.nh = lib.mkIf (standalone || isDarwin) {
+      enable = true;
+      flake = cfg.repoPath;
+    };
 
     zi.infosec = {
       enable = true;
@@ -142,7 +178,7 @@ in
       shellAbbrs = {
         update = rebuild;
         upall = "${rebuild} -u";
-        flakeup = "nix flake update --flake ${config.dots.repoPath}";
+        flakeup = "nix flake update --flake ${cfg.repoPath}";
         g = "git";
         gst = "git status";
         gco = "git checkout";
@@ -178,14 +214,14 @@ in
     };
 
     home.file = {
-      ".config/nvim".source = link "nvim";
-      ".config/ghostty".source = link "ghostty";
-      ".config/tmux".source = link "tmux";
-      ".config/broot".source = link "broot";
-      ".config/ranger".source = link "ranger";
+      ".config/nvim".source = dotsLink "nvim";
+      ".config/ghostty".source = dotsLink "ghostty";
+      ".config/tmux".source = dotsLink "tmux";
+      ".config/broot".source = dotsLink "broot";
+      ".config/ranger".source = dotsLink "ranger";
       ".gnupg/gpg-agent.conf".text = "allow-preset-passphrase\n";
 
-      ".config/btop/btop.conf".source = link "btop/btop.conf";
+      ".config/btop/btop.conf".source = dotsLink "btop/btop.conf";
       ".config/btop/themes/dots.theme".source =
         config.lib.file.mkOutOfStoreSymlink "${config.xdg.stateHome}/dots/theme/btop.theme";
     };

@@ -74,7 +74,7 @@ Templates use `${key}` for `#rrggbb`, `${key_hex}` for the bare hex (Hyprland's 
 | `tmux.conf.in` | `tmux.conf` | `source-file -q` at the end of `config/tmux/tmux.conf`; re-sourced on switch |
 | `cava.in` | `cava` | linked as `~/.config/cava/config` (`home/theming.nix`) |
 | `zen-palette.css.in` | `zen-palette.css` | `--dots-*` custom properties, `@import`ed by `config/zen/userContent.css` for the per-site styles in `config/zen/sites/` |
-| `share-picker.css.in` | `share-picker.css` | rendered; the stylesheet include in `config/hyprland-preview-share-picker/config.yaml` is currently commented out |
+| `share-picker.css.in` | `share-picker.css` | `stylesheets:` in `config/hyprland-preview-share-picker/config.yaml` |
 
 Not template-driven but still themed:
 
@@ -97,7 +97,7 @@ themectl set mytheme
 
 No rebuild — themectl reads the working tree directly. `git add` it when you're happy.
 
-Every key must be present. themectl runs under `set -u`, so a missing key aborts each template with `unbound variable` and leaves the previous theme's rendered files where they were — copying an existing palette and editing values is the safe way to start.
+Every key must be present. `themectl set` checks before rendering and refuses with `theme '<name>' is missing palette keys: …`, leaving the previous theme in place — copying an existing palette and editing values is the safe way to start.
 
 A rebuild *is* needed if you make the new theme `dots.sddm.theme` or `dots.theme`, since those are baked.
 
