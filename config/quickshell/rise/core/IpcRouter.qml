@@ -167,6 +167,11 @@ Item {
     }
 
     IpcHandler {
+        target: "windowinfo"
+        function toggle(): void { router.invoke("toggleWindowInfo") }
+    }
+
+    IpcHandler {
         target: "dashboard"
         function toggle(): void { router.invoke("toggleDashboard") }
     }

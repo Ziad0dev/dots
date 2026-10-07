@@ -83,6 +83,7 @@ HDR: the profile runs DP-1 in 10-bit HDR permanently. That costs compositor CPU 
 | `SUPER + A` | Overview |
 | `SUPER + U` | Utilities corner (quick toggles, recent captures) |
 | `SUPER + I` | Dashboard (dashboard · media · performance · weather tabs) |
+| `SUPER + SHIFT + I` | Window info: preview, details, float / pin / fullscreen / center / move / close / kill (`1`–`9`, `F`, `P`, `Q`) |
 | `SUPER + W` | Theme / wallpaper drawer |
 | `SUPER + SHIFT + Escape` | Session menu (lock, suspend, log out, restart, shut down) |
 | `SUPER + B` / `O` / `C` | Focus-or-launch Zen / Obsidian / Discord |
@@ -184,6 +185,7 @@ qs -c rise ipc call <target> <function>
 | `utilities` | `toggle` |
 | `session` | `toggle` |
 | `dashboard` | `toggle` |
+| `windowinfo` | `toggle` |
 | `drawer` | `toggle` |
 | `openrouter` | `toggle` |
 | `picker` | `theme`, `wallpaper`, `screenshots`, `videos` |

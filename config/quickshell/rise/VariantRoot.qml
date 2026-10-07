@@ -27,6 +27,7 @@ Item {
 
     function toggleDrawer() { if (!theme.drawerVisible) theme.activateFocusedPopupScreen(); theme.drawerVisible = !theme.drawerVisible }
 
+    function toggleWindowInfo() { if (!theme.windowInfoVisible) theme.activateFocusedPopupScreen(); theme.windowInfoVisible = !theme.windowInfoVisible }
     function toggleSession() { if (!theme.sessionVisible) theme.activateFocusedPopupScreen(); theme.sessionVisible = !theme.sessionVisible }
 
     function toggleUtilities() { if (!theme.utilitiesVisible) theme.activateFocusedPopupScreen(); theme.utilitiesVisible = !theme.utilitiesVisible }
@@ -330,10 +331,12 @@ Item {
     PanelLife { id: drawerLife; open: theme.drawerVisible }
     PanelLife { id: utilLife; open: theme.utilitiesVisible }
     PanelLife { id: sessionLife; open: theme.sessionVisible }
+    PanelLife { id: windowInfoLife; open: theme.windowInfoVisible }
     LazyLoader { active: dashLife.alive; DashboardPanel { root: theme } }
     LazyLoader { active: drawerLife.alive; StyleDrawer { root: theme } }
     LazyLoader { active: utilLife.alive; UtilitiesPanel { root: theme } }
     LazyLoader { active: sessionLife.alive; SessionMenu { root: theme } }
+    LazyLoader { active: windowInfoLife.alive; WindowInfoPanel { root: theme } }
     NetworkPanel { root: theme }
     BluetoothPanel { root: theme }
     BatteryPanel { root: theme }
