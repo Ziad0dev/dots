@@ -13,6 +13,7 @@ themectl set auto ~/x.jpg     # …or from a given image
 themectl next                 # / prev — alphabetical, wraps
 themectl current
 themectl reload               # re-render the current theme (after editing a template)
+themectl render               # same files, but no app reloads and no wallpaper change
 
 themectl bg                   # print current wallpaper
 themectl bg next              # / prev — cycles ~/Pictures/wallpapers
@@ -20,6 +21,10 @@ themectl bg set ~/Pictures/wallpapers/x.jpg
 ```
 
 Or: `SUPER + CTRL + SHIFT + Space` (theme picker), `SUPER + SHIFT + T` (next theme), `SUPER + E` (wallpaper picker), `SUPER + CTRL + E` (next wallpaper).
+
+themectl is in every profile (`home/themectl.nix`), so the minimal one's prompt, fzf, tmux, Neovim and btop are themed too.
+
+A fresh home gets `dots.theme` (oxocarbon) on its first activation, so nothing starts unstyled. With `dots.liveConfig = false` the rendered files and links point into the generation's store path, so every switch also runs `themectl render`.
 
 ## What `themectl set <name>` does
 

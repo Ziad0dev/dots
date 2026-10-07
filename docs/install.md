@@ -60,11 +60,7 @@ Also: `sudo tailscale up` once — Jellyfin's remote access, the qBittorrent/Pro
 
 ### First login
 
-```fish
-themectl set kanagawa
-```
-
-Until a theme has been rendered, `~/.local/state/dots/theme/` is empty. Everything that includes from it is written to tolerate that (Ghostty's `config-file = ?…`, Hyprland's `pcall(dofile …)`, Neovim's oxocarbon fallback), but borders, the bar and the lock screen look default until you run it. See [Theming](theming.md).
+The first activation renders `dots.theme` (oxocarbon), so the session starts themed. Pick another with `themectl set kanagawa` — see [Theming](theming.md).
 
 ## macOS
 

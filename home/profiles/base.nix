@@ -33,6 +33,7 @@ in
     ../fastfetch.nix
     ../nvim.nix
     ../git-hooks.nix
+    ../themectl.nix
     ../yazi.nix
     (import ../../flakes/infosec/module.nix { target = "home"; })
     (import ../../flakes/maths/module.nix { target = "home"; })
@@ -65,7 +66,7 @@ in
   options.dots.theme = lib.mkOption {
     type = lib.types.str;
     default = "oxocarbon";
-    description = "Theme under config/themes baked into anything that cannot follow themectl at runtime.";
+    description = "Theme under config/themes rendered on a fresh home's first activation, and baked into anything that cannot follow themectl at runtime.";
   };
 
   config = {
