@@ -54,7 +54,9 @@ in
       "hello-page.service"
     ];
     wants = [ "tailscaled.service" ];
-    serviceConfig = {
+    # only talks to tailscaled over its socket
+    serviceConfig = import ../lib/hardening.nix // {
+      RestrictAddressFamilies = [ "AF_UNIX" ];
       Type = "oneshot";
       RemainAfterExit = true;
       Restart = "on-failure";

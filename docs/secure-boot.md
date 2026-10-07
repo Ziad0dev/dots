@@ -47,6 +47,8 @@ passphrase. The key is sealed to two PCRs (TPM measurement registers):
   as it opens a volume. That stops a decoy volume (same UUID, attacker's
   passphrase) from being opened first and then used to unseal the real key.
 
+Because the disk opens by itself, root's password is locked (`users.users.root.hashedPassword = "!"` in the host): a boot that drops to emergency mode refuses to open a shell instead of handing one to whoever is at the keyboard. Recover a machine that won't boot from the installer ISO; `sudo` is unaffected.
+
 The passphrase keyslot stays as the fallback. A firmware update or a change to
 the Secure Boot settings changes PCR 7: you get the passphrase prompt, then
 re-enroll.

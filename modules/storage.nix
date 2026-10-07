@@ -80,8 +80,19 @@ in
       "/data"
       "/mnt/pool"
     ];
-    serviceConfig = {
+    serviceConfig = import ../lib/hardening.nix // {
       Type = "oneshot";
+      PrivateNetwork = true;
+      ProtectSystem = "strict";
+      ReadWritePaths = [ "/mnt/pool/backups" ];
+      # -a keeps owners and modes, -X xattrs: root, but only for that
+      CapabilityBoundingSet = [
+        "CAP_DAC_READ_SEARCH"
+        "CAP_DAC_OVERRIDE"
+        "CAP_CHOWN"
+        "CAP_FOWNER"
+        "CAP_FSETID"
+      ];
       ExecStart = "${pkgs.rsync}/bin/rsync -aHX --delete --mkpath /data/wallpapers /data/wallpapers-lowres /mnt/pool/backups/";
     };
   };
