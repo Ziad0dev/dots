@@ -57,7 +57,7 @@ The package test for the system list: root needs it, a system service needs it, 
 | `audio.nix` | PipeWire (ALSA incl. 32-bit, Pulse, JACK, WirePlumber), rtkit; clock allowed at 44.1/48/88.2/96/176.4/192 kHz so bit-perfect playback doesn't resample; resample quality 10 |
 | `hdr.nix` | libplacebo; `DXVK_HDR=1`, `PROTON_ENABLE_WAYLAND=1`, `PROTON_ENABLE_HDR=1` |
 | `recording.nix` | gpu-screen-recorder (with the capability wrapper), GTK front-end, the `gsr-replay` user unit, `/data/replays`. See [Desktop → recording](desktop.md#recording) |
-| `flatpak.nix` | Flatpak + the `flatpak-managed` reconciler. See [Services → flatpak](services.md#flatpak) |
+| `flatpak.nix` | Flatpak itself + `flatpak-nvidia-gl`; apps are in `home/flatpak.nix`. See [Services → flatpak](services.md#flatpak) |
 | `foreign.nix` | Running non-Nix binaries: nix-ld, AppImage binfmt, an `fhs` shell, distrobox, steam-run. See [Development → foreign binaries](development.md#foreign-binaries) |
 
 ### Gaming

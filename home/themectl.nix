@@ -24,7 +24,7 @@ let
         procps
       ]
       # only reached through `systemctl --user` in the app reloads
-      ++ lib.optional stdenv.isLinux systemd;
+      ++ lib.optional stdenv.hostPlatform.isLinux systemd;
     # live: the checkout's themes; pure: the ones in the store
     text = ''
       DOTS_DIR="''${DOTS_DIR:-${cfg.src}}"

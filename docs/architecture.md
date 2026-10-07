@@ -59,6 +59,7 @@ When home-manager rides on a system (`mk.nixos`, `mk.darwin`) it runs with `useG
 | `obsidian-extensions` | overlay: `obsidianPlugins`, `obsidianThemes` | |
 | `zig-overlay`, `zls` | Zig 0.16.0 + matching zls | overlay provides `pkgs.zigpkgs` |
 | `nix-index-database` | prebuilt nix-index DB, powers `,` | |
+| `nix-flatpak` | declarative user flatpaks (`home/flatpak.nix`) | no inputs of its own |
 | `vpn-confinement` | `vpnNamespaces` NixOS module | |
 | `vm-curator` | VM management tool | |
 

@@ -141,7 +141,8 @@ Fish starts in vi mode and sources the themed fzf colours.
 | `dots-usb-sound`, `dots-screentime` | user | USB plug sounds, app focus log |
 | `gsr-replay` | user | replay buffer (on demand) |
 | `dots-gsr` | user, transient | manual screen recording |
-| `flatpak-managed` | user | flatpak reconciler, at login |
+| `flatpak-managed-install` | user | nix-flatpak: declared apps, after each switch |
+| `flatpak-nvidia-gl` | user | GL extension for the loaded NVIDIA driver, at login |
 | `mpd`, `mpdris2` | user | music |
 | `dots-ai-usage.timer`, `dots-thumb-prune.timer`, `flatpak-prune.timer` | user | housekeeping |
 | `llama-cpp`, `llama-sec`, `llama-agent`, `llama-gemma`, `llama-coder`, `llama-fim`, `ollama` | system | LLMs, startable without sudo |

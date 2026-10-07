@@ -30,6 +30,7 @@ in
     ../soulseek.nix
     ../upstream-watch.nix
     ../desktop-tools.nix
+    ../flatpak.nix
   ];
 
   dots.upstreamWatch.enable = true;
