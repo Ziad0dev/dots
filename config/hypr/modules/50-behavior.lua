@@ -10,6 +10,10 @@ hl.config({
         mfact = 0.5,
     },
 
+    group = {
+        -- a group showing one window doesn't need its tab bar
+        groupbar = { disable_when_only = true },
+    },
     binds = {
         hide_special_on_workspace_change = true,
     },
