@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Quickshell.Hyprland
 
 Item {
     id: lang
@@ -73,18 +74,19 @@ Item {
                 lang._deviceName = (lines[0] || "").trim()
                 var idx = lang.matchLayout(lines[1])
                 if (idx !== -1) lang.activeIndex = idx
-                if (lang.watch) {
-                    waitProc.running = false
-                    waitProc.running = true
-                }
             }
         }
     }
 
-    Process {
-        id: waitProc
-        command: [lang.scriptDir + "/qs-kb-wait"]
-        onExited: lang.refresh()
+    // a layout switch arrives on Hyprland's event socket, which Quickshell
+    // already listens to: no socat|grep helper per wait (those outlived every
+    // reload, blocked until the next switch, and piled up)
+    Connections {
+        target: Hyprland
+        enabled: lang.watch
+        function onRawEvent(event) {
+            if (event.name === "activelayout") lang.refresh()
+        }
     }
 
     Process {
