@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Effects
 import Caelestia.Blobs
 
-// Caelestia-style frame, drawn inside each BarSlot (a screen-sized layer window).
+// Caelestia-style frame, drawn inside each FrameWindow (a screen-sized layer under the bar).
 // The bar is the thick edge of one rounded frame around the screen; every open
 // panel registered with FrameCard is a BlobRect in the same group, so the SDF
 // smooth-union melts it out of the frame instead of floating it. Panel content

@@ -27,9 +27,11 @@ PanelWindow {
         : barSlot.width - 2 * shellOuterMargin
 
     color: "transparent"
-    // ALWAYS screen-tall → window never resizes → NO compositor resize animation.
-    // Reserve 35px via exclusiveZone; the mask limits the INPUT region: only the bar
-    // strip when locked (clicks below pass through), full screen when unlocked (drag).
+    // A strip, not the screen: Qt damages the whole window on every redraw, so a
+    // screen-tall bar made each widget animation re-composite the whole screen.
+    // The frame lives in FrameWindow underneath. The window grows to the screen
+    // only while unlocked (edit mode: dim backdrop, drag ghost anywhere).
+    // The mask limits INPUT to the bar band (clicks below it pass through).
     // anchored to left+right always; top OR bottom by barPosition (exclusiveZone
     // reserves space on whichever edge is anchored → no extra logic needed)
     anchors {
@@ -37,47 +39,24 @@ PanelWindow {
         top:    barSlot.root.barPosition === "top"
         bottom: barSlot.root.barPosition === "bottom"
     }
-    implicitHeight: barSlot.screen ? barSlot.screen.height : 1440
-    // frame mode: this window draws the whole screen frame, so it ignores zones
-    // and FrameExclusions reserves the space (the top keeps the same 38px)
+    // 35 bar + room for the pills' shadows
+    readonly property int stripHeight: 48
+    implicitHeight: barSlot.root.barUnlocked && barSlot.screen ? barSlot.screen.height : stripHeight
+    // frame mode: FrameWindow draws the frame, this window ignores zones and
+    // FrameExclusions reserves the space (the top keeps the same 38px)
     // (auto-hide without the frame: reserve nothing, the bar overlays windows)
     // exclusiveZone stays a constant: assigning it switches Quickshell back to
     // ExclusionMode.Normal, which would undo the Ignore above
     exclusionMode: barSlot.root.frameOn || barSlot.autoHide ? ExclusionMode.Ignore : ExclusionMode.Normal
     exclusiveZone: 38        // 35 bar + 3px breathing room
     // input: the bar strip (a thin hover strip while auto-hidden), the whole
-    // screen while unlocked, plus the right frame band's hover triggers
+    // screen while unlocked
     mask: Region {
         x: 0
         y: barSlot.root.barUnlocked ? 0
            : (barSlot.root.barPosition === "bottom" ? barSlot.height - barSlot.inputBand : 0)
         width: barSlot.width
         height: barSlot.root.barUnlocked ? barSlot.height : barSlot.inputBand
-        Region {
-            x: rightEdgeZone.x; y: rightEdgeZone.y
-            width: rightEdgeZone.visible ? rightEdgeZone.width : 0
-            height: rightEdgeZone.visible ? rightEdgeZone.height : 0
-        }
-        Region {
-            x: leftEdgeZone.x; y: leftEdgeZone.y
-            width: leftEdgeZone.visible ? leftEdgeZone.width : 0
-            height: leftEdgeZone.visible ? leftEdgeZone.height : 0
-        }
-        Region {
-            x: leftCornerZone.x; y: leftCornerZone.y
-            width: leftCornerZone.visible ? leftCornerZone.width : 0
-            height: leftCornerZone.visible ? leftCornerZone.height : 0
-        }
-        Region {
-            x: drawerZone.x; y: drawerZone.y
-            width: drawerZone.visible ? drawerZone.width : 0
-            height: drawerZone.visible ? drawerZone.height : 0
-        }
-        Region {
-            x: cornerZone.x; y: cornerZone.y
-            width: cornerZone.visible ? cornerZone.width : 0
-            height: cornerZone.visible ? cornerZone.height : 0
-        }
     }
     // grab keyboard while unlocked so ESC can exit
     WlrLayershell.keyboardFocus: barSlot.root.barUnlocked ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
@@ -129,97 +108,12 @@ PanelWindow {
     }
     Timer { id: barHideDelay; interval: 450; onTriggered: barSlot.pointerOnBar = false }
 
-    // ── frame-edge hover triggers (frame on, locked bar only) ──
-    // right band → notification sidebar; the bottom band's right end (the corner
-    // the cursor rests in, since nothing is below a screen) → utilities. A right
-    // edge shared with another monitor doesn't stop the cursor, so the corner
-    // lives on the bottom band where it always does.
-    readonly property int cornerSpan: 140
-    function openByHover(which) {
-        var r = barSlot.root
-        if (which === "notif" && !r.notifVisible) {
-            r.activatePopupScreen(barSlot.screen); r.notifHoverOpened = true; r.notifVisible = true
-        } else if (which === "utilities" && !r.utilitiesVisible) {
-            r.activatePopupScreen(barSlot.screen); r.utilitiesHoverOpened = true; r.utilitiesVisible = true
-        } else if (which === "dashboard" && !r.dashboardVisible) {
-            r.activatePopupScreen(barSlot.screen); r.dashboardHoverOpened = true; r.dashboardVisible = true
-        } else if (which === "drawer" && !r.drawerVisible) {
-            r.activatePopupScreen(barSlot.screen); r.drawerHoverOpened = true; r.drawerVisible = true
-        }
-    }
-    component EdgeZone: Item {
-        id: zone
-        required property string opens
-        readonly property bool armed: hover.hovered
-        HoverHandler { id: hover; onHoveredChanged: hovered ? dwell.restart() : dwell.stop() }
-        Timer { id: dwell; interval: 120; onTriggered: if (hover.hovered) barSlot.openByHover(zone.opens) }
-    }
-    EdgeZone {
-        id: rightEdgeZone
-        opens: "notif"
-        visible: barSlot.root.frameOn && !barSlot.root.barUnlocked
-        x: barSlot.width - barSlot.root.frameThickness
-        width: barSlot.root.frameThickness
-        y: barSlot.barOnTop ? 35 : barSlot.root.frameThickness
-        height: barSlot.height - y - (barSlot.barOnTop ? barSlot.root.frameThickness : 35)
-    }
-    // dashboard: only the lower-left corner (the left band's bottom end and the
-    // bottom band's left end), so passing the whole left edge doesn't open it
-    EdgeZone {
-        id: leftEdgeZone
-        opens: "dashboard"
-        visible: barSlot.root.frameOn && !barSlot.root.barUnlocked
-        x: 0
-        width: barSlot.root.frameThickness
-        height: 160
-        y: barSlot.height - height - (barSlot.barOnTop ? barSlot.root.frameThickness : 35)
-    }
-    EdgeZone {
-        id: leftCornerZone
-        opens: "dashboard"
-        visible: barSlot.root.frameOn && !barSlot.root.barUnlocked && barSlot.barOnTop
-        x: 0
-        width: barSlot.cornerSpan
-        y: barSlot.height - barSlot.root.frameThickness
-        height: barSlot.root.frameThickness
-    }
-    EdgeZone {
-        id: drawerZone
-        opens: "drawer"
-        visible: barSlot.root.frameOn && !barSlot.root.barUnlocked && barSlot.barOnTop
-        width: 320
-        x: Math.round((barSlot.width - width) / 2)
-        y: barSlot.height - barSlot.root.frameThickness
-        height: barSlot.root.frameThickness
-    }
-    EdgeZone {
-        id: cornerZone
-        opens: "utilities"
-        // the bottom band (the bar's band when the bar sits at the bottom: skip)
-        visible: barSlot.root.frameOn && !barSlot.root.barUnlocked && barSlot.barOnTop
-        x: barSlot.width - barSlot.cornerSpan
-        width: barSlot.cornerSpan
-        y: barSlot.height - barSlot.root.frameThickness
-        height: barSlot.root.frameThickness
-    }
-
-    // ── Caelestia-style frame + melting panel backgrounds (behind everything) ──
-    // loaded by URL so a missing plugin only disables the frame, not the bar
-    Loader {
-        anchors.fill: parent
-        z: -1
-        active: barSlot.root.styleFrame
-        source: "FrameBlobs.qml"
-        onStatusChanged: {
-            if (status === Loader.Error) {
-                console.warn("[frame] Caelestia.Blobs unavailable; using the classic bar")
-                barSlot.root.frameAvailable = false
-            } else if (status === Loader.Ready) {
-                item.root = barSlot.root
-                item.screenName = Qt.binding(function () { return barSlot.screenName })
-                item.barEdge = Qt.binding(function () { return barSlot.bandHeight })
-            }
-        }
+    // ── the screen frame + melting panel backgrounds, and the frame-edge hover
+    // triggers: their own fullscreen window under this one (FrameWindow.qml) ──
+    FrameWindow {
+        root: barSlot.root
+        bar: barSlot
+        screen: barSlot.screen
     }
 
     // ── dim backdrop while unlocked (edit mode); click empty → lock ──

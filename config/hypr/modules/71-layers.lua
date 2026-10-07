@@ -14,6 +14,18 @@ hl.layer_rule({
     xray         = true,
 })
 
+-- The frame and the melting panel backgrounds (FrameWindow): a fullscreen layer
+-- under the bar. Same Frost blur as the bar band, from the cached wallpaper blur;
+-- no open/close animation (it maps once per screen, under the bar).
+hl.layer_rule({
+    name         = "rise-frame",
+    match        = { namespace = "^quickshell-frame$" },
+    blur         = true,
+    ignore_alpha = 0.12,
+    xray         = true,
+    no_anim      = true,
+})
+
 -- Panels animate their own reveal; a compositor fade/slide on top doubles the motion.
 -- They are fullscreen surfaces, so ignore_alpha keeps blur to the card itself.
 hl.layer_rule({
