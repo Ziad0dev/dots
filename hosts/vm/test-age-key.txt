@@ -1,0 +1,5 @@
+# TEST ONLY. This key is public on purpose: it decrypts secrets/vm.yaml for
+# the vm host and its check, and protects nothing real. Never reuse it.
+# created: 2026-10-07T11:50:57+02:00
+# public key: age1y4azf76cjxgzzvjcdc50ct0wv7saf9qgvumrvgjm2cn7tdkcwaqs09j8zc
+AGE-SECRET-KEY-1DMUWMRV0MC9D2Z4MMZ0SVFTWPMJ89EH5Z32W9JQKMELVV9JCUYES9UN6ML

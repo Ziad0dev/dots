@@ -41,6 +41,25 @@
       inputs.home-manager.follows = "home-manager";
     };
 
+    # secrets encrypted in the repo (modules/secrets.nix, secrets/)
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    # declarative partitioning for installs (lib/disko.nix)
+    disko = {
+      url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    # opt-in root on tmpfs (modules/impermanence.nix)
+    impermanence = {
+      url = "github:nix-community/impermanence";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.home-manager.follows = "home-manager";
+    };
+
     # declarative flatpaks (home/flatpak.nix); no inputs of its own
     nix-flatpak.url = "github:gmodena/nix-flatpak";
 
@@ -124,6 +143,27 @@
     {
       nixosConfigurations = {
 
+        # test host: disko + impermanence + sops + pure home-manager
+        vm = mk.nixos {
+          inherit username;
+          hostname = "vm";
+          system = "x86_64-linux";
+          profile = "minimal";
+          modules = [ ./hosts/vm ];
+        };
+
+        # installer ISO with the vm host prebuilt: dots-install vm
+        installer = mk.nixos {
+          inherit username;
+          hostname = "dots-installer";
+          system = "x86_64-linux";
+          home = false;
+          modules = [
+            ./hosts/installer
+            { dots.installer.hosts.vm = self.nixosConfigurations.vm; }
+          ];
+        };
+
         nixos = mk.nixos {
           inherit username;
           hostname = "nixos";
@@ -170,6 +210,11 @@
       };
 
       formatter = forAll (system: nixpkgs.legacyPackages.${system}.nixfmt-tree);
+
+      checks.x86_64-linux.vm = import ./tests/vm.nix {
+        inherit inputs mk username;
+        pkgs = nixpkgs.legacyPackages.x86_64-linux;
+      };
 
       templates = {
         zig = {

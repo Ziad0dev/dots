@@ -43,7 +43,7 @@ The desktop output is built for one box. On anything else, go through this list 
 
 ### Files that must exist out-of-band
 
-Nothing secret is in the store. These are created by hand once:
+Nothing secret is in the store. These are created by hand once — or, for the first three secrets, kept encrypted in the repo instead: [Secrets](secrets.md).
 
 | Path | Used by | Notes |
 |---|---|---|
@@ -61,6 +61,51 @@ Also: `sudo tailscale up` once — Jellyfin's remote access, the qBittorrent/Pro
 ### First login
 
 The first activation renders `dots.theme` (oxocarbon), so the session starts themed. Pick another with `themectl set kanagawa` — see [Theming](theming.md).
+
+## A new machine: disko + `dots-install`
+
+`lib/disko.nix` is a one-disk layout (ESP + LUKS2 + btrfs subvolumes; with `impermanence = true`, `/` is a tmpfs and state lives in `/persist`). A host imports it with its disk:
+
+```nix
+imports = [
+  inputs.disko.nixosModules.disko
+  (import ../../lib/disko.nix { device = "/dev/nvme0n1"; impermanence = true; })
+];
+```
+
+Add the host to `dots.installer.hosts` (next to `vm` in `flake.nix`), build the ISO and write it to a stick:
+
+```fish
+nix build .#nixosConfigurations.installer.config.system.build.isoImage
+sudo dd if=result/iso/*.iso of=/dev/sdX bs=4M status=progress oflag=sync
+```
+
+Boot it and run `dots-install <host> [--age-key FILE]`. It asks for the disk passphrase, partitions and formats (erasing the disk), puts the age key where the host's `dots.secrets.keyFile` expects it, and installs the prebuilt system — offline, nothing is built. The desktop itself is not on disko: its disks hold `/data`, and a layout that can wipe them isn't worth having around.
+
+### Testing in a VM
+
+`nixosConfigurations.vm` is the whole path in miniature. The quick check boots its config in a NixOS test:
+
+```fish
+nix build .#checks.x86_64-linux.vm -L
+```
+
+The full one installs it from the ISO onto a blank disk under QEMU (UEFI from `OVMF.fd`):
+
+```fish
+qemu-img create -f qcow2 vm.qcow2 20G
+cp (nix build --print-out-paths nixpkgs#OVMF.fd)/FV/OVMF_VARS.fd vars.fd; chmod +w vars.fd
+set ovmf (nix build --print-out-paths nixpkgs#OVMF.fd)/FV/OVMF_CODE.fd
+qemu-system-x86_64 -enable-kvm -m 4096 -smp 4 -machine q35 \
+  -drive if=pflash,format=raw,readonly=on,file=$ovmf -drive if=pflash,format=raw,file=vars.fd \
+  -drive file=vm.qcow2,if=virtio -cdrom result/iso/*.iso
+# in the ISO:
+sudo dots-install vm --age-key /etc/dots/hosts/vm/test-age-key.txt
+```
+
+Then boot without `-cdrom`, give the disk passphrase, and log in as `ziad0dev` / `dots` (the password comes from `secrets/vm.yaml`). Anything written outside `/home`, `/nix` and the persisted paths is gone after a reboot.
+
+`tests/iso-install.py` does all of that unattended over the serial console — install, LUKS unlock, login, secrets, home-manager, theme, then a second boot to check that `/` was reset and `/var/log`, `/home` and `machine-id` were kept. Usage is in its header.
 
 ## macOS
 

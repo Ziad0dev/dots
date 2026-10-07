@@ -54,7 +54,10 @@ if command -v nix >/dev/null; then
         "homeConfigurations.\"${user}@linux-desktop\".activationPackage" \
         "homeConfigurations.\"${user}@aarch64-linux\".activationPackage" \
         "homeConfigurations.\"${user}@mac\".activationPackage" \
-        "darwinConfigurations.mac.system"
+        "darwinConfigurations.mac.system" \
+        "nixosConfigurations.vm.config.system.build.toplevel" \
+        "nixosConfigurations.installer.config.system.build.isoImage" \
+        "checks.x86_64-linux.vm"
     do
         echo "pre-commit: evaluating $out"
         nix eval --no-warn-dirty ".#${out}.drvPath" \

@@ -33,7 +33,8 @@ The package test for the system list: root needs it, a system service needs it, 
 | `performance.nix` | 8 GiB swapfile + zram at priority 100, `swappiness 180` / `page-cluster 0` (zram tuning), dirty-bytes caps, inotify limits, systemd-oomd on user slices, nix-daemon `MemoryMax 75%` + OOM score 500, `max-jobs 3` / `cores 4`, journald caps, CPU profile (below), RAPL limits, cpupower + turbostat |
 | `dev.nix` | `programs.nh` (flake = `dots.repoPath`), nh's GC timer `--keep 3 --keep-since 4d`, `warn-dirty = false` |
 | `cleanup.nix` | Coredump storage capped at 1 GiB |
-| `secrets.nix` | secretspec, pass, gnupg agent with pinentry-qt, bitwarden-cli |
+| `secrets.nix` | secretspec, pass, gnupg agent with pinentry-qt, bitwarden-cli, sops + age; sops-nix behind `dots.secrets.enable` (off on the desktop). See [Secrets](secrets.md) |
+| `impermanence.nix` | `dots.impermanence.enable` (off on the desktop): root on tmpfs, `/var/log`, `/var/lib/{nixos,systemd}`, NM connections and `machine-id` kept in `/persist`, immutable users. Needs the matching disk layout (`lib/disko.nix`) |
 
 #### CPU profile (`performance.nix`)
 
