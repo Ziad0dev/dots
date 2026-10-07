@@ -23,6 +23,11 @@
     };
 
     hyprland.url = "github:hyprwm/Hyprland";
+    # Secure Boot (modules/secureboot.nix); a release tag, as upstream recommends
+    lanzaboote = {
+      url = "github:nix-community/lanzaboote/v1.2.0";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     hyprland-preview-share-picker = {
       # url = "git+https://github.com/WhySoBad/hyprland-preview-share-picker?submodules=1";
