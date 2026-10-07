@@ -235,7 +235,7 @@ ThemeAiUsage {
         || batteryVisible || brightnessVisible || mprisVisible || weatherVisible || keybindsVisible
         || workspaceVisible || imagePickerVisible || mediaBrowserVisible || notifVisible
         || powerProfileVisible || trayVisible || trayMenuVisible || utilitiesVisible
-        || dashboardVisible || drawerVisible || sessionVisible || windowInfoVisible
+        || dashboardVisible || drawerVisible || sessionVisible || windowInfoVisible || settingsVisible
     readonly property bool keyboardPopupVisible: imagePickerVisible || mediaBrowserVisible
 
     function registerBarLayoutController(screenName, controller) {
@@ -515,6 +515,7 @@ ThemeAiUsage {
         if (except !== "drawerVisible") drawerVisible = false
         if (except !== "sessionVisible") sessionVisible = false
         if (except !== "windowInfoVisible") windowInfoVisible = false
+        if (except !== "settingsVisible") settingsVisible = false
         hideTooltip()
         _closingPopups = false
     }
@@ -772,6 +773,8 @@ ThemeAiUsage {
     onSessionVisibleChanged: popupOpened("sessionVisible")
     property bool windowInfoVisible: false
     onWindowInfoVisibleChanged: popupOpened("windowInfoVisible")
+    property bool settingsVisible: false
+    onSettingsVisibleChanged: popupOpened("settingsVisible")
     property bool drawerVisible: false
     onDrawerVisibleChanged: {
         if (!drawerVisible) drawerHoverOpened = false

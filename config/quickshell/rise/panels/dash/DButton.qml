@@ -40,6 +40,7 @@ Rectangle {
         spacing: 6
         IconText {
             anchors.verticalCenter: parent.verticalCenter
+            visible: b.icon !== ""
             text: b.icon
             color: b.fg
             fill: b.strong ? 1 : 0

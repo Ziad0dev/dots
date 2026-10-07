@@ -74,6 +74,7 @@ PanelWindow {
     function openPopup(prop) { close(); root.activateFocusedPopupScreen(); root[prop] = true }
     function sh(args) { close(); Quickshell.execDetached(args) }
     readonly property var actions: [
+        { name: "Settings", comment: "every bar setting (SUPER+,)", glyph: "\uE8B8", run: function () { win.openPopup("settingsVisible") } },
         { name: "Lock", comment: "lock the screen", glyph: "\uE897", run: function () { win.sh(["loginctl", "lock-session"]) } },
         { name: "Suspend", comment: "sleep now", glyph: "\uEF44", run: function () { win.sh(["systemctl", "suspend"]) } },
         { name: "Log out", comment: "leave Hyprland", glyph: "\uE9BA", run: function () { win.openPopup("sessionVisible") } },
