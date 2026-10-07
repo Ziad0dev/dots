@@ -167,6 +167,11 @@ Item {
     }
 
     IpcHandler {
+        target: "settings"
+        function toggle(): void { router.invoke("toggleSettings") }
+    }
+
+    IpcHandler {
         target: "windowinfo"
         function toggle(): void { router.invoke("toggleWindowInfo") }
     }
