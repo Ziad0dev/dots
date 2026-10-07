@@ -38,8 +38,11 @@ PanelWindow {
         { id: "bar", label: "Bar", icon: "toolbar", sections: [
             { title: "Layout", rows: [
                 e("barPosition", "Position", "Which screen edge the bar sits on", o(["top", "bottom"], ["Top", "Bottom"])),
+                e("barMonitor", "Monitor", "Which monitor shows the bar",
+                  o(Quickshell.screens.map(function (s) { return s.name }).concat(["all"]),
+                    Quickshell.screens.map(function (s) { return s.name }).concat(["All"]))),
                 e("workspaceMode", "Workspaces", "How many workspace buttons show", o(["10", "5", "active"], ["Persist 10", "Persist 5", "Active only"])),
-                e("workspaceStyle", "Workspace style", "", o(["default", "numbers", "magic", "comet"], ["Default", "Numbers", "Magic", "Comet"])),
+                e("workspaceStyle", "Workspace style", "", o(["default", "numbers", "magic", "comet", "segments", "occupancy", "icons", "kanji"], ["Default", "Numbers", "Magic", "Comet", "Segments", "Occupancy", "Icons", "Kanji"])),
                 e("barColor", "Accent", "The palette colour the bar and panels use",
                   o(root.barColorOptions, root.barColorOptions.map(function (id) { return root.barColorLabel(id) }))),
                 e("barAnim", "Bar animation", "Runs continuously on the bar, so it costs some GPU",
@@ -127,7 +130,7 @@ PanelWindow {
     // schema keys no page above describes (except the colour map, edited per widget)
     readonly property var otherRows: {
         var known = {}
-        var described = ["barPosition", "workspaceMode", "workspaceStyle", "barColor", "barAnim", "launcherLogoMode",
+        var described = ["barPosition", "barMonitor", "workspaceMode", "workspaceStyle", "barColor", "barAnim", "launcherLogoMode",
             "launcherLogoText", "launcherLogoIcon", "splitArch", "splitMon", "splitMprisL", "splitNet",
             "modStatus", "modQuick", "modMpris", "modVolume", "modBrightness", "modNetwork", "modBluetooth", "modPower",
             "modCpu", "modCpuTemperature", "modGpu", "modMemory", "modStorage", "modWeather", "modAi", "modGithub",
