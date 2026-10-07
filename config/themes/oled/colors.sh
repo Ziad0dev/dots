@@ -46,3 +46,6 @@ blue="#2b9dff"
 magenta="#c46bff"
 cyan="#00e5ff"
 pink="#ff6b9b"
+
+# optional: active window border, faded to color0 at both ends
+border="#c42b2b"

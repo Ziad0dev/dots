@@ -15,6 +15,7 @@ const WANTED = [
     { target: "color07",    keys: ["color7", "bright_fg", "light_fg"] },
     { target: "sumi",       keys: ["color8", "muted", "dark_fg"] },
     { target: "accentHint", keys: ["accent"] },
+    { target: "border",     keys: ["border"] },
 ];
 
 const LINE = /^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*"([^"]+)"/;
@@ -115,4 +116,7 @@ function apply(theme, palette) {
     setColor(theme, "color06",    palette.color06);
     setColor(theme, "color07",    palette.color07);
     setColor(theme, "accentHint", palette.accentHint);
+    // optional, so a theme without it must clear the previous theme's value
+    if ("paletteBorder" in theme)
+        theme.paletteBorder = validColor(palette.border) ? palette.border : "";
 }

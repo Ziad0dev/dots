@@ -27,6 +27,15 @@ Item {
     property string barColor: ""
     readonly property color seal: /^color0[1-7]$/.test(barColor) ? theme[barColor] : accentHint
     readonly property color err:  color01
+    // frame band colour, as the bar's Theme.frameEdge: color1, or the theme's
+    // optional `border` key toned down toward paper
+    property string paletteBorder: ""
+    readonly property real frameEdgeBorderDim: 0.55
+    readonly property color _pb: paletteBorder === "" ? color01 : paletteBorder
+    readonly property color frameEdge: paletteBorder === "" ? color01 : Qt.rgba(
+        _pb.r * (1 - frameEdgeBorderDim) + paper.r * frameEdgeBorderDim,
+        _pb.g * (1 - frameEdgeBorderDim) + paper.g * frameEdgeBorderDim,
+        _pb.b * (1 - frameEdgeBorderDim) + paper.b * frameEdgeBorderDim, 1.0)
     readonly property string mono: "JetBrainsMono Nerd Font"
 
     FileView {

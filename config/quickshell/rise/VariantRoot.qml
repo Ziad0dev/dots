@@ -82,7 +82,10 @@ Item {
             }
         }
 
-        return valid
+        if (theme.barMonitor === "all" || valid.length === 0) return valid
+        for (var j = 0; j < valid.length; j++)
+            if (valid[j].name === theme.barMonitor) return [valid[j]]
+        return [valid[0]]
     }
 
     function lifecycleReady() {

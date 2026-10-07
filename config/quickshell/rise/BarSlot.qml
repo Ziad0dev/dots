@@ -933,6 +933,10 @@ PanelWindow {
         function runLeftEdge(i)  { return runs[i].x }
 
         // ── section pill(s): one per run (one continuous pill when no splits) ──
+        // In frame mode the band behind is one solid strip, so an unsplit bar
+        // stays transparent; once split, each run is raised a tone above the
+        // band so the gaps (and the particle animations in them) show.
+        readonly property bool frameSplit: barSlot.root.frameOn && island.runs.length > 1
         Repeater {
             model: island.runs
             delegate: Rectangle {
@@ -941,9 +945,10 @@ PanelWindow {
                 width: Math.max(0, modelData.w)
                 height: island.height
                 radius: barSlot.root.islandRadius
-                color: barSlot.root.frameOn ? "transparent" : barSlot.root.barBg
-                border.color: barSlot.root.islandBorder
-                border.width: barSlot.root.frameOn ? 0 : barSlot.root.pillBorderW
+                color: !barSlot.root.frameOn ? barSlot.root.barBg
+                     : island.frameSplit ? barSlot.root.frameRunFill : "transparent"
+                border.color: island.frameSplit ? barSlot.root.frameRunBorder : barSlot.root.islandBorder
+                border.width: !barSlot.root.frameOn ? barSlot.root.pillBorderW : island.frameSplit ? 1 : 0
                 PillShadow { theme: barSlot.root; visible: barSlot.root.styleShadow && !barSlot.root.frameOn }
                 // no Behavior: tracks the slot positions directly as the gap opens
             }

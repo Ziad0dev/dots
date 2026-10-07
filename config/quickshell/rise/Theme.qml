@@ -170,12 +170,26 @@ ThemeAiUsage {
     readonly property int frameThickness: 10
     readonly property int frameRounding: 0     // square inner corners
     // the edge rim matches the window borders: Hyprland's active border runs
-    // color0 → color1 (themes/_templates/hyprland.lua.in); color1 is its bright end
-    readonly property color frameEdge: color01
+    // color0 → color1 (themes/_templates/hyprland.lua.in); color1 is its bright end.
+    // A theme's optional `border` key replaces it, toned well down toward paper
+    // since the rim is far thicker than a 1px window border.
+    property string paletteBorder: ""
+    readonly property real frameEdgeBorderDim: 0.55
+    readonly property color frameEdge: paletteBorder === "" ? color01 : Qt.rgba(
+        _pb.r * (1 - frameEdgeBorderDim) + paper.r * frameEdgeBorderDim,
+        _pb.g * (1 - frameEdgeBorderDim) + paper.g * frameEdgeBorderDim,
+        _pb.b * (1 - frameEdgeBorderDim) + paper.b * frameEdgeBorderDim, 1.0)
+    readonly property color _pb: paletteBorder === "" ? color01 : paletteBorder
+    // the active window border's bright end, untoned (workspace styles mark the
+    // focused workspace with it so the bar and Hyprland agree)
+    readonly property color windowBorder: _pb
     // the frame layer's alpha: with Frost, low enough that Hyprland's layer blur
     // (71-layers.lua) reads through the bar band and the panels
     readonly property real frameOpacity: styleFrost ? 0.55 : barOpacity
     readonly property color frameColor: styleDepth ? surfaceTone(0.03, 1) : Qt.rgba(paper.r, paper.g, paper.b, 1)
+    // a split bar's sections in frame mode: a tone above the band, same alpha
+    readonly property color frameRunFill:   surfaceTone(styleDepth ? 0.09 : 0.06, frameOpacity)
+    readonly property color frameRunBorder: surfaceTone(0.14, frameOpacity)
     // attached cards hand their background to the frame
     readonly property color frameCardBg: frameOn ? "transparent" : cardBg
     readonly property int frameCardBorderW: frameOn ? 0 : pillBorderW
@@ -357,6 +371,15 @@ ThemeAiUsage {
 
     function activatePopupScreen(screen) {
         if (!screen || screen.name === "") return
+
+        // panels anchor to a bar: a screen without one (barMonitor) hands
+        // its popups to a screen that has one
+        if (!barLayoutControllers[screen.name]) {
+            var keys = barLayoutControllerKeys()
+            for (var i = 0; keys.length > 0 && i < Quickshell.screens.length; i++) {
+                if (Quickshell.screens[i].name === keys[0]) { screen = Quickshell.screens[i]; break }
+            }
+        }
 
         activePopupScreen = screen
         activePopupScreenName = screen.name
@@ -1384,10 +1407,14 @@ ThemeAiUsage {
     // ControlPanel uses this to hide the Brightness toggle on desktops without one.
     property bool hasBacklight:  false
 
+    // ── which monitor gets the bar (and its frame, desk clock and visualiser):
+    //    an output name, or "all"; a named output that isn't connected falls back
+    //    to the first screen so there's always a bar ──
+    property string barMonitor: "DP-1"
     // ── workspace display mode ──
     property string workspaceMode: "10"   // "10", "5", "active"
     // ── workspace display style (orthogonal to mode; persisted) ──
-    property string workspaceStyle: "default"   // "default", "numbers", "magic", "comet"
+    property string workspaceStyle: "default"   // "default", "numbers", "magic", "comet", "segments", "occupancy", "icons", "kanji"
 
     // ── motion (persisted) ──
     property bool motionHover:  true
@@ -1715,7 +1742,7 @@ ThemeAiUsage {
                     // when there is no UI to undo it. (saveWidgets still writes "0".)
                     if (parts.length > wsField + 8) {
                         var wss = parts[wsField + 8]
-                        if (wss === "numbers" || wss === "magic" || wss === "default")
+                        if (["default", "numbers", "magic", "comet", "segments", "occupancy", "icons", "kanji"].indexOf(wss) >= 0)
                             theme.workspaceStyle = wss
                     }
                     if (parts.length > wsField + 9) {
@@ -1803,9 +1830,10 @@ ThemeAiUsage {
         weatherImperial: "bool", clock12h: "bool",
         splitArch: "bool", splitMon: "bool", splitMprisL: "bool", splitNet: "bool",
         workspaceMode: ["10", "5", "active"],
-        workspaceStyle: ["default", "numbers", "magic", "comet"],
+        workspaceStyle: ["default", "numbers", "magic", "comet", "segments", "occupancy", "icons", "kanji"],
         pickerStyle: ["hearthstone", "carousel", "tanzaku"],
         barPosition: ["top", "bottom"],
+        barMonitor: function (v) { return typeof v === "string" && v !== "" },
         aiTool: ["codex", "opencode"],
         launcherLogoMode: ["text", "icon"],
         launcherLogoText: function (v) { return theme.launcherLogoTextValid(v) },

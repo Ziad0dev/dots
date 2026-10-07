@@ -1,3 +1,4 @@
+import Quickshell
 import Quickshell.Hyprland
 import QtQuick
 
@@ -71,6 +72,28 @@ Item {
         onClicked: root.workspaceVisible = !root.workspaceVisible
     }
 
+    // kanji numerals: 1-10 一…十, 11-99 十一, 二十, 二十一 …; anything else stays arabic
+    readonly property var _kanjiDigits: ["", "一", "二", "三", "四", "五", "六", "七", "八", "九"]
+    function kanji(n) {
+        if (n <= 0 || n >= 100) return String(n)
+        var t = Math.floor(n / 10), o = n % 10
+        return (t > 1 ? _kanjiDigits[t] : "") + (t > 0 ? "十" : "") + _kanjiDigits[o]
+    }
+
+    function appIdOf(tl) {
+        var id = tl.wayland ? tl.wayland.appId : ""
+        if (!id && tl.lastIpcObject) id = tl.lastIpcObject.class || ""
+        return id || ""
+    }
+    // desktop entry icon, else an icon named after the app id; the shell's own
+    // dev.dots.* windows are Ghostty (hypr/modules/80-autostart.lua)
+    function iconFor(appId) {
+        if (appId === "") return ""
+        if (appId.indexOf("dev.dots.") === 0) appId = "com.mitchellh.ghostty"
+        var e = DesktopEntries.heuristicLookup(appId)
+        return Quickshell.iconPath(e && e.icon ? e.icon : appId.toLowerCase(), true)
+    }
+
     property real cometX: 0
     property real cometW: 0
     property bool cometFwd: true
@@ -136,12 +159,40 @@ Item {
                 readonly property bool isFocused: Hyprland.focusedWorkspace !== null
                                                && Number(Hyprland.focusedWorkspace.name) === wsId
 
-                readonly property bool isOccupied: {
+                readonly property var wsObj: {
                     var ws = Hyprland.workspaces.values
                     for (var i = 0; i < ws.length; i++)
-                        if (Number(ws[i].name) === wsId) return !isFocused
-                    return false
+                        if (Number(ws[i].name) === wsId) return ws[i]
+                    return null
                 }
+                readonly property bool isOccupied: wsObj !== null && !isFocused
+
+                // window data only for the styles that draw it
+                readonly property bool wantsWindows: root.workspaceStyle === "occupancy" || root.workspaceStyle === "icons"
+                readonly property var wins: wantsWindows && wsObj && wsObj.toplevels ? wsObj.toplevels.values : []
+                readonly property int dotCount: Math.max(1, Math.min(wins.length, 4))   // occupancy caps at 4
+
+                // icons: the focused window if it's here, then real apps before the
+                // shell's own dev.dots.* helper terminals; the first of those with an
+                // icon, else the first one (shown as a letter)
+                readonly property var main: {
+                    if (root.workspaceStyle !== "icons" || wins.length === 0) return { app: "", icon: "" }
+                    var rank = function (t) {
+                        return (t.activated ? 2 : 0) + (wsWidget.appIdOf(t).indexOf("dev.dots.") === 0 ? 0 : 1)
+                    }
+                    var order = wins.slice()
+                    order.sort(function (a, b) { return rank(b) - rank(a) })
+                    var first = null
+                    for (var i = 0; i < order.length; i++) {
+                        var id = wsWidget.appIdOf(order[i])
+                        var icon = wsWidget.iconFor(id)
+                        if (icon !== "") return { app: id, icon: icon }
+                        if (first === null) first = id
+                    }
+                    return { app: first || "", icon: "" }
+                }
+                readonly property string mainApp: main.app
+                readonly property string mainIcon: main.icon
 
                 readonly property bool isEmpty: !isFocused && !isOccupied
 
@@ -150,9 +201,13 @@ Item {
                 onIsFocusedChanged: if (wsCell.isFocused) wsWidget.aimComet(wsCell.x, wsCell.width)
                 Component.onCompleted: if (wsCell.isFocused) wsWidget.aimComet(wsCell.x, wsCell.width)
 
-                implicitWidth: root.workspaceStyle === "numbers" ? 22
-                             : root.workspaceStyle === "comet"   ? 24
-                             : root.workspaceStyle === "magic"   ? (isFocused ? 20 : 18)
+                implicitWidth: root.workspaceStyle === "numbers"   ? 22
+                             : root.workspaceStyle === "comet"     ? 24
+                             : root.workspaceStyle === "magic"     ? (isFocused ? 20 : 18)
+                             : root.workspaceStyle === "segments"  ? (isFocused ? 22 : 12)
+                             : root.workspaceStyle === "occupancy" ? dotCount * 4 + (dotCount - 1) * 3 + 8
+                             : root.workspaceStyle === "icons"     ? 22
+                             : root.workspaceStyle === "kanji"     ? Math.max(22, kanjiText.implicitWidth + 8)
                              : (isFocused ? 32 : 16)
                 implicitHeight: 28
 
@@ -251,6 +306,93 @@ Item {
                     font.family: "Adwaita Mono"   // all 3 sparkle glyphs live here → one consistent metric
                     font.pixelSize: isFocused ? 22 : 18
                     renderType: Text.NativeRendering   // crisp hinted raster (default QtRendering softens small symbols)
+                    Behavior on color { CAnim { ms: 200 } }
+                }
+
+                // ── SEGMENTS style: a thin tick per workspace, the focused one
+                //    longer and lit in the window-border colour ──
+                Rectangle {
+                    visible: root.workspaceStyle === "segments"
+                    anchors.centerIn: parent
+                    width: parent.width
+                    height: isFocused ? 4 : 3
+                    radius: height / 2
+                    color: isFocused  ? root.windowBorder
+                         : isOccupied ? Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.45)
+                                      : Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.12)
+                    Behavior on color { CAnim { ms: 200 } }
+                }
+
+                // ── OCCUPANCY style: one dot per window (up to 4); a hollow
+                //    ring when the workspace has none ──
+                Row {
+                    visible: root.workspaceStyle === "occupancy"
+                    anchors.centerIn: parent
+                    spacing: 3
+                    Repeater {
+                        model: root.workspaceStyle === "occupancy" ? wsCell.dotCount : 0
+                        delegate: Rectangle {
+                            width: 4; height: 4; radius: 2
+                            readonly property color tone: wsCell.isFocused ? root.windowBorder : root.ink
+                            color: wsCell.wins.length === 0 ? "transparent"
+                                 : wsCell.isFocused ? tone : Qt.rgba(tone.r, tone.g, tone.b, 0.55)
+                            border.width: wsCell.wins.length === 0 ? 1 : 0
+                            border.color: wsCell.isFocused ? tone : Qt.rgba(tone.r, tone.g, tone.b, 0.25)
+                            Behavior on color { CAnim { ms: 200 } }
+                        }
+                    }
+                }
+
+                // ── ICONS style: the main window's app icon (a letter when the
+                //    app has none, a dot when the workspace is empty), with a
+                //    window-border underline under the focused one ──
+                Image {
+                    visible: root.workspaceStyle === "icons" && wsCell.mainIcon !== ""
+                    anchors.centerIn: parent
+                    anchors.verticalCenterOffset: -1
+                    width: 14; height: 14
+                    sourceSize: Qt.size(28, 28)
+                    source: visible ? wsCell.mainIcon : ""
+                    asynchronous: true
+                    smooth: true; mipmap: true
+                    opacity: isFocused ? 1.0 : 0.5
+                    Behavior on opacity { NumberAnimation { duration: 200 } }
+                }
+                Text {
+                    visible: root.workspaceStyle === "icons" && wsCell.mainIcon === ""
+                    anchors.centerIn: parent
+                    anchors.verticalCenterOffset: -1
+                    text: wsCell.mainApp !== "" ? wsCell.mainApp.split(".").pop().charAt(0).toUpperCase()
+                        : wsCell.wins.length > 0 ? "?" : String.fromCodePoint(0x00B7)
+                    color: isFocused ? root.ink
+                         : Qt.rgba(root.ink.r, root.ink.g, root.ink.b, wsCell.wins.length > 0 ? 0.55 : 0.3)
+                    font.family: root.mono
+                    font.pixelSize: 12
+                    font.weight: isFocused ? Font.Bold : Font.Normal
+                }
+                Rectangle {
+                    visible: root.workspaceStyle === "icons"
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.verticalCenterOffset: 8
+                    width: isFocused ? 12 : 0
+                    height: 2; radius: 1
+                    color: root.windowBorder
+                    Behavior on width { Anim { kind: "size"; ms: 250 } }
+                }
+
+                // ── KANJI style: 一 二 三 … numerals; focused in the window-border colour ──
+                Text {
+                    id: kanjiText
+                    visible: root.workspaceStyle === "kanji"
+                    anchors.centerIn: parent
+                    text: wsWidget.kanji(wsCell.wsId)
+                    color: isFocused  ? Qt.lighter(root.windowBorder, 1.3)
+                         : isOccupied ? Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.75)
+                                      : Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.3)
+                    font.family: "Noto Sans CJK JP"
+                    font.pixelSize: isFocused ? 14 : 13
+                    font.weight: isFocused ? Font.Bold : Font.Normal
                     Behavior on color { CAnim { ms: 200 } }
                 }
 

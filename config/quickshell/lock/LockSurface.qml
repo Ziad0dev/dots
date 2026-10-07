@@ -62,7 +62,7 @@ Item {
         // inner corner radius = radius - border.width = rounding + thickness - inset
         radius: rounding + over + thickness
     }
-    FrameBand { inset: root.frameThickness + 2; rounding: root.frameRounding; thickness: root.frameThickness; border.color: theme.color01 }   // the window-border colour, as on the bar
+    FrameBand { inset: root.frameThickness + 2; rounding: root.frameRounding; thickness: root.frameThickness; border.color: theme.frameEdge }   // the window-border colour, as on the bar
     FrameBand { inset: root.frameThickness; rounding: root.frameRounding; thickness: root.frameThickness; border.color: theme.bg }
 
     // ── clock ──

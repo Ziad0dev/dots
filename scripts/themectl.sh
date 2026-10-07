@@ -15,6 +15,9 @@ red green yellow blue magenta cyan pink"
 
 DERIVED_KEYS="dim muted surface accent_dim accent_container"
 
+# substituted verbatim (no _hex/_rgb variants)
+RAW_KEYS="border_colors"
+
 mix() {
     local a="${1#\#}" b="${2#\#}" w="$3" i ca cb r out="#"
     for i in 0 2 4; do
@@ -86,6 +89,7 @@ render_all() {
 
     varlist=""
     for k in $PALETTE_KEYS $DERIVED_KEYS; do varlist="$varlist\${$k}\${${k}_hex}\${${k}_rgb}"; done
+    for k in $RAW_KEYS; do varlist="$varlist\${$k}"; done
 
     mkdir -p "$STATE"
     for t in "$TPL"/*.in; do
@@ -105,6 +109,14 @@ render_all() {
             accent_dim=$(mix "$accent" "$background" 25)
             # shellcheck disable=SC2034
             accent_container=$(mix "$accent" "$background" 72)
+            # Hyprland active border stops: color0 -> color1, or with an optional
+            # `border` key, color0 -> border -> color0 (fades out at both ends)
+            # shellcheck disable=SC2034,SC2154
+            if [ -n "${border:-}" ]; then
+                border_colors="\"rgb(${color0#\#})\", \"rgb(${border#\#})\", \"rgb(${color0#\#})\""
+            else
+                border_colors="\"rgb(${color0#\#})\", \"rgb(${color1#\#})\""
+            fi
             for k in $PALETTE_KEYS $DERIVED_KEYS; do
                 h="${!k#\#}"
                 printf -v "${k}_hex" "%s" "$h"
