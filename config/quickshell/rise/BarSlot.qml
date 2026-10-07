@@ -449,10 +449,16 @@ PanelWindow {
                     MouseArea {
                         anchors.fill: parent
                         hoverEnabled: true; cursorShape: Qt.PointingHandCursor
+                        // Caelestia-style: hover opens the calendar popout, click pins it
+                        onEntered: {
+                            barSlot.root.calendarTick++;
+                            barSlot.root.popout.hoverOpen("calendarVisible", parent)
+                        }
+                        onExited: barSlot.root.popout.hoverLeave()
                         onClicked: {
                             barSlot.root.activatePopupScreen(barSlot.screen)
                             barSlot.root.calendarTick++;
-                            barSlot.root.calendarVisible = !barSlot.root.calendarVisible
+                            barSlot.root.popout.click("calendarVisible")
                         }
                     }
                 }

@@ -47,7 +47,7 @@ Item {
             Column {
                 id: placeCol
                 x: 16
-                DText {
+                GText {
                     text: wt.wx ? (wt.wx.place || "Here") : ""
                     color: wt.dash.onSurface
                     font.pointSize: 28; font.weight: Font.DemiBold
@@ -66,17 +66,18 @@ Item {
                     delegate: Rectangle {
                         required property var modelData
                         width: sunRow.implicitWidth + 24; height: 36
-                        radius: 18
-                        color: wt.dash.secondaryContainer
+                        radius: 2
+                        color: "transparent"
+                        border.color: wt.dash.outlineVariant; border.width: 1
                         Row {
                             id: sunRow
                             anchors.centerIn: parent
                             spacing: 6
-                            IconText { text: parent.parent.modelData.icon; color: wt.dash.onSecondaryContainer; font.pointSize: 14 }
+                            IconText { text: parent.parent.modelData.icon; color: wt.dash.blood; font.pointSize: 14 }
                             DText {
                                 anchors.verticalCenter: parent.verticalCenter
                                 text: parent.parent.modelData.text
-                                color: wt.dash.onSecondaryContainer
+                                color: wt.dash.bone
                                 font.weight: Font.Medium
                             }
                         }
@@ -89,8 +90,9 @@ Item {
         Rectangle {
             width: parent.width
             height: 132
-            radius: 56
+            radius: 2
             color: wt.dash.surfaceContainer
+            border.color: wt.dash.outlineVariant; border.width: 1
             Row {
                 anchors.left: parent.left; anchors.leftMargin: 32
                 anchors.verticalCenter: parent.verticalCenter
@@ -153,8 +155,9 @@ Item {
                     required property var modelData
                     width: (detailRow.width - 5 * detailRow.spacing) / 6
                     height: 60
-                    radius: 12
+                    radius: 2
                     color: wt.dash.surfaceContainer
+                    border.color: wt.dash.outlineVariant; border.width: 1
                     Row {
                         anchors.left: parent.left; anchors.leftMargin: 12
                         anchors.verticalCenter: parent.verticalCenter
@@ -183,7 +186,7 @@ Item {
             }
         }
 
-        DText {
+        GText {
             leftPadding: 12
             topPadding: 4
             text: "3-day forecast"
@@ -203,8 +206,9 @@ Item {
                     required property int index
                     width: (fcRow.width - (wt.wx.forecast.length - 1) * fcRow.spacing) / Math.max(1, wt.wx.forecast.length)
                     height: fcCol.implicitHeight + 24
-                    radius: 16
+                    radius: 2
                     color: wt.dash.surfaceContainer
+                    border.color: wt.dash.outlineVariant; border.width: 1
                     Row {
                         id: fcCol
                         anchors.centerIn: parent

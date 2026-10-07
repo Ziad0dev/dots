@@ -177,14 +177,14 @@ Item {
         }
     }
 
-    TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText }
+    TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText; popout: "brightnessVisible" }
 
     MouseArea {
         anchors.fill: parent
         hoverEnabled: true; cursorShape: Qt.PointingHandCursor
         onEntered: { if (rootMod.hasBacklight) tip.show() }
         onExited:  { tip.hide() }
-        onClicked: { tip.hide(); root.brightnessVisible = !root.brightnessVisible }
+        onClicked: { tip.hide(); root.popout.click("brightnessVisible") }
         onWheel: (e) => {
             rootMod.runBrightnessStep(e.angleDelta.y > 0)
         }

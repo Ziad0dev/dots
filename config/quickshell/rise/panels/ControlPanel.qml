@@ -217,7 +217,7 @@ PanelWindow {
             }
             Grid {
                 width: parent.width
-                columns: 4
+                columns: 3
                 columnSpacing: 6
                 rowSpacing: 6
                 Repeater {
@@ -226,7 +226,7 @@ PanelWindow {
                         required property string modelData
                         readonly property bool on: root.barColor === modelData
                         readonly property bool hovered: _cma.containsMouse
-                        width: root.evenW((col.width - 18) / 4)
+                        width: root.evenW((col.width - 12) / 3)
                         height: 24
                         radius: root.tileRadius
                         color: root.paletteColor(modelData)
@@ -240,7 +240,7 @@ PanelWindow {
                         }
                         UiText {
                             anchors.centerIn: parent
-                            text: modelData === "foreground" ? "FG" : modelData.slice(-2)
+                            text: modelData === "foreground" ? "FG" : modelData === "border" ? "WB" : modelData.slice(-2)
                             color: root.paletteContrastColor(modelData)
                             font.family: root.mono
                             font.pixelSize: 9
@@ -734,7 +734,11 @@ PanelWindow {
                         { label: "Segments",  mode: "segments"  },
                         { label: "Occupancy", mode: "occupancy" },
                         { label: "Icons",     mode: "icons"     },
-                        { label: "Kanji",     mode: "kanji"     }
+                        { label: "Kanji",     mode: "kanji"     },
+                        { label: "Runes",     mode: "runes"     },
+                        { label: "Planets",   mode: "planets"   },
+                        { label: "Roman",     mode: "roman"     },
+                        { label: "Lunar",     mode: "lunar"     }
                     ]
                     Repeater {
                         model: wsStyleRow.opts

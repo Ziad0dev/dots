@@ -35,9 +35,9 @@ Item {
                 anchors.margins: -(4 + thickness + waveAmp)
                 startAngle: 180
                 sweep: 180
-                thickness: 6
+                thickness: 3
                 value: mc.progress
-                color: mc.dash.primary
+                color: mc.dash.blood
                 trackColor: mc.dash.secondaryContainer
                 wavy: true
                 waveCount: 8
@@ -50,6 +50,7 @@ Item {
                 width: parent.width - 2 * y; height: width
                 radius: width / 2
                 color: mc.dash.surfaceContainerHigh
+                border.color: mc.dash.outlineVariant; border.width: 1
                 IconText {
                     anchors.centerIn: parent
                     visible: coverImg.status !== Image.Ready
@@ -83,30 +84,31 @@ Item {
             }
         }
 
-        DText {
+        GText {
             width: parent.width - 32
             anchors.horizontalCenter: parent.horizontalCenter
             horizontalAlignment: Text.AlignHCenter
             topPadding: 12
-            text: mc.player ? (mc.player.trackTitle || "Unknown title") : "No media"
-            color: mc.dash.primary
-            font.pointSize: 14; font.weight: Font.Medium
+            text: mc.player ? (mc.player.trackTitle || "Unknown title") : "silence"
+            color: mc.dash.bone
+            font.pointSize: 16
         }
         DText {
             width: parent.width - 32
             anchors.horizontalCenter: parent.horizontalCenter
             horizontalAlignment: Text.AlignHCenter
             topPadding: 8
-            text: mc.player ? (mc.player.trackAlbum || "Unknown album") : "No media"
-            color: mc.dash.outline
+            text: mc.player ? (mc.player.trackAlbum || "Unknown album") : ""
+            color: mc.dash.ash
+            font.italic: true
         }
         DText {
             width: parent.width - 32
             anchors.horizontalCenter: parent.horizontalCenter
             horizontalAlignment: Text.AlignHCenter
             topPadding: 8
-            text: mc.player ? (mc.player.trackArtist || "Unknown artist") : "No media"
-            color: mc.dash.secondary
+            text: mc.player ? (mc.player.trackArtist || "Unknown artist") : ""
+            color: mc.dash.bloodText
             font.pointSize: 13
         }
 

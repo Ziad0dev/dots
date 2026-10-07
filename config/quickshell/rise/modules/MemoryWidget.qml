@@ -168,7 +168,7 @@ Item {
         }
     }
 
-    TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText }
+    TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText; popout: "memVisible" }
 
     Process { id: memTui; command: ["bash", "-c", "ghostty --class=com.dots.float.lg -e btop"] }
 
@@ -182,6 +182,6 @@ Item {
         onEntered: tip.show()
         onExited: { tip.hide() }
         onClicked: function (e) {
-            if (e.button === Qt.RightButton) { memTui.running = false; memTui.running = true; return } tip.hide(); root.memVisible = !root.memVisible }
+            if (e.button === Qt.RightButton) { memTui.running = false; memTui.running = true; return } tip.hide(); root.popout.click("memVisible") }
     }
 }

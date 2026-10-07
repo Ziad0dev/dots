@@ -1,31 +1,33 @@
 # Format: quote text | author
 # Empty lines and lines starting with # are ignored.
-The only way to do great work is to love what you do. | Steve Jobs
-Believe you can and you're halfway there. | Theodore Roosevelt
-Start where you are. Use what you have. Do what you can. | Arthur Ashe
-The secret of getting ahead is getting started. | Mark Twain
-Dream big and dare to fail. | Norman Vaughan
-It does not matter how slowly you go as long as you do not stop. | Confucius
-Change your thoughts and you change your world. | Norman Vincent Peale
-Whether you think you can or you think you can't, you're right. | Henry Ford
-The best way to predict the future is to create it. | Peter Drucker
-If you can dream it, you can do it. | Walt Disney
-Imagination is more important than knowledge. | Albert Einstein
-The important thing is not to stop questioning. | Albert Einstein
-Logic will get you from A to Z; imagination will get you everywhere. | Albert Einstein
-I have not failed. I've just found 10,000 ways that won't work. | Thomas Edison
-An investment in knowledge pays the best interest. | Benjamin Franklin
-Innovation distinguishes between a leader and a follower. | Steve Jobs
-If you want to find the secrets of the universe, think in terms of energy, frequency and vibration. | Nikola Tesla
-I don't care that they stole my idea. I care that they don't have any of their own. | Nikola Tesla
-Of all things, I liked books best. | Nikola Tesla
-The present is theirs; the future, for which I really worked, is mine. | Nikola Tesla
-A computer would deserve to be called intelligent if it could deceive a human into believing that it was human. | Alan Turing
-We can only see a short distance ahead, but we can see plenty there that needs to be done. | Alan Turing
-What is proved now was once only imagined. | William Blake
-Look deep into nature, and then you will understand everything better. | Albert Einstein
-The supreme art of war is to subdue the enemy without fighting. | Sun Tzu
-The measure of a man is what he does with power. | Plato
-If you want to test a man's character, give him power. | Abraham Lincoln
-The unexamined life is not worth living. | Socrates
-Man is condemned to be free. | Jean-Paul Sartre
+That is not dead which can eternal lie, and with strange aeons even death may die. | H. P. Lovecraft
+The oldest and strongest emotion of mankind is fear, and the oldest and strongest kind of fear is fear of the unknown. | H. P. Lovecraft
+As above, so below. | The Emerald Tablet
+Do what thou wilt shall be the whole of the Law. | Aleister Crowley
+Every man and every woman is a star. | Aleister Crowley
+If you gaze long into an abyss, the abyss also gazes into you. | Friedrich Nietzsche
+One must still have chaos in oneself to give birth to a dancing star. | Friedrich Nietzsche
+Better to reign in Hell, than serve in Heav'n. | John Milton
+The mind is its own place, and in itself can make a Heav'n of Hell, a Hell of Heav'n. | John Milton
+Abandon all hope, ye who enter here. | Dante Alighieri
+All that we see or seem is but a dream within a dream. | Edgar Allan Poe
+Deep into that darkness peering, long I stood there wondering, fearing. | Edgar Allan Poe
+The road of excess leads to the palace of wisdom. | William Blake
+If the doors of perception were cleansed every thing would appear to man as it is, infinite. | William Blake
+Tyger Tyger, burning bright, in the forests of the night. | William Blake
+The finest trick of the devil is to persuade you that he does not exist. | Charles Baudelaire
+I am the spirit that ever denies. | Goethe, Faust
+Part of that power which would the evil ever do, and ever does the good. | Goethe, Faust
+Hell is empty and all the devils are here. | William Shakespeare
+By the pricking of my thumbs, something wicked this way comes. | William Shakespeare
+Fair is foul, and foul is fair: hover through the fog and filthy air. | William Shakespeare
+There are more things in heaven and earth, Horatio, than are dreamt of in your philosophy. | William Shakespeare
+Out of the night that covers me, black as the pit from pole to pole. | William Ernest Henley
+I am the master of my fate, I am the captain of my soul. | William Ernest Henley
+Nothing is true, everything is permitted. | Hassan-i Sabbah
+Solve et coagula. | the alchemists
+Visita interiora terrae, rectificando invenies occultum lapidem. | the alchemists
+Memento mori. | the Romans
+Mors certa, hora incerta. | the Romans
+Per aspera ad astra. | the Romans
+Know thyself. | the Delphic oracle

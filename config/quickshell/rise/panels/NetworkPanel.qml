@@ -388,827 +388,238 @@ PanelWindow {
 
     property real reveal: root.networkVisible ? 1 : 0
     Behavior on reveal {
-        Anim { kind: root.networkVisible ? "spatial" : "exit" }
+        Anim { kind: "effects" }
     }
     visible: reveal > 0.001
-    WlrLayershell.keyboardFocus: root.networkVisible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+        || (root.popout.last === "networkVisible" && root.popout.shown)
+    WlrLayershell.keyboardFocus: root.networkVisible && !root.popout.hoverMode
+        ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+    mask: Region {
+        readonly property bool hover: netPanel.root.popout.hoverMode
+        readonly property int gap: netPanel.root.popout.gap
+        x: hover ? popClip.x : 0
+        y: hover ? popClip.y - (netPanel.root.popout.barOnTop ? gap : 0) : 0
+        width: hover ? popClip.width : netPanel.width
+        height: hover ? popClip.height + gap : netPanel.height
+    }
 
     MouseArea { anchors.fill: parent; onClicked: root.networkVisible = false }
 
-    FrameCard { root: netPanel.root; card: card; reveal: netPanel.reveal }
-    Rectangle {
-        id: card
-        width: 300
-        height: col.implicitHeight + 24
-        radius: reveal > 0.001 ? root.pillRadius : 0
-        color: root.frameCardBg
-        border.color: root.pillBorder
-        border.width: root.frameCardBorderW
-        PillShadow { theme: root ; visible: root.styleShadow && !root.frameOn }
+    PopoutClip {
+        id: popClip
+        root: netPanel.root
+        flag: "networkVisible"
+        card: card
+        Rectangle {
+            id: card
+            width: 300
+            height: col.implicitHeight + 24
+            radius: reveal > 0.001 ? root.pillRadius : 0
+            color: "transparent"
+            border.color: root.pillBorder
+            border.width: 0
 
-        x: Math.round(Math.max(6, Math.min(root.networkBarX - width / 2, parent.width - width - 6)))
-        y: root.barPosition === "bottom" ? (parent.height - barBottom - gap - height) : (barBottom + gap)
-        opacity: netPanel.reveal
-        transformOrigin: root.barPosition === "bottom" ? Item.Bottom : Item.Top
-        scale: root.motionHover ? (0.92 + 0.08 * netPanel.reveal) : 1
-        focus: root.networkVisible
+            x: popClip.cardX
+            y: popClip.cardY
+            opacity: netPanel.reveal
+            focus: root.networkVisible
 
-        Keys.onPressed: function(event) {
-            if (event.key === Qt.Key_Escape) {
-                if (netPanel.pendingForgetKey !== "")
+            Keys.onPressed: function(event) {
+                if (event.key === Qt.Key_Escape) {
+                    if (netPanel.pendingForgetKey !== "")
+                        netPanel.cancelForget()
+                    else if (netPanel.selectedNetworkKey !== "")
+                        netPanel.selectedNetworkKey = ""
+                    else
+                        root.networkVisible = false
+                    event.accepted = true
+                    return
+                }
+
+                if (netPanel.nmPasswordSsid !== "")
+                    return
+
+                var entries = netPanel.shownNetworks
+                if (entries.length === 0)
+                    return
+
+                if (event.key === Qt.Key_Down) {
+                    netPanel.keyboardIndex = (netPanel.keyboardIndex + 1) % entries.length
+                    Qt.callLater(netPanel.ensureKeyboardNetworkVisible)
+                    event.accepted = true
+                } else if (event.key === Qt.Key_Up) {
+                    netPanel.keyboardIndex = netPanel.keyboardIndex <= 0
+                        ? entries.length - 1 : netPanel.keyboardIndex - 1
+                    Qt.callLater(netPanel.ensureKeyboardNetworkVisible)
+                    event.accepted = true
+                } else if (event.key === Qt.Key_Right) {
+                    if (netPanel.keyboardIndex >= 0)
+                        netPanel.selectedNetworkKey = netPanel.networkKey(entries[netPanel.keyboardIndex])
+                    event.accepted = true
+                } else if (event.key === Qt.Key_Left) {
                     netPanel.cancelForget()
-                else if (netPanel.selectedNetworkKey !== "")
                     netPanel.selectedNetworkKey = ""
-                else
-                    root.networkVisible = false
-                event.accepted = true
-                return
-            }
-
-            if (netPanel.nmPasswordSsid !== "")
-                return
-
-            var entries = netPanel.shownNetworks
-            if (entries.length === 0)
-                return
-
-            if (event.key === Qt.Key_Down) {
-                netPanel.keyboardIndex = (netPanel.keyboardIndex + 1) % entries.length
-                Qt.callLater(netPanel.ensureKeyboardNetworkVisible)
-                event.accepted = true
-            } else if (event.key === Qt.Key_Up) {
-                netPanel.keyboardIndex = netPanel.keyboardIndex <= 0
-                    ? entries.length - 1 : netPanel.keyboardIndex - 1
-                Qt.callLater(netPanel.ensureKeyboardNetworkVisible)
-                event.accepted = true
-            } else if (event.key === Qt.Key_Right) {
-                if (netPanel.keyboardIndex >= 0)
-                    netPanel.selectedNetworkKey = netPanel.networkKey(entries[netPanel.keyboardIndex])
-                event.accepted = true
-            } else if (event.key === Qt.Key_Left) {
-                netPanel.cancelForget()
-                netPanel.selectedNetworkKey = ""
-                event.accepted = true
-            } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                if (netPanel.keyboardIndex >= 0)
-                    netPanel.activateNetwork(entries[netPanel.keyboardIndex])
-                event.accepted = true
-            }
-        }
-
-        MouseArea { anchors.fill: parent; onClicked: {} }
-
-        Column {
-            id: col
-            anchors.fill: parent
-            anchors.margins: 12
-            spacing: 8
-
-            // ── header ──
-            Item {
-                width: parent.width
-                height: 24
-                UiText {
-                    anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
-                    text: "Network"
-                    color: root.ink; font.family: root.mono; font.pixelSize: 13
-                    font.letterSpacing: 2; font.weight: Font.Medium
-                }
-                UiText {
-                    anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
-                    text: "✕"; color: closeMa.containsMouse ? root.seal : root.sumi; font.pixelSize: 12
-                    Behavior on color { CAnim { ms: 120 } }
-                    MouseArea { id: closeMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: root.networkVisible = false }
+                    event.accepted = true
+                } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                    if (netPanel.keyboardIndex >= 0)
+                        netPanel.activateNetwork(entries[netPanel.keyboardIndex])
+                    event.accepted = true
                 }
             }
 
-            Rectangle { width: parent.width; height: 1; color: root.sep }
-
-            // ── status ──
-            Item {
-                width: parent.width
-                height: 30
-                UiText {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    anchors.top: parent.top
-                    text: {
-                        if (netPanel.mode === "wifi")     return netPanel.signal + "%"
-                        if (netPanel.mode === "ethernet") return "Connected"
-                        return "Offline"
-                    }
-                    color: netPanel.mode === "none" ? root.sumi : root.seal
-                    font.family: root.mono; font.pixelSize: 11; font.weight: Font.Medium
-                }
-                Rectangle {
-                    anchors.bottom: parent.bottom
-                    width: parent.width; height: 8; radius: 4
-                    color: root.fillActive
-                    Rectangle {
-                        width: parent.width * (netPanel.mode === "wifi" ? netPanel.signal / 100 : (netPanel.mode === "ethernet" ? 1 : 0))
-                        height: parent.height; radius: 4; color: root.seal
-                        Behavior on width { Anim { kind: "size"; ms: 300 } }
-                    }
-                }
-            }
-
-            // ── details ──
-            Column {
-                width: parent.width
-                spacing: 4
-                Row {
-                    width: parent.width
-                    visible: netPanel.mode === "wifi"
-                    UiText { text: "SSID"; color: root.sumiHi; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.4 }
-                    UiText { text: netPanel.ssid; color: root.ink; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.6; elide: Text.ElideRight }
-                }
-                Row {
-                    width: parent.width
-                    UiText { text: "Type"; color: root.sumiHi; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.4 }
-                    UiText {
-                        text: netPanel.mode === "wifi" ? "Wi-Fi" : (netPanel.mode === "ethernet" ? "Ethernet" : "—")
-                        color: root.ink; font.family: root.mono; font.pixelSize: 11
-                    }
-                }
-                Row {
-                    width: parent.width
-                    visible: netPanel.iface !== ""
-                    UiText { text: "Interface"; color: root.sumiHi; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.4 }
-                    UiText { text: netPanel.iface; color: root.ink; font.family: root.mono; font.pixelSize: 11 }
-                }
-                Row {
-                    width: parent.width
-                    visible: netPanel.ipAddr !== ""
-                    UiText { text: "IP"; color: root.sumiHi; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.4 }
-                    UiText { text: netPanel.ipAddr; color: root.ink; font.family: root.mono; font.pixelSize: 11 }
-                }
-                Row {
-                    width: parent.width
-                    visible: netPanel.mode === "wifi" && netPanel.freq !== ""
-                    UiText { text: "Frequency"; color: root.sumiHi; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.4 }
-                    UiText { text: netPanel.freq; color: root.ink; font.family: root.mono; font.pixelSize: 11 }
-                }
-                Row {
-                    width: parent.width
-                    visible: netPanel.linkSpeed !== ""
-                    UiText { text: "Link speed"; color: root.sumiHi; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.4 }
-                    UiText { text: netPanel.linkSpeed; color: root.ink; font.family: root.mono; font.pixelSize: 11 }
-                }
-            }
-
-            Rectangle { width: parent.width; height: 1; color: root.sep }
+            MouseArea { anchors.fill: parent; onClicked: {} }
 
             Column {
-                width: parent.width
-                spacing: 4
+                id: col
+                anchors.fill: parent
+                anchors.margins: 12
+                spacing: 8
 
+                // ── header ──
                 Item {
                     width: parent.width
                     height: 24
-
                     UiText {
-                        anchors.left: parent.left
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: "SPEED TEST"
-                        color: root.sumiHi
-                        font.family: root.mono
-                        font.pixelSize: 10
-                        font.letterSpacing: 1
+                        anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
+                        text: "Network"
+                        color: root.ink; font.family: root.gothic; font.pixelSize: 20
+                        font.letterSpacing: 0.5; font.weight: Font.Medium
                     }
-
-                    // action: a real button in the panel's hover idiom (network-row style)
-                    Rectangle {
-                        anchors.right: parent.right
-                        anchors.verticalCenter: parent.verticalCenter
-                        width: 54
-                        height: 22
-                        radius: root.tileRadius
-                        color: speedTestMa.containsMouse ? root.fillHover : root.fillIdle
-                        border.color: speedTestMa.containsMouse ? root.seal : root.sep
-                        border.width: 1
+                    UiText {
+                        anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
+                        text: "✕"; color: closeMa.containsMouse ? root.seal : root.sumi; font.pixelSize: 12
                         Behavior on color { CAnim { ms: 120 } }
+                        MouseArea { id: closeMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: root.networkVisible = false }
+                    }
+                }
+
+                GrimRule { root: netPanel.root; width: parent.width }
+
+                // ── status ──
+                Item {
+                    width: parent.width
+                    height: 30
+                    UiText {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        anchors.top: parent.top
+                        text: {
+                            if (netPanel.mode === "wifi")     return netPanel.signal + "%"
+                            if (netPanel.mode === "ethernet") return "Connected"
+                            return "Offline"
+                        }
+                        color: netPanel.mode === "none" ? root.sumi : root.seal
+                        font.family: root.mono; font.pixelSize: 11; font.weight: Font.Medium
+                    }
+                    Rectangle {
+                        anchors.bottom: parent.bottom
+                        width: parent.width; height: 8; radius: 4
+                        color: root.fillActive
+                        Rectangle {
+                            width: parent.width * (netPanel.mode === "wifi" ? netPanel.signal / 100 : (netPanel.mode === "ethernet" ? 1 : 0))
+                            height: parent.height; radius: 4; color: root.seal
+                            Behavior on width { Anim { kind: "size"; ms: 300 } }
+                        }
+                    }
+                }
+
+                // ── details ──
+                Column {
+                    width: parent.width
+                    spacing: 4
+                    Row {
+                        width: parent.width
+                        visible: netPanel.mode === "wifi"
+                        UiText { text: "SSID"; color: root.sumiHi; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.4 }
+                        UiText { text: netPanel.ssid; color: root.ink; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.6; elide: Text.ElideRight }
+                    }
+                    Row {
+                        width: parent.width
+                        UiText { text: "Type"; color: root.sumiHi; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.4 }
+                        UiText {
+                            text: netPanel.mode === "wifi" ? "Wi-Fi" : (netPanel.mode === "ethernet" ? "Ethernet" : "—")
+                            color: root.ink; font.family: root.mono; font.pixelSize: 11
+                        }
+                    }
+                    Row {
+                        width: parent.width
+                        visible: netPanel.iface !== ""
+                        UiText { text: "Interface"; color: root.sumiHi; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.4 }
+                        UiText { text: netPanel.iface; color: root.ink; font.family: root.mono; font.pixelSize: 11 }
+                    }
+                    Row {
+                        width: parent.width
+                        visible: netPanel.ipAddr !== ""
+                        UiText { text: "IP"; color: root.sumiHi; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.4 }
+                        UiText { text: netPanel.ipAddr; color: root.ink; font.family: root.mono; font.pixelSize: 11 }
+                    }
+                    Row {
+                        width: parent.width
+                        visible: netPanel.mode === "wifi" && netPanel.freq !== ""
+                        UiText { text: "Frequency"; color: root.sumiHi; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.4 }
+                        UiText { text: netPanel.freq; color: root.ink; font.family: root.mono; font.pixelSize: 11 }
+                    }
+                    Row {
+                        width: parent.width
+                        visible: netPanel.linkSpeed !== ""
+                        UiText { text: "Link speed"; color: root.sumiHi; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.4 }
+                        UiText { text: netPanel.linkSpeed; color: root.ink; font.family: root.mono; font.pixelSize: 11 }
+                    }
+                }
+
+                Rectangle { width: parent.width; height: 1; color: root.sep }
+
+                Column {
+                    width: parent.width
+                    spacing: 4
+
+                    Item {
+                        width: parent.width
+                        height: 24
 
                         UiText {
-                            anchors.centerIn: parent
-                            text: speedTest.running ? "stop" : "start"
-                            color: speedTestMa.enabled ? root.seal : root.sumi
+                            anchors.left: parent.left
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: "SPEED TEST"
+                            color: root.sumiHi
                             font.family: root.mono
-                            font.pixelSize: 11
+                            font.pixelSize: 10
+                            font.letterSpacing: 1
                         }
 
-                        MouseArea {
-                            id: speedTestMa
-                            anchors.fill: parent
-                            enabled: speedTest.running || netPanel.mode !== "none"
-                            hoverEnabled: true
-                            cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-                            onClicked: {
-                                if (speedTest.running) {
-                                    speedTest.cancel()
-                                    netPanel.speedTestAttempted = false
-                                } else {
-                                    netPanel.speedTestAttempted = true
-                                    speedTest.start()
-                                }
-                            }
-                        }
-                    }
-                }
-
-                Row {
-                    width: parent.width
-                    visible: netPanel.speedDetailsVisible
-                    UiText { text: "Edge"; color: root.sumiHi; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.4 }
-                    UiText { text: netPanel.edgeText(); color: root.ink; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.6; elide: Text.ElideRight }
-                }
-                Item {
-                    width: parent.width; height: 16
-                    visible: netPanel.speedDetailsVisible
-                    UiText {
-                        id: pingLabel
-                        anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
-                        text: "Ping"; color: root.sumiHi; font.family: root.mono; font.pixelSize: 11
-                        width: parent.width * 0.4
-                    }
-                    UiText {
-                        anchors.left: pingLabel.right; anchors.right: pingCheck.left; anchors.rightMargin: 6
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: speedTest.phase === "latency" ? "Testing…" : (netPanel.speedRunOk ? netPanel.formatPing(speedTest.pingMs) : "—")
-                        color: root.ink; font.family: root.mono; font.pixelSize: 11; elide: Text.ElideRight
-                    }
-                    UiText {
-                        id: pingCheck
-                        anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
-                        text: "✓"; visible: speedTest.pingMs > 0 && netPanel.speedRunOk
-                        color: root.green; font.family: root.mono; font.pixelSize: 11
-                    }
-                }
-                Item {
-                    width: parent.width; height: 16
-                    visible: netPanel.speedDetailsVisible
-                    UiText {
-                        id: dlLabel
-                        anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
-                        text: "Download"; color: root.sumiHi; font.family: root.mono; font.pixelSize: 11
-                        width: parent.width * 0.4
-                    }
-                    UiText {
-                        anchors.left: dlLabel.right; anchors.right: dlCheck.left; anchors.rightMargin: 6
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: speedTest.phase === "download" ? "Testing…" : (netPanel.speedRunOk ? netPanel.formatMbps(speedTest.downloadMbps) : "—")
-                        color: (speedTest.downloadMbps > 0 && netPanel.speedRunOk) ? root.seal : root.ink
-                        font.family: root.mono; font.pixelSize: 11; elide: Text.ElideRight
-                    }
-                    UiText {
-                        id: dlCheck
-                        anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
-                        text: "✓"; visible: speedTest.downloadMbps > 0 && netPanel.speedRunOk
-                        color: root.green; font.family: root.mono; font.pixelSize: 11
-                    }
-                }
-                Item {
-                    width: parent.width; height: 16
-                    visible: netPanel.speedDetailsVisible
-                    UiText {
-                        id: ulLabel
-                        anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
-                        text: "Upload"; color: root.sumiHi; font.family: root.mono; font.pixelSize: 11
-                        width: parent.width * 0.4
-                    }
-                    UiText {
-                        anchors.left: ulLabel.right; anchors.right: ulCheck.left; anchors.rightMargin: 6
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: speedTest.phase === "upload" ? "Testing…" : (netPanel.speedRunOk ? netPanel.formatMbps(speedTest.uploadMbps) : "—")
-                        color: (speedTest.uploadMbps > 0 && netPanel.speedRunOk) ? root.indigo : root.ink
-                        font.family: root.mono; font.pixelSize: 11; elide: Text.ElideRight
-                    }
-                    UiText {
-                        id: ulCheck
-                        anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
-                        text: "✓"; visible: speedTest.uploadMbps > 0 && netPanel.speedRunOk
-                        color: root.green; font.family: root.mono; font.pixelSize: 11
-                    }
-                }
-
-                // animated height so the card grows/shrinks smoothly instead of snapping
-                Item {
-                    width: parent.width
-                    height: speedFooter.visible ? speedFooter.implicitHeight : 0
-                    clip: true
-                    Behavior on height { Anim { kind: "size"; ms: 250 } }
-
-                    UiText {
-                        id: speedFooter
-                        width: parent.width
-                        visible: speedTest.phase === "success" && netPanel.lastTestStamp !== ""
-                        text: "done · " + netPanel.lastTestStamp
-                        color: root.green
-                        font.family: root.mono
-                        font.pixelSize: 10
-                        font.letterSpacing: 1
-                    }
-                }
-            }
-
-            Rectangle { width: parent.width; height: 1; color: root.sep }
-
-            // ── DNS switcher ──
-            Column {
-                width: parent.width
-                spacing: 6
-
-                Item {
-                    width: parent.width
-                    height: 16
-
-                    UiText {
-                        id: dnsTitle
-                        anchors.left: parent.left
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: "DNS"
-                        color: root.sumiHi
-                        font.family: root.mono
-                        font.pixelSize: 10
-                        font.letterSpacing: 1
-                    }
-                    UiText {
-                        anchors.left: dnsTitle.right; anchors.leftMargin: 12
-                        anchors.right: parent.right
-                        anchors.verticalCenter: parent.verticalCenter
-                        horizontalAlignment: Text.AlignRight
-                        text: netPanel.dnsPending !== "" ? "applying…"
-                            : !netPanel.dnsManaged ? "unavailable"
-                            : netPanel.dnsInUse !== "" ? "using " + netPanel.dnsInUse : ""
-                        color: netPanel.dnsPending !== "" ? root.seal : root.sumiHi
-                        font.family: root.mono
-                        font.pixelSize: 10
-                        elide: Text.ElideLeft
-                    }
-                }
-
-                Grid {
-                    width: parent.width
-                    columns: 3
-                    spacing: 6
-
-                    Repeater {
-                        model: netPanel.dnsPresets
-                        delegate: Rectangle {
-                            required property var modelData
-                            width: (parent.width - 12) / 3
-                            height: 26
+                        // action: a real button in the panel's hover idiom (network-row style)
+                        Rectangle {
+                            anchors.right: parent.right
+                            anchors.verticalCenter: parent.verticalCenter
+                            width: 54
+                            height: 22
                             radius: root.tileRadius
-                            readonly property bool active: netPanel.dnsActive === modelData.v4
-                            readonly property bool pending: netPanel.dnsPending === modelData.v4
-                            color: active ? root.fillActive : dnsMa.containsMouse ? root.fillHover : root.fillIdle
-                            border.color: active || pending || dnsMa.containsMouse ? root.seal : root.sep
+                            color: speedTestMa.containsMouse ? root.fillHover : root.fillIdle
+                            border.color: speedTestMa.containsMouse ? root.seal : root.sep
                             border.width: 1
-                            opacity: netPanel.dnsManaged ? 1 : 0.5
                             Behavior on color { CAnim { ms: 120 } }
 
                             UiText {
                                 anchors.centerIn: parent
-                                text: modelData.label
-                                color: parent.active || parent.pending ? root.seal : root.ink
+                                text: speedTest.running ? "stop" : "start"
+                                color: speedTestMa.enabled ? root.seal : root.sumi
                                 font.family: root.mono
-                                font.pixelSize: 10
+                                font.pixelSize: 11
                             }
+
                             MouseArea {
-                                id: dnsMa
+                                id: speedTestMa
                                 anchors.fill: parent
-                                enabled: netPanel.dnsManaged && netPanel.dnsPending === ""
+                                enabled: speedTest.running || netPanel.mode !== "none"
                                 hoverEnabled: true
                                 cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-                                onClicked: netPanel.applyDns(modelData)
-                            }
-                        }
-                    }
-                }
-
-                UiText {
-                    width: parent.width
-                    visible: netPanel.dnsError !== "" || netPanel.dnsActive === "custom"
-                    text: netPanel.dnsError !== "" ? netPanel.dnsError : "custom servers set on this connection"
-                    color: netPanel.dnsError !== "" ? root.sealRaw : root.sumiHi
-                    wrapMode: Text.Wrap
-                    font.family: root.mono
-                    font.pixelSize: 10
-                }
-            }
-
-            Rectangle { width: parent.width; height: 1; color: root.sep; visible: netPanel.hasWifi }
-
-            // ── wifi radio toggle ──
-            Item {
-                width: parent.width
-                height: 24
-                visible: netPanel.hasWifi
-                UiText {
-                    anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
-                    text: "Wi-Fi"
-                    color: root.ink; font.family: root.mono; font.pixelSize: 11
-                }
-                Rectangle {
-                    anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
-                    width: 50; height: 22; radius: 11
-                    color: !netPanel.wifiBlocked ? root.fillActive
-                                                 : wifiToggleMa.containsMouse ? root.fillHover
-                                                 : root.fillIdle
-                    border.color: (wifiToggleMa.containsMouse || !netPanel.wifiBlocked) ? root.seal : root.sep
-                    border.width: 1
-                    Behavior on color { CAnim { ms: 120 } }
-                    UiText {
-                        anchors.centerIn: parent
-                        text: netPanel.wifiBlocked ? "OFF" : "ON"
-                        color: !netPanel.wifiBlocked ? root.seal : root.sumi
-                        font.family: root.mono; font.pixelSize: 10; font.weight: Font.Medium
-                    }
-                    MouseArea {
-                        id: wifiToggleMa
-                        anchors.fill: parent; hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: netPanel.toggleWifi()
-                    }
-                }
-            }
-
-            // Available / saved profiles. Both views use the native
-            // NetworkManager objects on NixOS 4 and the iwctl snapshot on
-            // legacy installations.
-            Row {
-                width: parent.width
-                height: 28
-                spacing: 6
-                visible: netPanel.hasWifi && !netPanel.wifiBlocked && (!root.useNM || netPanel.nmAdapterReady)
-
-                Repeater {
-                    model: [
-                        { label: "Available", saved: false },
-                        { label: "Saved" + (netPanel.savedCount > 0 ? " (" + netPanel.savedCount + ")" : ""), saved: true }
-                    ]
-                    delegate: Rectangle {
-                        required property var modelData
-                        width: (parent.width - 6) / 2
-                        height: 28
-                        radius: root.tileRadius
-                        readonly property bool active: netPanel.savedOnly === modelData.saved
-                        color: active ? root.fillActive : tabMa.containsMouse ? root.fillHover : root.fillIdle
-                        border.color: active || tabMa.containsMouse ? root.seal : root.sep
-                        border.width: 1
-                        Behavior on color { CAnim { ms: 120 } }
-
-                        UiText {
-                            anchors.centerIn: parent
-                            text: modelData.label
-                            color: parent.active ? root.seal : root.ink
-                            font.family: root.mono
-                            font.pixelSize: 10
-                        }
-                        MouseArea {
-                            id: tabMa
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                netPanel.savedOnly = modelData.saved
-                                if (!modelData.saved) netPanel.scan()
-                            }
-                        }
-                    }
-                }
-            }
-
-            Item {
-                width: parent.width
-                height: 16
-                visible: netPanel.hasWifi && !netPanel.wifiBlocked && (!root.useNM || netPanel.nmAdapterReady)
-                UiText {
-                    anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
-                    text: netPanel.savedOnly ? "SAVED NETWORKS" : "AVAILABLE NETWORKS"
-                    color: root.sumiHi; font.family: root.mono; font.pixelSize: 10; font.letterSpacing: 1
-                }
-                UiText {
-                    anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
-                    visible: !netPanel.savedOnly
-                    text: netPanel.scanning ? "scanning…" : "rescan"
-                    color: rescanMa.containsMouse ? root.fillPrimaryHover : root.seal
-                    font.family: root.mono; font.pixelSize: 10
-                    Behavior on color { CAnim { ms: 120 } }
-                    MouseArea { id: rescanMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: netPanel.scan() }
-                }
-            }
-
-            // scrollable network list
-            Flickable {
-                id: networkFlick
-                width: parent.width
-                height: Math.min(netList.implicitHeight, 180)
-                contentHeight: netList.implicitHeight
-                clip: true
-                visible: netPanel.hasWifi && !netPanel.wifiBlocked && (!root.useNM || netPanel.nmAdapterReady)
-                boundsBehavior: Flickable.StopAtBounds
-
-                Column {
-                    id: netList
-                    width: parent.width
-                    spacing: 4
-
-                    Repeater {
-                        id: networkRepeater
-                        model: netPanel.shownNetworks
-                        delegate: Column {
-                            id: netTile
-                            required property var modelData
-                            required property int index
-                            width: netList.width
-                            spacing: 4
-                            readonly property bool expanded: netPanel.selectedNetworkKey === netPanel.networkKey(modelData)
-                            readonly property bool keyboardSelected: netPanel.keyboardIndex === index
-                            readonly property bool confirmingForget: netPanel.pendingForgetKey === netPanel.networkKey(modelData)
-
-                            Connections {
-                                target: root.useNM && modelData.network ? modelData.network : null
-                                function onConnectedChanged() {
-                                    if (modelData.network && modelData.network.connected)
-                                        netPanel.handleNmConnected(modelData.network)
-                                    netPanel.refreshNmNetworks()
-                                }
-                                function onKnownChanged() { netPanel.refreshNmNetworks() }
-                                function onStateChangingChanged() { netPanel.refreshNmNetworks() }
-                                function onSignalStrengthChanged() { netPanel.refreshNmNetworks() }
-                                function onConnectionFailed(reason) {
-                                    netPanel.handleNmConnectionFailed(modelData.network, reason)
-                                    netPanel.refreshNmNetworks()
-                                }
-                            }
-
-                            Rectangle {
-                                width: parent.width
-                                height: 30
-                                radius: root.tileRadius
-                                readonly property bool active: nma.containsMouse || netTile.expanded || netTile.keyboardSelected
-                                color: modelData.conn ? root.fillActive : active ? root.fillHover : root.fillIdle
-                                border.color: modelData.conn || active ? root.seal : root.sep
-                                border.width: 1
-                                Behavior on color { CAnim { ms: 120 } }
-
-                                Row {
-                                    anchors.left: parent.left; anchors.leftMargin: 8
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    spacing: 6
-                                    IconText {
-                                        text: modelData.sec === "open" ? "\uE898" : "\uE897"
-                                        font.pixelSize: 12
-                                        color: root.sumiHi
-                                        anchors.verticalCenter: parent.verticalCenter
+                                onClicked: {
+                                    if (speedTest.running) {
+                                        speedTest.cancel()
+                                        netPanel.speedTestAttempted = false
+                                    } else {
+                                        netPanel.speedTestAttempted = true
+                                        speedTest.start()
                                     }
-                                    UiText {
-                                        text: modelData.ssid
-                                        color: (nma.containsMouse || modelData.conn) ? root.seal : root.ink
-                                        font.family: root.mono; font.pixelSize: 11
-                                        font.weight: modelData.conn ? Font.Medium : Font.Normal
-                                        width: modelData.conn ? 116 : 170; elide: Text.ElideRight
-                                        anchors.verticalCenter: parent.verticalCenter
-                                    }
-                                    UiText {
-                                        visible: modelData.conn
-                                        text: "· Connected"
-                                        color: root.seal
-                                        font.family: root.mono; font.pixelSize: 9
-                                        anchors.verticalCenter: parent.verticalCenter
-                                    }
-                                }
-
-                                Row {
-                                    anchors.right: detailButton.left; anchors.rightMargin: 4
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    spacing: 8
-                                    UiText {
-                                        visible: modelData.known && !modelData.conn
-                                        text: netPanel.isNeverConnected(modelData) ? "profile" : "saved"
-                                        color: root.sumiHi
-                                        font.family: root.mono
-                                        font.pixelSize: 9
-                                    }
-                                    Row {
-                                        spacing: 2
-                                        Repeater {
-                                            model: 4
-                                            delegate: Rectangle {
-                                                required property int index
-                                                width: 3; height: 4 + index * 2; radius: 1
-                                                anchors.bottom: parent.bottom
-                                                color: index < modelData.sig
-                                                    ? (modelData.conn ? root.seal : root.ink)
-                                                    : Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.18)
-                                            }
-                                        }
-                                    }
-                                }
-
-                                MouseArea {
-                                    id: nma
-                                    anchors.left: parent.left; anchors.top: parent.top; anchors.bottom: parent.bottom
-                                    anchors.right: detailButton.left
-                                    hoverEnabled: true
-                                    cursorShape: Qt.PointingHandCursor
-                                    onEntered: netPanel.keyboardIndex = netTile.index
-                                    onClicked: netPanel.activateNetwork(modelData)
-                                }
-
-                                UiText {
-                                    id: detailButton
-                                    anchors.right: parent.right; anchors.rightMargin: 7
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    width: 16
-                                    horizontalAlignment: Text.AlignHCenter
-                                    text: netTile.expanded ? "⌃" : "›"
-                                    color: detailMa.containsMouse || netTile.expanded ? root.seal : root.sumiHi
-                                    font.family: root.mono; font.pixelSize: 13
-                                    MouseArea {
-                                        id: detailMa
-                                        anchors.fill: parent
-                                        hoverEnabled: true
-                                        cursorShape: Qt.PointingHandCursor
-                                        onEntered: netPanel.keyboardIndex = netTile.index
-                                        onClicked: netPanel.selectNetwork(modelData)
-                                    }
-                                }
-                            }
-
-                            Rectangle {
-                                width: parent.width
-                                height: netTile.expanded ? detailColumn.implicitHeight + 16 : 0
-                                visible: height > 0
-                                clip: true
-                                radius: root.tileRadius
-                                color: root.fillIdle
-                                border.color: root.sep
-                                border.width: netTile.expanded ? 1 : 0
-                                Behavior on height { Anim { kind: "size"; ms: 250 } }
-
-                                Column {
-                                    id: detailColumn
-                                    anchors.left: parent.left; anchors.right: parent.right
-                                    anchors.top: parent.top
-                                    anchors.margins: 8
-                                    spacing: 6
-
-                                    UiText {
-                                        width: parent.width
-                                        text: {
-                                            var details = [
-                                                netPanel.protectionLabel(modelData),
-                                                modelData.visible === false
-                                                    ? "Not currently visible"
-                                                    : "Signal " + (modelData.sig * 25) + "%"
-                                            ]
-                                            if (modelData.known)
-                                                details.push(netPanel.isNeverConnected(modelData)
-                                                    ? "Never connected" : "Saved")
-                                            return details.join(" · ")
-                                        }
-                                        color: root.sumiHi
-                                        font.family: root.mono; font.pixelSize: 10
-                                        wrapMode: Text.Wrap
-                                    }
-
-                                    Row {
-                                        width: parent.width
-                                        height: 26
-                                        spacing: 6
-
-                                        Rectangle {
-                                            width: modelData.known ? (parent.width - 6) / 2 : parent.width
-                                            height: parent.height
-                                            radius: root.tileRadius
-                                            color: networkActionMa.containsMouse ? root.fillHover : root.fillIdle
-                                            border.color: networkActionMa.containsMouse ? root.seal : root.sep
-                                            border.width: 1
-                                            UiText {
-                                                anchors.centerIn: parent
-                                                text: netTile.confirmingForget
-                                                    ? "Cancel"
-                                                    : modelData.conn ? "Disconnect" : modelData.known ? "Reconnect" : "Connect"
-                                                color: root.ink
-                                                font.family: root.mono; font.pixelSize: 10
-                                            }
-                                            MouseArea {
-                                                id: networkActionMa
-                                                anchors.fill: parent
-                                                hoverEnabled: true
-                                                cursorShape: Qt.PointingHandCursor
-                                                onClicked: {
-                                                    if (netTile.confirmingForget)
-                                                        netPanel.cancelForget()
-                                                    else
-                                                        netPanel.activateNetwork(modelData)
-                                                }
-                                            }
-                                        }
-
-                                        Rectangle {
-                                            visible: modelData.known
-                                            width: (parent.width - 6) / 2
-                                            height: parent.height
-                                            radius: root.tileRadius
-                                            color: forgetMa.containsMouse ? Qt.rgba(root.seal.r, root.seal.g, root.seal.b, 0.18) : root.fillIdle
-                                            border.color: forgetMa.containsMouse ? root.seal : root.sep
-                                            border.width: 1
-                                            UiText {
-                                                anchors.centerIn: parent
-                                                text: netTile.confirmingForget ? "Confirm" : "Forget"
-                                                color: forgetMa.containsMouse ? root.seal : root.ink
-                                                font.family: root.mono; font.pixelSize: 10
-                                            }
-                                            MouseArea {
-                                                id: forgetMa
-                                                anchors.fill: parent
-                                                hoverEnabled: true
-                                                cursorShape: Qt.PointingHandCursor
-                                                onClicked: netPanel.requestForget(modelData)
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    UiText {
-                        visible: !netPanel.scanning && netPanel.shownNetworks.length === 0
-                        width: netList.width; horizontalAlignment: Text.AlignHCenter
-                        text: netPanel.savedOnly ? "No saved networks" : "No networks found"
-                        color: Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.3)
-                        font.family: root.mono; font.pixelSize: 11
-                    }
-                    UiText {
-                        visible: netPanel.networkActionError !== ""
-                        width: netList.width
-                        text: netPanel.networkActionError
-                        color: root.seal
-                        wrapMode: Text.Wrap
-                        font.family: root.mono; font.pixelSize: 10
-                    }
-                }
-            }
-
-            Rectangle {
-                width: parent.width
-                height: visible ? 92 : 0
-                visible: root.useNM && netPanel.nmAdapterReady && netPanel.nmPasswordSsid !== ""
-                radius: root.tileRadius
-                color: root.fillIdle
-                border.color: netPanel.nmConnectionError !== "" ? root.sealRaw : root.seal
-                border.width: 1
-                clip: true
-
-                Column {
-                    anchors.fill: parent
-                    anchors.margins: 8
-                    spacing: 6
-
-                    UiText {
-                        width: parent.width
-                        text: netPanel.nmConnectionError !== ""
-                            ? netPanel.nmConnectionError
-                            : "Password for " + netPanel.nmPasswordSsid
-                        color: netPanel.nmConnectionError !== "" ? root.sealRaw : root.ink
-                        font.family: root.mono
-                        font.pixelSize: 10
-                        elide: Text.ElideRight
-                    }
-
-                    Rectangle {
-                        width: parent.width
-                        height: 24
-                        radius: root.tileRadius
-                        color: root.bg
-                        border.color: nmPasswordInput.activeFocus ? root.seal : root.sep
-                        border.width: 1
-
-                        TextInput {
-                            id: nmPasswordInput
-                            anchors.fill: parent
-                            anchors.leftMargin: 8
-                            anchors.rightMargin: 8
-                            verticalAlignment: TextInput.AlignVCenter
-                            text: netPanel.nmPasswordText
-                            echoMode: TextInput.Password
-                            color: root.ink
-                            selectionColor: root.seal
-                            selectedTextColor: root.paper
-                            font.family: root.mono
-                            font.pixelSize: 11
-                            clip: true
-                            enabled: !netPanel.nmConnecting
-                            onTextChanged: netPanel.nmPasswordText = text
-                            Keys.onPressed: function(event) {
-                                if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                                    netPanel.submitNmPassword()
-                                    event.accepted = true
-                                } else if (event.key === Qt.Key_Escape) {
-                                    netPanel.clearNmPassword()
-                                    event.accepted = true
                                 }
                             }
                         }
@@ -1216,105 +627,706 @@ PanelWindow {
 
                     Row {
                         width: parent.width
-                        height: 22
+                        visible: netPanel.speedDetailsVisible
+                        UiText { text: "Edge"; color: root.sumiHi; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.4 }
+                        UiText { text: netPanel.edgeText(); color: root.ink; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.6; elide: Text.ElideRight }
+                    }
+                    Item {
+                        width: parent.width; height: 16
+                        visible: netPanel.speedDetailsVisible
+                        UiText {
+                            id: pingLabel
+                            anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
+                            text: "Ping"; color: root.sumiHi; font.family: root.mono; font.pixelSize: 11
+                            width: parent.width * 0.4
+                        }
+                        UiText {
+                            anchors.left: pingLabel.right; anchors.right: pingCheck.left; anchors.rightMargin: 6
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: speedTest.phase === "latency" ? "Testing…" : (netPanel.speedRunOk ? netPanel.formatPing(speedTest.pingMs) : "—")
+                            color: root.ink; font.family: root.mono; font.pixelSize: 11; elide: Text.ElideRight
+                        }
+                        UiText {
+                            id: pingCheck
+                            anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
+                            text: "✓"; visible: speedTest.pingMs > 0 && netPanel.speedRunOk
+                            color: root.green; font.family: root.mono; font.pixelSize: 11
+                        }
+                    }
+                    Item {
+                        width: parent.width; height: 16
+                        visible: netPanel.speedDetailsVisible
+                        UiText {
+                            id: dlLabel
+                            anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
+                            text: "Download"; color: root.sumiHi; font.family: root.mono; font.pixelSize: 11
+                            width: parent.width * 0.4
+                        }
+                        UiText {
+                            anchors.left: dlLabel.right; anchors.right: dlCheck.left; anchors.rightMargin: 6
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: speedTest.phase === "download" ? "Testing…" : (netPanel.speedRunOk ? netPanel.formatMbps(speedTest.downloadMbps) : "—")
+                            color: (speedTest.downloadMbps > 0 && netPanel.speedRunOk) ? root.seal : root.ink
+                            font.family: root.mono; font.pixelSize: 11; elide: Text.ElideRight
+                        }
+                        UiText {
+                            id: dlCheck
+                            anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
+                            text: "✓"; visible: speedTest.downloadMbps > 0 && netPanel.speedRunOk
+                            color: root.green; font.family: root.mono; font.pixelSize: 11
+                        }
+                    }
+                    Item {
+                        width: parent.width; height: 16
+                        visible: netPanel.speedDetailsVisible
+                        UiText {
+                            id: ulLabel
+                            anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
+                            text: "Upload"; color: root.sumiHi; font.family: root.mono; font.pixelSize: 11
+                            width: parent.width * 0.4
+                        }
+                        UiText {
+                            anchors.left: ulLabel.right; anchors.right: ulCheck.left; anchors.rightMargin: 6
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: speedTest.phase === "upload" ? "Testing…" : (netPanel.speedRunOk ? netPanel.formatMbps(speedTest.uploadMbps) : "—")
+                            color: (speedTest.uploadMbps > 0 && netPanel.speedRunOk) ? root.indigo : root.ink
+                            font.family: root.mono; font.pixelSize: 11; elide: Text.ElideRight
+                        }
+                        UiText {
+                            id: ulCheck
+                            anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
+                            text: "✓"; visible: speedTest.uploadMbps > 0 && netPanel.speedRunOk
+                            color: root.green; font.family: root.mono; font.pixelSize: 11
+                        }
+                    }
+
+                    // animated height so the card grows/shrinks smoothly instead of snapping
+                    Item {
+                        width: parent.width
+                        height: speedFooter.visible ? speedFooter.implicitHeight : 0
+                        clip: true
+                        Behavior on height { Anim { kind: "size"; ms: 250 } }
+
+                        UiText {
+                            id: speedFooter
+                            width: parent.width
+                            visible: speedTest.phase === "success" && netPanel.lastTestStamp !== ""
+                            text: "done · " + netPanel.lastTestStamp
+                            color: root.green
+                            font.family: root.mono
+                            font.pixelSize: 10
+                            font.letterSpacing: 1
+                        }
+                    }
+                }
+
+                Rectangle { width: parent.width; height: 1; color: root.sep }
+
+                // ── DNS switcher ──
+                Column {
+                    width: parent.width
+                    spacing: 6
+
+                    Item {
+                        width: parent.width
+                        height: 16
+
+                        UiText {
+                            id: dnsTitle
+                            anchors.left: parent.left
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: "DNS"
+                            color: root.sumiHi
+                            font.family: root.mono
+                            font.pixelSize: 10
+                            font.letterSpacing: 1
+                        }
+                        UiText {
+                            anchors.left: dnsTitle.right; anchors.leftMargin: 12
+                            anchors.right: parent.right
+                            anchors.verticalCenter: parent.verticalCenter
+                            horizontalAlignment: Text.AlignRight
+                            text: netPanel.dnsPending !== "" ? "applying…"
+                                : !netPanel.dnsManaged ? "unavailable"
+                                : netPanel.dnsInUse !== "" ? "using " + netPanel.dnsInUse : ""
+                            color: netPanel.dnsPending !== "" ? root.seal : root.sumiHi
+                            font.family: root.mono
+                            font.pixelSize: 10
+                            elide: Text.ElideLeft
+                        }
+                    }
+
+                    Grid {
+                        width: parent.width
+                        columns: 3
                         spacing: 6
 
-                        Rectangle {
-                            width: (parent.width - 6) / 2
-                            height: parent.height
-                            radius: root.tileRadius
-                            color: passwordSubmitMa.enabled
-                                ? (passwordSubmitMa.containsMouse ? root.fillPrimaryHover : root.seal)
-                                : root.fillIdle
-                            border.color: passwordSubmitMa.enabled ? root.seal : root.sep
-                            border.width: 1
-                            Behavior on color { CAnim { ms: 120 } }
-                            UiText {
-                                anchors.centerIn: parent
-                                text: netPanel.nmConnecting ? "connecting…" : "connect"
-                                color: passwordSubmitMa.enabled ? root.paper : root.sumi
-                                font.family: root.mono
-                                font.pixelSize: 10
-                            }
-                            MouseArea {
-                                id: passwordSubmitMa
-                                anchors.fill: parent
-                                enabled: netPanel.nmPasswordText !== "" && !netPanel.nmConnecting
-                                hoverEnabled: true
-                                cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-                                onClicked: netPanel.submitNmPassword()
+                        Repeater {
+                            model: netPanel.dnsPresets
+                            delegate: Rectangle {
+                                required property var modelData
+                                width: (parent.width - 12) / 3
+                                height: 26
+                                radius: root.tileRadius
+                                readonly property bool active: netPanel.dnsActive === modelData.v4
+                                readonly property bool pending: netPanel.dnsPending === modelData.v4
+                                color: active ? root.fillActive : dnsMa.containsMouse ? root.fillHover : root.fillIdle
+                                border.color: active || pending || dnsMa.containsMouse ? root.seal : root.sep
+                                border.width: 1
+                                opacity: netPanel.dnsManaged ? 1 : 0.5
+                                Behavior on color { CAnim { ms: 120 } }
+
+                                UiText {
+                                    anchors.centerIn: parent
+                                    text: modelData.label
+                                    color: parent.active || parent.pending ? root.seal : root.ink
+                                    font.family: root.mono
+                                    font.pixelSize: 10
+                                }
+                                MouseArea {
+                                    id: dnsMa
+                                    anchors.fill: parent
+                                    enabled: netPanel.dnsManaged && netPanel.dnsPending === ""
+                                    hoverEnabled: true
+                                    cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+                                    onClicked: netPanel.applyDns(modelData)
+                                }
                             }
                         }
+                    }
 
-                        Rectangle {
+                    UiText {
+                        width: parent.width
+                        visible: netPanel.dnsError !== "" || netPanel.dnsActive === "custom"
+                        text: netPanel.dnsError !== "" ? netPanel.dnsError : "custom servers set on this connection"
+                        color: netPanel.dnsError !== "" ? root.sealRaw : root.sumiHi
+                        wrapMode: Text.Wrap
+                        font.family: root.mono
+                        font.pixelSize: 10
+                    }
+                }
+
+                Rectangle { width: parent.width; height: 1; color: root.sep; visible: netPanel.hasWifi }
+
+                // ── wifi radio toggle ──
+                Item {
+                    width: parent.width
+                    height: 24
+                    visible: netPanel.hasWifi
+                    UiText {
+                        anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
+                        text: "Wi-Fi"
+                        color: root.ink; font.family: root.mono; font.pixelSize: 11
+                    }
+                    Rectangle {
+                        anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
+                        width: 50; height: 22; radius: 11
+                        color: !netPanel.wifiBlocked ? root.fillActive
+                                                     : wifiToggleMa.containsMouse ? root.fillHover
+                                                     : root.fillIdle
+                        border.color: (wifiToggleMa.containsMouse || !netPanel.wifiBlocked) ? root.seal : root.sep
+                        border.width: 1
+                        Behavior on color { CAnim { ms: 120 } }
+                        UiText {
+                            anchors.centerIn: parent
+                            text: netPanel.wifiBlocked ? "OFF" : "ON"
+                            color: !netPanel.wifiBlocked ? root.seal : root.sumi
+                            font.family: root.mono; font.pixelSize: 10; font.weight: Font.Medium
+                        }
+                        MouseArea {
+                            id: wifiToggleMa
+                            anchors.fill: parent; hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: netPanel.toggleWifi()
+                        }
+                    }
+                }
+
+                // Available / saved profiles. Both views use the native
+                // NetworkManager objects on NixOS 4 and the iwctl snapshot on
+                // legacy installations.
+                Row {
+                    width: parent.width
+                    height: 28
+                    spacing: 6
+                    visible: netPanel.hasWifi && !netPanel.wifiBlocked && (!root.useNM || netPanel.nmAdapterReady)
+
+                    Repeater {
+                        model: [
+                            { label: "Available", saved: false },
+                            { label: "Saved" + (netPanel.savedCount > 0 ? " (" + netPanel.savedCount + ")" : ""), saved: true }
+                        ]
+                        delegate: Rectangle {
+                            required property var modelData
                             width: (parent.width - 6) / 2
-                            height: parent.height
+                            height: 28
                             radius: root.tileRadius
-                            color: passwordCancelMa.containsMouse ? root.fillHover : root.fillIdle
-                            border.color: passwordCancelMa.containsMouse ? root.seal : root.sep
+                            readonly property bool active: netPanel.savedOnly === modelData.saved
+                            color: active ? root.fillActive : tabMa.containsMouse ? root.fillHover : root.fillIdle
+                            border.color: active || tabMa.containsMouse ? root.seal : root.sep
                             border.width: 1
                             Behavior on color { CAnim { ms: 120 } }
+
                             UiText {
                                 anchors.centerIn: parent
-                                text: "cancel"
-                                color: passwordCancelMa.containsMouse ? root.seal : root.sumi
+                                text: modelData.label
+                                color: parent.active ? root.seal : root.ink
                                 font.family: root.mono
                                 font.pixelSize: 10
                             }
                             MouseArea {
-                                id: passwordCancelMa
+                                id: tabMa
                                 anchors.fill: parent
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
-                                onClicked: netPanel.clearNmPassword()
+                                onClicked: {
+                                    netPanel.savedOnly = modelData.saved
+                                    if (!modelData.saved) netPanel.scan()
+                                }
                             }
                         }
                     }
                 }
-            }
 
-            // NetworkManager (NixOS 4.0): the iwctl scan/connect don't apply here →
-            // show an nmtui shortcut if the Quickshell.Networking adapter is unavailable.
-            Rectangle {
-                width: parent.width
-                height: 52; radius: 6
-                visible: root.useNM && netPanel.hasWifi && !netPanel.nmAdapterReady
-                color: nmMa.containsMouse ? root.fillHover : root.fillIdle
-                border.color: nmMa.containsMouse ? root.seal : root.sep; border.width: 1
-                Behavior on color { CAnim { ms: 120 } }
-                Column {
-                    anchors.centerIn: parent; spacing: 3; width: parent.width - 24
+                Item {
+                    width: parent.width
+                    height: 16
+                    visible: netPanel.hasWifi && !netPanel.wifiBlocked && (!root.useNM || netPanel.nmAdapterReady)
                     UiText {
-                        width: parent.width; horizontalAlignment: Text.AlignHCenter
-                        text: "Managed by NetworkManager"
-                        color: root.ink; font.family: root.mono; font.pixelSize: 11
+                        anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
+                        text: netPanel.savedOnly ? "SAVED NETWORKS" : "AVAILABLE NETWORKS"
+                        color: root.sumiHi; font.family: root.mono; font.pixelSize: 10; font.letterSpacing: 1
                     }
                     UiText {
-                        width: parent.width; horizontalAlignment: Text.AlignHCenter
-                        text: "click to open nmtui"
-                        color: root.seal; font.family: root.mono; font.pixelSize: 10
+                        anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
+                        visible: !netPanel.savedOnly
+                        text: netPanel.scanning ? "scanning…" : "rescan"
+                        color: rescanMa.containsMouse ? root.fillPrimaryHover : root.seal
+                        font.family: root.mono; font.pixelSize: 10
+                        Behavior on color { CAnim { ms: 120 } }
+                        MouseArea { id: rescanMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: netPanel.scan() }
                     }
                 }
-                MouseArea {
-                    id: nmMa
-                    anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
-                    onClicked: { root.networkVisible = false; netPanel.openWifiSettings() }
+
+                // scrollable network list
+                Flickable {
+                    id: networkFlick
+                    width: parent.width
+                    height: Math.min(netList.implicitHeight, 180)
+                    contentHeight: netList.implicitHeight
+                    clip: true
+                    visible: netPanel.hasWifi && !netPanel.wifiBlocked && (!root.useNM || netPanel.nmAdapterReady)
+                    boundsBehavior: Flickable.StopAtBounds
+
+                    Column {
+                        id: netList
+                        width: parent.width
+                        spacing: 4
+
+                        Repeater {
+                            id: networkRepeater
+                            model: netPanel.shownNetworks
+                            delegate: Column {
+                                id: netTile
+                                required property var modelData
+                                required property int index
+                                width: netList.width
+                                spacing: 4
+                                readonly property bool expanded: netPanel.selectedNetworkKey === netPanel.networkKey(modelData)
+                                readonly property bool keyboardSelected: netPanel.keyboardIndex === index
+                                readonly property bool confirmingForget: netPanel.pendingForgetKey === netPanel.networkKey(modelData)
+
+                                Connections {
+                                    target: root.useNM && modelData.network ? modelData.network : null
+                                    function onConnectedChanged() {
+                                        if (modelData.network && modelData.network.connected)
+                                            netPanel.handleNmConnected(modelData.network)
+                                        netPanel.refreshNmNetworks()
+                                    }
+                                    function onKnownChanged() { netPanel.refreshNmNetworks() }
+                                    function onStateChangingChanged() { netPanel.refreshNmNetworks() }
+                                    function onSignalStrengthChanged() { netPanel.refreshNmNetworks() }
+                                    function onConnectionFailed(reason) {
+                                        netPanel.handleNmConnectionFailed(modelData.network, reason)
+                                        netPanel.refreshNmNetworks()
+                                    }
+                                }
+
+                                Rectangle {
+                                    width: parent.width
+                                    height: 30
+                                    radius: root.tileRadius
+                                    readonly property bool active: nma.containsMouse || netTile.expanded || netTile.keyboardSelected
+                                    color: modelData.conn ? root.fillActive : active ? root.fillHover : root.fillIdle
+                                    border.color: modelData.conn || active ? root.seal : root.sep
+                                    border.width: 1
+                                    Behavior on color { CAnim { ms: 120 } }
+
+                                    Row {
+                                        anchors.left: parent.left; anchors.leftMargin: 8
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        spacing: 6
+                                        IconText {
+                                            text: modelData.sec === "open" ? "\uE898" : "\uE897"
+                                            font.pixelSize: 12
+                                            color: root.sumiHi
+                                            anchors.verticalCenter: parent.verticalCenter
+                                        }
+                                        UiText {
+                                            text: modelData.ssid
+                                            color: (nma.containsMouse || modelData.conn) ? root.seal : root.ink
+                                            font.family: root.mono; font.pixelSize: 11
+                                            font.weight: modelData.conn ? Font.Medium : Font.Normal
+                                            width: modelData.conn ? 116 : 170; elide: Text.ElideRight
+                                            anchors.verticalCenter: parent.verticalCenter
+                                        }
+                                        UiText {
+                                            visible: modelData.conn
+                                            text: "· Connected"
+                                            color: root.seal
+                                            font.family: root.mono; font.pixelSize: 9
+                                            anchors.verticalCenter: parent.verticalCenter
+                                        }
+                                    }
+
+                                    Row {
+                                        anchors.right: detailButton.left; anchors.rightMargin: 4
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        spacing: 8
+                                        UiText {
+                                            visible: modelData.known && !modelData.conn
+                                            text: netPanel.isNeverConnected(modelData) ? "profile" : "saved"
+                                            color: root.sumiHi
+                                            font.family: root.mono
+                                            font.pixelSize: 9
+                                        }
+                                        Row {
+                                            spacing: 2
+                                            Repeater {
+                                                model: 4
+                                                delegate: Rectangle {
+                                                    required property int index
+                                                    width: 3; height: 4 + index * 2; radius: 1
+                                                    anchors.bottom: parent.bottom
+                                                    color: index < modelData.sig
+                                                        ? (modelData.conn ? root.seal : root.ink)
+                                                        : Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.18)
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    MouseArea {
+                                        id: nma
+                                        anchors.left: parent.left; anchors.top: parent.top; anchors.bottom: parent.bottom
+                                        anchors.right: detailButton.left
+                                        hoverEnabled: true
+                                        cursorShape: Qt.PointingHandCursor
+                                        onEntered: netPanel.keyboardIndex = netTile.index
+                                        onClicked: netPanel.activateNetwork(modelData)
+                                    }
+
+                                    UiText {
+                                        id: detailButton
+                                        anchors.right: parent.right; anchors.rightMargin: 7
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        width: 16
+                                        horizontalAlignment: Text.AlignHCenter
+                                        text: netTile.expanded ? "⌃" : "›"
+                                        color: detailMa.containsMouse || netTile.expanded ? root.seal : root.sumiHi
+                                        font.family: root.mono; font.pixelSize: 13
+                                        MouseArea {
+                                            id: detailMa
+                                            anchors.fill: parent
+                                            hoverEnabled: true
+                                            cursorShape: Qt.PointingHandCursor
+                                            onEntered: netPanel.keyboardIndex = netTile.index
+                                            onClicked: netPanel.selectNetwork(modelData)
+                                        }
+                                    }
+                                }
+
+                                Rectangle {
+                                    width: parent.width
+                                    height: netTile.expanded ? detailColumn.implicitHeight + 16 : 0
+                                    visible: height > 0
+                                    clip: true
+                                    radius: root.tileRadius
+                                    color: root.fillIdle
+                                    border.color: root.sep
+                                    border.width: netTile.expanded ? 1 : 0
+                                    Behavior on height { Anim { kind: "size"; ms: 250 } }
+
+                                    Column {
+                                        id: detailColumn
+                                        anchors.left: parent.left; anchors.right: parent.right
+                                        anchors.top: parent.top
+                                        anchors.margins: 8
+                                        spacing: 6
+
+                                        UiText {
+                                            width: parent.width
+                                            text: {
+                                                var details = [
+                                                    netPanel.protectionLabel(modelData),
+                                                    modelData.visible === false
+                                                        ? "Not currently visible"
+                                                        : "Signal " + (modelData.sig * 25) + "%"
+                                                ]
+                                                if (modelData.known)
+                                                    details.push(netPanel.isNeverConnected(modelData)
+                                                        ? "Never connected" : "Saved")
+                                                return details.join(" · ")
+                                            }
+                                            color: root.sumiHi
+                                            font.family: root.mono; font.pixelSize: 10
+                                            wrapMode: Text.Wrap
+                                        }
+
+                                        Row {
+                                            width: parent.width
+                                            height: 26
+                                            spacing: 6
+
+                                            Rectangle {
+                                                width: modelData.known ? (parent.width - 6) / 2 : parent.width
+                                                height: parent.height
+                                                radius: root.tileRadius
+                                                color: networkActionMa.containsMouse ? root.fillHover : root.fillIdle
+                                                border.color: networkActionMa.containsMouse ? root.seal : root.sep
+                                                border.width: 1
+                                                UiText {
+                                                    anchors.centerIn: parent
+                                                    text: netTile.confirmingForget
+                                                        ? "Cancel"
+                                                        : modelData.conn ? "Disconnect" : modelData.known ? "Reconnect" : "Connect"
+                                                    color: root.ink
+                                                    font.family: root.mono; font.pixelSize: 10
+                                                }
+                                                MouseArea {
+                                                    id: networkActionMa
+                                                    anchors.fill: parent
+                                                    hoverEnabled: true
+                                                    cursorShape: Qt.PointingHandCursor
+                                                    onClicked: {
+                                                        if (netTile.confirmingForget)
+                                                            netPanel.cancelForget()
+                                                        else
+                                                            netPanel.activateNetwork(modelData)
+                                                    }
+                                                }
+                                            }
+
+                                            Rectangle {
+                                                visible: modelData.known
+                                                width: (parent.width - 6) / 2
+                                                height: parent.height
+                                                radius: root.tileRadius
+                                                color: forgetMa.containsMouse ? Qt.rgba(root.seal.r, root.seal.g, root.seal.b, 0.18) : root.fillIdle
+                                                border.color: forgetMa.containsMouse ? root.seal : root.sep
+                                                border.width: 1
+                                                UiText {
+                                                    anchors.centerIn: parent
+                                                    text: netTile.confirmingForget ? "Confirm" : "Forget"
+                                                    color: forgetMa.containsMouse ? root.seal : root.ink
+                                                    font.family: root.mono; font.pixelSize: 10
+                                                }
+                                                MouseArea {
+                                                    id: forgetMa
+                                                    anchors.fill: parent
+                                                    hoverEnabled: true
+                                                    cursorShape: Qt.PointingHandCursor
+                                                    onClicked: netPanel.requestForget(modelData)
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        UiText {
+                            visible: !netPanel.scanning && netPanel.shownNetworks.length === 0
+                            width: netList.width; horizontalAlignment: Text.AlignHCenter
+                            text: netPanel.savedOnly ? "No saved networks" : "No networks found"
+                            color: Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.3)
+                            font.family: root.mono; font.pixelSize: 11
+                        }
+                        UiText {
+                            visible: netPanel.networkActionError !== ""
+                            width: netList.width
+                            text: netPanel.networkActionError
+                            color: root.seal
+                            wrapMode: Text.Wrap
+                            font.family: root.mono; font.pixelSize: 10
+                        }
+                    }
                 }
-            }
 
-            Rectangle { width: parent.width; height: 1; color: root.sep }
+                Rectangle {
+                    width: parent.width
+                    height: visible ? 92 : 0
+                    visible: root.useNM && netPanel.nmAdapterReady && netPanel.nmPasswordSsid !== ""
+                    radius: root.tileRadius
+                    color: root.fillIdle
+                    border.color: netPanel.nmConnectionError !== "" ? root.sealRaw : root.seal
+                    border.width: 1
+                    clip: true
 
-            // ── button ──
-            Rectangle {
-                width: parent.width
-                height: 28; radius: root.tileRadius
-                color: netSetMa.containsMouse ? root.fillPrimaryHover : root.seal
-                Behavior on color { CAnim { ms: 120 } }
-                UiText { anchors.centerIn: parent; text: "Network settings"; color: root.paper; font.family: root.mono; font.pixelSize: 11 }
-                MouseArea {
-                    id: netSetMa
-                    anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
-                    onClicked: { root.networkVisible = false; netPanel.openWifiSettings() }
+                    Column {
+                        anchors.fill: parent
+                        anchors.margins: 8
+                        spacing: 6
+
+                        UiText {
+                            width: parent.width
+                            text: netPanel.nmConnectionError !== ""
+                                ? netPanel.nmConnectionError
+                                : "Password for " + netPanel.nmPasswordSsid
+                            color: netPanel.nmConnectionError !== "" ? root.sealRaw : root.ink
+                            font.family: root.mono
+                            font.pixelSize: 10
+                            elide: Text.ElideRight
+                        }
+
+                        Rectangle {
+                            width: parent.width
+                            height: 24
+                            radius: root.tileRadius
+                            color: root.bg
+                            border.color: nmPasswordInput.activeFocus ? root.seal : root.sep
+                            border.width: 1
+
+                            TextInput {
+                                id: nmPasswordInput
+                                anchors.fill: parent
+                                anchors.leftMargin: 8
+                                anchors.rightMargin: 8
+                                verticalAlignment: TextInput.AlignVCenter
+                                text: netPanel.nmPasswordText
+                                echoMode: TextInput.Password
+                                color: root.ink
+                                selectionColor: root.seal
+                                selectedTextColor: root.paper
+                                font.family: root.mono
+                                font.pixelSize: 11
+                                clip: true
+                                enabled: !netPanel.nmConnecting
+                                onTextChanged: netPanel.nmPasswordText = text
+                                Keys.onPressed: function(event) {
+                                    if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                                        netPanel.submitNmPassword()
+                                        event.accepted = true
+                                    } else if (event.key === Qt.Key_Escape) {
+                                        netPanel.clearNmPassword()
+                                        event.accepted = true
+                                    }
+                                }
+                            }
+                        }
+
+                        Row {
+                            width: parent.width
+                            height: 22
+                            spacing: 6
+
+                            Rectangle {
+                                width: (parent.width - 6) / 2
+                                height: parent.height
+                                radius: root.tileRadius
+                                color: passwordSubmitMa.enabled
+                                    ? (passwordSubmitMa.containsMouse ? root.fillPrimaryHover : root.seal)
+                                    : root.fillIdle
+                                border.color: passwordSubmitMa.enabled ? root.seal : root.sep
+                                border.width: 1
+                                Behavior on color { CAnim { ms: 120 } }
+                                UiText {
+                                    anchors.centerIn: parent
+                                    text: netPanel.nmConnecting ? "connecting…" : "connect"
+                                    color: passwordSubmitMa.enabled ? root.paper : root.sumi
+                                    font.family: root.mono
+                                    font.pixelSize: 10
+                                }
+                                MouseArea {
+                                    id: passwordSubmitMa
+                                    anchors.fill: parent
+                                    enabled: netPanel.nmPasswordText !== "" && !netPanel.nmConnecting
+                                    hoverEnabled: true
+                                    cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+                                    onClicked: netPanel.submitNmPassword()
+                                }
+                            }
+
+                            Rectangle {
+                                width: (parent.width - 6) / 2
+                                height: parent.height
+                                radius: root.tileRadius
+                                color: passwordCancelMa.containsMouse ? root.fillHover : root.fillIdle
+                                border.color: passwordCancelMa.containsMouse ? root.seal : root.sep
+                                border.width: 1
+                                Behavior on color { CAnim { ms: 120 } }
+                                UiText {
+                                    anchors.centerIn: parent
+                                    text: "cancel"
+                                    color: passwordCancelMa.containsMouse ? root.seal : root.sumi
+                                    font.family: root.mono
+                                    font.pixelSize: 10
+                                }
+                                MouseArea {
+                                    id: passwordCancelMa
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: netPanel.clearNmPassword()
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // NetworkManager (NixOS 4.0): the iwctl scan/connect don't apply here →
+                // show an nmtui shortcut if the Quickshell.Networking adapter is unavailable.
+                Rectangle {
+                    width: parent.width
+                    height: 52; radius: 6
+                    visible: root.useNM && netPanel.hasWifi && !netPanel.nmAdapterReady
+                    color: nmMa.containsMouse ? root.fillHover : root.fillIdle
+                    border.color: nmMa.containsMouse ? root.seal : root.sep; border.width: 1
+                    Behavior on color { CAnim { ms: 120 } }
+                    Column {
+                        anchors.centerIn: parent; spacing: 3; width: parent.width - 24
+                        UiText {
+                            width: parent.width; horizontalAlignment: Text.AlignHCenter
+                            text: "Managed by NetworkManager"
+                            color: root.ink; font.family: root.mono; font.pixelSize: 11
+                        }
+                        UiText {
+                            width: parent.width; horizontalAlignment: Text.AlignHCenter
+                            text: "click to open nmtui"
+                            color: root.seal; font.family: root.mono; font.pixelSize: 10
+                        }
+                    }
+                    MouseArea {
+                        id: nmMa
+                        anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
+                        onClicked: { root.networkVisible = false; netPanel.openWifiSettings() }
+                    }
+                }
+
+                Rectangle { width: parent.width; height: 1; color: root.sep }
+
+                // ── button ──
+                Rectangle {
+                    width: parent.width
+                    height: 28; radius: root.tileRadius
+                    color: netSetMa.containsMouse ? root.fillPrimaryHover : root.seal
+                    Behavior on color { CAnim { ms: 120 } }
+                    UiText { anchors.centerIn: parent; text: "Network settings"; color: root.paper; font.family: root.mono; font.pixelSize: 11 }
+                    MouseArea {
+                        id: netSetMa
+                        anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
+                        onClicked: { root.networkVisible = false; netPanel.openWifiSettings() }
+                    }
                 }
             }
         }

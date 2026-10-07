@@ -141,7 +141,7 @@ Item {
         command: ["bash", "-c", "notify-send -u low \"$(dots-weather-status)\""]
     }
 
-    TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText }
+    TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText; popout: "weatherVisible" }
 
     MouseArea {
         id: mouse
@@ -156,7 +156,7 @@ Item {
             if (e.button === Qt.RightButton) {
                 rootMod.refresh(true);
             } else {
-                root.weatherVisible = !root.weatherVisible;
+                root.popout.click("weatherVisible");
             }
         }
     }

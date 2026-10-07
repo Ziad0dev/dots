@@ -112,7 +112,7 @@ Item {
         command: ["bash", "-c", "powerprofilesctl set balanced"]
     }
 
-    TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText }
+    TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText; popout: "powerProfileVisible" }
 
     MouseArea {
         anchors.fill: parent
@@ -131,7 +131,7 @@ Item {
                 setProfileProc.running = false; setProfileProc.running = true
                 root.powerProfileCurrent = next
             } else {
-                root.powerProfileVisible = !root.powerProfileVisible
+                root.popout.click("powerProfileVisible")
             }
         }
     }

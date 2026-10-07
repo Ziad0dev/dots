@@ -6,8 +6,9 @@ import Quickshell.Services.Mpris
 import "../../modules"
 
 // Media tab: the cover in a cookie shape ringed by a live visualiser, the track
-// with a wavy seek bar and full controls, and synced lyrics. Soft shapes drift
-// behind it all while something plays.
+// with a wavy seek bar and full controls, and synced lyrics. Behind it all, the
+// album art itself, blurred into the dark under a blood wash; a pentagram when
+// there is no cover.
 Item {
     id: mt
     required property var dash
@@ -29,44 +30,106 @@ Item {
         id: tick
         interval: 33; repeat: true
         running: mt.playing && mt.visible
-        onTriggered: {
-            mt.phase = (mt.phase - 0.12) % (2 * Math.PI)
-            drift.step(interval / 1000)
-        }
+        onTriggered: mt.phase = (mt.phase - 0.12) % (2 * Math.PI)
     }
 
-    // ── drifting background shapes ──
+    // ── backdrop: the album art, blurred and darkened; a pentagram without one ──
+    // two layers so a new cover fades in over the old one; the blur is cached
+    // (layer), so it is only redone when the cover changes
+    readonly property string artUrl: player ? (player.trackArtUrl || "") : ""
+    property int artSlot: 0
+    onArtUrlChanged: {
+        artSlot = 1 - artSlot
+        if (artSlot === 0) artA.source = artUrl; else artB.source = artUrl
+    }
+    Component.onCompleted: artA.source = artUrl
     Item {
-        id: drift
+        id: backdrop
         anchors.fill: parent
         clip: true
-        readonly property var kinds: ["circle", "cookie", "sunny", "burst", "gem", "clam", "diamond", "pentagon", "pill"]
-        readonly property var tints: [mt.dash.primaryContainer, mt.dash.secondaryContainer, mt.dash.tertiaryContainer, mt.dash.outlineVariant]
-        function rand(a, b) { return a + Math.random() * (b - a) }
-        function step(dt) {
-            for (var i = 0; i < shapes.count; i++) {
-                var s = shapes.itemAt(i)
-                if (!s) continue
-                s.x += s.vx * dt; s.y += s.vy * dt; s.rotation += s.vr * dt
-                if (s.x + s.width < 0) s.x = width; else if (s.x > width) s.x = -s.width
-                if (s.y + s.height < 0) s.y = height; else if (s.y > height) s.y = -s.height
+        Repeater {
+            model: [artA, artB]
+            delegate: MultiEffect {
+                required property var modelData
+                required property int index
+                anchors.fill: parent
+                source: modelData
+                visible: modelData.status === Image.Ready
+                opacity: mt.artSlot === index && modelData.status === Image.Ready ? 1 : 0
+                Behavior on opacity { NumberAnimation { duration: 600; easing.type: Easing.InOutQuad } }
+                blurEnabled: true
+                blur: 1.0
+                blurMax: 48
+                saturation: -0.35
+                brightness: -0.42
+                layer.enabled: true
             }
         }
-        Repeater {
-            id: shapes
-            model: 14
-            delegate: DashShape {
-                required property int index
-                property real vx: drift.rand(4, 18) * (Math.random() < 0.5 ? -1 : 1)
-                property real vy: drift.rand(4, 18) * (Math.random() < 0.5 ? -1 : 1)
-                property real vr: drift.rand(-12, 12)
-                readonly property int tintIdx: Math.floor(Math.random() * 4)
-                width: 36 + index / 14 * 88; height: width
-                kind: drift.kinds[Math.floor(Math.random() * drift.kinds.length)]
-                color: drift.tints[tintIdx]
-                opacity: [0.4, 0.4, 0.1, 0.3][tintIdx]
-                rotation: Math.random() * 360
-                Component.onCompleted: { x = drift.rand(0, mt.implicitWidth - width); y = drift.rand(0, mt.implicitHeight - height) }
+        Image {
+            id: artA
+            anchors.fill: parent
+            fillMode: Image.PreserveAspectCrop
+            sourceSize.width: 640
+            asynchronous: true
+            visible: false
+        }
+        Image {
+            id: artB
+            anchors.fill: parent
+            fillMode: Image.PreserveAspectCrop
+            sourceSize.width: 640
+            asynchronous: true
+            visible: false
+        }
+        // no cover: a pentagram in a circle, barely there
+        Shape {
+            id: pentagram
+            readonly property bool noArt: (mt.artSlot === 0 ? artA : artB).status !== Image.Ready
+            anchors.centerIn: parent
+            width: Math.min(parent.width, parent.height) * 0.92; height: width
+            opacity: noArt ? 0.16 : 0
+            visible: opacity > 0
+            Behavior on opacity { NumberAnimation { duration: 600 } }
+            preferredRendererType: Shape.CurveRenderer
+            readonly property real r: width / 2
+            function star() {
+                var pts = []
+                for (var k = 0; k <= 5; k++) {
+                    var a = (-90 + k * 144) * Math.PI / 180
+                    pts.push(Qt.point(r + r * 0.92 * Math.cos(a), r + r * 0.92 * Math.sin(a)))
+                }
+                return pts
+            }
+            ShapePath {
+                strokeColor: mt.dash.blood
+                strokeWidth: 1.5
+                fillColor: "transparent"
+                joinStyle: ShapePath.MiterJoin
+                PathPolyline { path: pentagram.star() }
+            }
+            ShapePath {
+                strokeColor: mt.dash.blood
+                strokeWidth: 1.5
+                fillColor: "transparent"
+                PathAngleArc {
+                    centerX: pentagram.r; centerY: pentagram.r
+                    radiusX: pentagram.r - 1; radiusY: pentagram.r - 1
+                    startAngle: 0; sweepAngle: 360
+                }
+            }
+        }
+        // a blood wash and a dark fall-off to the right, under the text
+        Rectangle {
+            anchors.fill: parent
+            color: Qt.rgba(mt.dash.blood.r, mt.dash.blood.g, mt.dash.blood.b, 0.10)
+        }
+        Rectangle {
+            anchors.fill: parent
+            gradient: Gradient {
+                orientation: Gradient.Horizontal
+                GradientStop { position: 0.0; color: Qt.rgba(mt.root.paper.r, mt.root.paper.g, mt.root.paper.b, 0.15) }
+                GradientStop { position: 0.55; color: Qt.rgba(mt.root.paper.r, mt.root.paper.g, mt.root.paper.b, 0.45) }
+                GradientStop { position: 1.0; color: Qt.rgba(mt.root.paper.r, mt.root.paper.g, mt.root.paper.b, 0.7) }
             }
         }
     }

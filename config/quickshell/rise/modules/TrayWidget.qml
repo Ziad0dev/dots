@@ -78,7 +78,7 @@ Item {
             readonly property string tooltipText: totalCount + (totalCount === 1 ? " app" : " apps")
                                                   + (hiddenCount > 0 ? " · " + hiddenCount + " hidden" : "")
 
-            TooltipMixin { id: tip; root: rootMod.root; owner: toggleBtn; text: toggleBtn.tooltipText }
+            TooltipMixin { id: tip; root: rootMod.root; owner: toggleBtn; text: toggleBtn.tooltipText; popout: "trayVisible" }
 
             IconText {
                 id: moreIcon
@@ -121,7 +121,7 @@ Item {
                 cursorShape: Qt.PointingHandCursor
                 onEntered: tip.show()
                 onExited: { tip.hide() }
-                onClicked: { tip.hide(); root.trayVisible = !root.trayVisible }
+                onClicked: { tip.hide(); root.popout.click("trayVisible") }
             }
         }
     }

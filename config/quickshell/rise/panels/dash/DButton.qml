@@ -1,8 +1,8 @@
 import QtQuick
 import "../../modules"
 
-// Material 3 icon button. Round at rest; the corners tighten while pressed
-// (shape morph). Tonal by default; `filled` (or `checked`) uses the primary colour.
+// Grimoire icon button: a hairline blood frame on a faint wash; `filled` (or
+// `checked`) is solid blood. Square-cornered, a lozenge-sharp press.
 Rectangle {
     id: b
     required property var dash
@@ -15,13 +15,16 @@ Rectangle {
     signal clicked()
 
     readonly property bool strong: filled || checked
-    readonly property color fg: strong ? dash.onPrimary : dash.onSecondaryContainer
+    readonly property color fg: strong ? dash.bone : dash.onSecondaryContainer
 
     implicitHeight: 40
     implicitWidth: label !== "" ? row.implicitWidth + 28 : implicitHeight
-    radius: ma.pressed ? Math.min(height / 2, 10) : height / 2
-    Behavior on radius { Anim { kind: "spatialFast" } }
-    color: strong ? dash.primary : dash.secondaryContainer
+    radius: 2
+    color: strong ? dash.blood : "transparent"
+    border.color: strong ? dash.blood : dash.outlineVariant
+    border.width: 1
+    scale: ma.pressed ? 0.94 : 1
+    Behavior on scale { Anim { kind: "spatialFast" } }
     Behavior on color { CAnim {} }
     opacity: active ? 1 : 0.38
 
@@ -51,8 +54,8 @@ Rectangle {
             visible: b.label !== ""
             text: b.label
             color: b.fg
-            font.pointSize: 11
-            font.weight: Font.Medium
+            font.pointSize: 13
+            font.weight: Font.DemiBold
         }
     }
 

@@ -202,13 +202,13 @@ Item {
         }
     }
 
-    TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText }
+    TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText; popout: "aiUsageVisible" }
 
     MouseArea {
         anchors.fill: parent
         hoverEnabled: true; cursorShape: Qt.PointingHandCursor
         onEntered: if (shown) { root.refreshAiUsage(); tip.show() }
         onExited: { tip.hide() }
-        onClicked: { tip.hide(); root.aiUsageVisible = !root.aiUsageVisible }
+        onClicked: { tip.hide(); root.popout.click("aiUsageVisible") }
     }
 }

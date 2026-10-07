@@ -54,7 +54,7 @@ Item {
         }
     }
 
-    TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText }
+    TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText; popout: "storageVisible" }
 
     Process { id: diskTui; command: ["bash", "-c", "ghostty --class=com.dots.float.lg -e yazi /"] }
 
@@ -68,7 +68,7 @@ Item {
         onClicked: function (e) {
             tip.hide()
             if (e.button === Qt.RightButton) { diskTui.running = false; diskTui.running = true; return }
-            root.storageVisible = !root.storageVisible
+            root.popout.click("storageVisible")
         }
     }
 }

@@ -31,153 +31,165 @@ PanelWindow {
 
     property real reveal: root.memVisible ? 1 : 0
     Behavior on reveal {
-        Anim { kind: root.memVisible ? "spatial" : "exit" }
+        Anim { kind: "effects" }
     }
     visible: reveal > 0.001
-    WlrLayershell.keyboardFocus: root.memVisible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+        || (root.popout.last === "memVisible" && root.popout.shown)
+    WlrLayershell.keyboardFocus: root.memVisible && !root.popout.hoverMode
+        ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+    mask: Region {
+        readonly property bool hover: memPanel.root.popout.hoverMode
+        readonly property int gap: memPanel.root.popout.gap
+        x: hover ? popClip.x : 0
+        y: hover ? popClip.y - (memPanel.root.popout.barOnTop ? gap : 0) : 0
+        width: hover ? popClip.width : memPanel.width
+        height: hover ? popClip.height + gap : memPanel.height
+    }
 
     MouseArea {
         anchors.fill: parent
         onClicked: root.memVisible = false
     }
 
-    FrameCard { root: memPanel.root; card: card; reveal: memPanel.reveal }
-    Rectangle {
-        id: card
-        width: 320
-        height: col.implicitHeight + 24
-        radius: reveal > 0.001 ? root.pillRadius : 0
-        color: root.frameCardBg
-        border.color: root.pillBorder
-        border.width: root.frameCardBorderW
-        PillShadow { theme: root ; visible: root.styleShadow && !root.frameOn }
+    PopoutClip {
+        id: popClip
+        root: memPanel.root
+        flag: "memVisible"
+        card: card
+        Rectangle {
+            id: card
+            width: 320
+            height: col.implicitHeight + 24
+            radius: reveal > 0.001 ? root.pillRadius : 0
+            color: "transparent"
+            border.color: root.pillBorder
+            border.width: 0
 
-        x: Math.round(Math.max(6, Math.min(root.memoryBarX - width / 2, parent.width - width - 6)))
-        y: root.barPosition === "bottom" ? (parent.height - barBottom - gap - height) : (barBottom + gap)
-        opacity: memPanel.reveal
-        transformOrigin: root.barPosition === "bottom" ? Item.Bottom : Item.Top
-        scale: root.motionHover ? (0.92 + 0.08 * memPanel.reveal) : 1
-        focus: root.memVisible
+            x: popClip.cardX
+            y: popClip.cardY
+            opacity: memPanel.reveal
+            focus: root.memVisible
 
-        Keys.onPressed: function(event) {
-            if (event.key === Qt.Key_Escape) {
-                root.memVisible = false;
-                event.accepted = true;
-            }
-        }
-
-        MouseArea { anchors.fill: parent; onClicked: {} }
-
-        Column {
-            id: col
-            anchors.fill: parent
-            anchors.margins: 12
-            spacing: 8
-
-            // ── header ──
-            Item {
-                width: parent.width
-                height: 24
-                UiText {
-                    anchors.left: parent.left
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: "Memory"
-                    color: root.ink
-                    font.family: root.mono
-                    font.pixelSize: 13
-                    font.letterSpacing: 2
-                    font.weight: Font.Medium
+            Keys.onPressed: function(event) {
+                if (event.key === Qt.Key_Escape) {
+                    root.memVisible = false;
+                    event.accepted = true;
                 }
-                UiText {
-                    anchors.right: parent.right
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: "\u2715"
-                    color: closeMa.containsMouse ? root.seal : root.sumi
-                    font.pixelSize: 12
+            }
+
+            MouseArea { anchors.fill: parent; onClicked: {} }
+
+            Column {
+                id: col
+                anchors.fill: parent
+                anchors.margins: 12
+                spacing: 8
+
+                // ── header ──
+                Item {
+                    width: parent.width
+                    height: 24
+                    UiText {
+                        anchors.left: parent.left
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: "Memory"
+                        color: root.ink
+                        font.family: root.gothic
+                        font.pixelSize: 20
+                        font.letterSpacing: 0.5
+                        font.weight: Font.Medium
+                    }
+                    UiText {
+                        anchors.right: parent.right
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: "\u2715"
+                        color: closeMa.containsMouse ? root.seal : root.sumi
+                        font.pixelSize: 12
+                        Behavior on color { CAnim { ms: 120 } }
+                        MouseArea {
+                            id: closeMa
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: root.memVisible = false
+                        }
+                    }
+                }
+
+                GrimRule { root: memPanel.root; width: parent.width }
+
+                // ── usage bar ──
+                Item {
+                    width: parent.width
+                    height: 30
+                    UiText {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        anchors.top: parent.top
+                        text: memPanel.pct + "%"
+                        color: root.seal
+                        font.family: root.mono; font.pixelSize: 11; font.weight: Font.Medium
+                    }
+                    Rectangle {
+                        anchors.bottom: parent.bottom
+                        width: parent.width; height: 8; radius: 4
+                        color: root.fillActive
+                        Rectangle {
+                            width: parent.width * memPanel.pct / 100
+                            height: parent.height; radius: 4
+                            color: root.seal
+                            Behavior on width { Anim { kind: "size"; ms: 300 } }
+                        }
+                    }
+                }
+
+                // ── stats ──
+                Column {
+                    width: parent.width
+                    spacing: 4
+                    Row {
+                        width: parent.width
+                        UiText { text: "Used"; color: root.sumiHi; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.4 }
+                        UiText { text: memPanel.usedGiB.toFixed(1) + " GiB"; color: root.ink; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.3 }
+                        UiText { text: memPanel.memUsed + " MiB"; color: Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.6); font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.3 }
+                    }
+                    Row {
+                        width: parent.width
+                        UiText { text: "Available"; color: root.sumiHi; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.4 }
+                        UiText { text: (memPanel.memAvail / 1024).toFixed(1) + " GiB"; color: root.ink; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.3 }
+                        UiText { text: memPanel.memAvail + " MiB"; color: Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.6); font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.3 }
+                    }
+                    Row {
+                        width: parent.width
+                        UiText { text: "Total"; color: root.sumiHi; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.4 }
+                        UiText { text: memPanel.totalGiB.toFixed(1) + " GiB"; color: root.ink; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.3 }
+                        UiText { text: memPanel.memTotal + " MiB"; color: Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.6); font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.3 }
+                    }
+                }
+
+                Rectangle { width: parent.width; height: 1; color: root.sep }
+
+                // ── button ──
+                Rectangle {
+                    width: parent.width
+                    height: 28; radius: root.tileRadius
+                    color: btopMa.containsMouse ? root.fillPrimaryHover : root.seal
                     Behavior on color { CAnim { ms: 120 } }
+                    UiText {
+                        anchors.centerIn: parent
+                        text: "Open btop"
+                        color: root.paper
+                        font.family: root.mono; font.pixelSize: 11
+                    }
                     MouseArea {
-                        id: closeMa
+                        id: btopMa
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
-                        onClicked: root.memVisible = false
-                    }
-                }
-            }
-
-            Rectangle { width: parent.width; height: 1; color: root.sep }
-
-            // ── usage bar ──
-            Item {
-                width: parent.width
-                height: 30
-                UiText {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    anchors.top: parent.top
-                    text: memPanel.pct + "%"
-                    color: root.seal
-                    font.family: root.mono; font.pixelSize: 11; font.weight: Font.Medium
-                }
-                Rectangle {
-                    anchors.bottom: parent.bottom
-                    width: parent.width; height: 8; radius: 4
-                    color: root.fillActive
-                    Rectangle {
-                        width: parent.width * memPanel.pct / 100
-                        height: parent.height; radius: 4
-                        color: root.seal
-                        Behavior on width { Anim { kind: "size"; ms: 300 } }
-                    }
-                }
-            }
-
-            // ── stats ──
-            Column {
-                width: parent.width
-                spacing: 4
-                Row {
-                    width: parent.width
-                    UiText { text: "Used"; color: root.sumiHi; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.4 }
-                    UiText { text: memPanel.usedGiB.toFixed(1) + " GiB"; color: root.ink; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.3 }
-                    UiText { text: memPanel.memUsed + " MiB"; color: Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.6); font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.3 }
-                }
-                Row {
-                    width: parent.width
-                    UiText { text: "Available"; color: root.sumiHi; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.4 }
-                    UiText { text: (memPanel.memAvail / 1024).toFixed(1) + " GiB"; color: root.ink; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.3 }
-                    UiText { text: memPanel.memAvail + " MiB"; color: Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.6); font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.3 }
-                }
-                Row {
-                    width: parent.width
-                    UiText { text: "Total"; color: root.sumiHi; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.4 }
-                    UiText { text: memPanel.totalGiB.toFixed(1) + " GiB"; color: root.ink; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.3 }
-                    UiText { text: memPanel.memTotal + " MiB"; color: Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.6); font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.3 }
-                }
-            }
-
-            Rectangle { width: parent.width; height: 1; color: root.sep }
-
-            // ── button ──
-            Rectangle {
-                width: parent.width
-                height: 28; radius: root.tileRadius
-                color: btopMa.containsMouse ? root.fillPrimaryHover : root.seal
-                Behavior on color { CAnim { ms: 120 } }
-                UiText {
-                    anchors.centerIn: parent
-                    text: "Open btop"
-                    color: root.paper
-                    font.family: root.mono; font.pixelSize: 11
-                }
-                MouseArea {
-                    id: btopMa
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: {
-                        root.memVisible = false;
-                        btopRunner.running = false;
-                        btopRunner.running = true;
+                        onClicked: {
+                            root.memVisible = false;
+                            btopRunner.running = false;
+                            btopRunner.running = true;
+                        }
                     }
                 }
             }

@@ -63,6 +63,7 @@ Item {
     function layoutUnlock() { theme.barUnlocked = true }
     function systemUpdateRefresh() { theme.dotsUpdateCheckTick++ }
     function runReactor(kind, arg) { theme.reactorTest(kind, arg) }
+    function popoutCommand(action, name) { theme.popout.command(action, name) }
     function applyTheme(payload) { theme.ipcApplyTheme(payload) }
     function applyLauncher(payload) { theme.ipcApplyLauncher(payload) }
     function reloadTheme() { theme.ipcReloadTheme() }

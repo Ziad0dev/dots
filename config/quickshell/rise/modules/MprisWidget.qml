@@ -136,7 +136,7 @@ Item {
             anchors.fill: parent
             acceptedButtons: Qt.LeftButton
             cursorShape: Qt.PointingHandCursor
-            onClicked: root.mprisVisible = !root.mprisVisible
+            onClicked: root.popout.click("mprisVisible")
         }
     }
 
@@ -513,7 +513,7 @@ Item {
         ? (player.trackArtist ? player.trackArtist + " — " + player.trackTitle : player.trackTitle)
         : ""
 
-    TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText }
+    TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText; popout: "mprisVisible" }
 
     MouseArea {
         anchors.fill: parent
@@ -521,6 +521,6 @@ Item {
         acceptedButtons: Qt.RightButton
         onEntered: { if (rootMod.tooltipText) tip.show() }
         onExited:  { tip.hide() }
-        onClicked: { tip.hide(); root.mprisVisible = !root.mprisVisible }
+        onClicked: { tip.hide(); root.popout.click("mprisVisible") }
     }
 }

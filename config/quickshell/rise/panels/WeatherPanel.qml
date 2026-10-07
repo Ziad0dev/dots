@@ -114,218 +114,230 @@ PanelWindow {
 
     property real reveal: root.weatherVisible ? 1 : 0
     Behavior on reveal {
-        Anim { kind: root.weatherVisible ? "spatial" : "exit" }
+        Anim { kind: "effects" }
     }
     visible: reveal > 0.001
-    WlrLayershell.keyboardFocus: root.weatherVisible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+        || (root.popout.last === "weatherVisible" && root.popout.shown)
+    WlrLayershell.keyboardFocus: root.weatherVisible && !root.popout.hoverMode
+        ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+    mask: Region {
+        readonly property bool hover: wxPanel.root.popout.hoverMode
+        readonly property int gap: wxPanel.root.popout.gap
+        x: hover ? popClip.x : 0
+        y: hover ? popClip.y - (wxPanel.root.popout.barOnTop ? gap : 0) : 0
+        width: hover ? popClip.width : wxPanel.width
+        height: hover ? popClip.height + gap : wxPanel.height
+    }
 
     MouseArea { anchors.fill: parent; onClicked: root.weatherVisible = false }
 
-    FrameCard { root: wxPanel.root; card: card; reveal: wxPanel.reveal }
-    Rectangle {
-        id: card
-        width: 300
-        height: col.implicitHeight + 24
-        radius: reveal > 0.001 ? root.pillRadius : 0
-        color: root.frameCardBg
-        border.color: root.pillBorder
-        border.width: root.frameCardBorderW
-        PillShadow { theme: root ; visible: root.styleShadow && !root.frameOn }
+    PopoutClip {
+        id: popClip
+        root: wxPanel.root
+        flag: "weatherVisible"
+        card: card
+        Rectangle {
+            id: card
+            width: 300
+            height: col.implicitHeight + 24
+            radius: reveal > 0.001 ? root.pillRadius : 0
+            color: "transparent"
+            border.color: root.pillBorder
+            border.width: 0
 
-        x: Math.round(Math.max(6, Math.min(root.weatherBarX - width / 2, parent.width - width - 6)))
-        y: root.barPosition === "bottom" ? (parent.height - barBottom - gap - height) : (barBottom + gap)
-        opacity: wxPanel.reveal
-        transformOrigin: root.barPosition === "bottom" ? Item.Bottom : Item.Top
-        scale: root.motionHover ? (0.92 + 0.08 * wxPanel.reveal) : 1
-        focus: root.weatherVisible
+            x: popClip.cardX
+            y: popClip.cardY
+            opacity: wxPanel.reveal
+            focus: root.weatherVisible
 
-        Keys.onPressed: function(event) {
-            if (event.key === Qt.Key_Escape) { root.weatherVisible = false; event.accepted = true }
-        }
-
-        MouseArea { anchors.fill: parent; onClicked: {} }
-
-        Column {
-            id: col
-            anchors.fill: parent
-            anchors.margins: 12
-            spacing: 8
-
-            Item {
-                width: parent.width
-                height: 24
-                UiText {
-                    anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
-                    text: "Weather"
-                    color: root.ink; font.family: root.mono; font.pixelSize: 13
-                    font.letterSpacing: 2; font.weight: Font.Medium
-                }
-                UiText {
-                    anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
-                    text: "✕"; color: closeMa.containsMouse ? root.seal : root.sumi; font.pixelSize: 12
-                    Behavior on color { CAnim { ms: 120 } }
-                    MouseArea { id: closeMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: root.weatherVisible = false }
-                }
+            Keys.onPressed: function(event) {
+                if (event.key === Qt.Key_Escape) { root.weatherVisible = false; event.accepted = true }
             }
 
-            Rectangle { width: parent.width; height: 1; color: root.sep }
-
-            Item {
-                width: parent.width
-                height: 36
-                UiText {
-                    anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
-                    text: wxPanel.temp !== "" ? wxPanel.tConv(wxPanel.temp) + "°" + (root.weatherImperial ? "F" : "C") : "—"
-                    color: root.seal; font.family: root.mono; font.pixelSize: 26; font.weight: Font.Medium
-                }
-                UiText {
-                    anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
-                    text: wxPanel.desc
-                    color: root.ink; font.family: root.mono; font.pixelSize: 11
-                    horizontalAlignment: Text.AlignRight
-                    width: parent.width * 0.55; wrapMode: Text.WordWrap
-                }
-            }
+            MouseArea { anchors.fill: parent; onClicked: {} }
 
             Column {
-                width: parent.width
-                spacing: 4
-                Row {
+                id: col
+                anchors.fill: parent
+                anchors.margins: 12
+                spacing: 8
+
+                Item {
                     width: parent.width
-                    visible: wxPanel.location !== ""
-                    UiText { text: "Location"; color: root.sumiHi; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.4 }
-                    UiText { text: wxPanel.location; color: root.ink; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.6; elide: Text.ElideRight }
-                }
-                Row {
-                    width: parent.width
-                    visible: wxPanel.feels !== ""
-                    UiText { text: "Feels like"; color: root.sumiHi; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.4 }
-                    UiText { text: wxPanel.tConv(wxPanel.feels) + "°" + (root.weatherImperial ? "F" : "C"); color: root.ink; font.family: root.mono; font.pixelSize: 11 }
-                }
-                Row {
-                    width: parent.width
-                    visible: wxPanel.humidity !== ""
-                    UiText { text: "Humidity"; color: root.sumiHi; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.4 }
-                    UiText { text: wxPanel.humidity + "%"; color: root.ink; font.family: root.mono; font.pixelSize: 11 }
-                }
-                Row {
-                    width: parent.width
-                    visible: wxPanel.wind !== ""
-                    UiText { text: "Wind"; color: root.sumiHi; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.4 }
-                    UiText { text: wxPanel.wConv(wxPanel.wind); color: root.ink; font.family: root.mono; font.pixelSize: 11 }
-                }
-            }
-
-            Rectangle { width: parent.width; height: 1; color: root.sep }
-
-            Column {
-                width: parent.width
-                spacing: 5
-                visible: wxPanel.forecastDays.length > 0
-
-                UiText {
-                    text: "3-DAY FORECAST"
-                    color: root.sumiHi
-                    font.family: root.mono
-                    font.pixelSize: 10
-                    font.letterSpacing: 1
-                }
-
-                Repeater {
-                    model: wxPanel.forecastDays
-                    delegate: Item {
-                        width: col.width
-                        height: 24
-                        property var day: modelData
-
-                        UiText {
-                            anchors.left: parent.left
-                            anchors.verticalCenter: parent.verticalCenter
-                            width: 66
-                            text: wxPanel.dayLabel(day.date || "", index)
-                            color: root.ink
-                            font.family: root.mono
-                            font.pixelSize: 11
-                            elide: Text.ElideRight
-                        }
-                        Text {
-                            anchors.left: parent.left
-                            anchors.leftMargin: 76
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: wxPanel.glyphForCode(day.code)
-                            color: root.seal
-                            font.family: root.mono
-                            font.pixelSize: 14
-                        }
-                        UiText {
-                            anchors.left: parent.left
-                            anchors.leftMargin: 106
-                            anchors.verticalCenter: parent.verticalCenter
-                            width: 76
-                            text: wxPanel.dayRange(day)
-                            color: root.ink
-                            font.family: root.mono
-                            font.pixelSize: 11
-                        }
-                        UiText {
-                            anchors.right: parent.right
-                            anchors.verticalCenter: parent.verticalCenter
-                            width: 76
-                            text: (day.rain !== undefined ? Math.round(day.rain) + "% rain" : "")
-                            color: root.sumiHi
-                            font.family: root.mono
-                            font.pixelSize: 10
-                            horizontalAlignment: Text.AlignRight
-                        }
-                    }
-                }
-            }
-
-            Rectangle { width: parent.width; height: 1; color: root.sep; visible: wxPanel.forecastDays.length > 0 }
-
-            Row {
-                width: parent.width
-                height: 28
-                spacing: 6
-                // Refresh (primary)
-                Rectangle {
-                    width: root.evenW((parent.width - parent.spacing) / 2)
-                    height: 28; radius: root.tileRadius
-                    color: wxPanel.refreshing ? Qt.rgba(root.seal.r, root.seal.g, root.seal.b, 0.45)
-                           : wxBtnMa.containsMouse ? root.fillPrimaryHover : root.seal
-                    Behavior on color { CAnim { ms: 120 } }
+                    height: 24
                     UiText {
-                        anchors.centerIn: parent
-                        text: wxPanel.refreshing ? "Refreshing…" : "Refresh"
-                        color: root.paper; font.family: root.mono; font.pixelSize: 11
+                        anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
+                        text: "Weather"
+                        color: root.ink; font.family: root.gothic; font.pixelSize: 20
+                        font.letterSpacing: 0.5; font.weight: Font.Medium
                     }
-                    MouseArea {
-                        id: wxBtnMa
-                        anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
-                        enabled: !wxPanel.refreshing
-                        onClicked: wxPanel.refresh()
-                    }
-                }
-                // Unit toggle (secondary): shows the unit you'd switch TO
-                Rectangle {
-                    width: root.evenW((parent.width - parent.spacing) / 2)
-                    height: 28; radius: root.tileRadius
-                    color: unitMa.containsMouse ? root.fillHover : root.fillIdle
-                    border.color: unitMa.containsMouse ? root.seal : root.sep
-                    border.width: 1
-                    Behavior on color { CAnim { ms: 120 } }
-                    Behavior on border.color { CAnim { ms: 120 } }
                     UiText {
-                        anchors.centerIn: parent
-                        text: root.weatherImperial ? "metric" : "imperial"
-                        color: unitMa.containsMouse ? root.seal : root.ink
-                        font.family: root.mono; font.pixelSize: 11
+                        anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
+                        text: "✕"; color: closeMa.containsMouse ? root.seal : root.sumi; font.pixelSize: 12
                         Behavior on color { CAnim { ms: 120 } }
+                        MouseArea { id: closeMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: root.weatherVisible = false }
                     }
-                    MouseArea {
-                        id: unitMa
-                        anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
-                        onClicked: root.weatherImperial = !root.weatherImperial
+                }
+
+                GrimRule { root: wxPanel.root; width: parent.width }
+
+                Item {
+                    width: parent.width
+                    height: 36
+                    UiText {
+                        anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
+                        text: wxPanel.temp !== "" ? wxPanel.tConv(wxPanel.temp) + "°" + (root.weatherImperial ? "F" : "C") : "—"
+                        color: root.seal; font.family: root.mono; font.pixelSize: 26; font.weight: Font.Medium
+                    }
+                    UiText {
+                        anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
+                        text: wxPanel.desc
+                        color: root.ink; font.family: root.mono; font.pixelSize: 11
+                        horizontalAlignment: Text.AlignRight
+                        width: parent.width * 0.55; wrapMode: Text.WordWrap
+                    }
+                }
+
+                Column {
+                    width: parent.width
+                    spacing: 4
+                    Row {
+                        width: parent.width
+                        visible: wxPanel.location !== ""
+                        UiText { text: "Location"; color: root.sumiHi; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.4 }
+                        UiText { text: wxPanel.location; color: root.ink; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.6; elide: Text.ElideRight }
+                    }
+                    Row {
+                        width: parent.width
+                        visible: wxPanel.feels !== ""
+                        UiText { text: "Feels like"; color: root.sumiHi; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.4 }
+                        UiText { text: wxPanel.tConv(wxPanel.feels) + "°" + (root.weatherImperial ? "F" : "C"); color: root.ink; font.family: root.mono; font.pixelSize: 11 }
+                    }
+                    Row {
+                        width: parent.width
+                        visible: wxPanel.humidity !== ""
+                        UiText { text: "Humidity"; color: root.sumiHi; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.4 }
+                        UiText { text: wxPanel.humidity + "%"; color: root.ink; font.family: root.mono; font.pixelSize: 11 }
+                    }
+                    Row {
+                        width: parent.width
+                        visible: wxPanel.wind !== ""
+                        UiText { text: "Wind"; color: root.sumiHi; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.4 }
+                        UiText { text: wxPanel.wConv(wxPanel.wind); color: root.ink; font.family: root.mono; font.pixelSize: 11 }
+                    }
+                }
+
+                Rectangle { width: parent.width; height: 1; color: root.sep }
+
+                Column {
+                    width: parent.width
+                    spacing: 5
+                    visible: wxPanel.forecastDays.length > 0
+
+                    UiText {
+                        text: "3-DAY FORECAST"
+                        color: root.sumiHi
+                        font.family: root.mono
+                        font.pixelSize: 10
+                        font.letterSpacing: 1
+                    }
+
+                    Repeater {
+                        model: wxPanel.forecastDays
+                        delegate: Item {
+                            width: col.width
+                            height: 24
+                            property var day: modelData
+
+                            UiText {
+                                anchors.left: parent.left
+                                anchors.verticalCenter: parent.verticalCenter
+                                width: 66
+                                text: wxPanel.dayLabel(day.date || "", index)
+                                color: root.ink
+                                font.family: root.mono
+                                font.pixelSize: 11
+                                elide: Text.ElideRight
+                            }
+                            Text {
+                                anchors.left: parent.left
+                                anchors.leftMargin: 76
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: wxPanel.glyphForCode(day.code)
+                                color: root.seal
+                                font.family: root.mono
+                                font.pixelSize: 14
+                            }
+                            UiText {
+                                anchors.left: parent.left
+                                anchors.leftMargin: 106
+                                anchors.verticalCenter: parent.verticalCenter
+                                width: 76
+                                text: wxPanel.dayRange(day)
+                                color: root.ink
+                                font.family: root.mono
+                                font.pixelSize: 11
+                            }
+                            UiText {
+                                anchors.right: parent.right
+                                anchors.verticalCenter: parent.verticalCenter
+                                width: 76
+                                text: (day.rain !== undefined ? Math.round(day.rain) + "% rain" : "")
+                                color: root.sumiHi
+                                font.family: root.mono
+                                font.pixelSize: 10
+                                horizontalAlignment: Text.AlignRight
+                            }
+                        }
+                    }
+                }
+
+                Rectangle { width: parent.width; height: 1; color: root.sep; visible: wxPanel.forecastDays.length > 0 }
+
+                Row {
+                    width: parent.width
+                    height: 28
+                    spacing: 6
+                    // Refresh (primary)
+                    Rectangle {
+                        width: root.evenW((parent.width - parent.spacing) / 2)
+                        height: 28; radius: root.tileRadius
+                        color: wxPanel.refreshing ? Qt.rgba(root.seal.r, root.seal.g, root.seal.b, 0.45)
+                               : wxBtnMa.containsMouse ? root.fillPrimaryHover : root.seal
+                        Behavior on color { CAnim { ms: 120 } }
+                        UiText {
+                            anchors.centerIn: parent
+                            text: wxPanel.refreshing ? "Refreshing…" : "Refresh"
+                            color: root.paper; font.family: root.mono; font.pixelSize: 11
+                        }
+                        MouseArea {
+                            id: wxBtnMa
+                            anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
+                            enabled: !wxPanel.refreshing
+                            onClicked: wxPanel.refresh()
+                        }
+                    }
+                    // Unit toggle (secondary): shows the unit you'd switch TO
+                    Rectangle {
+                        width: root.evenW((parent.width - parent.spacing) / 2)
+                        height: 28; radius: root.tileRadius
+                        color: unitMa.containsMouse ? root.fillHover : root.fillIdle
+                        border.color: unitMa.containsMouse ? root.seal : root.sep
+                        border.width: 1
+                        Behavior on color { CAnim { ms: 120 } }
+                        Behavior on border.color { CAnim { ms: 120 } }
+                        UiText {
+                            anchors.centerIn: parent
+                            text: root.weatherImperial ? "metric" : "imperial"
+                            color: unitMa.containsMouse ? root.seal : root.ink
+                            font.family: root.mono; font.pixelSize: 11
+                            Behavior on color { CAnim { ms: 120 } }
+                        }
+                        MouseArea {
+                            id: unitMa
+                            anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
+                            onClicked: root.weatherImperial = !root.weatherImperial
+                        }
                     }
                 }
             }
