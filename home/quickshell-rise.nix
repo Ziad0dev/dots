@@ -44,7 +44,9 @@ let
   # just stopped. Path matching failed both ways — `pkill -f …/rise/scripts/`
   # killed the dots-github-inbox timer's run (another unit, same path) and
   # missed the helpers started as ~/.config/quickshell/…, so every restart
-  # leaked a qs-kb-wait socat|grep pipeline.
+  # leaked the bar's helper pipelines. A kill that finds its process already
+  # gone (killing one end of a pipe ends the other) must not abort the loop
+  # under errexit, which left the rest of the session behind.
   reapHelpers = pkgs.writeShellApplication {
     name = "dots-quickshell-reap-helpers";
     runtimeInputs = [
@@ -56,7 +58,8 @@ let
       cg="/sys/fs/cgroup$(systemctl --user show -p ControlGroup --value quickshell.service)"
       [ -n "$main" ] && [ "$main" != 0 ] && [ -r "$cg/cgroup.procs" ] || exit 0
       while read -r pid; do
-        [ "$(ps -o sid= -p "$pid" | tr -d ' ')" = "$main" ] && kill "$pid" 2>/dev/null
+        sid=$(ps -o sid= -p "$pid" 2>/dev/null | tr -d ' ') || continue
+        if [ "$sid" = "$main" ]; then kill "$pid" 2>/dev/null || true; fi
       done < "$cg/cgroup.procs"
       exit 0
     '';

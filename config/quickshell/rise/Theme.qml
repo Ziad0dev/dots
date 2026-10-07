@@ -1012,11 +1012,13 @@ ThemeAiUsage {
     property bool capsLockOn: false           // any keyboard's capslock LED lit
 
     // Every keyboard has its own LED. Builtin reads and a read -t sleep keep
-    // the loop fork-free; it prints only on change.
+    // the loop fork-free; it prints only on change, and ends with the shell
+    // (kill -0 on the parent, also a builtin): with KillMode=process a restart
+    // otherwise left one immortal 4 Hz poller per old instance.
     Process {
         running: true
         command: ["bash", "-c",
-            "exec {t}<> <(:); last=; while :; do on=0; " +
+            "p=$PPID; exec {t}<> <(:); last=; while kill -0 $p 2>/dev/null; do on=0; " +
             "for f in /sys/class/leds/*::capslock/brightness; do read -r v < \"$f\" && [ \"$v\" != 0 ] && on=1; done; " +
             "[ \"$on\" != \"$last\" ] && echo $on && last=$on; read -t 0.25 -u $t; done"]
         stdout: SplitParser { onRead: function(line) { theme.capsLockOn = line.trim() === "1" } }
