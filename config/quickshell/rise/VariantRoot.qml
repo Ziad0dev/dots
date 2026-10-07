@@ -262,6 +262,19 @@ Item {
         model: root.barScreens
 
         delegate: Component {
+            DeskVisualiser {
+                required property var modelData
+
+                root: theme
+                screen: modelData
+            }
+        }
+    }
+
+    Variants {
+        model: root.barScreens
+
+        delegate: Component {
             DeskClock {
                 required property var modelData
 

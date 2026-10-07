@@ -88,7 +88,8 @@ PanelWindow {
                 b("styleDepth", "Depth"),
                 b("styleRadiusSmall", "Small corners"),
                 b("styleIconLabels", "Icon labels"),
-                b("styleDeskClock", "Desktop clock")
+                b("styleDeskClock", "Desktop clock"),
+                b("styleDeskVisualiser", "Desktop visualiser", "Audio bars along the bottom of an empty desktop while music plays (a small strip at 30 fps)")
             ] },
             { title: "Motion", rows: [
                 b("motionHover", "Hover", "Widgets lift under the pointer"),
@@ -133,7 +134,7 @@ PanelWindow {
             "compactMpris", "compactVolume", "compactBrightness", "compactNetwork", "compactBluetooth", "compactBattery",
             "compactPower", "compactCpu", "compactMemory", "archBadgePackages", "archBadgeThemes", "archBadgeShell",
             "styleFrame", "styleFrameEdge", "styleAutoHide", "styleFrost", "styleShadow", "styleBorder", "styleDepth",
-            "styleRadiusSmall", "styleIconLabels", "styleDeskClock", "motionHover", "motionSweep", "motionDigits",
+            "styleRadiusSmall", "styleIconLabels", "styleDeskClock", "styleDeskVisualiser", "motionHover", "motionSweep", "motionDigits",
             "pickerStyle", "clock12h", "weatherImperial", "aiTool", "widgetColorStyles"]
         for (var i = 0; i < described.length; i++) known[described[i]] = true
         var out = [], schema = root._settingsSchema

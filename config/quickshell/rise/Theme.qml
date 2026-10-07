@@ -160,6 +160,7 @@ ThemeAiUsage {
     property bool styleFrameEdge: true      // accent rim along the frame's inner edge
     property bool styleAutoHide: false      // bar collapses to the frame edge until hovered
     property bool styleDeskClock: true      // large clock on the wallpaper (DeskClock.qml)
+    property bool styleDeskVisualiser: false // audio bars on an empty desktop (DeskVisualiser.qml)
     // panels opened by hovering a frame edge close again when the pointer leaves
     // them, and don't take keyboard focus
     property bool notifHoverOpened: false
@@ -1797,7 +1798,7 @@ ThemeAiUsage {
         archBadgePackages: "bool", archBadgeThemes: "bool", archBadgeShell: "bool",
         styleBorder: "bool", styleShadow: "bool", styleFrost: "bool",
         styleRadiusSmall: "bool", styleIconLabels: "bool", styleDepth: "bool",
-        styleFrame: "bool", styleFrameEdge: "bool", styleAutoHide: "bool", styleDeskClock: "bool",
+        styleFrame: "bool", styleFrameEdge: "bool", styleAutoHide: "bool", styleDeskClock: "bool", styleDeskVisualiser: "bool",
         motionHover: "bool", motionSweep: "bool", motionDigits: "bool",
         weatherImperial: "bool", clock12h: "bool",
         splitArch: "bool", splitMon: "bool", splitMprisL: "bool", splitNet: "bool",
