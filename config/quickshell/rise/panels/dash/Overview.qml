@@ -11,14 +11,21 @@ Item {
     id: ov
     required property var dash
     readonly property var root: dash.root
+    property bool shown: true
+    opacity: shown ? 1 : 0
+    visible: opacity > 0
+    Behavior on opacity { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
 
     readonly property int gap: 12
-    readonly property int leftW: 275 + gap + 340
+    readonly property int minLeftW: 275 + gap + 340
+    readonly property real leftW: Math.max(minLeftW, width - gap - 200)
     readonly property int topH: 120
     readonly property int bottomH: 56
-    readonly property int midH: calendarCard.implicitHeight
-    implicitWidth: leftW + gap + 200
-    implicitHeight: topH + gap + midH + gap + bottomH
+    // the middle row takes any extra height (implicit size uses the calendar's own)
+    readonly property real calH: calendarCard.implicitHeight
+    readonly property real midH: Math.max(calH, height - topH - bottomH - 2 * gap)
+    implicitWidth: minLeftW + gap + 200
+    implicitHeight: topH + gap + calH + gap + bottomH
 
     component Card: Rectangle {
         color: ov.dash.surfaceContainer
@@ -73,7 +80,7 @@ Item {
     Card {
         id: userCard
         x: 275 + ov.gap
-        width: 340; height: ov.topH
+        width: ov.leftW - x; height: ov.topH
         Item {
             id: user
             anchors.fill: parent
@@ -348,7 +355,7 @@ Item {
     Card {
         id: mediaCard
         x: ov.leftW + ov.gap
-        width: 200; height: ov.implicitHeight
+        width: 200; height: ov.height
         radius: 56
         MediaCard { anchors.fill: parent; dash: ov.dash }
     }

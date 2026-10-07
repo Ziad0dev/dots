@@ -264,8 +264,10 @@ PanelWindow {
         // tab's own property to itself, so they get it through this
         readonly property var panel: dash
         readonly property int pad: 16
-        readonly property real contentW: view.item ? view.item.implicitWidth : 800
-        readonly property real contentH: view.item ? view.item.implicitHeight : 300
+        // one size for every tab (the largest), so switching tabs never moves the
+        // tab bar out from under the pointer; smaller tabs stretch to fill it
+        readonly property real contentW: Math.max(ovTab.implicitWidth, medTab.implicitWidth, perfTab.implicitWidth, wxTab.implicitWidth)
+        readonly property real contentH: Math.max(ovTab.implicitHeight, medTab.implicitHeight, perfTab.implicitHeight, wxTab.implicitHeight)
         width: contentW + 2 * pad
         height: tabBar.height + 12 + contentH + 2 * pad
         Behavior on width { Anim { kind: "size"; ms: 420 } }
@@ -380,25 +382,18 @@ PanelWindow {
         }
 
         // ── the current tab ──
-        Loader {
+        // all four live while the dashboard is open (it unloads on close); a hidden
+        // tab stops its own timers, cava and lyrics, which all follow `visible`
+        Item {
             id: view
             x: card.pad
             y: tabBar.y + tabBar.height + 12
             width: card.contentW
             height: card.contentH
-            sourceComponent: dash.tab === "media" ? mediaTab
-                           : dash.tab === "performance" ? performanceTab
-                           : dash.tab === "weather" ? weatherTab : overviewTab
-            onLoaded: { item.opacity = 0; fadeIn.restart() }
-            NumberAnimation {
-                id: fadeIn
-                target: view.item; property: "opacity"; to: 1
-                duration: 260; easing.type: Easing.OutCubic
-            }
+            Overview { id: ovTab; dash: card.panel; anchors.fill: parent; shown: dash.tab === "dashboard" }
+            MediaTab { id: medTab; dash: card.panel; anchors.fill: parent; shown: dash.tab === "media" }
+            PerformanceTab { id: perfTab; dash: card.panel; anchors.fill: parent; shown: dash.tab === "performance" }
+            WeatherTab { id: wxTab; dash: card.panel; anchors.fill: parent; shown: dash.tab === "weather" }
         }
-        Component { id: overviewTab; Overview { dash: card.panel } }
-        Component { id: mediaTab; MediaTab { dash: card.panel } }
-        Component { id: performanceTab; PerformanceTab { dash: card.panel } }
-        Component { id: weatherTab; WeatherTab { dash: card.panel } }
     }
 }

@@ -7,12 +7,16 @@ Item {
     id: pt
     required property var dash
     readonly property var root: dash.root
+    property bool shown: true
+    opacity: shown ? 1 : 0
+    visible: opacity > 0
+    Behavior on opacity { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
 
     readonly property int gap: 12
     // the lower row sets the width; the hero cards share it (one card spans it without a GPU)
     readonly property int memoryW: 200
     implicitWidth: storageCard.width + netCard.width + memoryW + 2 * gap
-    readonly property real heroW: root.gpuAvailable ? (implicitWidth - gap) / 2 : implicitWidth
+    readonly property real heroW: root.gpuAvailable ? (width - gap) / 2 : width
     implicitHeight: heroRow.height + gap + lowerRow.height + gap + footer.implicitHeight
 
     Row {
@@ -193,7 +197,7 @@ Item {
 
         // ── memory ──
         Rectangle {
-            width: pt.memoryW
+            width: pt.width - storageCard.width - netCard.width - 2 * pt.gap
             height: parent.height
             radius: 12
             color: pt.dash.surfaceContainer

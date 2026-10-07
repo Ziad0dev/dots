@@ -14,6 +14,10 @@ Item {
     readonly property var root: dash.root
     readonly property var player: dash.player
     readonly property bool playing: dash.playing
+    property bool shown: true
+    opacity: shown ? 1 : 0
+    visible: opacity > 0
+    Behavior on opacity { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
 
     implicitWidth: 1000
     implicitHeight: 320

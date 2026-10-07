@@ -7,6 +7,10 @@ Item {
     id: wt
     required property var dash
     readonly property var wx: dash.wx
+    property bool shown: true
+    opacity: shown ? 1 : 0
+    visible: opacity > 0
+    Behavior on opacity { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
 
     implicitWidth: 840
     implicitHeight: wx ? content.implicitHeight : 260
@@ -32,6 +36,7 @@ Item {
     Column {
         id: content
         width: parent.width
+        y: Math.max(0, (wt.height - implicitHeight) / 2)
         visible: !!wt.wx
         spacing: 12
 
