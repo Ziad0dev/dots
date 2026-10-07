@@ -25,6 +25,9 @@ scripts/        shell sources packaged by the nix modules, plus the git hook
 | `homeConfigurations."ziad0dev@linux"` | `mk.home` | x86_64-linux, minimal |
 | `homeConfigurations."ziad0dev@linux-desktop"` | `mk.home` | x86_64-linux, desktop |
 | `homeConfigurations."ziad0dev@aarch64-linux"` | `mk.home` | aarch64-linux, minimal |
+| `nixosConfigurations.vm` | `mk.nixos` | `hosts/vm`: a small test host — disko layout, root on tmpfs, sops, home-manager minimal with `liveConfig = false` |
+| `nixosConfigurations.installer` | `mk.nixos` (no home) | `hosts/installer`: minimal ISO + `dots-install`, with every host in `dots.installer.hosts` prebuilt |
+| `checks.x86_64-linux.vm` | `tests/vm.nix` | NixOS test booting the vm host: sops, pure home-manager, default theme |
 | `templates.*` | — | nine project templates, see [Development](development.md#project-templates) |
 | `formatter.<system>` | — | `nixfmt-tree` for `nix fmt` |
 
@@ -89,7 +92,7 @@ Everything under `home/` that isn't a profile is an app module imported by one o
 | `dots.liveConfig` | `~/.config/hypr` points at | Edits | Rollback |
 |---|---|---|---|
 | `true` (default) | `<repoPath>/config/hypr`, via `mkOutOfStoreSymlink` | land immediately, no rebuild | does **not** revert config — the link follows the working tree |
-| `false` | `<flake source in the store>/config/hypr` | need a rebuild | reverts with the generation; no checkout needed |
+| `false` | `<store copy of config/>/config/hypr` | need a rebuild | reverts with the generation; no checkout needed |
 
 Pure mode is what the `vm` host uses, and what to pick on a machine you deploy to rather than edit on. Configs are read-only there, so apps that write into their own config dir (btop saving `btop.conf`, lazy.nvim's `lazy-lock.json`) can't persist those writes.
 
@@ -111,7 +114,7 @@ Files linked to `~/.local/state/dots/theme/*` instead of `config/` (btop theme, 
 - NixOS: `modules/quality.nix` — used by `programs.nh.flake`.
 - home-manager: `home/profiles/base.nix` — used by `dotsLink` in live mode, the `flakeup` abbrev, git hooks, standalone `programs.nh.flake`, and baked into the scripts that act on the checkout (`dots-update`, `dots-updates`, `dots-timemachine`; each still honours `DOTS_REPO` / `DOTS_DIR`).
 
-`dots.src` (home-manager, read-only) is where `config/` is *read* from at runtime: `repoPath` in live mode, the flake source in the store in pure mode. themectl's palettes and templates, fastfetch art and the theme pickers (`DOTS_DIR` in the Quickshell unit) use it. Scripts under `config/quickshell/rise/scripts` are reached through `~/.config/quickshell/rise`, which is right in both modes.
+`dots.src` (home-manager, read-only) is where `config/` is *read* from at runtime: `repoPath` in live mode, a store copy of just `config/` in pure mode (so unrelated repo edits don't rebuild it). themectl's palettes and templates, fastfetch art and the theme pickers (`DOTS_DIR` in the Quickshell unit) use it. Scripts under `config/quickshell/rise/scripts` are reached through `~/.config/quickshell/rise`, which is right in both modes.
 
 How rebuild abbrevs are chosen: `update` is `nh os switch` when home-manager rides on NixOS, `nh darwin switch` on nix-darwin, and `nh home switch -c <output>` for a standalone `homeConfigurations` output (`mk.home` passes its attribute name). Off NixOS, home-manager installs nh itself.
 

@@ -41,6 +41,20 @@
   dots.secureBoot.tpmUnlock = [ "luks-72749c98-6a12-4a0b-b354-00fd868aa36e" ];
   boot.loader.timeout = 1;
 
+  # Secrets from secrets/nixos.yaml, linked to the paths the modules already
+  # read. Off until the host age key and that file exist: docs/secrets.md.
+  # /etc/luks-data.key stays out: it unlocks /data at boot, and a failed
+  # decryption must not be able to stop the boot.
+  dots.secrets = {
+    enable = false;
+    file = ../../secrets/nixos.yaml;
+  };
+  sops.secrets = lib.mkIf config.dots.secrets.enable {
+    mullvad-wg.path = "/etc/wireguard/mullvad.conf";
+    restic-password.path = "/etc/restic/password";
+    the-page-env.path = "/var/lib/secrets/the-page.env";
+  };
+
   dots.recording.monitor = "DP-1";
   dots.sddm.theme = "demon";
   networking.hostName = hostname;

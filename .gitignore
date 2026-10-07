@@ -7,3 +7,4 @@ __pycache__/
 .direnv/
 config/broot/launcher/
 scripts/album-doctor.py
+iso-test/

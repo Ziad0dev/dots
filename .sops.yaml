@@ -1,0 +1,17 @@
+# Who can decrypt each secrets file. A host decrypts with its age key
+# (/var/lib/sops-nix/key.txt, made with age-keygen); you edit with GPG.
+# After changing recipients: sops updatekeys secrets/<host>.yaml
+keys:
+  - &ziad D7A0CA4F019D7B3EC336E8B6A365B3326805F3F7 # GPG, the pass key
+  # TEST ONLY: its private half is committed (hosts/vm/test-age-key.txt)
+  - &vm age1y4azf76cjxgzzvjcdc50ct0wv7saf9qgvumrvgjm2cn7tdkcwaqs09j8zc
+  # - &nixos age1...  # the desktop: sudo age-keygen -y /var/lib/sops-nix/key.txt
+creation_rules:
+  - path_regex: secrets/vm\.yaml$
+    key_groups:
+      - pgp: [*ziad]
+        age: [*vm]
+  # - path_regex: secrets/nixos\.yaml$
+  #   key_groups:
+  #     - pgp: [*ziad]
+  #       age: [*nixos]

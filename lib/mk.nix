@@ -33,8 +33,17 @@ let
       };
       home-manager.users.${username} = import homeModule;
     };
+
+  hmNixos = args: [
+    inputs.home-manager.nixosModules.home-manager
+    (hmShared args)
+  ];
 in
 {
+  # home-manager riding on a NixOS system, for configs not built by mk.nixos
+  # (the VM test in tests/vm.nix)
+  inherit hmNixos;
+
   nixos =
     {
       hostname,
@@ -58,17 +67,14 @@ in
       };
       modules =
         modules
-        ++ lib.optionals home [
-          inputs.home-manager.nixosModules.home-manager
-          (hmShared {
-            inherit
-              username
-              system
-              profile
-              homeModule
-              ;
-          })
-        ];
+        ++ lib.optionals home (hmNixos {
+          inherit
+            username
+            system
+            profile
+            homeModule
+            ;
+        });
     };
 
   darwin =

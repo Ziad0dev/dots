@@ -45,7 +45,7 @@ in
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
-      ExecStart = "${pkgs.gnused}/bin/sed -i 's|^DNS = .*|DNS = ${mullvadDns}|' ${wgConfig}";
+      ExecStart = "${pkgs.gnused}/bin/sed -i --follow-symlinks 's|^DNS = .*|DNS = ${mullvadDns}|' ${wgConfig}";
     };
   };
 

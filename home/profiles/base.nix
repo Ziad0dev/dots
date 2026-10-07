@@ -16,6 +16,13 @@ let
   homeDir = if isDarwin then "/Users/${username}" else "/home/${username}";
   cfg = config.dots;
 
+  # just config/ (same layout as the repo), so pure mode rebuilds only when a
+  # config changes, not on every edit anywhere in the flake
+  configSrc = lib.fileset.toSource {
+    root = ../..;
+    fileset = ../../config;
+  };
+
   # A home-manager riding on NixOS or nix-darwin is rebuilt by the system;
   # a standalone one by `nh home switch` against its own output name.
   rebuild =
@@ -58,9 +65,9 @@ in
   options.dots.src = lib.mkOption {
     type = lib.types.str;
     readOnly = true;
-    default = if cfg.liveConfig then cfg.repoPath else "${inputs.self}";
-    defaultText = lib.literalExpression ''if liveConfig then repoPath else "''${inputs.self}"'';
-    description = "Where config/ is read from at runtime: the checkout, or the flake source in the store.";
+    default = if cfg.liveConfig then cfg.repoPath else "${configSrc}";
+    defaultText = lib.literalExpression "if liveConfig then repoPath else <config/ in the store>";
+    description = "Where config/ is read from at runtime: the checkout, or a store copy of config/.";
   };
 
   options.dots.theme = lib.mkOption {
@@ -76,7 +83,7 @@ in
       if cfg.liveConfig then
         config.lib.file.mkOutOfStoreSymlink "${cfg.repoPath}/config/${sub}"
       else
-        "${inputs.self}/config/${sub}";
+        "${configSrc}/config/${sub}";
 
     home.username = username;
     home.homeDirectory = lib.mkDefault homeDir;
