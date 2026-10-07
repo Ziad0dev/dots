@@ -35,6 +35,8 @@
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.systemd-boot.configurationLimit = 3;
   boot.loader.systemd-boot.editor = false;
+  # flip after creating and enrolling keys: docs/secure-boot.md
+  dots.secureBoot.enable = false;
   boot.loader.timeout = 1;
 
   dots.sddm.theme = "demon";
