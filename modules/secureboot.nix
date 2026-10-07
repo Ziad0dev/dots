@@ -22,6 +22,15 @@ in
   options.dots.secureBoot.enable =
     lib.mkEnableOption "Secure Boot via lanzaboote (needs keys in /var/lib/sbctl first)";
 
+  # The keyslot itself is enrolled by hand (systemd-cryptenroll, see the docs);
+  # this only makes the initrd try the TPM before asking for the passphrase.
+  options.dots.secureBoot.tpmUnlock = lib.mkOption {
+    type = lib.types.listOf lib.types.str;
+    default = [ ];
+    example = [ "luks-72749c98-6a12-4a0b-b354-00fd868aa36e" ];
+    description = "Names under boot.initrd.luks.devices that the initrd unlocks with the TPM.";
+  };
+
   config = lib.mkMerge [
     # sbctl either way: it creates the keys, enrolls them, and verifies signatures
     { environment.systemPackages = [ pkgs.sbctl ]; }
@@ -34,6 +43,27 @@ in
         pkiBundle = "/var/lib/sbctl";
         configurationLimit = config.boot.loader.systemd-boot.configurationLimit;
       };
+    })
+
+    (lib.mkIf (cfg.tpmUnlock != [ ]) {
+      # the keyslot is sealed to PCR 7, which only means something with
+      # Secure Boot enforcing
+      assertions = [
+        {
+          assertion = cfg.enable;
+          message = "dots.secureBoot.tpmUnlock needs dots.secureBoot.enable";
+        }
+      ];
+      # the scripted initrd can't talk to the TPM
+      boot.initrd.systemd.enable = true;
+      # tpm2-measure-pcr extends PCR 15 once a volume is open, so a key sealed
+      # to PCR 15 = 0 can't be unsealed again after a decoy volume was unlocked
+      boot.initrd.luks.devices = lib.genAttrs cfg.tpmUnlock (_: {
+        crypttabExtraOpts = [
+          "tpm2-device=auto"
+          "tpm2-measure-pcr=yes"
+        ];
+      });
     })
   ];
 }
