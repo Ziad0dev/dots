@@ -33,7 +33,7 @@ PanelWindow {
     property alias secondary: m3.secondary
     property alias tertiary: m3.tertiary
     property alias error: m3.error
-    property alias onPrimary: m3.onPrimary
+    property alias inkOnPrimary: m3.inkOnPrimary
     property alias onSurface: m3.onSurface
     property alias onSurfaceVariant: m3.onSurfaceVariant
     property alias outline: m3.outline
@@ -44,9 +44,9 @@ PanelWindow {
     property alias primaryContainer: m3.primaryContainer
     property alias secondaryContainer: m3.secondaryContainer
     property alias tertiaryContainer: m3.tertiaryContainer
-    property alias onPrimaryContainer: m3.onPrimaryContainer
-    property alias onSecondaryContainer: m3.onSecondaryContainer
-    property alias onTertiaryContainer: m3.onTertiaryContainer
+    property alias inkOnPrimaryContainer: m3.inkOnPrimaryContainer
+    property alias inkOnSecondaryContainer: m3.inkOnSecondaryContainer
+    property alias inkOnTertiaryContainer: m3.inkOnTertiaryContainer
     property alias blood: m3.blood
     property alias bloodText: m3.bloodText
     property alias bone: m3.bone
@@ -268,7 +268,7 @@ PanelWindow {
         x: dash.framed ? root.frameThickness : dash.gap
         y: parent.height - dash.bottomBand - (dash.framed ? 0 : dash.gap) - height
         radius: reveal > 0.001 ? root.panelRadius : 0
-        color: root.frameCardBg
+        color: m3.sheet   // readable over any wallpaper (FrameCard still melts it into the frame)
         border.color: root.pillBorder
         border.width: root.frameCardBorderW
         clip: true

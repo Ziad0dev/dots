@@ -41,7 +41,7 @@ Item {
         command: ["bash", "-c",
             "command -v cava >/dev/null 2>&1 || exit 0; " +
             "exec cava -p <(printf '%s\\n' " +
-            "'[general]' 'bars = 24' 'framerate = 60' 'autosens = 1' 'sleep_timer = 0' " +
+            "'[general]' 'bars = 24' 'framerate = 30' 'autosens = 1' 'sleep_timer = 0' " +
             "'[input]' 'method = pipewire' 'source = auto' " +
             "'[output]' 'method = raw' 'raw_target = /dev/stdout' " +
             "'data_format = ascii' 'ascii_max_range = 100' " +
@@ -270,58 +270,29 @@ Item {
             }
         }
 
-        // ── equalizer canvas ──
-        Canvas {
-            id: eqCanvas
+        // ── equalizer: three rounded bars ──
+        // Plain Rectangles, not a Canvas: a Canvas rasterises on the CPU on
+        // every repaint (20/s while playing, and per frame while they drop).
+        Item {
+            id: eqBars
             implicitWidth: 16
             width: 16
             height: 14
             anchors.verticalCenter: parent.verticalCenter
+            readonly property var levels: [rootMod.barH1, rootMod.barH2, rootMod.barH3]
 
-            property color tint: root.seal
-            onTintChanged: requestPaint()
-
-            onPaint: {
-                var ctx = getContext("2d")
-                ctx.clearRect(0, 0, width, height)
-
-                var bars   = [rootMod.barH1, rootMod.barH2, rootMod.barH3]
-                var bw     = 3
-                var gap    = 2
-                var totalW = bars.length * bw + (bars.length - 1) * gap
-                var startX = (width - totalW) / 2
-                var maxH   = height - 1
-                var r      = bw / 2
-
-                ctx.fillStyle = eqCanvas.tint
-
-                for (var i = 0; i < bars.length; i++) {
-                    var bh = Math.max(r * 2, bars[i] * maxH)
-                    var x  = startX + i * (bw + gap)
-                    var y  = height - bh
-
-                    ctx.beginPath()
-                    ctx.moveTo(x + r, y)
-                    ctx.lineTo(x + bw - r, y)
-                    ctx.arcTo(x + bw, y,      x + bw, y + r,      r)
-                    ctx.lineTo(x + bw, y + bh - r)
-                    ctx.arcTo(x + bw, y + bh, x + bw - r, y + bh, r)
-                    ctx.lineTo(x + r,  y + bh)
-                    ctx.arcTo(x,       y + bh, x, y + bh - r,      r)
-                    ctx.lineTo(x, y + r)
-                    ctx.arcTo(x, y,    x + r,  y,                   r)
-                    ctx.closePath()
-                    ctx.fill()
+            Repeater {
+                model: 3
+                Rectangle {
+                    required property int index
+                    width: 3
+                    radius: 1.5
+                    height: Math.max(3, eqBars.levels[index] * (eqBars.height - 1))
+                    x: (eqBars.width - 13) / 2 + index * 5
+                    y: eqBars.height - height
+                    color: root.seal
                 }
             }
-
-            Connections {
-                target: rootMod
-                function onBarH1Changed() { eqCanvas.requestPaint() }
-                function onBarH2Changed() { eqCanvas.requestPaint() }
-                function onBarH3Changed() { eqCanvas.requestPaint() }
-            }
-            Component.onCompleted: requestPaint()
         }
     }
 
@@ -397,49 +368,20 @@ Item {
                     height: 22
                     anchors.verticalCenter: parent.verticalCenter
 
-                    Canvas {
-                        id: museCanvas
-                        anchors.fill: parent
-                        antialiasing: true
-                        property color tint: root.seal
-                        onTintChanged: requestPaint()
-                        onPaint: {
-                            var ctx = getContext("2d")
-                            ctx.clearRect(0, 0, width, height)
-                            var levels = rootMod.museLevels
-                            var count = rootMod.museBands
-                            var barWidth = 2
-                            var gap = (width - count * barWidth) / (count - 1)
-                            var centerY = height / 2
-                            var maxHalf = centerY - 1
-                            ctx.fillStyle = tint
-
-                            for (var i = 0; i < count; i++) {
-                                var level = levels && levels[i] !== undefined ? levels[i] : 0.04
-                                var half = 1 + level * (maxHalf - 1)
-                                var x = i * (barWidth + gap)
-                                var y = centerY - half
-                                var barHeight = half * 2
-                                var radius = barWidth / 2
-
-                                ctx.beginPath()
-                                ctx.moveTo(x + radius, y)
-                                ctx.arcTo(x + barWidth, y, x + barWidth, y + radius, radius)
-                                ctx.lineTo(x + barWidth, y + barHeight - radius)
-                                ctx.arcTo(x + barWidth, y + barHeight, x + radius, y + barHeight, radius)
-                                ctx.arcTo(x, y + barHeight, x, y + barHeight - radius, radius)
-                                ctx.lineTo(x, y + radius)
-                                ctx.arcTo(x, y, x + radius, y, radius)
-                                ctx.closePath()
-                                ctx.fill()
-                            }
+                    // 24 Rectangles, not a Canvas repainted on the CPU per cava frame
+                    Repeater {
+                        model: rootMod.museBands
+                        Rectangle {
+                            required property int index
+                            readonly property real level: rootMod.museLevels[index] !== undefined ? rootMod.museLevels[index] : 0.04
+                            readonly property real gap: (museWaveform.width - rootMod.museBands * 2) / (rootMod.museBands - 1)
+                            width: 2
+                            radius: 1
+                            height: 2 * (1 + level * (museWaveform.height / 2 - 2))
+                            x: index * (2 + gap)
+                            y: (museWaveform.height - height) / 2
+                            color: root.seal
                         }
-
-                        Connections {
-                            target: rootMod
-                            function onMuseLevelsChanged() { museCanvas.requestPaint() }
-                        }
-                        Component.onCompleted: requestPaint()
                     }
                 }
 

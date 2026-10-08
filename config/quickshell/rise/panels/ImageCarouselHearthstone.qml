@@ -204,7 +204,9 @@ PanelWindow {
             applyThemeProc.command = ["env", "DOTS_SHELL_PATH=" + root.dotsShellRoot, "dots-theme-set", name]
             applyThemeProc.running = false; applyThemeProc.running = true
         } else {
-            applyBgProc.command = ["bash", "-c", "dots-theme-bg-set '" + path.replace(/'/g, "'\\''") + "'"]
+            // rise draws the wallpaper (ext WallpaperLayer): show it at once,
+            // then let themectl record it (and re-colour an auto theme)
+            applyBgProc.command = ["bash", "-c", "qs -c rise ipc call wallpaper display \"$1\" >/dev/null 2>&1; exec dots-theme-bg-set \"$1\"", "_", path]
             applyBgProc.running = false; applyBgProc.running = true
         }
         root.imagePickerVisible = false

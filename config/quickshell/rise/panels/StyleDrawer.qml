@@ -76,7 +76,8 @@ PanelWindow {
     }
     function applyWallpaper(path) {
         currentWallpaper = path
-        Quickshell.execDetached(["dots-theme-bg-set", path])
+        // rise draws the wallpaper (ext WallpaperLayer): show it at once
+        Quickshell.execDetached(["bash", "-c", "qs -c rise ipc call wallpaper display \"$1\" >/dev/null 2>&1; exec dots-theme-bg-set \"$1\"", "_", path])
     }
 
     // loaded on open (VariantRoot): start closed so the reveal animates

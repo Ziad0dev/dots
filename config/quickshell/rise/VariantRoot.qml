@@ -378,4 +378,12 @@ Item {
     LazyLoader { active: theme.mediaBrowserVisible && (theme.pickerStyle === "tanzaku" || theme.pickerStyle === "");  MediaBrowserPanel        { root: theme } }
     LazyLoader { active: theme.mediaBrowserVisible && theme.pickerStyle === "hearthstone";                             MediaBrowserHearthstone  { root: theme } }
     LazyLoader { active: theme.mediaBrowserVisible && theme.pickerStyle === "carousel";                                MediaBrowserCarousel     { root: theme } }
+
+    // Features ported from dhrruvsharma/shell (ext/ExtRoot.qml: the swatch-deck
+    // wallpaper picker, keybinds editor, notes, desktop/lock themes, …). Loaded
+    // by URL so a broken port fails alone instead of taking the bar with it.
+    Loader {
+        id: extLoader
+        Component.onCompleted: setSource(Qt.resolvedUrl("ExtRoot.qml"), { theme: theme })
+    }
 }

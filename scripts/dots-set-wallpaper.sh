@@ -2,7 +2,12 @@ img="$1"
 [ -n "$img" ] || exit 1
 [ -f "$img" ] || exit 1
 
-awww img "$img" --transition-type random --transition-fps 60 --transition-duration 1
+# rise draws the wallpaper itself (with the desktop theme's layer and its own
+# transition) when it's running and no wallpaper command is set in its picker;
+# it answers "true" then. Otherwise awww draws it.
+if ! qs -c rise ipc call wallpaper display "$img" 2>/dev/null | grep -qx true; then
+    awww img "$img" --transition-type random --transition-fps 60 --transition-duration 1
+fi
 
 state="${XDG_STATE_HOME:-$HOME/.local/state}/dots/theme"
 mkdir -p "$state"

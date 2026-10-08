@@ -147,7 +147,7 @@ Item {
             IconText {
                 anchors.centerIn: parent
                 text: "queue_music"
-                color: mt.dash.onPrimaryContainer
+                color: mt.dash.inkOnPrimaryContainer
                 font.pointSize: 44
             }
         }

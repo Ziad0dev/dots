@@ -96,13 +96,20 @@ PanelWindow {
         { id: "inhibit", label: "Caffeine", glyph: "", shown: true, on: root.idleInhibited, cmd: "" },
         { id: "night", label: "Night light", glyph: "", shown: true, on: nightLight, cmd: "dots-nightlight toggle" },
         { id: "rec", label: root.screenRecording ? "Stop rec" : "Record", glyph: "", shown: true, on: root.screenRecording,
-          cmd: root.screenRecording ? "dots-capture-screenrecording --stop" : "dots-capture-screenrecording" }
+          cmd: root.screenRecording ? "dots-capture-screenrecording --stop" : "dots-capture-screenrecording" },
+        // rise/ext panels (ExtRoot.qml)
+        { id: "timer", label: "Timer", glyph: "timer", shown: true, on: false, ext: true,
+          cmd: "qs -c rise ipc call timer toggle" },
+        { id: "notes", label: "Notes", glyph: "sticky_note_2", shown: true, on: false, ext: true,
+          cmd: "qs -c rise ipc call notes toggle" },
+        { id: "keys", label: "Keybinds", glyph: "keyboard", shown: true, on: false, ext: true,
+          cmd: "qs -c rise ipc call keybinds toggle" }
     ]
     readonly property var shownTiles: tiles.filter(function (t) { return t.shown })
 
     function activate(tile) {
         if (tile.id === "inhibit") { root.idleInhibited = !root.idleInhibited; return }
-        if (tile.id === "rec") root.utilitiesVisible = false   // don't record the panel itself
+        if (tile.id === "rec" || tile.ext) root.utilitiesVisible = false   // don't record the panel itself; ext panels take over
         run(tile.cmd)
     }
 

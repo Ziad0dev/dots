@@ -485,7 +485,23 @@ PanelWindow {
                         color: root.ink; font.family: root.gothic; font.pixelSize: 20
                         font.letterSpacing: 0.5; font.weight: Font.Medium
                     }
+                    // the airwaves map (ext NetworkPanel: the Wi-Fi fan)
                     UiText {
+                        anchors.right: closeX.left; anchors.rightMargin: 12; anchors.verticalCenter: parent.verticalCenter
+                        text: "map"; color: mapMa.containsMouse ? root.seal : root.sumi
+                        font.family: root.mono; font.pixelSize: 11; font.letterSpacing: 1
+                        Behavior on color { CAnim { ms: 120 } }
+                        MouseArea {
+                            id: mapMa; anchors.fill: parent; anchors.margins: -4
+                            hoverEnabled: true; cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                root.networkVisible = false
+                                Quickshell.execDetached(["qs", "-c", "rise", "ipc", "call", "networkMap", "changeVisible", "wifi"])
+                            }
+                        }
+                    }
+                    UiText {
+                        id: closeX
                         anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
                         text: "✕"; color: closeMa.containsMouse ? root.seal : root.sumi; font.pixelSize: 12
                         Behavior on color { CAnim { ms: 120 } }

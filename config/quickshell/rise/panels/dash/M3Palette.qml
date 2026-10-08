@@ -15,13 +15,21 @@ QtObject {
     // blood lifted until it reads on black
     readonly property color bloodText: Qt.lighter(blood, 1.35)
     readonly property color bone: mix(root.ink, Qt.rgba(0.86, 0.80, 0.70, 1), 0.35)
-    readonly property color ash: mix(root.ink, root.paper, 0.45)
+    // muted text: a dim bone, still clearly readable on the sheet
+    readonly property color ash: mix(bone, root.paper, 0.3)
+    // the card under these panels: near-opaque vellum, so text reads the same
+    // over any wallpaper (Frost let bright ones wash it out)
+    readonly property color sheet: Qt.rgba(root.paper.r, root.paper.g, root.paper.b, 0.93)
 
     readonly property color primary: bloodText
     readonly property color secondary: bone
     readonly property color tertiary: mix(blood, root.paper, 0.15)
     readonly property color error: root.color01
-    readonly property color onPrimary: root.paper
+    // The text on primary / the containers is `inkOn…`, not M3's `on…`: QML
+    // never sets a property `onX` while a property `x` exists (onPrimary beside
+    // primary stayed black, which made unselected chips and the current
+    // settings tab unreadable).
+    readonly property color inkOnPrimary: root.paper
     readonly property color onSurface: bone
     readonly property color onSurfaceVariant: ash
     readonly property color outline: tint(bone, 0.45)
@@ -32,7 +40,7 @@ QtObject {
     readonly property color primaryContainer: tint(blood, 0.32)
     readonly property color secondaryContainer: tint(blood, 0.13)
     readonly property color tertiaryContainer: tint(blood, 0.2)
-    readonly property color onPrimaryContainer: bone
-    readonly property color onSecondaryContainer: bone
-    readonly property color onTertiaryContainer: bloodText
+    readonly property color inkOnPrimaryContainer: bone
+    readonly property color inkOnSecondaryContainer: bone
+    readonly property color inkOnTertiaryContainer: bloodText
 }

@@ -15,7 +15,7 @@ Rectangle {
     signal clicked()
 
     readonly property bool strong: filled || checked
-    readonly property color fg: strong ? dash.bone : dash.onSecondaryContainer
+    readonly property color fg: strong ? dash.bone : dash.inkOnSecondaryContainer
 
     implicitHeight: 40
     implicitWidth: label !== "" ? row.implicitWidth + 28 : implicitHeight

@@ -140,7 +140,31 @@ PanelWindow {
                         font.letterSpacing: 2
                         font.weight: Font.Medium
                     }
+                    // the keybinds editor (ext KeybindsPanel, SUPER+/)
                     UiText {
+                        anchors.right: kbClose.left
+                        anchors.rightMargin: 12
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: "edit"
+                        color: editMa.containsMouse ? root.seal : root.sumi
+                        font.family: root.mono
+                        font.pixelSize: 11
+                        font.letterSpacing: 1
+                        Behavior on color { CAnim { ms: 120 } }
+                        MouseArea {
+                            id: editMa
+                            anchors.fill: parent
+                            anchors.margins: -4
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                root.keybindsVisible = false
+                                Quickshell.execDetached(["qs", "-c", "rise", "ipc", "call", "keybinds", "open"])
+                            }
+                        }
+                    }
+                    UiText {
+                        id: kbClose
                         anchors.right: parent.right
                         anchors.verticalCenter: parent.verticalCenter
                         text: "✕"

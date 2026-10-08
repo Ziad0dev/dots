@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# The session lock (hypridle's lock_cmd): rise's themed lock screens
+# (ExtLock.qml, ported from dhrruvsharma/shell) once chosen with
+#   qs -c rise ipc call lockscreen engine themed
+# and the classic grimoire lock (quickshell -c lock) otherwise.
+state=${XDG_STATE_HOME:-$HOME/.local/state}/dots/shell/ext/lock-engine
+if [ "$(cat "$state" 2>/dev/null)" = themed ]; then
+    exec quickshell -p "$HOME/.config/quickshell/rise/ExtLock.qml"
+fi
+exec quickshell -c lock

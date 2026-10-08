@@ -1,0 +1,286 @@
+[
+  {
+    "text": "qs -c rise ipc call avatarPicker toggle",
+    "subtext": "Toggle Avatar Picker"
+  },
+  {
+    "text": "qs -c rise ipc call cavaWidget edit",
+    "subtext": "Edit Cava Widget"
+  },
+  {
+    "text": "qs -c rise ipc call cavaWidget reset",
+    "subtext": "Reset Cava Widget"
+  },
+  {
+    "text": "qs -c rise ipc call cavaWidget toggle",
+    "subtext": "Toggle Cava Widget"
+  },
+  {
+    "text": "qs -c rise ipc call clipboard toggle",
+    "subtext": "Toggle Clipboard · SUPER+SHIFT+V"
+  },
+  {
+    "text": "qs -c rise ipc call dashboard toggle",
+    "subtext": "Toggle Dashboard · SUPER+I"
+  },
+  {
+    "text": "qs -c rise ipc call desktopTheme current",
+    "subtext": "Current Desktop Theme"
+  },
+  {
+    "text": "qs -c rise ipc call desktopTheme disable",
+    "subtext": "Disable Desktop Theme"
+  },
+  {
+    "text": "qs -c rise ipc call desktopTheme enable",
+    "subtext": "Enable Desktop Theme"
+  },
+  {
+    "text": "qs -c rise ipc call desktopTheme toggle",
+    "subtext": "Toggle Desktop Theme"
+  },
+  {
+    "text": "qs -c rise ipc call dots.system-update refresh",
+    "subtext": "Refresh Dots.System-Update"
+  },
+  {
+    "text": "qs -c rise ipc call drawer toggle",
+    "subtext": "Toggle Drawer · SUPER+W"
+  },
+  {
+    "text": "qs -c rise ipc call expose hide",
+    "subtext": "Hide Expose"
+  },
+  {
+    "text": "qs -c rise ipc call expose open",
+    "subtext": "Open Expose"
+  },
+  {
+    "text": "qs -c rise ipc call expose toggle",
+    "subtext": "Toggle Expose · SUPER+ALT+TAB"
+  },
+  {
+    "text": "qs -c rise ipc call keybinds close",
+    "subtext": "Close Keybinds"
+  },
+  {
+    "text": "qs -c rise ipc call keybinds open",
+    "subtext": "Open Keybinds"
+  },
+  {
+    "text": "qs -c rise ipc call keybinds toggle",
+    "subtext": "Toggle Keybinds · SUPER+slash"
+  },
+  {
+    "text": "qs -c rise ipc call launcher toggle",
+    "subtext": "Toggle Launcher · SUPER+D"
+  },
+  {
+    "text": "qs -c rise ipc call layout lock",
+    "subtext": "Lock Layout"
+  },
+  {
+    "text": "qs -c rise ipc call layout unlock",
+    "subtext": "Unlock Layout"
+  },
+  {
+    "text": "qs -c rise ipc call lifecycle ready",
+    "subtext": "Ready Lifecycle"
+  },
+  {
+    "text": "qs -c rise ipc call lifecycle version",
+    "subtext": "Version Lifecycle"
+  },
+  {
+    "text": "qs -c rise ipc call lockscreen currentEngine",
+    "subtext": "Current Engine Lockscreen"
+  },
+  {
+    "text": "qs -c rise ipc call lockscreen lock",
+    "subtext": "Lock Lockscreen"
+  },
+  {
+    "text": "qs -c rise ipc call lockscreen toggle",
+    "subtext": "Toggle Lockscreen"
+  },
+  {
+    "text": "qs -c rise ipc call networkMap changeVisible wifi",
+    "subtext": "qs -c rise ipc call networkMap changeVisible wifi · SUPER+ALT+N"
+  },
+  {
+    "text": "qs -c rise ipc call notepad toggle",
+    "subtext": "Toggle Notepad · SUPER+CTRL+N"
+  },
+  {
+    "text": "qs -c rise ipc call notes toggle",
+    "subtext": "Toggle Notes · SUPER+SHIFT+N"
+  },
+  {
+    "text": "qs -c rise ipc call notifications clear",
+    "subtext": "Clear Notifications"
+  },
+  {
+    "text": "qs -c rise ipc call notifications toggle",
+    "subtext": "Toggle Notifications"
+  },
+  {
+    "text": "qs -c rise ipc call openrouter toggle",
+    "subtext": "Toggle Openrouter · SUPER+SHIFT+O"
+  },
+  {
+    "text": "qs -c rise ipc call overview toggle",
+    "subtext": "Toggle Overview · SUPER+A"
+  },
+  {
+    "text": "qs -c rise ipc call pet appear",
+    "subtext": "Appear Pet"
+  },
+  {
+    "text": "qs -c rise ipc call pet close",
+    "subtext": "Close Pet"
+  },
+  {
+    "text": "qs -c rise ipc call pet feed",
+    "subtext": "Feed Pet"
+  },
+  {
+    "text": "qs -c rise ipc call pet hide",
+    "subtext": "Hide Pet"
+  },
+  {
+    "text": "qs -c rise ipc call pet nap",
+    "subtext": "Nap Pet"
+  },
+  {
+    "text": "qs -c rise ipc call pet open",
+    "subtext": "Open Pet"
+  },
+  {
+    "text": "qs -c rise ipc call pet pat",
+    "subtext": "Pat Pet"
+  },
+  {
+    "text": "qs -c rise ipc call pet play",
+    "subtext": "Play Pet"
+  },
+  {
+    "text": "qs -c rise ipc call pet toggle",
+    "subtext": "Toggle Pet · SUPER+SHIFT+P"
+  },
+  {
+    "text": "qs -c rise ipc call pet wake",
+    "subtext": "Wake Pet"
+  },
+  {
+    "text": "qs -c rise ipc call picker screenshots",
+    "subtext": "Screenshots Picker"
+  },
+  {
+    "text": "qs -c rise ipc call picker theme",
+    "subtext": "Theme Picker · SUPER+CTRL+SHIFT+SPACE"
+  },
+  {
+    "text": "qs -c rise ipc call picker videos",
+    "subtext": "Videos Picker"
+  },
+  {
+    "text": "qs -c rise ipc call picker wallpaper",
+    "subtext": "Wallpaper Picker · SUPER+E"
+  },
+  {
+    "text": "qs -c rise ipc call popout close",
+    "subtext": "Close Popout"
+  },
+  {
+    "text": "qs -c rise ipc call reactor clear",
+    "subtext": "Clear Reactor"
+  },
+  {
+    "text": "qs -c rise ipc call reactor monsweep",
+    "subtext": "Monsweep Reactor"
+  },
+  {
+    "text": "qs -c rise ipc call session toggle",
+    "subtext": "Toggle Session · SUPER+SHIFT+Escape"
+  },
+  {
+    "text": "qs -c rise ipc call settings toggle",
+    "subtext": "Toggle Settings · SUPER+comma"
+  },
+  {
+    "text": "qs -c rise ipc call switcher toggle",
+    "subtext": "Toggle Switcher · ALT+TAB"
+  },
+  {
+    "text": "qs -c rise ipc call theme reload",
+    "subtext": "Reload Theme"
+  },
+  {
+    "text": "qs -c rise ipc call themes desktop",
+    "subtext": "Desktop Themes · SUPER+ALT+W"
+  },
+  {
+    "text": "qs -c rise ipc call themes lockscreen",
+    "subtext": "Lockscreen Themes"
+  },
+  {
+    "text": "qs -c rise ipc call themes toggle",
+    "subtext": "Toggle Themes"
+  },
+  {
+    "text": "qs -c rise ipc call themes widgets",
+    "subtext": "Widgets Themes"
+  },
+  {
+    "text": "qs -c rise ipc call timer toggle",
+    "subtext": "Toggle Timer"
+  },
+  {
+    "text": "qs -c rise ipc call utilities toggle",
+    "subtext": "Toggle Utilities · SUPER+U"
+  },
+  {
+    "text": "qs -c rise ipc call variant current",
+    "subtext": "Current Variant"
+  },
+  {
+    "text": "qs -c rise ipc call variant error",
+    "subtext": "Error Variant"
+  },
+  {
+    "text": "qs -c rise ipc call variant state",
+    "subtext": "State Variant"
+  },
+  {
+    "text": "qs -c rise ipc call visualizer toggle",
+    "subtext": "Toggle Visualizer"
+  },
+  {
+    "text": "qs -c rise ipc call wallpaper current",
+    "subtext": "Current Wallpaper"
+  },
+  {
+    "text": "qs -c rise ipc call wallpaper toggle",
+    "subtext": "Toggle Wallpaper · SUPER+SHIFT+W"
+  },
+  {
+    "text": "qs -c rise ipc call wallpaper wallhaven",
+    "subtext": "Wallhaven Wallpaper"
+  },
+  {
+    "text": "qs -c rise ipc call widgets reset",
+    "subtext": "Reset Widgets"
+  },
+  {
+    "text": "qs -c rise ipc call widgets toggle",
+    "subtext": "Toggle Widgets"
+  },
+  {
+    "text": "qs -c rise ipc call windowinfo toggle",
+    "subtext": "Toggle Windowinfo · SUPER+SHIFT+I"
+  },
+  {
+    "text": "qs -c rise ipc call workspaceDisc toggle",
+    "subtext": "Toggle Workspace Disc"
+  }
+]

@@ -7,6 +7,8 @@ import Quickshell.Wayland
 // cliphist browser, styled after AppLauncher. Enter/click copies the entry
 // back to the clipboard, Delete removes it, the wipe button (pressed twice)
 // clears the history. Images get thumbnails decoded into $XDG_RUNTIME_DIR.
+// Tab switches to the emoji and kaomoji pickers (their lists come from
+// dhrruvsharma/shell, ext/files), which copy the one picked.
 PanelWindow {
     id: win
     required property var root
@@ -21,6 +23,8 @@ PanelWindow {
 
     anchors { top: true; bottom: true; left: true; right: true }
 
+    property int tab: 0             // 0 clipboard · 1 emoji · 2 kaomoji
+    readonly property var tabNames: ["clipboard", "emoji", "kaomoji"]
     property var items: []          // [{line, id, text, image, ext}]
     property int sel: 0
     property string query: ""
@@ -36,10 +40,60 @@ PanelWindow {
         root.paper.g + (root.ink.g - root.paper.g) * 0.07,
         root.paper.b + (root.ink.b - root.paper.b) * 0.07, 1.0)
 
+    // emoji / kaomoji, read the first time their tab opens
+    property var emojis: []         // [{text, name}]
+    property var kaomojis: []       // [{text, name}]
+    FileView {
+        path: win.tab === 1 || win.emojis.length > 0 ? Quickshell.shellPath("ext/files/emoji.json") : ""
+        onLoaded: {
+            var out = []
+            try {
+                var d = JSON.parse(text())
+                for (var ch in d) out.push({ text: ch, name: (d[ch].name + " " + d[ch].group).toLowerCase() })
+            } catch (e) {}
+            win.emojis = out
+        }
+    }
+    FileView {
+        path: win.tab === 2 || win.kaomojis.length > 0 ? Quickshell.shellPath("ext/files/kaomoji.json") : ""
+        onLoaded: {
+            var out = []
+            try {
+                var d = JSON.parse(text())
+                for (var i = 0; i < d.length; i++)
+                    for (var j = 0; j < d[i].categories.length; j++) {
+                        var c = d[i].categories[j]
+                        for (var k = 0; k < c.emoticons.length; k++)
+                            out.push({ text: c.emoticons[k], name: (d[i].name + " " + c.name).toLowerCase() })
+                    }
+            } catch (e) {}
+            win.kaomojis = out
+        }
+    }
+
     readonly property var shown: {
         var q = query.trim().toLowerCase()
+        if (tab === 1 || tab === 2) {
+            var all = tab === 1 ? emojis : kaomojis
+            if (q === "") return all
+            return all.filter(function(it) { return it.name.indexOf(q) >= 0 || it.text.indexOf(q) >= 0 })
+        }
         if (q === "") return items
         return items.filter(function(it) { return it.text.toLowerCase().indexOf(q) >= 0 })
+    }
+    readonly property int gridColumns: tab === 1 ? Math.max(1, Math.floor(grid.width / 48)) : Math.max(1, Math.floor(grid.width / 170))
+    function setTab(t) {
+        tab = (t + 3) % 3
+        sel = 0
+        confirmWipe = false
+    }
+    // a picked emoji / kaomoji goes on the clipboard as it is
+    function copyText(it) {
+        if (!it) return
+        actionProc.command = ["wl-copy", "--", it.text]
+        actionProc.running = false
+        actionProc.running = true
+        close()
     }
     onShownChanged: sel = Math.min(sel, Math.max(0, shown.length - 1))
 
@@ -186,7 +240,7 @@ PanelWindow {
                 id: input
                 anchors {
                     left: parent.left; leftMargin: 40
-                    right: wipeButton.left; rightMargin: 10
+                    right: tabRow.left; rightMargin: 10
                     verticalCenter: parent.verticalCenter
                 }
                 focus: true
@@ -201,7 +255,9 @@ PanelWindow {
                 Text {
                     anchors.fill: parent
                     visible: input.text === ""
-                    text: win.loading ? "loading clipboard history…" : "search clipboard · " + win.items.length + " entries"
+                    text: win.tab === 1 ? "search emoji · " + win.emojis.length
+                        : win.tab === 2 ? "search kaomoji · " + win.kaomojis.length
+                        : win.loading ? "loading clipboard history…" : "search clipboard · " + win.items.length + " entries"
                     font: input.font
                     color: root.sumiHi
                     verticalAlignment: Text.AlignVCenter
@@ -209,7 +265,15 @@ PanelWindow {
 
                 Keys.onPressed: function (e) {
                     var it = win.shown[win.sel]
-                    if (e.key === Qt.Key_Escape) { win.close(); e.accepted = true }
+                    var picker = win.tab !== 0
+                    if (e.key === Qt.Key_Tab || e.key === Qt.Key_Backtab) { win.setTab(win.tab + (e.key === Qt.Key_Tab ? 1 : -1)); e.accepted = true }
+                    else if (e.key === Qt.Key_Escape) { win.close(); e.accepted = true }
+                    else if (picker && (e.key === Qt.Key_Return || e.key === Qt.Key_Enter)) { win.copyText(it); e.accepted = true }
+                    else if (picker && e.key === Qt.Key_Left) { win.move(-1); e.accepted = true }
+                    else if (picker && e.key === Qt.Key_Right) { win.move(1); e.accepted = true }
+                    else if (picker && e.key === Qt.Key_Down) { win.move(win.gridColumns); e.accepted = true }
+                    else if (picker && e.key === Qt.Key_Up) { win.move(-win.gridColumns); e.accepted = true }
+                    else if (picker && e.key === Qt.Key_Delete) { e.accepted = true }
                     else if (e.key === Qt.Key_Down || (e.key === Qt.Key_N && (e.modifiers & Qt.ControlModifier))) { win.move(1); e.accepted = true }
                     else if (e.key === Qt.Key_Up || (e.key === Qt.Key_P && (e.modifiers & Qt.ControlModifier))) { win.move(-1); e.accepted = true }
                     else if (e.key === Qt.Key_Return || e.key === Qt.Key_Enter) { win.copy(it); e.accepted = true }
@@ -219,13 +283,48 @@ PanelWindow {
                 }
             }
 
+            // clipboard · emoji · kaomoji (Tab)
+            Row {
+                id: tabRow
+                anchors { right: wipeButton.visible ? wipeButton.left : parent.right; rightMargin: 8; verticalCenter: parent.verticalCenter }
+                spacing: 4
+                Repeater {
+                    model: win.tabNames
+                    delegate: Rectangle {
+                        required property int index
+                        required property string modelData
+                        width: tabLabel.implicitWidth + 14
+                        height: 26
+                        radius: root.tileRadius
+                        color: win.tab === index ? root.fillActive : tabMa.containsMouse ? root.fillHover : "transparent"
+                        border.color: win.tab === index ? root.seal : root.sep
+                        border.width: 1
+                        UiText {
+                            id: tabLabel
+                            anchors.centerIn: parent
+                            text: modelData
+                            color: win.tab === index ? root.ink : root.sumiHi
+                            font.family: root.mono
+                            font.pixelSize: 10
+                        }
+                        MouseArea {
+                            id: tabMa
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: { win.setTab(index); input.forceActiveFocus() }
+                        }
+                    }
+                }
+            }
+
             Rectangle {
                 id: wipeButton
                 anchors { right: parent.right; rightMargin: 8; verticalCenter: parent.verticalCenter }
                 width: wipeLabel.implicitWidth + 18
                 height: 26
                 radius: root.tileRadius
-                visible: win.items.length > 0
+                visible: win.tab === 0 && win.items.length > 0
                 color: win.confirmWipe ? Qt.rgba(root.sealRaw.r, root.sealRaw.g, root.sealRaw.b, 0.18)
                      : wipeMa.containsMouse ? root.fillHover : "transparent"
                 border.color: win.confirmWipe || wipeMa.containsMouse ? root.sealRaw : root.sep
@@ -256,7 +355,8 @@ PanelWindow {
                 leftMargin: 8; rightMargin: 8; bottomMargin: 6
             }
             clip: true
-            model: win.shown
+            visible: win.tab === 0
+            model: win.tab === 0 ? win.shown : []
             currentIndex: win.sel
             onCurrentIndexChanged: positionViewAtIndex(currentIndex, ListView.Contain)
             boundsBehavior: Flickable.StopAtBounds
@@ -329,10 +429,55 @@ PanelWindow {
             }
         }
 
+        // emoji / kaomoji
+        GridView {
+            id: grid
+            anchors.fill: list
+            visible: win.tab !== 0
+            clip: true
+            model: win.tab !== 0 ? win.shown : []
+            cellWidth: width / win.gridColumns
+            cellHeight: win.tab === 1 ? 48 : 40
+            currentIndex: win.sel
+            onCurrentIndexChanged: positionViewAtIndex(currentIndex, GridView.Contain)
+            boundsBehavior: Flickable.StopAtBounds
+
+            delegate: Rectangle {
+                required property int index
+                required property var modelData
+                width: grid.cellWidth - 4
+                height: grid.cellHeight - 4
+                radius: 6
+                color: index === win.sel ? win.island : "transparent"
+                border.color: index === win.sel ? root.seal : "transparent"
+                border.width: 1
+                Text {
+                    anchors.fill: parent
+                    anchors.margins: 4
+                    text: modelData.text
+                    textFormat: Text.PlainText
+                    color: root.ink
+                    font.pixelSize: win.tab === 1 ? 24 : 13
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                    elide: Text.ElideRight
+                }
+                MouseArea {
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onEntered: win.sel = index
+                    onClicked: win.copyText(modelData)
+                }
+            }
+        }
+
         Text {
             anchors.centerIn: list
-            visible: !win.loading && win.shown.length === 0
-            text: win.items.length === 0 ? "clipboard history is empty" : "no matches"
+            visible: (win.tab !== 0 || !win.loading) && win.shown.length === 0
+            text: win.tab === 1 ? (win.emojis.length === 0 ? "loading emoji…" : "no matches")
+                : win.tab === 2 ? (win.kaomojis.length === 0 ? "loading kaomoji…" : "no matches")
+                : win.items.length === 0 ? "clipboard history is empty" : "no matches"
             color: root.sumiHi
             font.family: root.mono
             font.pixelSize: 12
@@ -341,7 +486,8 @@ PanelWindow {
         UiText {
             id: hint
             anchors { bottom: parent.bottom; bottomMargin: 10; horizontalCenter: parent.horizontalCenter }
-            text: "enter copy · del / middle-click remove · esc close"
+            text: win.tab === 0 ? "enter copy · del / middle-click remove · tab emoji · esc close"
+                : "enter / click copy · arrows move · tab " + (win.tab === 1 ? "kaomoji" : "clipboard") + " · esc close"
             color: Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.35)
             font.family: root.mono
             font.pixelSize: 10
@@ -353,6 +499,7 @@ PanelWindow {
             input.text = ""
             input.forceActiveFocus()
             sel = 0
+            tab = 0
             reload()
         }
     }
