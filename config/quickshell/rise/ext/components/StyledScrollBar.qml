@@ -15,6 +15,9 @@ ScrollBar {
     policy: ScrollBar.AsNeeded
 
     contentItem: Rectangle {
+        // a custom handle drops the style's own check: with nothing to scroll
+        // (an empty list) it would otherwise draw the full length
+        visible: root.policy === ScrollBar.AlwaysOn || root.size < 1.0
         implicitWidth: root.thickness
         radius: root.handleRadius
         color: root.handleColor

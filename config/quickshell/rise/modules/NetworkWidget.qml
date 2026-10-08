@@ -348,9 +348,6 @@ Item {
 
     Process { id: clickRunner; command: ["bash", "-c", root.launchWifiCmd] }
 
-    Process { id: netTui; command: ["bash", "-c", "ghostty --class=com.dots.float.sm -e impala"] }
-
-
     MouseArea {
         anchors.fill: parent
         hoverEnabled: true; cursorShape: Qt.PointingHandCursor
@@ -358,7 +355,6 @@ Item {
         onEntered: tip.show()
         onExited:  { tip.hide() }
         onClicked: (e) => {
-            if (e.button === Qt.RightButton) { netTui.running = false; netTui.running = true; return }
             tip.hide()
             if (e.button === Qt.RightButton) { clickRunner.running = false; clickRunner.running = true }
             else root.popout.click("networkVisible")

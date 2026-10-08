@@ -569,9 +569,41 @@ Singleton {
     }
 
     // ── Running things ───────────────────────────────────────────────────────
+    // rise: commands as upstream wrote them reach nothing here. `qs ipc call`
+    // needs the config named (rise's shell.qml isn't ~/.config/quickshell's),
+    // and upstream's panels have rise names.
+    function riseCmd(cmd) {
+        return String(cmd)
+            .replace(/\bqs ipc call controlCenter changeVisible\b/g, "qs ipc call utilities toggle")
+            .replace(/\bqs ipc call clipboardManager changeVisible\b/g, "qs ipc call clipboard toggle")
+            .replace(/\bqs ipc call lockscreen lock\b/g, "loginctl lock-session")
+            .replace(/\b(qs|quickshell) ipc call\b/g, "qs -c rise ipc call");
+    }
+
+    // upstream's stock tricks, as an older pet.json may still hold them
+    readonly property var _upstreamTricks: ({ kitty: "t-terminal", thunar: "t-files", firefox: "t-browser", "grimblast copy area": "t-shot" })
+    function _migrate() {
+        const fix = list => (list || []).map(t => {
+            const cmd = t.cmd ?? t.value;
+            if (cmd === undefined)
+                return t;
+            const stock = defaultTricks.find(d => d.id === _upstreamTricks[cmd]);
+            const next = Object.assign({}, t);
+            const fixed = stock ? stock.cmd : riseCmd(cmd);
+            if (t.cmd !== undefined) next.cmd = fixed; else next.value = fixed;
+            return next;
+        });
+        const tricks = fix(adapter.tricks), recent = fix(adapter.recent);
+        if (JSON.stringify(tricks) !== JSON.stringify(adapter.tricks))
+            adapter.tricks = tricks;
+        if (JSON.stringify(recent) !== JSON.stringify(adapter.recent))
+            adapter.recent = recent;
+    }
+
     function exec(cmd, terminal) {
         if (!cmd || !cmd.trim())
             return;
+        cmd = riseCmd(cmd);
         if (terminal)
             Quickshell.execDetached(["ghostty", "--wait-after-command=true", "-e", "sh", "-c", cmd]);
         else
@@ -589,7 +621,8 @@ Singleton {
             exec(a.value, inTerminal || a.terminal);
             break;
         case "app":
-            exec(a.value.replace(/%[uUfFdDnNickvm]/g, "").trim(), inTerminal);
+            // field codes, and Flatpak's empty @@ … @@ file-forwarding pair
+            exec(a.value.replace(/%[uUfFdDnNickvm]/g, "").replace(/\s@@u?\s+@@(?=\s|$)/g, " ").trim(), inTerminal);
             break;
         case "note": {
             const n = (Notes.notes || []).find(x => x.id === a.value);
@@ -777,6 +810,7 @@ Singleton {
             adapter.tricks = defaultTricks.slice();
             adapter.seeded = true;
         }
+        _migrate();
         greetTimer.start();
     }
 

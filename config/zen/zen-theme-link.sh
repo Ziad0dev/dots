@@ -47,6 +47,7 @@ for root in "${roots[@]}"; do
     ln -sfn "$SRC/userContent.css" "$prof/chrome/userContent.css"
     ln -sfn "$THEME/zen-palette.css" "$prof/chrome/dots-palette.css"
     ln -sfn "$THEME/zen-sites.css"   "$prof/chrome/dots-sites.css"
+    ln -sfn "$THEME/zen-desktop-theme.css" "$prof/chrome/dots-desktop-theme.css"
 
     touch "$prof/user.js"
     grep -q 'toolkit.legacyUserProfileCustomizations.stylesheets' "$prof/user.js" \

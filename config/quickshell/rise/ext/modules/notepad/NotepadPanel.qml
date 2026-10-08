@@ -11,7 +11,17 @@ import qs.ext.components
 Item {
     id: root
     anchors.fill: parent
-    visible: false
+    // rise: docked in rise's frame (FrameDock), no scrim; visible until it
+    // has slid back in
+    property bool opened: false
+    visible: opened || dock.open
+
+    FrameDock {
+        id: dock
+        card: panel
+        shown: root.opened
+        edge: "bar"
+    }
 
     readonly property color accent: Colors.primary
 
@@ -24,23 +34,22 @@ Item {
     // ── Open / close ──────────────────────────────────────────────────────────
 
     function open() {
-        visible = true
+        opened = true;
         Services.Notepad.pruneEmpty()
         refreshLayout()
         searchField.text = ""
         if (layoutNotes.length > 0)
             searchField.forceActiveFocus()
-        openAnim.restart()
     }
 
     function close() {
         focusSink.forceActiveFocus()   // blur the active tile so its text commits
         Services.Notepad.pruneEmpty()
-        closeAnim.restart()
+        opened = false
     }
 
     function toggle() {
-        if (visible)
+        if (opened)
             close()
         else
             open()
@@ -137,7 +146,7 @@ Item {
         anchors.fill: parent
         color: Colors.scrim
         opacity: 0
-        enabled: opacity > 0.01
+        enabled: root.opened
         Behavior on opacity { NumberAnimation { duration: 240; easing.type: Easing.OutCubic } }
         MouseArea {
             anchors.fill: parent
@@ -152,20 +161,21 @@ Item {
         id: panel
 
         PanelDecor {
+            visible: !dock.framed
             radius: panel.radius
             title: "notepad"
         }
-        anchors.centerIn: parent
+        x: dock.cardX
+        y: dock.cardY
         width: Math.max(560, Math.min(1040, parent.width * 0.72))
         height: Math.min(760, parent.height * 0.82)
-        radius: Services.DesktopTheme.rad(30)
-        color: Colors.surface_container_lowest
+        radius: dock.framed ? dock.radius : Services.DesktopTheme.rad(30)
+        color: dock.framed ? "transparent" : Colors.surface_container_lowest
         clip: true
-        enabled: scrim.opacity > 0.01
+        enabled: root.opened
 
-        opacity: 0
-        scale: 0.94
-        transformOrigin: Item.Center
+        opacity: dock.reveal
+        transform: dock.slide
 
         // catches focus when closing so the active tile commits
         Item { id: focusSink; width: 0; height: 0 }
@@ -186,20 +196,7 @@ Item {
             opacity: 0.5
         }
 
-        ParallelAnimation {
-            id: openAnim
-            NumberAnimation { target: scrim; property: "opacity"; to: 0.5; duration: 240; easing.type: Easing.OutCubic }
-            NumberAnimation { target: panel; property: "opacity"; to: 1; duration: 240; easing.type: Easing.OutCubic }
-            NumberAnimation { target: panel; property: "scale"; to: 1; duration: 320; easing.type: Easing.OutBack }
-        }
 
-        ParallelAnimation {
-            id: closeAnim
-            NumberAnimation { target: scrim; property: "opacity"; to: 0; duration: 200; easing.type: Easing.InCubic }
-            NumberAnimation { target: panel; property: "opacity"; to: 0; duration: 200; easing.type: Easing.InCubic }
-            NumberAnimation { target: panel; property: "scale"; to: 0.94; duration: 200; easing.type: Easing.InCubic }
-            onFinished: root.visible = false
-        }
 
         ColumnLayout {
             anchors.fill: parent

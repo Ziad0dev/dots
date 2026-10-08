@@ -39,6 +39,7 @@ import qs.ext.modules.lockthemes as ExtModulesLockthemes
 import qs.ext.modules.network as ExtModulesNetwork
 import qs.ext.modules.notepad as ExtModulesNotepad
 import qs.ext.modules.notes as ExtModulesNotes
+import qs.ext.modules.oracle as ExtModulesOracle
 import qs.ext.modules.pet as ExtModulesPet
 import qs.ext.modules.switcher as ExtModulesSwitcher
 import qs.ext.modules.timer as ExtModulesTimer
@@ -81,6 +82,9 @@ Scope {
         // This instance owns the compositor side of desktop themes (the lock
         // screen instance only reads the choice).
         Services.DesktopTheme.manage = true;
+        Services.ZenTheme.manage = true;
+        // ext panels dock into rise's frame (FrameDock)
+        Services.Rise.theme = ext.theme;
     }
 
     // rise re-read its palette (themectl): re-read colors.sh too, in case the
@@ -154,7 +158,7 @@ Scope {
 
         readonly property bool needed: shown(picker) || shown(keybinds) || shown(notes)
             || shown(notepad) || shown(network) || shown(themes) || shown(timer)
-            || shown(avatar)
+            || shown(avatar) || shown(oracle)
         // Panels that take typing (search, passwords, notes, the bind editor).
         readonly property bool wantsKeys: needed
 
@@ -181,6 +185,7 @@ Scope {
             Region { item: overlay.shown(themes) ? themes : null }
             Region { item: overlay.shown(timer) ? timer : null }
             Region { item: overlay.shown(avatar) ? avatar.item : null }
+            Region { item: overlay.shown(oracle) ? oracle : null }
         }
 
         // Laid out on the whole screen whatever the surface's size (it grows
@@ -220,11 +225,10 @@ Scope {
                 source: Qt.resolvedUrl("ext/modules/lockthemes/LockThemesPanel.qml")
             }
             // Kept once built: they hold what's being typed.
-            // Sized by the drawer (it grows up from the bottom edge).
+            // The drawer sizes and places itself (docked in the frame's
+            // bottom band; the Loader sits at the origin).
             Loader {
                 id: notes
-                anchors.bottom: parent.bottom
-                anchors.horizontalCenter: parent.horizontalCenter
                 active: false
                 focus: true
                 source: Qt.resolvedUrl("ext/modules/notes/NotesDrawer.qml")
@@ -237,13 +241,21 @@ Scope {
                 source: Qt.resolvedUrl("ext/modules/notepad/NotepadPanel.qml")
             }
             // The lock screens' avatar (~/Pictures/avatars → ~/.cache/current_avatar),
-            // a dock in the bottom-right corner sized by itself.
+            // docked in the frame's bottom band.
             Loader {
                 id: avatar
-                anchors.right: parent.right
-                anchors.bottom: parent.bottom
+                anchors.fill: parent
                 active: false
                 source: Qt.resolvedUrl("ext/modules/avatar/AvatarPicker.qml")
+            }
+            // The local-model chat; kept once built (the conversation lives in
+            // the Oracle service anyway).
+            Loader {
+                id: oracle
+                anchors.fill: parent
+                active: false
+                focus: true
+                source: Qt.resolvedUrl("ext/modules/oracle/OraclePanel.qml")
             }
             // A countdown keeps running while it's closed.
             Loader {
@@ -398,6 +410,30 @@ Scope {
             ext.prepare();
             ext.load(avatar).open();
         }
+    }
+
+    IpcHandler {
+        target: "oracle"
+        function toggle(): void {
+            if (!oracle.item || !oracle.item.visible)
+                ext.prepare();
+            ext.load(oracle).toggle();
+        }
+        // scripting: wake a dots-llm backend, ask, read the last answer
+        function wake(unit: string): void { Services.Oracle.wake(unit); }
+        function ask(text: string): void { Services.Oracle.send(text); }
+        function last(): string {
+            const m = Services.Oracle.messages;
+            if (!m.length)
+                return "";
+            const l = m[m.length - 1];
+            return l.role + ": " + (l.content || (l.thinking ? "(pondering, " + l.thinking.length + " chars)" : ""));
+        }
+        function state(): string {
+            Services.Oracle.refresh();
+            return (Services.Oracle.backend || "none") + (Services.Oracle.ready ? " ready " + Services.Oracle.model : Services.Oracle.waking ? " waking" : "");
+        }
+        function sleep(): void { Services.Oracle.sleep(); }
     }
 
     IpcHandler {

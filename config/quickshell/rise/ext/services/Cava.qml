@@ -35,36 +35,38 @@ Singleton {
         }
     })
 
+    // the config as cava's ini text
+    readonly property string configText: {
+        let t = "";
+        for (const k in config) {
+            const obj = config[k];
+            if (typeof obj !== "object") {
+                t += k + "=" + obj + "\n";
+                continue;
+            }
+            t += "[" + k + "]\n";
+            for (const k2 in obj)
+                t += k2 + "=" + obj[k2] + "\n";
+        }
+        return t;
+    }
+
     Process {
         id: process
 
-        stdinEnabled: true
         running: root.running
-        command: ["cava", "-p", "/dev/stdin"]
+        // rise: the config goes in as a file (like rise's own cava runs), not
+        // written to stdin after start: cava could read an empty stdin first,
+        // fall back to terminal output with no terminal, and segfault
+        // (init_terminal_noncurses), dozens of times a session
+        command: ["bash", "-c", "exec cava -p <(printf '%s' \"$1\")", "cava", root.configText]
         // cava links libGL for its SDL output. With the session's
         // __GLX_VENDOR_LIBRARY_NAME=nvidia that pulled the whole NVIDIA GL
         // driver (~100 MB resident, 3x the anonymous memory) into a process
         // that only ever prints numbers.
         environment: ({ "__GLX_VENDOR_LIBRARY_NAME": null })
-        onStarted: {
-            for (const k in config) {
-                if (typeof config[k] !== "object") {
-                    write(k + "=" + config[k] + "\n");
-                    continue;
-                }
-                write("[" + k + "]\n");
-                const obj = config[k];
-                for (const k2 in obj) {
-                    write(k2 + "=" + obj[k2] + "\n");
-                }
-            }
-            stdinEnabled = false; // Close stdin to let Cava start
-            values = Array(barsCount).fill(0);
-        }
-        onExited: {
-            values = Array(barsCount).fill(0);
-            stdinEnabled = true; // Reset for next run
-        }
+        onStarted: values = Array(barsCount).fill(0)
+        onExited: values = Array(barsCount).fill(0)
 
         stdout: SplitParser {
             onRead: (data) => {

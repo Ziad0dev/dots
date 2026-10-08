@@ -102,7 +102,13 @@ case "$CMD" in
         exit 0
         ;;
     dots-launch-wifi)
-        launch_float impala
+        # impala only talks to iwd; on NetworkManager it fails with "can not
+        # access iwd service" (the name is not activatable)
+        if systemctl is-active --quiet NetworkManager 2>/dev/null; then
+            launch_float nmtui
+        else
+            launch_float impala
+        fi
         exit 0
         ;;
     dots-launch-bluetooth)
