@@ -46,7 +46,10 @@ in
           "-w ${monitor}"
           "-f 60"
           "-c mp4"
-          "-k hevc"
+          # H.264 + AAC so clips play when shared (Discord can't play HEVC
+          # or Opus-in-mp4)
+          "-k h264"
+          "-ac aac"
           "-q very_high"
           "-a default_output|easyeffects_source"
           "-r 300"
