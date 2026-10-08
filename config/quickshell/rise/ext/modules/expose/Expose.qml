@@ -64,8 +64,8 @@ PanelWindow {
     SequentialAnimation {
         id: openAnimation
         ParallelAnimation {
-            NumberAnimation { target: wrapper; property: "height"; from: 0; to: 30; duration: 400; easing.type: Easing.OutQuad }
-            NumberAnimation { target: shapeScale; property: "yScale"; from: 0; to: 1.0; duration: 400; easing.type: Easing.OutQuad }
+            NumberAnimation { target: wrapper; property: "height"; from: 0; to: 30; duration: 260; easing.type: Easing.OutQuad }
+            NumberAnimation { target: shapeScale; property: "yScale"; from: 0; to: 1.0; duration: 260; easing.type: Easing.OutQuad }
         }
         NumberAnimation { target: wrapper; property: "height"; from: 30; to: 470; duration: 200; easing.type: Easing.OutQuad }
     }
@@ -74,8 +74,8 @@ PanelWindow {
         id: closeAnimation
         NumberAnimation { target: wrapper; property: "height"; from: 470; to: 30; duration: 200; easing.type: Easing.InQuad }
         ParallelAnimation {
-            NumberAnimation { target: shapeScale; property: "yScale"; from: 1.0; to: 0; duration: 400; easing.type: Easing.InQuad }
-            NumberAnimation { target: wrapper; property: "height"; from: 30; to: 0; duration: 400; easing.type: Easing.InQuad }
+            NumberAnimation { target: shapeScale; property: "yScale"; from: 1.0; to: 0; duration: 260; easing.type: Easing.InQuad }
+            NumberAnimation { target: wrapper; property: "height"; from: 30; to: 0; duration: 260; easing.type: Easing.InQuad }
         }
         onFinished: hideTimer.start()
     }

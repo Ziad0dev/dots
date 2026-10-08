@@ -547,13 +547,13 @@ Item {
                     c();
             }
         }
-        NumberAnimation { target: window; property: "deal"; to: 1; duration: 560; easing.type: Easing.OutCubic }
+        NumberAnimation { target: window; property: "deal"; to: 1; duration: 380; easing.type: Easing.OutCubic }
     }
 
     ParallelAnimation {
         id: openAnim
         NumberAnimation { target: window; property: "shown"; to: 1; duration: 380; easing.type: Easing.OutCubic }
-        NumberAnimation { target: window; property: "deal"; to: 1; duration: 760; easing.type: Easing.OutCubic }
+        NumberAnimation { target: window; property: "deal"; to: 1; duration: 500; easing.type: Easing.OutCubic }
     }
 
     ParallelAnimation {
@@ -642,13 +642,13 @@ Item {
 
         visible: false
 
-        Behavior on accent { ColorAnimation { duration: 420; easing.type: Easing.OutCubic } }
-        Behavior on accentInk { ColorAnimation { duration: 420; easing.type: Easing.OutCubic } }
-        Behavior on surface { ColorAnimation { duration: 420; easing.type: Easing.OutCubic } }
-        Behavior on raised { ColorAnimation { duration: 420; easing.type: Easing.OutCubic } }
-        Behavior on ink { ColorAnimation { duration: 420; easing.type: Easing.OutCubic } }
-        Behavior on muted { ColorAnimation { duration: 420; easing.type: Easing.OutCubic } }
-        Behavior on line { ColorAnimation { duration: 420; easing.type: Easing.OutCubic } }
+        Behavior on accent { ColorAnimation { duration: 280; easing.type: Easing.OutCubic } }
+        Behavior on accentInk { ColorAnimation { duration: 280; easing.type: Easing.OutCubic } }
+        Behavior on surface { ColorAnimation { duration: 280; easing.type: Easing.OutCubic } }
+        Behavior on raised { ColorAnimation { duration: 280; easing.type: Easing.OutCubic } }
+        Behavior on ink { ColorAnimation { duration: 280; easing.type: Easing.OutCubic } }
+        Behavior on muted { ColorAnimation { duration: 280; easing.type: Easing.OutCubic } }
+        Behavior on line { ColorAnimation { duration: 280; easing.type: Easing.OutCubic } }
     }
 
     // ── The picture ──────────────────────────────────────────────────────

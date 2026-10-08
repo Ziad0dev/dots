@@ -263,8 +263,8 @@ PanelWindow {
         readonly property real contentH: Math.max(ovTab.implicitHeight, medTab.implicitHeight, perfTab.implicitHeight, wxTab.implicitHeight)
         width: contentW + 2 * pad
         height: tabBar.height + 12 + contentH + 2 * pad
-        Behavior on width { Anim { kind: "size"; ms: 420 } }
-        Behavior on height { Anim { kind: "size"; ms: 420 } }
+        Behavior on width { Anim { kind: "size"; ms: 280 } }
+        Behavior on height { Anim { kind: "size"; ms: 280 } }
         x: dash.framed ? root.frameThickness : dash.gap
         y: parent.height - dash.bottomBand - (dash.framed ? 0 : dash.gap) - height
         radius: reveal > 0.001 ? root.panelRadius : 0
