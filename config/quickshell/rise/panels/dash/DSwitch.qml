@@ -24,7 +24,7 @@ Item {
         width: d; height: d; radius: d / 2
         anchors.verticalCenter: parent.verticalCenter
         x: sw.checked ? sw.width - 4 - d : 4 + (24 - d) / 2
-        color: sw.checked ? sw.dash.onPrimary : sw.dash.outline
+        color: sw.checked ? sw.dash.inkOnPrimary : sw.dash.outline
         Behavior on x { Anim { kind: "spatialFast" } }
         Behavior on width { Anim { kind: "spatialFast" } }
         Behavior on height { Anim { kind: "spatialFast" } }

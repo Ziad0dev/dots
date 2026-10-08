@@ -138,6 +138,22 @@ PanelWindow {
                     Row {
                         anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
                         spacing: 10
+                        // the orbit map, which also pairs devices that need a
+                        // code (ext NetworkPanel's Bluetooth tab + BlueZ agent)
+                        UiText {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: "map"; color: btMapMa.containsMouse ? root.seal : root.sumi
+                            font.family: root.mono; font.pixelSize: 11; font.letterSpacing: 1
+                            Behavior on color { CAnim { ms: 120 } }
+                            MouseArea {
+                                id: btMapMa; anchors.fill: parent; anchors.margins: -4
+                                hoverEnabled: true; cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    root.bluetoothVisible = false
+                                    Quickshell.execDetached(["qs", "-c", "rise", "ipc", "call", "networkMap", "changeVisible", "bluetooth"])
+                                }
+                            }
+                        }
                         // power toggle pill
                         Rectangle {
                             anchors.verticalCenter: parent.verticalCenter

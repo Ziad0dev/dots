@@ -11,7 +11,7 @@ Item {
     property date viewDate: new Date()
     readonly property int year: viewDate.getFullYear()
     readonly property int month: viewDate.getMonth()
-    readonly property bool onToday: month === dash.now.getMonth() && year === dash.now.getFullYear()
+    property bool onToday: month === dash.now.getMonth() && year === dash.now.getFullYear()
     // 42 cells: the trailing days of last month, this month, the leading days of next
     readonly property var cells: {
         var first = new Date(year, month, 1)

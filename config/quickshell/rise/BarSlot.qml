@@ -1012,6 +1012,38 @@ PanelWindow {
             }
         }
 
+        // ── the bar pet (ext, ported from dhrruvsharma/shell) ──
+        // Roams the free stretches between the rows, behind the widgets;
+        // `qs -c rise ipc call pet hide|appear`. Loaded by URL: a broken port
+        // fails alone instead of taking the bar with it.
+        Loader {
+            id: petLoader
+            anchors.fill: parent
+            z: 1
+            active: !barSlot.underFullscreen
+            source: Qt.resolvedUrl("ext/modules/pet/RiseBarPet.qml")
+        }
+        Binding {
+            target: petLoader.item
+            property: "barScreen"
+            value: barSlot.screen
+            when: petLoader.status === Loader.Ready
+        }
+        Binding {
+            target: petLoader.item
+            property: "gapsPx"
+            when: petLoader.status === Loader.Ready
+            value: {
+                const pad = 10
+                const l = leftRowItem.x + leftRowItem.width + pad
+                const r = rightRowItem.x - pad
+                if (centerRowItem.width <= 0)
+                    return [[l, r]]
+                return [[l, centerRowItem.x - pad], [centerRowItem.x + centerRowItem.width + pad, r]]
+                    .filter(g => g[1] - g[0] > 60)
+            }
+        }
+
         // ── region models (physical L→R order) ──
         ListModel {
             id: leftModel

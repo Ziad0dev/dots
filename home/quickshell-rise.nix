@@ -84,6 +84,22 @@ let
 
   homeDir = config.home.homeDirectory;
 
+  # Runs a command with transparent huge pages off for it and its children
+  # (inherited across exec). With THP "always", Qt's per-thread malloc arenas
+  # got backed by mostly-empty 2 MB pages: ~160 MB of quickshell's RSS.
+  thpOff = pkgs.writeCBin "thp-off" ''
+    #include <stdio.h>
+    #include <sys/prctl.h>
+    #include <unistd.h>
+    int main(int argc, char **argv) {
+      if (argc < 2) { fputs("usage: thp-off command [args...]\n", stderr); return 2; }
+      prctl(PR_SET_THP_DISABLE, 1, 0, 0, 0);
+      execvp(argv[1], argv + 1);
+      perror(argv[1]);
+      return 127;
+    }
+  '';
+
   shimNames = [
     "dots-audio-input-mute"
     "dots-brightness-display"
@@ -119,6 +135,7 @@ let
     name = "dots-set-wallpaper";
     runtimeInputs = with pkgs; [
       coreutils
+      gnugrep
       imagemagick
       jq
     ];
@@ -207,6 +224,11 @@ let
       vips # qs-thumb: picker thumbnails without ImageMagick's multi-GB peaks
       wireplumber
       xdg-user-dirs
+      # rise/ext (ported from dhrruvsharma/shell):
+      ffmpeg # wallpaper-still: a still frame of a video wallpaper
+      lua5_5 # keybinds editor: reads/validates hyprland.lua like Hyprland's Lua 5.5
+      matugen # wallpaper picker: each card's scheme (dry run, as themectl auto)
+      (python3.withPackages (p: [ p.pygobject3 ])) # keybinds.py, palettes, BlueZ pairing agent
     ])
   );
 in
@@ -225,6 +247,14 @@ in
     pkgs.google-sans-flex # dashboard text (Caelestia-style)
     pkgs.rubik # dashboard clock
     pkgs.nerd-fonts.jetbrains-mono
+    # rise/ext: icon fonts and the desktop/lock themes' type
+    pkgs.material-design-icons
+    pkgs.material-icons
+    pkgs.nerd-fonts.iosevka
+    pkgs.nerd-fonts.symbols-only
+    pkgs.adwaita-fonts
+    pkgs.noto-fonts
+    pkgs.rise-theme-fonts
   ];
 
   programs.quickshell = {
@@ -246,9 +276,22 @@ in
         # theme pickers list ''${DOTS_DIR}/config/themes
         "DOTS_DIR=${config.dots.src}"
         # Caelestia.Blobs: the SDF frame + melting panel backgrounds
-        "QML_IMPORT_PATH=${pkgs.caelestia-blobs}/${pkgs.qt6.qtbase.qtQmlPrefix}"
+        # rise/ext: Qt5Compat.GraphicalEffects (window switcher) and
+        # QtMultimedia (video wallpapers; its ffmpeg backend is a plugin)
+        "QML_IMPORT_PATH=${
+          lib.concatMapStringsSep ":" (p: "${p}/${pkgs.qt6.qtbase.qtQmlPrefix}") [
+            pkgs.caelestia-blobs
+            pkgs.qt6.qt5compat
+            pkgs.qt6.qtmultimedia
+          ]
+        }"
+        "QT_PLUGIN_PATH=${pkgs.qt6.qtmultimedia}/${pkgs.qt6.qtbase.qtPluginPrefix}"
       ];
       Slice = "app-graphical.slice";
+      # rise/ext keeps its settings here and its caches (palettes, favourites,
+      # lock stats) under ~/.cache/quickshell; FileView won't create folders
+      ExecStartPre = "${pkgs.coreutils}/bin/mkdir -p %S/dots/shell/ext %C/quickshell";
+      ExecStart = lib.mkForce "${thpOff}/bin/thp-off ${config.programs.quickshell.package}/bin/quickshell --config rise";
       # soft backstop: the bar idles at ~300–450 MB; past this the kernel
       # reclaims/throttles the cgroup instead of letting a runaway helper (a
       # thumbnail batch, a leak) push the whole session into swap

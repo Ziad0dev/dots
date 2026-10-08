@@ -187,7 +187,7 @@ PanelWindow {
         x: Math.round((parent.width - width) / 2)
         y: root.barPosition === "bottom" ? parent.height - height - 35 : 35
         radius: reveal > 0.001 ? root.panelRadius : 0
-        color: root.frameCardBg
+        color: m3.sheet   // readable over any wallpaper (FrameCard still melts it into the frame)
         border.color: root.pillBorder
         border.width: root.frameCardBorderW
         clip: true
@@ -242,13 +242,13 @@ PanelWindow {
                             anchors.verticalCenter: parent.verticalCenter
                             text: navItem.modelData.icon
                             fill: navItem.current ? 1 : 0
-                            color: navItem.current ? m3.onSecondaryContainer : m3.onSurfaceVariant
+                            color: navItem.current ? m3.inkOnSecondaryContainer : m3.onSurfaceVariant
                             font.pointSize: 17
                         }
                         DText {
                             anchors.verticalCenter: parent.verticalCenter
                             text: navItem.modelData.label
-                            color: navItem.current ? m3.onSecondaryContainer : m3.onSurfaceVariant
+                            color: navItem.current ? m3.inkOnSecondaryContainer : m3.onSurfaceVariant
                             font.pointSize: 12; font.weight: Font.Medium
                         }
                     }
@@ -343,7 +343,7 @@ PanelWindow {
                                     Text {
                                         anchors.centerIn: parent
                                         text: "\uF313"
-                                        color: m3.onPrimaryContainer
+                                        color: m3.inkOnPrimaryContainer
                                         font.family: st.root.mono
                                         font.pixelSize: 28
                                     }
@@ -432,7 +432,7 @@ PanelWindow {
                     visible: text !== ""
                     text: row.modelData.desc
                     color: m3.onSurfaceVariant
-                    font.pointSize: 10
+                    font.pointSize: 11
                     wrapMode: Text.WordWrap
                     elide: Text.ElideNone
                 }

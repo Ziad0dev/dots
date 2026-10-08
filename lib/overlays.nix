@@ -7,6 +7,7 @@
     soulseek-rs = final.callPackage ../pkgs/soulseek-rs.nix { };
     caelestia-blobs = final.callPackage ../pkgs/caelestia-blobs { };
     google-sans-flex = final.callPackage ../pkgs/google-sans-flex { };
+    rise-theme-fonts = final.callPackage ../pkgs/rise-theme-fonts { };
   })
   (final: prev: {
     feather =

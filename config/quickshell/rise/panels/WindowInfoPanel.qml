@@ -88,7 +88,7 @@ PanelWindow {
         x: Math.round((parent.width - width) / 2)
         y: root.barPosition === "bottom" ? parent.height - height - 35 : 35
         radius: reveal > 0.001 ? root.panelRadius : 0
-        color: root.frameCardBg
+        color: m3.sheet   // readable over any wallpaper (FrameCard still melts it into the frame)
         border.color: root.pillBorder
         border.width: root.frameCardBorderW
         PillShadow { theme: root; visible: root.styleShadow && !root.frameOn }

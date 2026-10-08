@@ -19,9 +19,19 @@ GLOBALS = {
     "sourceItem", "target", "mouse", "wheel", "event", "drag", "containsMouse",
     "border", "easing", "layer", "sourceSize", "priority", "gradient", "shadow",
     "activeFocus", "padding", "insets", "margins", "textFormat", "cursorShape",
+    # keywords: a stripped regex literal leaves `return   .test(…)`
+    "return", "typeof", "case", "in", "of", "new", "delete", "void", "do", "else",
+    # input handlers' own properties, read inside them
+    "centroid", "activeTranslation",
 }
 
-DECL_ID = re.compile(r"\bid\s*:\s*([A-Za-z_]\w*)")
+# An object's id ends its line or statement: `(id: string)` (a typed parameter)
+# and `{ id: Date.now(), … }` (a JS object key) aren't QML ids.
+DECL_ID = re.compile(r"\bid\s*:\s*([A-Za-z_]\w*)\s*(?=$|[;}])", re.M)
+# `import X as Y` names Y; import lines themselves hold no references
+# (`import qs.ext.colors` is a module path, not `qs.`).
+IMPORT_AS = re.compile(r"^[ \t]*import\s+\S+(?:[ \t]+[\d.]+)?[ \t]+as[ \t]+(\w+)", re.M)
+IMPORT_LINE = re.compile(r"^[ \t]*import\b[^\n]*", re.M)   # [ \t]: keep the line count
 DECL_PROP = re.compile(
     r"\b(?:required\s+|readonly\s+|default\s+)*property\s+(?:alias\s+)?[\w.<>]+\s+(\w+)"
 )
@@ -29,7 +39,7 @@ DECL_SIGNAL = re.compile(r"\bsignal\s+(\w+)")
 DECL_FUNC = re.compile(r"\bfunction\s+(\w+)\s*\(([^)]*)\)")
 DECL_VAR = re.compile(r"\b(?:var|let|const)\s+([^;\n]+)")
 DECL_FOR = re.compile(r"\bfor\s*\(\s*(?:var|let|const)?\s*(\w+)\s+in\s")
-ARROW = re.compile(r"(?:\(([^)]*)\)|(\w+))\s*=>")
+ARROW = re.compile(r"(?:\(([^()]*)\)|(\w+))\s*=>")
 FUNC_EXPR = re.compile(r"\bfunction\s*\(([^)]*)\)")
 CATCH = re.compile(r"\bcatch\s*\(\s*(\w+)")
 REF = re.compile(r"(?<![\w.$])([a-z_]\w*)((?:\s*\.\s*[A-Za-z_]\w*)+)")
@@ -85,6 +95,9 @@ def strip_noise(src):
                     klass = False
                 elif src[i] == "/" and not klass:
                     i += 1
+                    while i < n and src[i] in "dgimsuvy":   # flags (`/…/i.test`)
+                        out.append(" ")
+                        i += 1
                     break
                 out.append(" ")
                 i += 1
@@ -179,8 +192,12 @@ def inherited(path, index, seen=None):
 
 
 def check_file(path, index):
-    src = strip_noise(path.read_text(errors="replace"))
-    names = declared(src) | set(index)
+    raw = path.read_text(errors="replace")
+    raw_lines = raw.split("\n")
+    src = strip_noise(raw)
+    aliases = set(IMPORT_AS.findall(src))
+    src = IMPORT_LINE.sub(lambda m: " " * len(m.group(0)), src)
+    names = declared(src) | set(index) | aliases
     m = ROOT_TYPE.search(src)
     if m and m.group(1) in index and index[m.group(1)] != path:
         names |= inherited(index[m.group(1)], index)
@@ -194,9 +211,8 @@ def check_file(path, index):
     seen = set()
     for m in REF.finditer(src):
         name = m.group(1)
-        line_start = src.rfind("\n", 0, m.start()) + 1
-        line_end = src.find("\n", m.start())
-        if "qml-check: ignore" in src[line_start:line_end if line_end > 0 else len(src)]:
+        # the marker is a comment, so look for it in the file as written
+        if "qml-check: ignore" in raw_lines[src.count("\n", 0, m.start())]:
             continue
         tail = src[m.end():]
         if re.match(r"\s*:(?!=)", tail):
