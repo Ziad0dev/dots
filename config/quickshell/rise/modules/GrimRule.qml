@@ -5,7 +5,8 @@ import QtQuick
 Item {
     id: g
     required property var root
-    readonly property color ink: root.windowBorder
+    // root can still be unset for a frame while a lazily loaded panel builds
+    readonly property color ink: root ? root.windowBorder : "transparent"
     implicitHeight: 12
     height: 12
     Rectangle {

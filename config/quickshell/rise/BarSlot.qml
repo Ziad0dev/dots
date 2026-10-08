@@ -8,6 +8,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Io
+import Quickshell.Hyprland
 import "modules"
 
 PanelWindow {
@@ -87,6 +88,11 @@ PanelWindow {
     readonly property bool barOnTop: barSlot.root.barPosition !== "bottom"
     property bool pointerOnBar: false
     readonly property bool barShown: !autoHide || pointerOnBar
+    // a fullscreen window hides the Top layer this bar lives on, so anything
+    // that only animates the strip (the particle layer) can stop meanwhile
+    readonly property var hyprMonitor: Hyprland.monitorFor(barSlot.screen)
+    readonly property bool underFullscreen: !!hyprMonitor && !!hyprMonitor.activeWorkspace
+                                            && hyprMonitor.activeWorkspace.hasFullscreen
         || barSlot.root.anyPopupVisible || barSlot.root.barUnlocked
     property real shownAmount: barShown ? 1 : 0
     Behavior on shownAmount { Anim { kind: barSlot.barShown ? "spatial" : "exit" } }
@@ -986,7 +992,7 @@ PanelWindow {
             id: particleLayer
             anchors.fill: parent
             z: 1                          // above the section pills, below the widgets
-            visible: barSlot.root.barAnim > 0 && island.runs.length > 1
+            visible: barSlot.root.barAnim > 0 && island.runs.length > 1 && !barSlot.underFullscreen
 
             LazyLoader {
                 active: particleLayer.visible

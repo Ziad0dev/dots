@@ -124,9 +124,24 @@ PanelWindow {
         if (e.kind === "calc") { Quickshell.execDetached(["wl-copy", calcResult]); close(); return }
         if (e.kind === "action") { e.action.run(); return }
 
-        // Just use the DesktopEntry's own execute().
-        // systemd-run --scope breaks Flatpaks (Tauon, etc.) on NixOS.
-        e.entry.execute()
+        // Each app gets its own app-*.scope; a plain execute() leaves it in
+        // quickshell.service's cgroup, where e.g. Spotify's ~100 processes were
+        // billed to the bar (a 6.7 GB "peak") and outlived bar restarts there.
+        // Flatpaks keep the DesktopEntry's own execute(): systemd-run --scope
+        // breaks them (Tauon, etc.) on NixOS, and `flatpak run` moves itself
+        // into its own app-flatpak-*.scope anyway. Terminal entries too.
+        var cmd = e.entry.command
+        if (e.entry.runInTerminal || !cmd || cmd.length === 0
+                || /(^|\/)flatpak$/.test(cmd[0])) {
+            e.entry.execute()
+        } else {
+            var unit = "app-dots-" + String(e.entry.id).replace(/[^A-Za-z0-9:_.-]/g, "_")
+                + "-" + Date.now().toString(36)
+            var dir = e.entry.workingDirectory
+            Quickshell.execDetached(["systemd-run", "--user", "--scope", "--quiet", "--collect",
+                "--slice=app.slice", "--unit=" + unit, "--"]
+                .concat(dir ? ["env", "-C", dir] : []).concat(cmd))
+        }
         close()
     }
 

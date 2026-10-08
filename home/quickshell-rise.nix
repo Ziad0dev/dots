@@ -249,6 +249,10 @@ in
         "QML_IMPORT_PATH=${pkgs.caelestia-blobs}/${pkgs.qt6.qtbase.qtQmlPrefix}"
       ];
       Slice = "app-graphical.slice";
+      # soft backstop: the bar idles at ~300–450 MB; past this the kernel
+      # reclaims/throttles the cgroup instead of letting a runaway helper (a
+      # thumbnail batch, a leak) push the whole session into swap
+      MemoryHigh = "2G";
       KillMode = "process";
       ExecStopPost = [
         "-${reapHelpers}/bin/dots-quickshell-reap-helpers"
