@@ -34,7 +34,7 @@ Item {
         PauseAnimation { duration: motion.introDelay }
         NumberAnimation {
             target: motion; property: "intro"
-            from: 0.0; to: 1.0; duration: 460; easing.type: Easing.OutBack; easing.overshoot: 1.1
+            from: 0.0; to: 1.0; duration: 300; easing.type: Easing.OutBack; easing.overshoot: 1.1
         }
     }
 }
