@@ -168,6 +168,7 @@ in
 
       imv
       nemo
+      vscodium
       lnav
       (mpv.override {
         scripts = [

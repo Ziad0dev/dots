@@ -78,11 +78,13 @@ case "$CMD" in
                 # a transient UNIT, not a scope: lifetime independent of this
                 # shim, so it survives us exiting. SIGINT lets gsr finalise the
                 # mp4 instead of being SIGTERMed mid-write.
+                # H.264 + AAC: Discord (and most players) won't play HEVC or
+                # Opus-in-mp4, so those uploads never played.
                 # shellcheck disable=SC2086
                 systemd-run --user --unit=dots-gsr --quiet --collect \
                     --property=KillSignal=SIGINT \
                     --property=TimeoutStopSec=15 \
-                    -- gpu-screen-recorder ${DOTS_GSR_ARGS:--w ${mon:-screen} -f 60 -c mp4 -k hevc -q very_high -a default_output|easyeffects_source} \
+                    -- gpu-screen-recorder ${DOTS_GSR_ARGS:--w ${mon:-screen} -f 60 -c mp4 -k h264 -ac aac -q very_high -a default_output|easyeffects_source} \
                        -o "$out"
                 ;;
         esac
