@@ -167,11 +167,11 @@ PanelWindow {
                 "warm", srcs)
         } else {
             warmProc.command = panel.cancellableCommand(
-                "D=$HOME/.cache/quickshell-img-thumbs; mkdir -p \"$D\"; command -v magick >/dev/null 2>&1 || exit 0; " +
+                "export QS_THUMB=" + panel.shq(Qt.resolvedUrl("../scripts/qs-thumb").toString().replace(/^file:\/\//, "")) + "; D=$HOME/.cache/quickshell-img-thumbs; mkdir -p \"$D\"; [ -x \"$QS_THUMB\" ] || exit 0; " +
                 "tmp=$(mktemp); trap 'rm -f \"$tmp\"' EXIT; " +
                 "for s in \"$@\"; do k=$(printf '%s' \"$s\" | md5sum | cut -d' ' -f1); m=$(stat -c %Y \"$s\" 2>/dev/null); " +
                 "o=\"$D/$k-$m-512.jpg\"; [ -s \"$o\" ] && continue; printf '%s\\n%s\\n' \"$s\" \"$o\" >> \"$tmp\"; done; " +
-                "if [ -s \"$tmp\" ]; then nice -n 19 xargs -r -d '\\n' -P 3 -n 2 sh -c 'magick \"$0\" -auto-orient -strip -thumbnail 512x512^ -quality 82 \"$1\" >/dev/null 2>&1' < \"$tmp\"; made=0; while IFS= read -r _src && IFS= read -r out; do [ -s \"$out\" ] && { made=1; break; }; done < \"$tmp\"; [ \"$made\" -eq 1 ] && echo changed; fi",
+                "if [ -s \"$tmp\" ]; then nice -n 19 xargs -r -d '\\n' -P 3 -n 2 sh -c '\"$QS_THUMB\" \"$0\" \"$1\" 512x512 >/dev/null 2>&1' < \"$tmp\"; made=0; while IFS= read -r _src && IFS= read -r out; do [ -s \"$out\" ] && { made=1; break; }; done < \"$tmp\"; [ \"$made\" -eq 1 ] && echo changed; fi",
                 "warm", srcs)
         }
         warmProc.running = false; warmProc.running = true

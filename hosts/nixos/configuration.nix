@@ -238,6 +238,8 @@
     usbutils
     gparted
     exfatprogs
+    # gvfs's network:// backend (nemo "Network") spawns it to find SMB hosts
+    wsdd
     # Pairs with services.usbmuxd
     libimobiledevice
     ifuse
