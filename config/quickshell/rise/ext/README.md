@@ -9,7 +9,7 @@ is GPL-3.0-or-later if it is ever distributed.
 
 Not ported: upstream's own bar, control center, launcher, media panel, OSD,
 power menu and GitHub popout (rise has its own), the anime/manga/novel
-readers, Aikira and Ollama chat.
+readers and Aikira (Ollama chat became the Oracle, `modules/oracle`).
 
 ## How it hangs together
 
