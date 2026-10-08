@@ -16,16 +16,24 @@ Item {
     property bool opened: false
     property int  selectedIdx: -1
 
-    anchors.right:  parent.right
-    anchors.bottom: parent.bottom
-    implicitWidth:  dockCard.width + 20
-    implicitHeight: opened ? dockCard.height + 20 : 0
-    // Hidden once fully collapsed so the tiles' shimmer can't keep repainting.
-    visible: opened || implicitHeight > 0
-    clip: true
+    // rise: a card docked in the bottom band of rise's frame (FrameDock).
+    // Hidden once it has slid back in, so the tiles' shimmer can't keep
+    // repainting.
+    anchors.fill: parent
+    visible: opened || dock.open
 
-    Behavior on implicitHeight {
-        NumberAnimation { duration: 360; easing.type: Easing.OutCubic }
+    FrameDock {
+        id: dock
+        card: dockCard
+        shown: root.opened
+        edge: "bottom"
+    }
+
+    // click-away
+    MouseArea {
+        anchors.fill: parent
+        enabled: root.opened
+        onClicked: root.close()
     }
 
     // ── Data ──────────────────────────────────────────────────────────────────
@@ -56,22 +64,28 @@ Item {
         id: dockCard
 
         PanelDecor {
+            visible: !dock.framed
             radius: dockCard.radius
             title: "avatar"
         }
-        anchors.bottom: parent.bottom
-        anchors.right:  parent.right
-        anchors.bottomMargin: 10
-        anchors.rightMargin:  10
+        x: dock.cardX
+        y: dock.cardY
+        opacity: dock.reveal
+        transform: dock.slide
+        clip: true
+        // swallow clicks on the card itself
+        MouseArea { anchors.fill: parent }
 
-        width:  Math.min(Math.max(folderModel.count, 1), 5) * 88 + 24
+        // the empty state needs room for its hint
+        width:  folderModel.count === 0 ? 300 : Math.min(folderModel.count, 5) * 88 + 24
         height: 104
 
-        radius: Services.DesktopTheme.rad(24)
-        color:  Colors.surface_container
+        radius: dock.framed ? dock.radius : Services.DesktopTheme.rad(24)
+        color:  dock.framed ? "transparent" : Colors.surface_container
 
         // bottom shadow strip
         Rectangle {
+            visible: !dock.framed
             anchors.bottom: parent.bottom
             anchors.left:   parent.left
             anchors.right:  parent.right
@@ -89,6 +103,7 @@ Item {
 
         // outer border
         Rectangle {
+            visible: !dock.framed
             anchors.fill: parent; radius: parent.radius; color: "transparent"
             border.width: 1
             border.color: Qt.rgba(
@@ -211,15 +226,24 @@ Item {
             }
         }
 
-        // empty state
-        StyledText {
+        // empty state (worded like the network map's)
+        Column {
             anchors.centerIn: parent
-            visible:    folderModel.count === 0
-            text:       "~/Pictures/avatars"
-            font.pixelSize: 11
-            color: Qt.rgba(Qt.color(Colors.on_surface).r,
-                           Qt.color(Colors.on_surface).g,
-                           Qt.color(Colors.on_surface).b, 0.3)
+            visible: folderModel.count === 0
+            spacing: 4
+            StyledText {
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: "No avatars yet"
+                font.pixelSize: 13
+                font.weight: Font.Medium
+                color: Colors.on_surface_variant
+            }
+            StyledText {
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: "Put images in ~/Pictures/avatars"
+                font.pixelSize: 11
+                color: Colors.withAlpha(Colors.on_surface_variant, 0.65)
+            }
         }
     }
 

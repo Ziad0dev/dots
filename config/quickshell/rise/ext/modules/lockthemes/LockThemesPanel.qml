@@ -32,7 +32,17 @@ Item {
     id: root
 
     anchors.fill: parent
-    visible: false
+    // rise: docked in rise's frame (FrameDock), no scrim; visible until it
+    // has slid back in
+    property bool opened: false
+    visible: opened || dock.open
+
+    FrameDock {
+        id: dock
+        card: panel
+        shown: root.opened
+        edge: "bar"
+    }
 
     property int cursor: 0
     property string tab: "lock"
@@ -41,20 +51,17 @@ Item {
     readonly property bool shuffle: Services.LockScreen.shuffle
 
     function open() {
-        visible = true;
+        opened = true;
         cursor = Math.max(0, themes.findIndex(t => t.id === Services.LockScreen.current));
         keys.forceActiveFocus();
-        closeAnim.stop();
-        openAnim.restart();
     }
 
     function close() {
-        openAnim.stop();
-        closeAnim.restart();
+        opened = false;
     }
 
     function toggle() {
-        if (visible)
+        if (opened)
             close();
         else
             open();
@@ -91,7 +98,7 @@ Item {
         anchors.fill: parent
         color: Colors.scrim
         opacity: 0
-        enabled: opacity > 0.01
+        enabled: root.opened
 
         MouseArea {
             anchors.fill: parent
@@ -100,20 +107,7 @@ Item {
         }
     }
 
-    ParallelAnimation {
-        id: openAnim
-        NumberAnimation { target: scrim; property: "opacity"; to: 0.55; duration: 240; easing.type: Easing.OutCubic }
-        NumberAnimation { target: panel; property: "opacity"; to: 1; duration: 240; easing.type: Easing.OutCubic }
-        NumberAnimation { target: panel; property: "scale"; to: 1; duration: 320; easing.type: Easing.OutBack }
-    }
 
-    ParallelAnimation {
-        id: closeAnim
-        NumberAnimation { target: scrim; property: "opacity"; to: 0; duration: 200; easing.type: Easing.InCubic }
-        NumberAnimation { target: panel; property: "opacity"; to: 0; duration: 200; easing.type: Easing.InCubic }
-        NumberAnimation { target: panel; property: "scale"; to: 0.94; duration: 200; easing.type: Easing.InCubic }
-        onFinished: root.visible = false
-    }
 
     // ── Panel ─────────────────────────────────────────────────────────────────
 
@@ -121,20 +115,22 @@ Item {
         id: panel
 
         PanelDecor {
+            visible: !dock.framed
             radius: panel.radius
             title: "themes"
         }
 
-        anchors.centerIn: parent
+        x: dock.cardX
+        y: dock.cardY
         width: Math.min(1220, parent.width * 0.86)
         height: Math.min(900, parent.height * 0.9)
-        radius: Services.DesktopTheme.rad(30)
-        color: Colors.surface_container_lowest
-        border.width: 1
+        radius: dock.framed ? dock.radius : Services.DesktopTheme.rad(30)
+        color: dock.framed ? "transparent" : Colors.surface_container_lowest
+        border.width: dock.framed ? 0 : 1
         border.color: Colors.withAlpha(Colors.outline_variant, 0.6)
         clip: true
-        opacity: 0
-        scale: 0.94
+        opacity: dock.reveal
+        transform: dock.slide
 
         // Keyboard handling for the whole panel.
         Item {

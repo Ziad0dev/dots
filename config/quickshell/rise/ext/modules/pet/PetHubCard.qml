@@ -27,6 +27,8 @@ Item {
     property string saying: ""
 
     signal closeRequested
+    // rise: docked in rise's frame, which draws the surface (PetHub)
+    property bool framed: false
 
     implicitWidth: 640
     implicitHeight: column.implicitHeight + 44
@@ -95,8 +97,8 @@ Item {
         id: surface
         anchors.fill: parent
         radius: Services.DesktopTheme.panelRadius(26)
-        color: Colors.surface_container_lowest
-        border.width: 1
+        color: card.framed ? "transparent" : Colors.surface_container_lowest
+        border.width: card.framed ? 0 : 1
         border.color: Colors.withAlpha(Colors.outline_variant, 0.6)
 
         Rectangle {
@@ -110,6 +112,7 @@ Item {
     }
 
     PanelDecor {
+        visible: !card.framed
         radius: surface.radius
         title: card.pet.name.toLowerCase()
         seal: "猫"

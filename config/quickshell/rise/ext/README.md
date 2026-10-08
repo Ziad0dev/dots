@@ -20,6 +20,15 @@ readers, Aikira and Ollama chat.
   scans, and it scans from the root; ExtRoot imports every directory here for
   the same reason.
 - Imports are `qs.ext.*`; paths are `Quickshell.shellPath("ext/…")`.
+- Panels are part of rise's frame, Caelestia-style: `components/FrameDock.qml`
+  pins a panel's card to a frame edge (the bar, or the left/bottom band) and
+  hands its background to rise's `FrameCard`, so `FrameBlobs` draws it as a
+  blob melting out of that edge. In frame mode the card is transparent with
+  no border or `PanelDecor`. Docked: keybinds editor, themes, notepad,
+  timer, network map (bar); Oracle (left band); notes, avatar (bottom band);
+  pet hub (bar, under the pet). Only the wallpaper picker and the expose
+  overview stand alone. `services/Rise.qml` carries rise's Theme (null in
+  the lock screen instance, where panels float).
 - `colors/Colors.qml` derives upstream's Material 3 roles from the dots theme's
   `colors.sh` (window-border red as primary, dimmed gilt tertiary), so every
   ported panel wears the current rise theme. `settings/SettingsConfig.qml`
@@ -49,6 +58,9 @@ readers, Aikira and Ollama chat.
 | Desktop widgets | `widgets toggle` (themes panel) | Clock, music, system, quote (from rise's `quotes.txt`), cava, on rise's bar monitor. They unmap while that workspace has a tiled or fullscreen window. |
 | Desktop themes | SUPER+ALT+W (`themes desktop`), `desktopTheme set <id>\|disable` | 15 looks (Cathedral fits the grimoire best). Hyprland changes are runtime only (`hyprctl eval`); turning one off runs `hyprctl reload`. Screen effect is off by default so `dots-look`'s shader stays. |
 | Lock themes | `themes lockscreen`; preview from the panel | Opt-in: `lockscreen engine themed` makes hypridle start them (`scripts/lock`); `lockscreen engine classic` goes back to `quickshell -c lock`. Avatar from `~/Pictures/avatars` (`avatarPicker toggle`). |
+| The Oracle (local LLM chat) | SUPER+ALT+O, `oracle toggle` | Talks to whichever dots-llm backend is up (llama.cpp :8080 or Ollama :11434, OpenAI-compatible, streamed); wakes one if none is; shows a reasoning model's thinking folded. Scripting: `oracle wake <unit>`, `ask <text>`, `last`, `state`, `sleep`. |
+| GitHub heatmap | the bar's GitHub popout | 28 weeks of contributions from `gh` (GraphQL `viewer`), total and streak. |
+| Zen in the desktop theme | — | `ZenTheme` writes `~/.local/state/dots/theme/zen-desktop-theme.css` (imported by config/zen/userChrome.css): the theme's chrome from `firefox/<id>.css`; empty with no theme. Applies on Zen's next start. |
 | Fullscreen visualizer | `visualizer toggle` | Off by default (it redraws every frame). |
 
 All IPC is `qs -c rise ipc call <target> <function>` (no function is called

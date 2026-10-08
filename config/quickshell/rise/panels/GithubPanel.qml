@@ -1,6 +1,7 @@
 import QtQuick
 import "../modules"
 import Quickshell
+import Quickshell.Io
 import Quickshell.Wayland
 
 PanelWindow {
@@ -38,7 +39,11 @@ PanelWindow {
         height: hover ? popClip.height + gap : ghPanel.height
     }
 
-    onVisibleChanged: if (!visible) { filterText = ""; selectedOrg = "" }
+    onVisibleChanged: {
+        if (!visible) { filterText = ""; selectedOrg = "" }
+        // shown (clicked or hovered): refresh the heatmap if it's stale
+        else if (Date.now() - ghCalAt > 30 * 60 * 1000) ghCalProc.running = true
+    }
 
     function matches(item) {
         if (selectedOrg && String(item.org || "") !== selectedOrg) return false
@@ -74,6 +79,46 @@ PanelWindow {
     MouseArea {
         anchors.fill: parent
         onClicked: root.githubVisible = false
+    }
+
+    // ── contribution heatmap (after dhrruvsharma/shell's GhCalendar) ──
+    // From gh's GraphQL API (the signed-in account, private work included),
+    // fetched when the popout opens, at most every half hour.
+    property var ghWeeks: []          // [[count × 7], …], oldest first
+    property int ghYearTotal: 0
+    property double ghCalAt: 0
+    readonly property int ghStreak: {
+        var days = [].concat.apply([], ghWeeks)
+        var n = 0, i = days.length - 1
+        if (i >= 0 && days[i] === 0) i--      // today may not be counted yet
+        for (; i >= 0 && days[i] > 0; i--) n++
+        return n
+    }
+    readonly property int ghMax: {
+        var m = 0
+        for (var w = 0; w < ghWeeks.length; w++)
+            for (var d = 0; d < ghWeeks[w].length; d++) m = Math.max(m, ghWeeks[w][d])
+        return m
+    }
+    function ghLevel(count) {
+        if (count <= 0 || ghMax <= 0) return 0
+        return Math.min(4, 1 + Math.floor(3.999 * count / ghMax))
+    }
+    Process {
+        id: ghCalProc
+        command: ["gh", "api", "graphql",
+            "-f", "query={viewer{contributionsCollection{contributionCalendar{totalContributions weeks{contributionDays{contributionCount}}}}}}",
+            "--jq", ".data.viewer.contributionsCollection.contributionCalendar | [.totalContributions, [.weeks[] | [.contributionDays[].contributionCount]]] | @json"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                try {
+                    var r = JSON.parse(this.text)
+                    ghPanel.ghYearTotal = r[0]
+                    ghPanel.ghWeeks = r[1]
+                    ghPanel.ghCalAt = Date.now()
+                } catch (e) {}
+            }
+        }
     }
 
     component SectionLabel: Item {
@@ -216,6 +261,55 @@ PanelWindow {
                             anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
                             text: ghPanel.filterText ? "/" + ghPanel.filterText : ghPanel.root.ghFetchedAgo()
                             color: ghPanel.filterText ? ghPanel.root.seal : ghPanel.root.sumi
+                            font.family: ghPanel.root.mono; font.pixelSize: 10
+                        }
+                    }
+
+                    // the heatmap: weeks as columns, Sunday-first rows (as GitHub has them)
+                    Item {
+                        id: heat
+                        visible: ghPanel.ghWeeks.length > 0
+                        width: parent.width
+                        readonly property int gapPx: 2
+                        readonly property int cols: 28
+                        readonly property real cell: Math.floor((width + gapPx) / cols) - gapPx
+                        readonly property var shown: ghPanel.ghWeeks.slice(-cols)
+                        height: visible ? 7 * (cell + gapPx) + 18 : 0
+                        Repeater {
+                            model: heat.shown.length
+                            delegate: Column {
+                                id: weekCol
+                                required property int index
+                                readonly property var days: heat.shown[index]
+                                x: index * (heat.cell + heat.gapPx)
+                                // a partial first week is aligned to the bottom
+                                y: (7 - days.length) * (heat.cell + heat.gapPx) * (index === 0 ? 1 : 0)
+                                spacing: heat.gapPx
+                                Repeater {
+                                    model: weekCol.days.length
+                                    delegate: Rectangle {
+                                        required property int index
+                                        readonly property int level: ghPanel.ghLevel(weekCol.days[index])
+                                        width: heat.cell
+                                        height: heat.cell
+                                        radius: 1
+                                        color: level === 0
+                                            ? Qt.rgba(ghPanel.root.ink.r, ghPanel.root.ink.g, ghPanel.root.ink.b, 0.07)
+                                            : Qt.rgba(ghPanel.root.seal.r, ghPanel.root.seal.g, ghPanel.root.seal.b, [0, 0.3, 0.5, 0.75, 1][level])
+                                    }
+                                }
+                            }
+                        }
+                        UiText {
+                            anchors.left: parent.left; anchors.bottom: parent.bottom
+                            text: ghPanel.ghYearTotal + " contributions this year"
+                            color: ghPanel.root.sumi
+                            font.family: ghPanel.root.mono; font.pixelSize: 10
+                        }
+                        UiText {
+                            anchors.right: parent.right; anchors.bottom: parent.bottom
+                            text: ghPanel.ghStreak > 0 ? ghPanel.ghStreak + "-day streak" : "no streak"
+                            color: ghPanel.ghStreak > 0 ? ghPanel.root.seal : ghPanel.root.sumi
                             font.family: ghPanel.root.mono; font.pixelSize: 10
                         }
                     }

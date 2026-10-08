@@ -2,6 +2,8 @@
 /* the rendered themectl palette (~/.local/state/dots/theme/zen-palette.css);
    the --oxo-* names are kept from the original oxocarbon-only version */
 @import url("dots-palette.css");
+/* the desktop theme's chrome (rise's ext ZenTheme; empty with none on) */
+@import url("dots-desktop-theme.css");
 
 :root {
   --oxo-base00: var(--dots-background);

@@ -24,7 +24,18 @@ Item {
     id: root
 
     anchors.fill: parent
-    visible: false
+    // rise: docked in rise's frame (FrameDock), no scrim; visible until it
+    // has slid back in
+    property bool opened: false
+    visible: opened || dock.open
+    onVisibleChanged: if (!visible) Services.Keybinds.active = false
+
+    FrameDock {
+        id: dock
+        card: panel
+        shown: root.opened
+        edge: "bar"
+    }
 
     // the layer picked; what's on the keyboard can differ (see shownLayer)
     property var pickedLayer: ["SUPER"]
@@ -44,7 +55,7 @@ Item {
     readonly property var shownLayer: editing ? editor.mods : heldMods.length ? heldMods : peekMods ?? pickedLayer
 
     function open() {
-        visible = true;
+        opened = true;
         Services.Keybinds.active = true;
         heldMods = [];
         peekMods = null;
@@ -52,18 +63,15 @@ Item {
         hoverRow = null;
         closeEditor();
         keys.forceActiveFocus();
-        closeAnim.stop();
-        openAnim.restart();
     }
 
     function close() {
         Services.Keybinds.stopRecording();
-        openAnim.stop();
-        closeAnim.restart();
+        opened = false;
     }
 
     function toggle() {
-        if (visible)
+        if (opened)
             close();
         else
             open();
@@ -265,7 +273,7 @@ Item {
         anchors.fill: parent
         color: Colors.scrim
         opacity: 0
-        enabled: opacity > 0.01
+        enabled: root.opened
 
         MouseArea {
             anchors.fill: parent
@@ -274,23 +282,7 @@ Item {
         }
     }
 
-    ParallelAnimation {
-        id: openAnim
-        NumberAnimation { target: scrim; property: "opacity"; to: 0.55; duration: 240; easing.type: Easing.OutCubic }
-        NumberAnimation { target: panel; property: "opacity"; to: 1; duration: 240; easing.type: Easing.OutCubic }
-        NumberAnimation { target: panel; property: "scale"; to: 1; duration: 320; easing.type: Easing.OutBack }
-    }
 
-    ParallelAnimation {
-        id: closeAnim
-        NumberAnimation { target: scrim; property: "opacity"; to: 0; duration: 200; easing.type: Easing.InCubic }
-        NumberAnimation { target: panel; property: "opacity"; to: 0; duration: 200; easing.type: Easing.InCubic }
-        NumberAnimation { target: panel; property: "scale"; to: 0.94; duration: 200; easing.type: Easing.InCubic }
-        onFinished: {
-            root.visible = false;
-            Services.Keybinds.active = false;
-        }
-    }
 
     // ── Panel ────────────────────────────────────────────────────────────────
 
@@ -298,21 +290,23 @@ Item {
         id: panel
 
         PanelDecor {
+            visible: !dock.framed
             radius: panel.radius
             title: "keybinds"
         }
 
-        anchors.centerIn: parent
+        x: dock.cardX
+        y: dock.cardY
         // rise: wider cap (a big screen, and nine modifier layers' chips)
         width: Math.min(1600, parent.width * 0.9)
         height: Math.min(980, parent.height * 0.9)
-        radius: Services.DesktopTheme.rad(30)
-        color: Colors.surface_container_lowest
-        border.width: 1
+        radius: dock.framed ? dock.radius : Services.DesktopTheme.rad(30)
+        color: dock.framed ? "transparent" : Colors.surface_container_lowest
+        border.width: dock.framed ? 0 : 1
         border.color: Colors.withAlpha(Colors.outline_variant, 0.6)
         clip: true
-        opacity: 0
-        scale: 0.94
+        opacity: dock.reveal
+        transform: dock.slide
 
         // Holds the keyboard when no field does. The keys are handled on the
         // panel itself, so they also arrive from the editor's fields (Esc).

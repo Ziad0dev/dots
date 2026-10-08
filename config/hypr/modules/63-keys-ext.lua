@@ -11,3 +11,4 @@ hl.bind(mod .. " + SHIFT + N",       hl.dsp.exec_cmd("qs -c rise ipc call notes 
 hl.bind(mod .. " + CTRL + N",        hl.dsp.exec_cmd("qs -c rise ipc call notepad toggle"))
 hl.bind(mod .. " + ALT + N",         hl.dsp.exec_cmd("qs -c rise ipc call networkMap changeVisible wifi"))
 hl.bind(mod .. " + SHIFT + P",       hl.dsp.exec_cmd("qs -c rise ipc call pet toggle"))
+hl.bind(mod .. " + ALT + O",         hl.dsp.exec_cmd("qs -c rise ipc call oracle toggle"))

@@ -16,24 +16,27 @@ import qs.ext.components
 Item {
     id: networkPanel
     anchors.fill: parent
-    visible: false
 
     property bool opened: false
     property int currentTab: 0
+    // rise: hangs from the bar's right end, under the network widget
+    // (FrameDock), no scrim; visible until it has slid back in
+    visible: opened || dock.open
+
+    FrameDock {
+        id: dock
+        card: panel
+        shown: networkPanel.opened
+        edge: "bar"
+        along: 1
+    }
 
     readonly property color accent: Services.DesktopTheme.accent
     readonly property var adapter: Services.Bluetooth.defaultAdapter
 
     onOpenedChanged: {
-        if (opened) {
-            visible = true
-            panel.x = networkPanel.width
-            scrim.opacity = 0
-            openAnim.restart()
+        if (opened)
             Services.Network.refresh()
-        } else {
-            closeAnim.restart()
-        }
     }
 
     function close() {
@@ -53,8 +56,7 @@ Item {
         anchors.fill: parent
         color: Colors.scrim
         opacity: 0
-        enabled: opacity > 0.01
-        Behavior on opacity { NumberAnimation { duration: 280; easing.type: Easing.OutCubic } }
+        enabled: networkPanel.opened
         MouseArea {
             anchors.fill: parent
             enabled: parent.enabled
@@ -68,16 +70,20 @@ Item {
         id: panel
 
         PanelDecor {
+            visible: !dock.framed
             radius: panel.radius
             title: "network"
         }
         width: 400
         height: 680
-        anchors.bottom: parent.bottom
-        x: networkPanel.width
+        x: dock.cardX
+        y: dock.cardY
+        opacity: dock.reveal
+        transform: dock.slide
 
-        radius: Services.DesktopTheme.rad(22)
-        color: Colors.surface_container
+        radius: dock.framed ? dock.radius : Services.DesktopTheme.rad(22)
+        color: dock.framed ? "transparent" : Colors.surface_container
+        border.width: dock.framed ? 0 : (Services.DesktopTheme.borderless ? 0 : 1)
 
         layer.enabled: true
         layer.smooth: true
@@ -306,35 +312,6 @@ Item {
                 onClicked: tab.switched()
             }
         }
-    }
-
-    // ── Animations ────────────────────────────────────────────────────────────
-
-    ParallelAnimation {
-        id: openAnim
-        NumberAnimation {
-            target: scrim; property: "opacity"
-            to: 0.45; duration: 280; easing.type: Easing.OutCubic
-        }
-        NumberAnimation {
-            target: panel; property: "x"
-            to: networkPanel.width - panel.width
-            duration: 320; easing.type: Easing.OutCubic
-        }
-    }
-
-    ParallelAnimation {
-        id: closeAnim
-        NumberAnimation {
-            target: scrim; property: "opacity"
-            to: 0; duration: 200; easing.type: Easing.InCubic
-        }
-        NumberAnimation {
-            target: panel; property: "x"
-            to: networkPanel.width
-            duration: 260; easing.type: Easing.InCubic
-        }
-        onFinished: networkPanel.visible = false
     }
 
     Component { id: wifiComponent;      WifiPanel      {} }

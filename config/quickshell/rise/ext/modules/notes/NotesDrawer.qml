@@ -11,27 +11,34 @@ Item {
     id: root
     property bool opened: false
 
-    implicitHeight: opened ? 600 : 0
-    implicitWidth: drawerWidth
+    width: drawerWidth
+    height: 600
     property int drawerWidth: 900
-    // Hidden once fully closed: a collapsed but visible drawer still went on
-    // laying out and repainting its notes.
-    visible: opened || implicitHeight > 0
+    // rise: the drawer is a card docked in the bottom band of rise's frame
+    // (FrameDock) rather than its own bubble. Hidden once it has slid back
+    // in: a closed but visible drawer still went on laying out and
+    // repainting its notes.
+    visible: opened || dock.open
+    x: dock.cardX
+    y: dock.cardY
+    opacity: dock.reveal
+    transform: dock.slide
+
+    // the frame blob's corners (FrameBlobs reads card.radius)
+    readonly property real radius: dock.radius
+    FrameDock {
+        id: dock
+        card: root
+        // its Loader takes the drawer's size; place it on the overlay
+        area: root.parent ? root.parent.parent : null
+        shown: root.opened
+        edge: "bottom"
+    }
 
     // Theme accent as a real color (so we can derive translucent tints from it).
     readonly property color accent: Colors.primary
 
-    anchors.bottom: parent.bottom
-    anchors.horizontalCenter: parent.horizontalCenter
     focus: true
-
-    Behavior on implicitHeight {
-        NumberAnimation {
-            duration: 500
-            easing.type: Easing.OutCubic
-            property: "implicitHeight"
-        }
-    }
 
     Popout {
         id: popoutBackground
@@ -39,7 +46,7 @@ Item {
         clip: true
         alignment: 4
         radius: Services.DesktopTheme.panelRadius(32)
-        color: Colors.surface_container_lowest
+        color: dock.framed ? "transparent" : Colors.surface_container_lowest
 
         Rectangle {
             anchors.fill: parent
@@ -505,9 +512,10 @@ Item {
                                 anchors.horizontalCenter: parent.horizontalCenter
                                 spacing: 6
 
-                                Text {
-                                    text: "📝"
+                                MaterialIcon {
+                                    text: "\u{F11D7}" // note-text-outline
                                     font.pixelSize: 38
+                                    color: Colors.primary
                                     opacity: 0.5
                                     Layout.alignment: Qt.AlignHCenter
                                 }
@@ -940,7 +948,9 @@ Item {
             // Input area with main text and subtext fields
             Rectangle {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 100
+                // rise: fit the two fields and the button row (a fixed 100
+                // left the buttons hanging out of the box)
+                Layout.preferredHeight: composer.implicitHeight + 24
                 radius: Services.DesktopTheme.rad(20)
                 color: Colors.surface_container_high
                 border.color: (mainInput.activeFocus || subtextInput.activeFocus)
@@ -957,6 +967,7 @@ Item {
                 }
 
                 ColumnLayout {
+                    id: composer
                     anchors.fill: parent
                     anchors.margins: 12
                     spacing: 8

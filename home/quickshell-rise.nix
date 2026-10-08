@@ -286,6 +286,9 @@ in
           ]
         }"
         "QT_PLUGIN_PATH=${pkgs.qt6.qtmultimedia}/${pkgs.qt6.qtbase.qtPluginPrefix}"
+        # video wallpapers: VA-API frames can't be exported as textures on the
+        # NVIDIA driver (a warning per frame); copy them over instead
+        "QT_DISABLE_HW_TEXTURES_CONVERSION=1"
       ];
       Slice = "app-graphical.slice";
       # rise/ext keeps its settings here and its caches (palettes, favourites,
