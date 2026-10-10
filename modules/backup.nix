@@ -23,6 +23,8 @@
     exclude = [
       "/home/${username}/.cache"
       "/home/${username}/.local/share/Steam"
+      "/home/${username}/Games"
+      "/home/${username}/Videos/Replays"
       "/home/${username}/.local/share/Trash"
       "/home/${username}/.local/share/containers"
       "/home/${username}/.local/state/nix"

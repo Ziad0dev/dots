@@ -28,11 +28,11 @@ The desktop output is built for one box. On anything else, go through this list 
 
 | Where | Value | Why it matters |
 |---|---|---|
-| `hosts/nixos/hardware-configuration.nix` | LUKS root, `/data` (LUKS2 via crypttab + keyfile), `/boot` | Replace wholesale |
+| `hosts/nixos/hardware-configuration.nix` | LUKS root and `/boot` | Replace wholesale |
 | `hosts/nixos/configuration.nix` | `hardware.nvidia` block (`nvidia_cachyos-bore`) | NVIDIA + CachyOS kernel only; drop on other GPUs |
 | `hosts/nixos/configuration.nix` | timezone, locale, `dots.sddm.theme` | |
 | `modules/gaming.nix` | `boot.kernelPackages = linuxPackages_cachyos-bore` | Kernel choice lives here, not in the host |
-| `modules/storage.nix`, `modules/media.nix` | exFAT drives by UUID, pool disks by label (`pool1`…), `/data/scratch` by partlabel | `nofail`, so missing drives don't block boot |
+| `modules/storage.nix`, `modules/media.nix` | Independent exFAT backup and media drives by UUID | `nofail`, so missing drives don't block boot; confirm each UUID still belongs to the intended drive |
 | `modules/lan.nix` | `lanInterface = "enp5s0"` | Jellyfin ports are opened on this interface only |
 | `hosts/nixos/configuration.nix` | `dots.recording.monitor = "DP-1"` | Replay buffer captures nothing if the output doesn't exist (manual recordings take the focused output) |
 | `modules/performance.nix` | `cpuProfile`, `pl1Watts` / `pl2Watts` | Intel RAPL limits for a 12400F |
@@ -49,12 +49,14 @@ Nothing secret is in the store. These are created by hand once — or, for the f
 |---|---|---|
 | `/etc/wireguard/mullvad.conf` | `modules/vpn.nix` | Mullvad WireGuard config; `wg-dns` rewrites its `DNS =` line on every start |
 | `/etc/restic/password` | `modules/backup.nix` | Unit refuses to start if empty |
-| `/etc/luks-data.key` | crypttab (`hardware-configuration.nix`, `modules/storage.nix`) | Unlocks `/data` and `/data/scratch` after root is open |
 | `/var/lib/secrets/the-page.env` | `modules/hello-page.nix` | Optional (`-` prefix) |
 | `~/.password-store` | `pass`, `secretspec`, `pass-secret-service` | `pass init <gpg-id>` |
-| `/data/models/*.gguf` | `modules/llm.nix` | Units aren't autostarted, so missing models only fail on demand |
-| `/data/models/whisper/ggml-*.bin` | `voxtype` | Dictation |
-| `~/Pictures/wallpapers/` | `themectl bg`, wallpaper picker | |
+| `/var/lib/dots/models/*.gguf` | `modules/llm.nix` | Copy or download manually; llama.cpp units are on-demand and need world-readable models |
+| `/var/lib/ollama/` | `modules/ollama.nix` | Created and populated by Ollama when used |
+| `~/.local/share/voxtype/models/ggml-*.bin` | `voxtype` | Create the directory and install a whisper.cpp model for dictation |
+| `/var/lib/libvirt/images/` and `/var/lib/libvirt/isos/` | `modules/virt.nix` | Directories are created by the system; restore VM disks and ISOs manually |
+| `~/Games/` | Steam library, if configured in Steam storage settings | Created by Home Manager; Steam also supports its home-directory default |
+| `~/Pictures/wallpapers/` | `themectl bg`, wallpaper picker | Created by Home Manager; restore your wallpaper files manually |
 
 Also: `sudo tailscale up` once — Jellyfin's remote access, the qBittorrent/Prowlarr port mappings and `hello-page-serve` all ride the tailnet.
 
@@ -80,7 +82,7 @@ nix build .#nixosConfigurations.installer.config.system.build.isoImage
 sudo dd if=result/iso/*.iso of=/dev/sdX bs=4M status=progress oflag=sync
 ```
 
-Boot it and run `dots-install <host> [--age-key FILE]`. It asks for the disk passphrase, partitions and formats (erasing the disk), puts the age key where the host's `dots.secrets.keyFile` expects it, and installs the prebuilt system — offline, nothing is built. The desktop itself is not on disko: its disks hold `/data`, and a layout that can wipe them isn't worth having around.
+Boot it and run `dots-install <host> [--age-key FILE]`. It asks for the disk passphrase, partitions and formats (erasing the disk), puts the age key where the host's `dots.secrets.keyFile` expects it, and installs the prebuilt system — offline, nothing is built. The desktop's hardware configuration remains specific to that computer; the installer layout is intended for separate single-disk targets.
 
 ### Testing in a VM
 

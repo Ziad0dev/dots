@@ -19,8 +19,6 @@ The desktop declares three secrets in `hosts/nixos/configuration.nix`, linked to
 | `restic-password` | `/etc/restic/password` |
 | `the-page-env` | `/var/lib/secrets/the-page.env` |
 
-`/etc/luks-data.key` stays a hand-made file on purpose: it unlocks `/data` during boot, and a failed decryption must not be able to stop the boot. To drop it instead, enroll the TPM on `/data` and `/data/scratch` as well ([Secure Boot → TPM unlock](secure-boot.md#tpm-unlock)).
-
 1. **Host key.**
    ```fish
    sudo mkdir -p /var/lib/sops-nix
