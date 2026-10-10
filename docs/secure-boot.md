@@ -2,9 +2,10 @@
 
 `modules/secureboot.nix` adds [lanzaboote](https://github.com/nix-community/lanzaboote)
 (pinned to a release tag in `flake.nix`): systemd-boot's signed stub and signed
-unified kernel images, with your own keys in `/var/lib/sbctl`. It is off until
-`dots.secureBoot.enable = true;` in `hosts/nixos/configuration.nix`, and `sbctl`
-is installed either way.
+unified kernel images, with your own keys in `/var/lib/sbctl`. The desktop host
+currently keeps it disabled during reinstall. Set `dots.secureBoot.enable = true;`
+in `hosts/nixos/configuration.nix` only after restoring or creating those keys.
+`sbctl` is installed either way.
 
 The disks are already LUKS-encrypted; Secure Boot adds that only boot files you
 signed will run, so nobody can swap the kernel or initrd on the unencrypted

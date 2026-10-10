@@ -35,14 +35,15 @@
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.systemd-boot.configurationLimit = 3;
   boot.loader.systemd-boot.editor = false;
-  # flip after creating and enrolling keys: docs/secure-boot.md
-  dots.secureBoot.enable = true;
-  # root unlocks from the TPM; enroll the keyslot first: docs/secure-boot.md
-  dots.secureBoot.tpmUnlock = [ "luks-72749c98-6a12-4a0b-b354-00fd868aa36e" ];
+  # Keep Secure Boot integration paused during reinstall; re-enable after
+  # restoring or creating the sbctl keys: docs/secure-boot.md
+  dots.secureBoot.enable = false;
+  # Re-enable after the new root LUKS volume has a TPM keyslot enrolled.
+  dots.secureBoot.tpmUnlock = [ ];
   boot.loader.timeout = 1;
 
-  # Secrets from secrets/nixos.yaml, linked to the paths the modules already
-  # read. Off until the host age key and that file exist: docs/secrets.md.
+  # Keep SOPS decryption off until the host age key and secrets file are
+  # restored after reinstall: docs/secrets.md.
   dots.secrets = {
     enable = false;
     file = ../../secrets/nixos.yaml;
