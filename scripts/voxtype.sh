@@ -3,7 +3,7 @@ WAV="$STATE/capture.wav"
 PIDF="$STATE/rec.pid"
 PHASE="$STATE/phase"
 MODELF="$STATE/model"
-MODELDIR="${VOXTYPE_MODEL_DIR:-/data/models/whisper}"
+MODELDIR="${VOXTYPE_MODEL_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/voxtype/models}"
 
 mkdir -p "$STATE"
 

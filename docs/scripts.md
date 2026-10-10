@@ -37,7 +37,7 @@ Every `dots-*` name below is a symlink to one script, `scripts/dots-compat.sh`, 
 |---|---|
 | `dots-updates` | `1` if the locked chaotic rev differs from chaotic-nyx `HEAD`, else `0` (cached 1 h in `~/.cache/dots-updates`) |
 | `dots-update-available` | `1` if `flake.lock` is older than 7 days, else nothing |
-| `dots-mounts` | Space-separated names of unhealthy mounts among `/data /data/scratch /mnt/media /mnt/backup /mnt/pool`; empty means all fine |
+| `dots-mounts` | Space-separated names of unhealthy mounts among `/mnt/media /mnt/backup`; empty means all fine |
 | `dots-qbt` | `<downloading> <dl B/s> <up B/s>` from the qBittorrent API, or `off` |
 | `dots-weather`, `dots-weather-status` | One-line wttr.in summary |
 | `dots-brightness-display` | Backlight percent (100 on a desktop with no backlight) |
@@ -79,7 +79,7 @@ These open a floating terminal (`$DOTS_TERMINAL`, default ghostty) with window c
 
 | Command | From | Usage |
 |---|---|---|
-| `voxtype` | `scripts/voxtype.sh` | `toggle` · `start` · `stop` · `status [json]` · `model` · `models` · `set-model <path>`. Models: `ggml-*.bin` in `$VOXTYPE_MODEL_DIR` (default `/data/models/whisper`) |
+| `voxtype` | `scripts/voxtype.sh` | `toggle` · `start` · `stop` · `status [json]` · `model` · `models` · `set-model <path>`. Models: `ggml-*.bin` in `$VOXTYPE_MODEL_DIR` (default `~/.local/share/voxtype/models`) |
 | `dots-nightlight` | `home/quickshell-rise.nix` | `on` · `off` · `toggle` · `status` |
 | `dots-vpn` | `home/quickshell-rise.nix` | `on` · `off` · `toggle` · `status` — Mullvad on the host |
 | `dots-set-wallpaper <file>` | `scripts/dots-set-wallpaper.sh` | awww with a random transition; records the choice |

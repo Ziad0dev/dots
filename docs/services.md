@@ -65,7 +65,7 @@ Mullvad for the host itself is separate (`modules/mullvad.nix`, the GUI and `dot
 
 ## Local LLMs
 
-`modules/llm.nix` + `modules/ollama.nix`. Models live on `/data/models`.
+`modules/llm.nix` + `modules/ollama.nix`. llama.cpp models live in `/var/lib/dots/models`; Ollama stores its models in `/var/lib/ollama`.
 
 | Unit | Model | Port | For |
 |---|---|---|---|
@@ -77,7 +77,7 @@ Mullvad for the host itself is separate (`modules/mullvad.nix`, the GUI and `dot
 | `llama-gemma` | Gemma 4 12B Q4_K_M | 8080 | general, vision, audio |
 | `llama-coder` | Gemma 4 26B-A4B MoE Q4_K_M | 8080 | coding / agentic — 10 expert layers on CPU, q8_0 KV cache |
 | `llama-fim` | Qwen2.5-Coder-3B Q8_0 | 8012 | llama.vim fill-in-the-middle |
-| `ollama` | `/data/models/ollama` | 11434 | trying models quickly |
+| `ollama` | `/var/lib/ollama` | 11434 | trying models quickly |
 
 How they behave:
 
@@ -86,6 +86,7 @@ How they behave:
 - **Never at boot.** `wantedBy` is forced empty on all of them, Ollama included.
 - **No sudo.** A polkit rule lets your active local session start and stop these units.
 - **Sandboxed.** The llama units run as `DynamicUser` with `ProtectHome`, `ProtectSystem=strict`, no capabilities and `MemoryDenyWriteExecute`. GGUF files must be world-readable.
+- llama.cpp's model directory is created for your user. Download or copy GGUF files there; the services do not download them. Ollama creates and manages its own model files.
 
 ```fish
 systemctl start llama-coder      # swap models
@@ -99,7 +100,7 @@ gpu-free                         # stop all llama units, unload Ollama models
 
 `modules/backup.nix` — restic, `$HOME`, the media apps' state under `/var/lib` (minus artwork, metadata and logs) and the Secure Boot keys → `/mnt/backup/restic`, daily (persistent, up to 1 h random delay).
 
-- Excludes caches, Steam, flatpak and container storage, Downloads, Trash, and build junk (`node_modules`, `target`, `zig-cache`, `zig-out`, `.venv`, `.direnv`, `__pycache__`).
+- Excludes caches, Steam and other game libraries, replay recordings, flatpak and container storage, Downloads, Trash, and build junk (`node_modules`, `target`, `zig-cache`, `zig-out`, `.venv`, `.direnv`, `__pycache__`).
 - Retention: 7 daily, 4 weekly, 6 monthly. Each run checks a random 5 % of pack data.
 - Skips cleanly when the backup drive isn't mounted; runs at nice 19, idle I/O.
 - Password at `/etc/restic/password`; the unit refuses to start if the file is empty.
@@ -115,17 +116,12 @@ sudo restic -r /mnt/backup/restic -p /etc/restic/password snapshots
 | Mount | What | Mounted as |
 |---|---|---|
 | `/` | LUKS, ext4 | |
-| `/data` | LUKS2 ext4, unlocked after root by keyfile (crypttab), `nofail` | games, models, VMs, replays |
-| `/data/scratch` | LUKS2 ext4 on the Intel 660p 512 GB (partlabel `scratch`), same keyfile as `/data`, `nofail` | QLC, ~100 TBW: read-heavy data only |
-| `/mnt/pool` | mergerfs over `/mnt/disks/pool*` (ext4, by label), `category.create=pfrd` | user:users; no redundancy, a dead disk loses only its own files |
 | `/mnt/media` | exFAT 10 TB | user:media, group-writable, automount, visible in file managers |
-| `/mnt/backup` | exFAT | root:root `0077`, automount (10 min idle), hidden from file managers |
+| `/mnt/backup` | Independent exFAT backup drive, configured by its own UUID | root:root `0077`, automount (10 min idle), hidden from file managers |
 
-exFAT has no permissions, so ownership comes from mount options. udiskie ignores both external exFAT drives by UUID — they belong to systemd — but still automounts real removable media. `dots-mounts` (the bar's storage alert) reports any of `/data /data/scratch /mnt/media /mnt/backup /mnt/pool` whose mount or automount unit isn't healthy.
+exFAT has no permissions, so ownership comes from mount options. udiskie ignores both external exFAT drives by UUID — they belong to systemd — but still automounts real removable media. `dots-mounts` (the bar's storage alert) reports whether `/mnt/media` and `/mnt/backup` are healthy. If the backup drive is replaced, update its UUID in `modules/storage.nix`.
 
-Adding a pool disk: `sgdisk -o -n 1:0:0 -t 1:8300 -c 1:poolN`, `mkfs.ext4 -m 0 -L poolN`, add `"poolN"` to `poolDisks` in `modules/storage.nix`, switch, then `chown` the new branch root. The pool waits on every listed branch, so it never writes into an empty mountpoint on `/`.
-
-`/data` directories are created by tmpfiles rules in the modules that use them: `/data/games` (gaming), `/data/models` and `/data/models/ollama` (LLM), `/data/vms` and `/data/vms/iso` (virt), `/data/replays` (recording).
+Games and wallpaper folders are created in your home directory. Replay captures go to `~/Videos/Replays`. llama.cpp's model files belong in `/var/lib/dots/models`; VM images and installer ISOs use `/var/lib/libvirt/images` and `/var/lib/libvirt/isos`. Restore or download those files separately after reinstalling. Ollama manages models under `/var/lib/ollama` when you start it.
 
 ## Flatpak
 
@@ -145,4 +141,4 @@ Adding a pool disk: `sgdisk -o -n 1:0:0 -t 1:8300 -c 1:poolN`, `mkfs.ext4 -m 0 -
 
 - **Docker** runs rootless; `DOCKER_HOST` points at the user socket. Not started at boot.
 - **Podman** is available alongside.
-- **libvirt**: `qemu:///system`, images under `/data/vms`; virt-manager is preconfigured (autoconnect to system, SPICE, host-passthrough CPU, qcow2). Your user isn't in the `libvirtd` group, so connecting to `qemu:///system` goes through a polkit password prompt.
+- **libvirt**: `qemu:///system`, images under `/var/lib/libvirt/images` and installer ISOs under `/var/lib/libvirt/isos`; virt-manager is preconfigured (autoconnect to system, SPICE, host-passthrough CPU, qcow2). Your user isn't in the `libvirtd` group, so connecting to `qemu:///system` goes through a polkit password prompt. Restore VM images and ISOs manually after reinstalling.

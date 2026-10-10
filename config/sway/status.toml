@@ -27,11 +27,6 @@ path = "/"
 format = " $icon / $available.eng(w:2) "
 
 [[block]]
-block = "disk_space"
-path = "/data"
-format = " $icon /data $available.eng(w:2) "
-
-[[block]]
 block = "keyboard_layout"
 driver = "sway"
 

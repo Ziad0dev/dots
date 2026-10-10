@@ -33,19 +33,6 @@
   boot.initrd.luks.devices."luks-72749c98-6a12-4a0b-b354-00fd868aa36e".device =
     "/dev/disk/by-uuid/72749c98-6a12-4a0b-b354-00fd868aa36e";
 
-  environment.etc."crypttab".text = ''
-    data UUID=bdb1e892-460d-46be-a438-a1e4ab1902b3 /etc/luks-data.key luks
-  '';
-
-  fileSystems."/data" = {
-    device = "/dev/mapper/data";
-    fsType = "ext4";
-    options = [
-      "x-systemd.requires=systemd-cryptsetup@data.service"
-      "nofail"
-    ];
-  };
-
   fileSystems."/boot" = {
     device = "/dev/disk/by-uuid/82CE-D072";
     fsType = "vfat";

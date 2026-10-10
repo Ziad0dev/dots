@@ -54,7 +54,6 @@
         "/var/lib/libvirt"
         "/nix/store"
         "/mnt"
-        "/data"
       ];
     };
 

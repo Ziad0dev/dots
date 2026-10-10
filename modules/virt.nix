@@ -1,6 +1,4 @@
 {
-  config,
-  lib,
   pkgs,
   username,
   ...
@@ -25,11 +23,6 @@
     };
   };
 
-  systemd.services.libvirtd = {
-    wants = [ "data.mount" ];
-    after = [ "data.mount" ];
-  };
-
   users.users.${username}.extraGroups = [ "kvm" ];
 
   programs.virt-manager.enable = true;
@@ -48,9 +41,9 @@
   ];
 
   systemd.tmpfiles.rules = [
-    "d /data/vms 0771 root libvirtd -"
-    "a+ /data/vms - - - - u:${username}:rwx"
-    "d /data/vms/iso 0771 ${username} libvirtd -"
+    "d /var/lib/libvirt/images 0771 root libvirtd -"
+    "a+ /var/lib/libvirt/images - - - - u:${username}:rwx"
+    "d /var/lib/libvirt/isos 0771 ${username} libvirtd -"
   ];
 
   networking.firewall.interfaces.virbr0 = {
