@@ -1,8 +1,4 @@
-{
-  lib,
-  pkgs,
-  ...
-}:
+{ pkgs, ... }:
 
 let
   baseOpts = [
@@ -18,96 +14,15 @@ let
     "umask=0077"
     "x-gvfs-hide"
   ];
-
-  poolDisks = map (d: "/mnt/disks/${d}") [
-    "pool1"
-  ];
 in
 {
-  fileSystems =
-    lib.genAttrs poolDisks (path: {
-      device = "/dev/disk/by-label/${baseNameOf path}";
-      fsType = "ext4";
-      options = [
-        "nofail"
-        "noatime"
-        "x-gvfs-hide"
-      ];
-    })
-    // {
-      "/mnt/backup" = {
-        device = "/dev/disk/by-uuid/6087-5FAB";
-        fsType = "exfat";
-        noCheck = true;
-        options = backupOpts;
-      };
-
-      "/mnt/pool" = {
-        device = lib.concatStringsSep ":" poolDisks;
-        fsType = "mergerfs";
-        depends = poolDisks;
-        noCheck = true;
-        options = [
-          "nofail"
-          "cache.files=off"
-          "category.create=pfrd"
-          "func.getattr=newest"
-          "dropcacheonclose=false"
-          "minfreespace=50G"
-          "fsname=pool"
-          "x-gvfs-show"
-        ];
-      };
-
-      "/data/scratch" = {
-        device = "/dev/mapper/scratch";
-        fsType = "ext4";
-        options = [
-          "nofail"
-          "noatime"
-          "x-systemd.requires=systemd-cryptsetup@scratch.service"
-        ];
-      };
-    };
-
-  environment.etc."crypttab".text = ''
-    scratch PARTLABEL=scratch /etc/luks-data.key luks,nofail
-  '';
-
-  systemd.services.wallpaper-backup = {
-    description = "Mirror wallpapers to the pool";
-    unitConfig.RequiresMountsFor = [
-      "/data"
-      "/mnt/pool"
-    ];
-    serviceConfig = import ../lib/hardening.nix // {
-      Type = "oneshot";
-      PrivateNetwork = true;
-      ProtectSystem = "strict";
-      ReadWritePaths = [ "/mnt/pool/backups" ];
-      # -a keeps owners and modes, -X xattrs: root, but only for that
-      CapabilityBoundingSet = [
-        "CAP_DAC_READ_SEARCH"
-        "CAP_DAC_OVERRIDE"
-        "CAP_CHOWN"
-        "CAP_FOWNER"
-        "CAP_FSETID"
-      ];
-      ExecStart = "${pkgs.rsync}/bin/rsync -aHX --delete --mkpath /data/wallpapers /data/wallpapers-lowres /mnt/pool/backups/";
-    };
+  # This UUID belongs to the independent exFAT backup drive used by restic.
+  fileSystems."/mnt/backup" = {
+    device = "/dev/disk/by-uuid/6087-5FAB";
+    fsType = "exfat";
+    noCheck = true;
+    options = backupOpts;
   };
 
-  systemd.timers.wallpaper-backup = {
-    wantedBy = [ "timers.target" ];
-    timerConfig = {
-      OnCalendar = "weekly";
-      Persistent = true;
-    };
-  };
-
-  system.fsPackages = [ pkgs.mergerfs ];
-  environment.systemPackages = [
-    pkgs.exfatprogs
-    pkgs.mergerfs
-  ];
+  environment.systemPackages = [ pkgs.exfatprogs ];
 }

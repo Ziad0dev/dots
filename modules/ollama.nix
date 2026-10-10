@@ -17,7 +17,7 @@
     host = "127.0.0.1";
     port = 11434;
 
-    modelsDir = "/data/models/ollama";
+    modelsDir = "/var/lib/ollama";
 
     environmentVariables = {
 
@@ -34,13 +34,11 @@
   };
 
   systemd.tmpfiles.rules = [
-    "d /data/models/ollama 0750 ollama ollama -"
+    "d /var/lib/ollama 0750 ollama ollama -"
   ];
 
   systemd.services.ollama = {
     wantedBy = lib.mkForce [ ];
-    unitConfig.RequiresMountsFor = "/data";
-    after = [ "data.mount" ];
   };
 
   users.users.ollama.extraGroups = [

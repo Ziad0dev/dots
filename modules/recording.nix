@@ -8,7 +8,7 @@
 
 let
 
-  replayDir = "/data/replays";
+  replayDir = "${config.users.users.${username}.home}/Videos/Replays";
   inherit (config.dots.recording) monitor;
 
   gsr = pkgs.gpu-screen-recorder.override { inherit (config.security) wrapperDir; };
