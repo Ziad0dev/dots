@@ -29,9 +29,9 @@ prepend_keymap = [
 	{ on = [ "g", "m" ], run = "cd /mnt/media",            desc = "Media drive" },
 	{ on = [ "g", "u" ], run = "cd /mnt/media/music",      desc = "Music" },
 	{ on = [ "g", "b" ], run = "cd /mnt/backup",           desc = "Backup drive" },
-	{ on = [ "g", "v" ], run = "cd /data/vms",             desc = "VMs" },
-	{ on = [ "g", "g" ], run = "cd /data/games",           desc = "Games" },
-	{ on = [ "g", "M" ], run = "cd /data/models",          desc = "Models" },
+	{ on = [ "g", "v" ], run = "cd /var/lib/libvirt/images", desc = "VM images" },
+	{ on = [ "g", "g" ], run = "cd ~/Games",                 desc = "Games" },
+	{ on = [ "g", "M" ], run = "cd /var/lib/dots/models",   desc = "Local models" },
 	{ on = [ "g", "t" ], run = "cd /tmp",                  desc = "tmp" },
 	{ on = [ "g", "r" ], run = 'shell -- ya emit cd "$(git rev-parse --show-toplevel)"', desc = "Repo root" },
 ]

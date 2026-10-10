@@ -1,4 +1,4 @@
-{ pkgs, username, ... }:
+{ pkgs, ... }:
 
 {
 
@@ -34,7 +34,4 @@
     heroic
   ];
 
-  systemd.tmpfiles.rules = [
-    "d /data/games 0755 ${username} users -"
-  ];
 }

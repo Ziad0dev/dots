@@ -166,7 +166,7 @@ Every unit that uses an external drive should have `unitConfig.RequiresMountsFor
 ### A llama unit fails to start
 
 - The GGUF isn't world-readable — the units run as `DynamicUser`.
-- The model file is missing from `/data/models`.
+- The model file is missing from `/var/lib/dots/models`.
 - Another unit stopped when you started this one: expected, they `Conflict`.
 
 `journalctl -u llama-coder -e`.

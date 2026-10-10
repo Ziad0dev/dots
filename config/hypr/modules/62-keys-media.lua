@@ -23,7 +23,7 @@ hl.bind(mod .. " + Print",           hl.dsp.exec_cmd("dots-shot screen"))
 hl.bind(mod .. " + SHIFT + S",       hl.dsp.exec_cmd("dots-shot window"))
 
 hl.bind(mod .. " + SHIFT + R",
-    util.sh([[systemctl --user reload gsr-replay && notify-send -t 3000 "Replay saved" "last 5 min -> /data/replays"]]))
+    util.sh([[systemctl --user reload gsr-replay && notify-send -t 3000 "Replay saved" "last 5 min -> ~/Videos/Replays"]]))
 
 hl.bind(mod .. " + ALT + R", util.sh([[if systemctl --user is-active --quiet gsr-replay; then
         systemctl --user stop gsr-replay

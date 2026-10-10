@@ -7,7 +7,7 @@
 }:
 
 let
-  modelDir = "/data/models";
+  modelDir = "/var/lib/dots/models";
   # CUDA kernels for the RTX 3060 (sm_86) only. No binary cache carries a CUDA
   # llama.cpp, so this builds locally (~14 min); one arch keeps that short.
   # Measured against llama-cpp-vulkan on this card: prompt processing +32%
@@ -46,7 +46,6 @@ let
   };
 
   gpuUnit = self: {
-    after = [ "data.mount" ];
     conflicts = lib.filter (n: n != self) [
       "llama-cpp.service"
       "llama-uncensored.service"
@@ -58,7 +57,6 @@ let
       "llama-fim.service"
     ];
     unitConfig = {
-      RequiresMountsFor = "/data";
       StartLimitBurst = 5;
     };
     wantedBy = lib.mkForce [ ];
@@ -189,7 +187,7 @@ in
   '';
 
   systemd.tmpfiles.rules = [
-    "d /data/models 0755 ${username} users -"
+    "d /var/lib/dots/models 0755 ${username} users -"
   ];
 
   environment.systemPackages = with pkgs; [

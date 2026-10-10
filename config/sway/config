@@ -142,7 +142,7 @@ bindsym --to-code {
 
     $mod+s exec flameshot gui
     $mod+Print exec sh -c 'grim - | wl-copy && notify-send Screenshot "Full screen copied to clipboard"'
-    $mod+Shift+r exec sh -c 'systemctl --user reload gsr-replay && notify-send -t 3000 "Replay saved" "last 5 min -> /data/replays"'
+    $mod+Shift+r exec sh -c 'systemctl --user reload gsr-replay && notify-send -t 3000 "Replay saved" "last 5 min -> ~/Videos/Replays"'
 
     $mod+Shift+e exit
     $mod+Ctrl+r reload

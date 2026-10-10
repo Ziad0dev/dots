@@ -29,7 +29,7 @@ The package test for the system list: root needs it, a system service needs it, 
 
 | Module | Owns |
 |---|---|
-| `quality.nix` | The NixOS `dots.repoPath` option; nix-daemon at idle CPU/IO priority; `sudo` exec restricted to wheel; `allowed-users = @wheel` (no extra `trusted-users`); `keep-outputs` / `keep-derivations`; nix-community cache; `/tmp` wiped on boot; `vm.max_map_count` (games), `split_lock_mitigate = 0`; weekly fstrim; plocate (pruned of `/nix/store`, `/mnt`, `/data`, …); gamemode settings; smartd; fwupd; Avahi mDNS |
+| `quality.nix` | The NixOS `dots.repoPath` option; nix-daemon at idle CPU/IO priority; `sudo` exec restricted to wheel; `allowed-users = @wheel` (no extra `trusted-users`); `keep-outputs` / `keep-derivations`; nix-community cache; `/tmp` wiped on boot; `vm.max_map_count` (games), `split_lock_mitigate = 0`; weekly fstrim; plocate (pruned of `/nix/store`, `/mnt`, …); gamemode settings; smartd; fwupd; Avahi mDNS |
 | `performance.nix` | 8 GiB swapfile + zram at priority 100, `swappiness 180` / `page-cluster 0` (zram tuning), dirty-bytes caps, inotify limits, systemd-oomd on user slices, nix-daemon `MemoryMax 75%` + OOM score 500, `max-jobs 3` / `cores 4`, journald caps, CPU profile (below), RAPL limits, cpupower + turbostat |
 | `dev.nix` | `programs.nh` (flake = `dots.repoPath`), nh's GC timer `--keep 3 --keep-since 4d`, `warn-dirty = false` |
 | `cleanup.nix` | Coredump storage capped at 1 GiB |
@@ -57,7 +57,7 @@ The package test for the system list: root needs it, a system service needs it, 
 | `osd.nix` | swayosd's libinput backend (system unit + dbus), started with `graphical.target` |
 | `audio.nix` | PipeWire (ALSA incl. 32-bit, Pulse, JACK, WirePlumber), rtkit; clock allowed at 44.1/48/88.2/96/176.4/192 kHz so bit-perfect playback doesn't resample; resample quality 10 |
 | `hdr.nix` | libplacebo; `DXVK_HDR=1`, `PROTON_ENABLE_WAYLAND=1`, `PROTON_ENABLE_HDR=1` |
-| `recording.nix` | gpu-screen-recorder (with the capability wrapper), GTK front-end, the `gsr-replay` user unit, `/data/replays`. See [Desktop → recording](desktop.md#recording) |
+| `recording.nix` | gpu-screen-recorder (with the capability wrapper), GTK front-end, the `gsr-replay` user unit, `~/Videos/Replays`. See [Desktop → recording](desktop.md#recording) |
 | `flatpak.nix` | Flatpak itself + `flatpak-nvidia-gl`; apps are in `home/flatpak.nix`. See [Services → flatpak](services.md#flatpak) |
 | `foreign.nix` | Running non-Nix binaries: nix-ld, AppImage binfmt, an `fhs` shell, distrobox, steam-run. See [Development → foreign binaries](development.md#foreign-binaries) |
 
@@ -65,7 +65,7 @@ The package test for the system list: root needs it, a system service needs it, 
 
 | Module | Owns |
 |---|---|
-| `gaming.nix` | **The kernel** (`linuxPackages_cachyos`); sched_ext (`scx_lavd`, currently **disabled**); Steam + gamescope session + `proton-cachyos`, remote-play/dedicated ports closed; gamemode; ananicy-cpp with CachyOS rules; ProtonUp-Qt, Heroic; `/data/games` |
+| `gaming.nix` | **The kernel** (`linuxPackages_cachyos`); sched_ext (`scx_lavd`, currently **disabled**); Steam + gamescope session + `proton-cachyos`, remote-play/dedicated ports closed; gamemode; ananicy-cpp with CachyOS rules; ProtonUp-Qt, Heroic |
 | `gaming-extras.nix` | protontricks, winetricks, Lutris |
 
 Per-user: MangoHud in `home/gaming-home.nix` (hidden by default, `Right Shift + F12`).
@@ -75,7 +75,7 @@ Per-user: MangoHud in `home/gaming-home.nix` (hidden by default, `Right Shift + 
 | Module | Owns |
 |---|---|
 | `dev-langs.nix` | System-wide toolchains: Zig 0.16.0 + zls, nixd, lua-language-server, clang_multi / clang-tools / lldb / gdb / mold / ccache / bear / meson / ninja / valgrind / cppcheck, python313 + uv / ruff / pyright, SBCL (swank, alexandria) + rlwrap; ccache at `/var/cache/ccache` |
-| `virt.nix` | libvirtd (unprivileged QEMU, swtpm, virtiofsd), virt-manager, SPICE USB redirection, OVMF, virtio-win; `/data/vms` and `/data/vms/iso`; DNS/DHCP open on `virbr0`; libvirtd ordered after `data.mount` |
+| `virt.nix` | libvirtd (unprivileged QEMU, swtpm, virtiofsd), virt-manager, SPICE USB redirection, OVMF, virtio-win; `/var/lib/libvirt/images` and `/var/lib/libvirt/isos`; DNS/DHCP open on `virbr0` |
 
 ### Services and network
 
@@ -90,7 +90,7 @@ Per-user: MangoHud in `home/gaming-home.nix` (hidden by default, `Right Shift + 
 | `ollama.nix` | Ollama (Vulkan) on `127.0.0.1:11434`, not autostarted | [Services](services.md#local-llms) |
 | `backup.nix` | Daily restic of `$HOME`, the media apps' state and the Secure Boot keys to `/mnt/backup/restic` | [Services](services.md#backups) |
 | `arr-automation.nix` | Clears stale *arr indexer backoff at boot and once the VPN path works again, a daily backlog search, and the `arr-status` command | [Services](services.md#vpn-namespace) |
-| `storage.nix` | `/mnt/backup` (root-only, hidden from file managers), the `/mnt/pool` mergerfs pool and its branches, `/data/scratch` (LUKS, same keyfile as `/data`) | [Services](services.md#storage) |
+| `storage.nix` | Independent `/mnt/backup` exFAT drive (root-only, hidden from file managers) | [Services](services.md#storage) |
 | `hello-page.nix` | A small Python site from `~/the-page`, published on the tailnet with `tailscale serve` | [Services](services.md#hello-page) |
 
 ## Adding a module

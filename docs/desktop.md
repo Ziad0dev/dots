@@ -218,12 +218,12 @@ qs -c rise ipc call <target> <function>
 `modules/recording.nix` sets up gpu-screen-recorder with its capability wrapper and a `gsr-replay` user unit:
 
 - Captures `dots.recording.monitor` (`DP-1`, set in the host) at 60 fps, HEVC, very-high quality, desktop audio **plus** the EasyEffects source, into a 300 s rolling buffer.
-- Not started automatically. `SUPER + ALT + R` arms/disarms; `SUPER + SHIFT + R` sends `SIGUSR1` (via `systemctl reload`) to dump the buffer to `/data/replays`.
+- Not started automatically. `SUPER + ALT + R` arms/disarms; `SUPER + SHIFT + R` sends `SIGUSR1` (via `systemctl reload`) to dump the buffer to `~/Videos/Replays`.
 - `gpu-screen-recorder-gtk` for ad-hoc recording; the bar's record widget drives `dots-capture-screenrecording`.
 
 ## Dictation
 
-`voxtype` (from `scripts/voxtype.sh`): `SUPER + V` starts recording from the default PipeWire source (16 kHz mono); press again to transcribe with whisper.cpp and type the result into the focused window with `wtype` (falls back to the clipboard). Models are `ggml-*.bin` files in `/data/models/whisper`; pick one with `voxtype models` / `voxtype set-model <path>` or from the bar.
+`voxtype` (from `scripts/voxtype.sh`): `SUPER + V` starts recording from the default PipeWire source (16 kHz mono); press again to transcribe with whisper.cpp and type the result into the focused window with `wtype` (falls back to the clipboard). Put `ggml-*.bin` files in `~/.local/share/voxtype/models`; pick one with `voxtype models` / `voxtype set-model <path>` or from the bar. Install a model manually after reinstalling.
 
 ## Night light
 

@@ -43,8 +43,6 @@
 
   # Secrets from secrets/nixos.yaml, linked to the paths the modules already
   # read. Off until the host age key and that file exist: docs/secrets.md.
-  # /etc/luks-data.key stays out: it unlocks /data at boot, and a failed
-  # decryption must not be able to stop the boot.
   dots.secrets = {
     enable = false;
     file = ../../secrets/nixos.yaml;
@@ -279,11 +277,11 @@
 
   programs.git.enable = true;
   programs.dconf.enable = true;
-  home-manager.users.${username} = { config, ... }: {
-    home.file."Pictures/wallpapers".source = config.lib.file.mkOutOfStoreSymlink "/data/wallpapers";
+  home-manager.users.${username} = { lib, ... }: {
+    home.activation.createUserDataDirectories = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      $DRY_RUN_CMD mkdir -p "$HOME/Games" "$HOME/Pictures/wallpapers"
+    '';
   };
-
-  systemd.tmpfiles.rules = [ "d /data/wallpapers 0755 ${username} users -" ];
 
   system.stateVersion = "24.05";
 }
