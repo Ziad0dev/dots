@@ -31,7 +31,7 @@ let
     else if isDarwin then
       "nh darwin switch"
     else
-      "nh os switch";
+      "nh os switch --impure";
 in
 {
   imports = [

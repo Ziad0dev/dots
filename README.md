@@ -36,8 +36,8 @@ One flake for a NixOS + Hyprland desktop, a nix-darwin Mac, and standalone home-
 ```sh
 git clone https://github.com/Ziad0dev/dots ~/dots
 cd ~/dots
-sudo nixos-rebuild build --flake /home/ziad0dev/dots#nixos
-sudo nixos-rebuild switch --flake /home/ziad0dev/dots#nixos
+sudo nixos-rebuild build --impure --flake /home/ziad0dev/dots#nixos
+sudo nixos-rebuild switch --impure --flake /home/ziad0dev/dots#nixos
 ```
 
 Edit `flake.nix` first — `username` is at the top — and replace `hosts/nixos/hardware-configuration.nix` with your own. The desktop output is built for one machine: [Getting started](docs/install.md) lists every value to change, the files that must exist out-of-band, and the macOS / non-NixOS routes.
@@ -45,7 +45,7 @@ Edit `flake.nix` first — `username` is at the top — and replace `hosts/nixos
 For later rebuilds, after adding any new files to Git:
 
 ```sh
-git add -A && nh os switch
+git add -A && nh os switch --impure
 ```
 
 `git add` is required — untracked files are invisible to the flake.

@@ -19,7 +19,7 @@ modules keep loading.
 1. **Keys.** If keys are not already present, run `sudo sbctl create-keys`
    (into `/var/lib/sbctl`, root-only). Switching with the option on but no keys
    fails at the bootloader step (the running generation keeps booting).
-2. **Sign.** Set `dots.secureBoot.enable = true;`, then `nh os switch`.
+2. **Sign.** Set `dots.secureBoot.enable = true;`, then `nh os switch --impure`.
 3. **Check.** `sudo sbctl verify`: `EFI/Boot/bootx64.efi`,
    `EFI/systemd/systemd-bootx64.efi` and every `EFI/Linux/nixos-generation-*.efi`
    must show as signed. `EFI/nixos/kernel-*.efi` stays unsigned on purpose: the

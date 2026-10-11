@@ -17,9 +17,11 @@
 git clone https://github.com/Ziad0dev/dots ~/dots
 cd ~/dots
 nixos-generate-config --show-hardware-config > hosts/nixos/hardware-configuration.nix
-sudo nixos-rebuild build --flake /home/ziad0dev/dots#nixos
-sudo nixos-rebuild switch --flake /home/ziad0dev/dots#nixos
+sudo nixos-rebuild build --impure --flake /home/ziad0dev/dots#nixos
+sudo nixos-rebuild switch --impure --flake /home/ziad0dev/dots#nixos
 ```
+
+Restore the encrypted SOPS file to `~/.local/share/dots/secrets/nixos.yaml` before building; see [Secrets](secrets.md).
 
 After the first switch, `nh` takes over (`update` in fish). See [Workflow](workflow.md).
 
@@ -83,7 +85,7 @@ nix build .#nixosConfigurations.installer.config.system.build.isoImage
 sudo dd if=result/iso/*.iso of=/dev/sdX bs=4M status=progress oflag=sync
 ```
 
-Boot it and run `dots-install <host> [--age-key FILE]`. It asks for the disk passphrase, partitions and formats (erasing the disk), puts the age key where the host's `dots.secrets.keyFile` expects it, and installs the prebuilt system — offline, nothing is built. The desktop's hardware configuration remains specific to that computer; the installer layout is intended for separate single-disk targets.
+Boot it and run `dots-install <host> [--age-key FILE]`. It asks for the disk passphrase, partitions and formats (erasing the disk), puts an age key where a secret-enabled host expects it, and installs the prebuilt system — offline, nothing is built. The desktop's hardware configuration remains specific to that computer; the installer layout is intended for separate single-disk targets.
 
 ### Testing in a VM
 
@@ -103,12 +105,12 @@ qemu-system-x86_64 -enable-kvm -m 4096 -smp 4 -machine q35 \
   -drive if=pflash,format=raw,readonly=on,file=$ovmf -drive if=pflash,format=raw,file=vars.fd \
   -drive file=vm.qcow2,if=virtio -cdrom result/iso/*.iso
 # in the ISO:
-sudo dots-install vm --age-key /etc/dots/hosts/vm/test-age-key.txt
+sudo dots-install vm
 ```
 
 Then boot without `-cdrom`, give the disk passphrase, and use the console auto-login. Anything written outside `/home`, `/nix` and the persisted paths is gone after a reboot.
 
-`tests/iso-install.py` does all of that unattended over the serial console — install, LUKS unlock, login, secrets, home-manager, theme, then a second boot to check that `/` was reset and `/var/log`, `/home` and `machine-id` were kept. Usage is in its header.
+`tests/iso-install.py` does all of that unattended over the serial console — install, LUKS unlock, login, home-manager, theme, then a second boot to check that `/` was reset and `/var/log`, `/home` and `machine-id` were kept. Usage is in its header.
 
 ## macOS
 

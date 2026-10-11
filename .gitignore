@@ -10,5 +10,5 @@ iso-test/
 # SOPS files and private keys are kept locally, outside this public repo.
 secrets/
 
-# Local private age identity used to decrypt the VM test secrets.
+# Legacy VM test key; keep it out of Git.
 hosts/vm/test-age-key.txt

@@ -44,7 +44,7 @@
   # Host age key is backed up in pass at dots/age-nixos.
   dots.secrets = {
     enable = true;
-    file = ../../secrets/nixos.yaml;
+    file = builtins.toPath "/home/${username}/.local/share/dots/secrets/nixos.yaml";
   };
   sops.secrets = lib.mkIf config.dots.secrets.enable {
     restic-password.path = "/etc/restic/password";

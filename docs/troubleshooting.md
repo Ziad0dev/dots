@@ -22,11 +22,11 @@ The same key appears twice in **one file** — a plain duplicate, not a module m
 
 ### `nix flake update nixpkgs` does nothing
 
-`nixpkgs` follows `chaotic/nixpkgs`. Update chaotic: `nh os switch -U chaotic`.
+`nixpkgs` follows `chaotic/nixpkgs`. Update chaotic: `nh os switch -U chaotic --impure`.
 
 ### "Refusing to evaluate package … unfree" despite `allowUnfree = true`
 
-Happened once when chaotic-nyx's overlay re-imported nixpkgs without the (newly deferred) config — upstream issue chaotic-cx/nyx#2276, fixed in #2304. If it recurs after an update: `nh os switch -U chaotic` first; as a temporary bridge, `NIXPKGS_ALLOW_UNFREE=1 nh os switch --impure`. The same variable is how you get unfree packages in `nix shell nixpkgs#…`, which never sees system config.
+Happened once when chaotic-nyx's overlay re-imported nixpkgs without the (newly deferred) config — upstream issue chaotic-cx/nyx#2276, fixed in #2304. If it recurs after an update: `nh os switch -U chaotic --impure` first; as a temporary bridge, `NIXPKGS_ALLOW_UNFREE=1 nh os switch --impure`. The same variable is how you get unfree packages in `nix shell nixpkgs#…`, which never sees system config.
 
 ### nvidia-open reference-check failure
 

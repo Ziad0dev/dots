@@ -15,11 +15,11 @@ in
   # Off until the host has an age key and its secrets file exists:
   # docs/secrets.md. Each host declares its own sops.secrets.
   options.dots.secrets = {
-    enable = lib.mkEnableOption "secrets from the repo's sops files";
+    enable = lib.mkEnableOption "SOPS-encrypted host secrets";
 
     file = lib.mkOption {
       type = lib.types.path;
-      description = "This host's encrypted secrets, e.g. ./secrets/<host>.yaml.";
+      description = "Path to this host's encrypted SOPS file, stored outside the public repo.";
     };
 
     keyFile = lib.mkOption {

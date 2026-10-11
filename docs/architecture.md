@@ -43,7 +43,7 @@ mk.darwin { hostname, username, system ? "aarch64-darwin", profile ? "desktop", 
 mk.home   { name, username, system, profile ? "minimal", repoPath ? null, homeDirectory ? null, modules ? [ ] }
 ```
 
-When home-manager rides on a system (`mk.nixos`, `mk.darwin`) it runs with `useGlobalPkgs`, `useUserPackages`, `backupFileExtension = "backup"` and `overwriteBackup` (a second clash on the same file replaces the old `.backup` instead of failing the activation). There is no separate `home-manager switch` on the desktop — one `nh os switch` activates both, and one rollback reverts both.
+When home-manager rides on a system (`mk.nixos`, `mk.darwin`) it runs with `useGlobalPkgs`, `useUserPackages`, `backupFileExtension = "backup"` and `overwriteBackup` (a second clash on the same file replaces the old `.backup` instead of failing the activation). There is no separate `home-manager switch` on the desktop — one `nh os switch --impure` activates both, and one rollback reverts both.
 
 `mk.home` imports nixpkgs itself (`mkPkgs`) with `allowUnfree` and `lib/overlays.nix`.
 
@@ -116,7 +116,7 @@ Files linked to `~/.local/state/dots/theme/*` instead of `config/` (btop theme, 
 
 `dots.src` (home-manager, read-only) is where `config/` is *read* from at runtime: `repoPath` in live mode, a store copy of just `config/` in pure mode (so unrelated repo edits don't rebuild it). themectl's palettes and templates, fastfetch art and the theme pickers (`DOTS_DIR` in the Quickshell unit) use it. Scripts under `config/quickshell/rise/scripts` are reached through `~/.config/quickshell/rise`, which is right in both modes.
 
-How rebuild abbrevs are chosen: `update` is `nh os switch` when home-manager rides on NixOS, `nh darwin switch` on nix-darwin, and `nh home switch -c <output>` for a standalone `homeConfigurations` output (`mk.home` passes its attribute name). Off NixOS, home-manager installs nh itself.
+How rebuild abbrevs are chosen: `update` is `nh os switch --impure` when home-manager rides on this NixOS host (its SOPS file lives outside the repo), `nh darwin switch` on nix-darwin, and `nh home switch -c <output>` for a standalone `homeConfigurations` output (`mk.home` passes its attribute name). Off NixOS, home-manager installs nh itself.
 
 ## Runtime state
 

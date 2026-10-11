@@ -45,7 +45,7 @@
       inputs.home-manager.follows = "home-manager";
     };
 
-    # secrets encrypted in the repo (modules/secrets.nix, secrets/)
+    # SOPS support for encrypted host files stored outside this public repo
     sops-nix = {
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -147,7 +147,7 @@
     {
       nixosConfigurations = {
 
-        # test host: disko + impermanence + sops + pure home-manager
+        # test host: disko + impermanence + home-manager; no secret fixtures
         vm = mk.nixos {
           inherit username;
           hostname = "vm";

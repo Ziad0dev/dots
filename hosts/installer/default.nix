@@ -21,12 +21,17 @@ let
       name: sys:
       let
         sc = sys.config;
+        keyfile =
+          if lib.attrByPath [ "dots" "secrets" "enable" ] false sc then
+            lib.attrByPath [ "dots" "secrets" "keyFile" ] "/var/lib/sops-nix/key.txt" sc
+          else
+            "";
       in
       ''
         ${name})
             toplevel=${sc.system.build.toplevel}
             disko=${sc.system.build.destroyFormatMount}
-            keyfile=${lib.optionalString sc.dots.secrets.enable sc.dots.secrets.keyFile}
+            keyfile=${keyfile}
             ;;
       ''
     ) hosts
@@ -104,7 +109,7 @@ in
       sys.config.system.build.destroyFormatMount
     ]) (lib.attrValues hosts);
 
-    # the flake source, to read or clone from (hosts/vm/test-age-key.txt is here)
+    # the flake source, to read or clone from
     environment.etc.dots.source = inputs.self;
 
     environment.systemPackages = [

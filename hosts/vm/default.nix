@@ -1,7 +1,7 @@
 # A small NixOS host for testing the dots end to end: the installer ISO puts
-# it on a blank disk (disko), root is a tmpfs (impermanence), the user's
-# password comes from secrets/vm.yaml (sops), and home-manager runs the
-# minimal profile with config/ copied into the store (liveConfig = false).
+# it on a blank disk (disko), root is a tmpfs (impermanence), and
+# home-manager runs the minimal profile with config/ copied into the store
+# (liveConfig = false). It uses a disposable public test password; no SOPS data.
 # Console auto-login for testing.
 {
   config,
@@ -19,7 +19,6 @@
       device = "/dev/vda";
       impermanence = true;
     })
-    ../../modules/secrets.nix
     ../../modules/impermanence.nix
     ../../modules/quality.nix
     ../../modules/dev.nix
@@ -53,22 +52,12 @@
   # quality.nix turns smartd on; virtio disks have no SMART, so it would fail
   services.smartd.enable = lib.mkForce false;
 
-  # the installer copies the age key here; /persist is mounted in the initrd,
-  # before secrets are decrypted
-  dots.secrets = {
-    enable = true;
-    file = ../../secrets/vm.yaml;
-    keyFile = "/persist/var/lib/sops-nix/key.txt";
-  };
-  sops.secrets.user-password.neededForUsers = true;
-  sops.secrets.hello = { };
-
   programs.fish.enable = true;
   users.users.${username} = {
     isNormalUser = true;
     extraGroups = [ "wheel" ];
     shell = config.programs.fish.package;
-    hashedPasswordFile = config.sops.secrets.user-password.path;
+    hashedPassword = "!";
   };
 
   home-manager.users.${username}.dots.liveConfig = false;

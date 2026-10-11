@@ -123,7 +123,7 @@ From scratch, same shape as the templates:
 | `nix flake lock` | lock newly added inputs without bumping existing ones |
 | `nix flake metadata` | inputs, locked revs, dates |
 | `nix flake show` | outputs |
-| `nix flake check` | eval + checks for this system; add `--all-systems` for all of them |
+| `nix flake check --impure` | eval + checks for this system; the desktop SOPS file is outside the repo |
 | `nix fmt` | only if the flake has a `formatter` output (dots does, templates don't) |
 
 ---
@@ -154,14 +154,14 @@ cd ~/dots; git add -A; update
 
 | Command | What |
 |---|---|
-| `update` | `nh os switch` |
-| `upall` | `nh os switch -u` — bump all inputs, then switch |
-| `nh os switch -U chaotic` | bump nixpkgs (it follows `chaotic/nixpkgs`; `nix flake update nixpkgs` is a no-op) |
+| `update` | `nh os switch --impure` |
+| `upall` | `nh os switch -u --impure` — bump all inputs, then switch |
+| `nh os switch -U chaotic --impure` | bump nixpkgs (it follows `chaotic/nixpkgs`; `nix flake update nixpkgs` is a no-op) |
 | `flakeup` | `nix flake update --flake ~/dots` |
 | `nh os test` | activate now, no boot entry |
 | `nh os boot` | next boot only — kernel / driver bumps |
 | `nh os build` | build + diff, touch nothing |
-| `nh os switch -n` / `-a` | dry run / ask before activating |
+| `nh os switch -n --impure` / `-a` | dry run / ask before activating |
 | `nh os info` | list generations |
 | `nh os rollback` | back one generation |
 | `nh os repl` | system config in a repl |
@@ -200,7 +200,7 @@ New template = `templates/<name>/{flake.nix,.envrc}`, `nix flake lock` inside it
 git clone https://github.com/Ziad0dev/dots ~/dots
 
 nixos-generate-config --show-hardware-config > ~/dots/hosts/nixos/hardware-configuration.nix
-sudo nixos-rebuild switch --flake ~/dots#nixos
+sudo nixos-rebuild switch --impure --flake ~/dots#nixos
 
 sudo nix run github:nix-darwin/nix-darwin/master#darwin-rebuild -- switch --flake ~/dots#mac
 

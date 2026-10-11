@@ -1,6 +1,6 @@
-# The vm host booted as a NixOS test: secrets decrypt, the user's password
-# comes from sops, home-manager activates in pure mode and renders the
-# default theme. Disk layout and impermanence are left to the ISO install
+# The vm host booted as a NixOS test: home-manager activates in pure mode and
+# renders the default theme. This test uses no private key or SOPS fixture.
+# Disk layout and impermanence are left to the ISO install
 # (docs/install.md#testing-in-a-vm); here the test driver provides the disks.
 #
 #   nix build .#checks.x86_64-linux.vm -L
@@ -13,9 +13,6 @@
 
 let
   system = "x86_64-linux";
-  ageKeyDir = pkgs.runCommandLocal "vm-age-key" { } ''
-    install -D -m 0444 ${../hosts/vm/test-age-key.txt} $out/key.txt
-  '';
 in
 pkgs.testers.runNixOSTest {
   name = "dots-vm";
@@ -44,11 +41,6 @@ pkgs.testers.runNixOSTest {
       disko.enableConfig = false;
       dots.impermanence.enable = lib.mkForce false;
       virtualisation = {
-        # where dots-install puts the age key; mounted before activation
-        sharedDirectories.age-key = {
-          source = "${ageKeyDir}";
-          target = "/persist/var/lib/sops-nix";
-        };
         memorySize = 3072;
         cores = 2;
         # the minimal profile is big; the store is shared, the image isn't
@@ -64,9 +56,8 @@ pkgs.testers.runNixOSTest {
     with subtest("nothing failed"):
         machine.succeed("test -z \"$(systemctl --failed --no-legend)\"")
 
-    with subtest("sops decrypts with the host's age key"):
-        machine.succeed("test \"$(cat /run/secrets/hello)\" = 'decrypted from secrets/vm.yaml'")
-        machine.succeed("getent shadow ${username} | cut -d: -f2 | grep -q '^\\$y\\$'")
+    with subtest("the test account exists"):
+        machine.succeed("getent passwd ${username}")
 
     with subtest("home-manager activates in pure mode"):
         machine.wait_for_unit("home-manager-${username}.service")

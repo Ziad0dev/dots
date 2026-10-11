@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Install the dots `vm` host from the installer ISO onto a blank disk, then
-boot it twice and check it: LUKS, sops, home-manager, theme, impermanence.
+boot it twice and check it: LUKS, home-manager, theme, impermanence.
 Drives QEMU over the serial console; takes ~5 minutes with KVM.
 
     nix build .#nixosConfigurations.installer.config.system.build.isoImage
@@ -113,7 +113,7 @@ def main():
     sh(p, "command -v dots-install && ls /etc/dots/hosts")
 
     step("dots-install vm")
-    p.sendline(f"sudo dots-install vm --age-key /etc/dots/hosts/vm/test-age-key.txt; echo __RC=$?__")
+    p.sendline("sudo dots-install vm; echo __RC=$?__")
     p.expect_exact("disk passphrase: ", timeout=60)
     p.sendline(DISK_PW)
     p.expect_exact("again: ", timeout=30)
@@ -124,7 +124,7 @@ def main():
     print(f"dots-install rc={rc}", flush=True)
     if rc != 0:
         raise SystemExit("FAILED: dots-install")
-    sh(p, "sudo ls -l /mnt/persist/var/lib/sops-nix/ && sudo lsblk -f /dev/vda")
+    sh(p, "sudo ls -ld /mnt/persist && sudo lsblk -f /dev/vda")
     sh(p, "sudo stat -c '%a %n' /mnt/nix /mnt/home /mnt/persist /mnt/nix/store")
     p.sendline("sudo poweroff")
     p.expect(pexpect.EOF, timeout=180)
@@ -138,7 +138,6 @@ def boot_checks():
     sh(p, "for m in / /nix /persist /home /boot; do findmnt -no TARGET,FSTYPE,SOURCE $m; done")
     sh(p, "systemctl is-system-running --wait", timeout=300, ok=False)
     sh(p, "systemctl --failed --no-legend")
-    sh(p, f"echo {USER_PW} | sudo -S cat /run/secrets/hello")
     sh(p, "readlink ~/.config/nvim ~/.config/tmux")
     sh(p, "cat ~/.local/state/dots/theme/current && ls ~/.local/state/dots/theme | wc -l")
     sh(p, "themectl current && themectl list | wc -l")

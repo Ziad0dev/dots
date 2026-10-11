@@ -138,7 +138,7 @@ case "$CMD" in
         ;;
 
     dots-update)
-        launch_float "sh -c 'cd \"$DOTS_REPO\" && nh os switch; echo; echo done - press enter; read -r _'"
+        launch_float "sh -c 'cd \"$DOTS_REPO\" && nh os switch --impure; echo; echo done - press enter; read -r _'"
         exit 0
         ;;
     dots-update-available)

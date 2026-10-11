@@ -6,7 +6,7 @@
 cd ~/dots
 # edit
 git add -A
-update                      # nh os switch
+update                      # nh os switch --impure
 ```
 
 `git add -A` is not optional. The flake is evaluated from git, so an untracked file is invisible and you end up debugging a version of the repo that doesn't exist.
@@ -28,11 +28,11 @@ A switch that prints `PATHS +0, -0` after a `config/`-only change is expected �
 
 | Command | Use |
 |---|---|
-| `update` | `nh os switch` — build, diff, activate |
+| `update` | `nh os switch --impure` — build, diff, activate |
 | `nh os test` | Activate without a boot entry; reverts on reboot |
 | `nh os boot` | Next boot only — kernel and driver bumps |
 | `nh os build` | Build and show the diff, change nothing |
-| `nh os switch -n` | Dry run |
+| `nh os switch -n --impure` | Dry run |
 | `nh os rollback` | Back one generation |
 | `nh os info` | List generations |
 
@@ -42,13 +42,13 @@ The boot menu keeps three generations (`configurationLimit = 3`, sized for the 2
 
 | Command | Does |
 |---|---|
-| `upall` | `nh os switch -u` — bump every input, then switch |
-| `nh os switch -U chaotic` | Bump nixpkgs and the CachyOS bits together |
+| `upall` | `nh os switch -u --impure` — bump every input, then switch |
+| `nh os switch -U chaotic --impure` | Bump nixpkgs and the CachyOS bits together |
 | `flakeup` | `nix flake update --flake ~/dots`, no switch |
 
 `nixpkgs` follows `chaotic/nixpkgs`. `nix flake update nixpkgs` is therefore always a no-op — nixpkgs moves when chaotic moves.
 
-The bar's update indicator comes from two shims: `dots-updates` compares the locked chaotic rev against chaotic-nyx's `HEAD` (cached for an hour), and `dots-update-available` flags a `flake.lock` older than seven days. Clicking it runs `dots-update`, which opens a floating terminal with `nh os switch` — it rebuilds, it does not bump inputs.
+The bar's update indicator comes from two shims: `dots-updates` compares the locked chaotic rev against chaotic-nyx's `HEAD` (cached for an hour), and `dots-update-available` flags a `flake.lock` older than seven days. Clicking it runs `dots-update`, which opens a floating terminal with `nh os switch --impure` — it rebuilds, it does not bump inputs.
 
 ## Commit checks
 
@@ -56,7 +56,7 @@ The bar's update indicator comes from two shims: `dots-updates` compares the loc
 
 1. Every `./….nix` path referenced from `flake.nix` exists **and is tracked**.
 2. No legacy `hyprctl dispatch …` strings under `config/` — they exit 0 and silently do nothing under the Lua config.
-3. `nix eval` of every output that produces an activation package: both NixOS hosts, all four home configurations, and the darwin system.
+3. `nix eval --impure` of every output that produces an activation package. The desktop eval is skipped if its local encrypted SOPS file is absent.
 4. `statix check .` (config in `statix.toml`: `repeated_keys` and `empty_pattern` disabled, `templates/` ignored) and `deadnix --fail -L --exclude templates .`.
 
 `git commit --no-verify` skips it when you're committing a known-broken WIP.
