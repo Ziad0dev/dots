@@ -46,12 +46,14 @@ The desktop output is built for one box. On anything else, go through this list 
 
 ### Files that must exist out-of-band
 
-Nothing secret is in the store. These are created by hand once — or, for the first three secrets, kept encrypted in the repo instead: [Secrets](secrets.md).
+Plaintext secret values stay out of Git and the Nix store. The desktop's encrypted SOPS file is kept outside the repo at `~/.local/share/dots/secrets/nixos.yaml`; its ciphertext is copied into the store for evaluation. Restore that file before building the desktop. See [Secrets](secrets.md).
 
 | Path | Used by | Notes |
 |---|---|---|
-| `/etc/wireguard/mullvad.conf` | `modules/vpn.nix` | Mullvad WireGuard config; `wg-dns` rewrites its `DNS =` line on every start |
-| `/etc/restic/password` | `modules/backup.nix` | Unit refuses to start if empty |
+| `~/.local/share/dots/secrets/nixos.yaml` | `sops-nix` | Encrypted desktop SOPS file; required to evaluate the desktop |
+| `/var/lib/sops-nix/key.txt` | `sops-nix` | Host age private key; restore separately with root-only permissions |
+| `/etc/restic/password` | `sops-nix`, `modules/backup.nix` | Generated from the encrypted SOPS file; backup unit refuses to start if empty |
+| `/etc/wireguard/mullvad.conf` | `modules/vpn.nix` | Optional until the Mullvad secret is added; `wg-dns` rewrites its `DNS =` line on start |
 | `/var/lib/secrets/the-page.env` | `modules/hello-page.nix` | Optional (`-` prefix) |
 | `~/.password-store` | `pass`, `secretspec`, `pass-secret-service` | `pass init <gpg-id>` |
 | `/var/lib/dots/models/*.gguf` | `modules/llm.nix` | Copy or download manually; llama.cpp units are on-demand and need world-readable models |
@@ -108,7 +110,7 @@ qemu-system-x86_64 -enable-kvm -m 4096 -smp 4 -machine q35 \
 sudo dots-install vm
 ```
 
-Then boot without `-cdrom`, give the disk passphrase, and use the console auto-login. Anything written outside `/home`, `/nix` and the persisted paths is gone after a reboot.
+Then boot without `-cdrom` and enter the disk passphrase chosen during installation. The VM auto-logs in on its console; its account has no password and the host has no SSH service. Anything written outside `/home`, `/nix` and the persisted paths is gone after a reboot. The automated installer test generates a fresh disk passphrase per run.
 
 `tests/iso-install.py` does all of that unattended over the serial console — install, LUKS unlock, login, home-manager, theme, then a second boot to check that `/` was reset and `/var/log`, `/home` and `machine-id` were kept. Usage is in its header.
 

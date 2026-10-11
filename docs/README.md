@@ -17,7 +17,7 @@ set of project templates.
 | [Theming](theming.md) | `themectl`, palette format, templates, adding a theme |
 | [Development](development.md) | Languages, editors, templates, tool flakes, the agent VM, foreign binaries |
 | [Scripts & commands](scripts.md) | Every `dots-*` command, `themectl`, `voxtype`, fish abbrevs |
-| [Secrets](secrets.md) | Adding or rotating a secret, moving hand-made files into sops |
+| [Secrets](secrets.md) | Managing the external encrypted SOPS file and host keys |
 | [Secure Boot](secure-boot.md) | lanzaboote keys, TPM unlock |
 | [Troubleshooting](troubleshooting.md) | Something broke — known failure modes and rough edges |
 | [Nix cheatsheet](nix-cheatsheet.md) | Quick command reference, mostly for starting projects |
@@ -30,7 +30,7 @@ These files are the source of truth. The [wiki](https://github.com/Ziad0dev/dots
 
 ```
 flake.nix ──┬─ nixosConfigurations.nixos ── hosts/nixos + modules/* + home-manager(desktop)
-            ├─ nixosConfigurations.vm ── hosts/vm: disko + impermanence + sops + home-manager(minimal, pure)
+            ├─ nixosConfigurations.vm ── hosts/vm: disko + impermanence + console auto-login + home-manager(minimal, pure)
             ├─ nixosConfigurations.installer ── ISO with dots-install and the vm host prebuilt
             ├─ checks.x86_64-linux.vm ── tests/vm.nix
             ├─ darwinConfigurations.mac ── hosts/darwin + home-manager(desktop → darwin profile)

@@ -12,8 +12,8 @@ in
 {
   imports = [ inputs.sops-nix.nixosModules.sops ];
 
-  # Off until the host has an age key and its secrets file exists:
-  # docs/secrets.md. Each host declares its own sops.secrets.
+  # Hosts opt in once their encrypted file and age key are provisioned;
+  # each host declares its own sops.secrets.
   options.dots.secrets = {
     enable = lib.mkEnableOption "SOPS-encrypted host secrets";
 

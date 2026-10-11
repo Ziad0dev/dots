@@ -25,9 +25,9 @@ scripts/        shell sources packaged by the nix modules, plus the git hook
 | `homeConfigurations."ziad0dev@linux"` | `mk.home` | x86_64-linux, minimal |
 | `homeConfigurations."ziad0dev@linux-desktop"` | `mk.home` | x86_64-linux, desktop |
 | `homeConfigurations."ziad0dev@aarch64-linux"` | `mk.home` | aarch64-linux, minimal |
-| `nixosConfigurations.vm` | `mk.nixos` | `hosts/vm`: a small test host — disko layout, root on tmpfs, sops, home-manager minimal with `liveConfig = false` |
+| `nixosConfigurations.vm` | `mk.nixos` | `hosts/vm`: a small test host — disko layout, root on tmpfs, console auto-login, no SOPS data, home-manager minimal with `liveConfig = false` |
 | `nixosConfigurations.installer` | `mk.nixos` (no home) | `hosts/installer`: minimal ISO + `dots-install`, with every host in `dots.installer.hosts` prebuilt |
-| `checks.x86_64-linux.vm` | `tests/vm.nix` | NixOS test booting the vm host: sops, pure home-manager, default theme |
+| `checks.x86_64-linux.vm` | `tests/vm.nix` | NixOS test booting the VM host: test account, pure home-manager, default theme |
 | `templates.*` | — | nine project templates, see [Development](development.md#project-templates) |
 | `formatter.<system>` | — | `nixfmt-tree` for `nix fmt` |
 

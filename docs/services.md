@@ -2,7 +2,7 @@
 
 ## Ports
 
-Nothing listens on the LAN except Jellyfin and mDNS. Everything else is loopback, the tailnet, or inside the VPN namespace.
+Only Jellyfin and mDNS are admitted on the LAN. Other services use loopback or the VPN namespace; Radarr and Sonarr bind wildcard sockets but the host firewall admits them only from the VPN namespace bridge.
 
 | Service | Address | Reachable from |
 |---|---|---|
@@ -10,7 +10,7 @@ Nothing listens on the LAN except Jellyfin and mDNS. Everything else is loopback
 | qBittorrent web UI | `:8081` in namespace `wg` | tailnet via port mapping; host at `http://192.168.15.1:8081` |
 | Prowlarr | `:9696` in namespace `wg` | tailnet via port mapping; host at the namespace address |
 | FlareSolverr | `127.0.0.1:8191` in namespace `wg` | Prowlarr only |
-| Radarr / Sonarr | `127.0.0.1:7878` / `127.0.0.1:8989` | host |
+| Radarr / Sonarr | `*:7878` / `*:8989` | host; firewall admits the VPN namespace bridge only |
 | Audiobookshelf | `127.0.0.1:8000` | host |
 | calibre-web | `127.0.0.1:8083` | host |
 | llama.cpp units | `127.0.0.1:8080` | host |
@@ -48,7 +48,7 @@ host ─── bridge ────┤
       └─
 ```
 
-- The namespace is built from `/etc/wireguard/mullvad.conf` (not in the repo). `wg-dns` runs before `wg.service` and rewrites the file's `DNS =` line to Mullvad's resolver `100.64.0.7`, so lookups inside the namespace never leave the tunnel. Units are skipped while that file is absent, such as after reinstall before restoring the host's sops key and enabling `dots.secrets`.
+- The namespace uses `/etc/wireguard/mullvad.conf` (not in the repo). The current SOPS file declares only the Restic password; add the Mullvad secret as described in [Secrets](secrets.md), or provision the WireGuard file manually. Until that file exists, the WireGuard namespace services are skipped. `wg-dns` runs before `wg.service` and rewrites its `DNS =` line to Mullvad's resolver `100.64.0.7` so lookups inside the namespace stay in the tunnel.
 - `accessibleFrom = [ tailnet ]` routes replies to tailnet clients back out of the bridge instead of into the tunnel.
 - A firewall rule drops forwarded traffic to 8081/9696 unless it came in on `tailscale0` — the mappings are tailnet-only, not LAN.
 - **qBittorrent** runs as its own system user in group `media`, saves to `/mnt/media/.incoming`, no UPnP, pauses at ratio 2 or after 24 h seeding, `MemoryHigh = 2G`. Web UI auth is skipped for the namespace subnet (`192.168.15.0/24`); the host reaches it at `http://192.168.15.1:8081`, which is what the bar's `dots-qbt` widget polls.

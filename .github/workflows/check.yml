@@ -29,8 +29,8 @@ jobs:
           DOTS_USERNAME: ziad0dev
         run: nix shell nixpkgs#statix nixpkgs#deadnix --command bash scripts/git-hooks/pre-commit
 
-  # Builds (not just evaluates) the minimal home profile and boots the vm
-  # host as a NixOS test: sops, pure home-manager, default theme.
+  # Builds (not just evaluates) the minimal home profile and boots the VM
+  # host as a NixOS test: passwordless test account, pure home-manager, theme.
   build:
     runs-on: ubuntu-latest
     steps:

@@ -23,7 +23,7 @@ VARS = f"{S}/vm-vars.fd"
 LOG = open(f"{S}/isotest-serial.log", "a")
 
 DISK_PW = os.urandom(32).hex()
-USER, USER_PW = "ziad0dev", "[removed]"
+USER = "ziad0dev"
 PROMPT = "ISOTEST$ "
 
 
@@ -79,17 +79,10 @@ def set_prompt(p, shell="bash"):
 def boot_installed(p):
     step("boot from disk: LUKS passphrase")
     p.expect(r"(?i)passphrase for", timeout=300)
-    time.sleep(1)
     p.sendline(DISK_PW)
-    p.expect(r"vm login: ", timeout=300)
-    p.sendline(USER)
-    p.expect("Password: ", timeout=60)
-    p.sendline(USER_PW)
-    # the themed fish prompt isn't predictable; a failed login is
-    i = p.expect([r"Cannot execute", r"Login incorrect", pexpect.TIMEOUT], timeout=15)
-    if i != 2:
-        raise SystemExit("FAILED: login (" + str(p.after) + ")")
-    # fish is the login shell; drive a plain bash instead
+    p.expect_exact("DOTS_VM_AUTOLOGIN_READY", timeout=300)
+    # fish auto-logs in on the test VM; use a plain bash for shell commands.
+    set_prompt(p, shell="fish")
     p.sendline("exec bash --norc")
     time.sleep(1)
     set_prompt(p)
@@ -144,9 +137,9 @@ def boot_checks():
     sh(p, "getent passwd " + USER + " | cut -d: -f7")
     sh(p, "systemctl status home-manager-" + USER + " --no-pager | head -5")
     sh(p, "cat /etc/machine-id")
-    sh(p, f"echo {USER_PW} | sudo -S sh -c 'touch /etc/ephemeral-test /var/log/persist-test'")
+    sh(p, "sudo sh -c 'touch /etc/ephemeral-test /var/log/persist-test'")
     sh(p, "touch ~/home-persist-test")
-    p.sendline(f"echo {USER_PW} | sudo -S reboot")
+    p.sendline("sudo reboot")
     p.expect(r"(?i)reboot", timeout=60)
 
     step("second boot: impermanence")
@@ -156,7 +149,7 @@ def boot_checks():
     sh(p, "test -e ~/home-persist-test && echo '/home kept'")
     sh(p, "cat /etc/machine-id")
     sh(p, "systemctl --failed --no-legend")
-    p.sendline(f"echo {USER_PW} | sudo -S poweroff")
+    p.sendline("sudo poweroff")
     p.expect(pexpect.EOF, timeout=180)
     step("ALL CHECKS PASSED")
 

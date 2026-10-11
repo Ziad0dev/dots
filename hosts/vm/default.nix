@@ -1,8 +1,8 @@
 # A small NixOS host for testing the dots end to end: the installer ISO puts
 # it on a blank disk (disko), root is a tmpfs (impermanence), and
 # home-manager runs the minimal profile with config/ copied into the store
-# (liveConfig = false). It uses a disposable public test password; no SOPS data.
-# Console auto-login for testing.
+# (liveConfig = false). The console auto-logs in for tests; it has no account
+# password and uses no SOPS data.
 {
   config,
   lib,
@@ -53,6 +53,14 @@
   services.smartd.enable = lib.mkForce false;
 
   programs.fish.enable = true;
+  programs.fish.interactiveShellInit = ''
+    printf '%s\n' DOTS_VM_AUTOLOGIN_READY
+  '';
+  services.getty.autologinUser = username;
+  services.openssh.enable = lib.mkForce false;
+  users.allowNoPasswordLogin = true;
+  security.sudo.wheelNeedsPassword = false;
+
   users.users.${username} = {
     isNormalUser = true;
     extraGroups = [ "wheel" ];
