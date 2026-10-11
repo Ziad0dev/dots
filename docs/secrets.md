@@ -1,6 +1,6 @@
 # Secrets
 
-Encrypted SOPS files and private keys are kept outside this public repo. The desktop file lives at `~/.local/share/dots/secrets/nixos.yaml`; restore it from a private backup before building the desktop and keep it mode `0600`. The NixOS flake reads this external path, so use `--impure` for desktop builds. At boot, [sops-nix](https://github.com/Mic92/sops-nix) decrypts declared values into `/run/secrets` (a ramfs, never the store). `modules/secrets.nix` wires this up behind `dots.secrets.enable`.
+Encrypted SOPS files and private keys are kept outside this public repo. The desktop file lives at `~/.local/share/dots/secrets/nixos.yaml`; restore it from a private backup before building the desktop and keep it mode `0600`. Use `--impure` for desktop builds. Nix copies the encrypted ciphertext into the store so sops-nix can validate it; the age private key stays outside the store. At boot, [sops-nix](https://github.com/Mic92/sops-nix) decrypts declared values into `/run/secrets` (a ramfs, never the store). `modules/secrets.nix` wires this up behind `dots.secrets.enable`.
 
 | File | Decrypted by | Edited by |
 |---|---|---|
