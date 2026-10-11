@@ -60,7 +60,7 @@ When home-manager rides on a system (`mk.nixos`, `mk.darwin`) it runs with `useG
 | `zen-browser`, `helium` | browsers | |
 | `nixcord` | Discord + Vencord + OpenASAR | its `nixpkgs-packages` and `nixpkgs-ci` inputs also follow ours |
 | `obsidian-extensions` | overlay: `obsidianPlugins`, `obsidianThemes` | |
-| `zig-overlay`, `zls` | Zig 0.16.0 + matching zls | overlay provides `pkgs.zigpkgs` |
+| `zig-overlay`, `zls` | Retained optional Zig/ZLS inputs | System overlay and packages are paused until a compatible pair builds; see [Development](development.md#where-toolchains-come-from) |
 | `nix-index-database` | prebuilt nix-index DB, powers `,` | |
 | `nix-flatpak` | declarative user flatpaks (`home/flatpak.nix`) | no inputs of its own |
 | `vpn-confinement` | `vpnNamespaces` NixOS module | |
@@ -136,7 +136,7 @@ How rebuild abbrevs are chosen: `update` is `nh os switch` when home-manager rid
 | File | Is | Used by |
 |---|---|---|
 | `mk.nix` | output builders | `flake.nix` |
-| `overlays.nix` | `[ zig-overlay, obsidian-extensions ]` | NixOS host, `mk.home` |
+| `overlays.nix` | `[ obsidian-extensions, local package overlays ]` | NixOS host, `mk.home`; Zig overlay paused |
 | `hardening.nix` | plain attrset of systemd sandbox options | `vpn.nix`, `media.nix`, `media-extras.nix`, `hello-page.nix` — each merges its own exceptions over it |
 | `vpn-ready.nix` | function `pkgs: script` — waits (up to 80 s, never fails) until DNS works inside the VPN namespace | `vpn.nix` |
 | `disko.nix` | function `{ device, impermanence ? false }: module` — ESP + LUKS2 + btrfs | `hosts/vm`, new hosts ([Getting started](install.md#a-new-machine-disko--dots-install)) |

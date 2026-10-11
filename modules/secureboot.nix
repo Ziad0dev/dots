@@ -27,7 +27,7 @@ in
   options.dots.secureBoot.tpmUnlock = lib.mkOption {
     type = lib.types.listOf lib.types.str;
     default = [ ];
-    example = [ "luks-72749c98-6a12-4a0b-b354-00fd868aa36e" ];
+    example = [ "luks-<verified-root-uuid>" ];
     description = "Names under boot.initrd.luks.devices that the initrd unlocks with the TPM.";
   };
 

@@ -6,12 +6,14 @@ Three layers, from most to least global:
 
 | Layer | Where | What |
 |---|---|---|
-| System | `modules/dev-langs.nix` | Zig 0.16.0 + zls, nixd, lua-language-server, clang_multi / clang-tools / lldb / gdb / mold / ccache / bear / meson / ninja / valgrind / cppcheck, python313 + uv / ruff / pyright, SBCL (swank, alexandria) + rlwrap |
+| System | `modules/dev-langs.nix` | Zig and ZLS are deferred until a compatible pair builds; nixd, lua-language-server, clang_multi / clang-tools / lldb / gdb / mold / ccache / bear / meson / ninja / valgrind / cppcheck, python313 + uv / ruff / pyright, SBCL (swank, alexandria) + rlwrap |
 | User, every machine | `home/profiles/base.nix`, `home/dev-home.nix` | go, nodejs 22, lua + luarocks, tree-sitter, gnumake, cmake, pkg-config, sqlite, shellcheck, jujutsu; nix-index + `,`, fzf, zoxide, lazygit, gh, bat, delta, eza, hyperfine, tokei, nixfmt, devenv |
 | User, desktop | `home/profiles/linux-desktop.nix` | Erlang 27 / Elixir / elixir-ls (OTP-matched), gcc |
 | Per project | [templates](#project-templates) + direnv | pinned toolchain per repo |
 
 The global layers are for editing and one-off scripts. Anything you'd hand to someone else gets a flake — templates pin their own nixpkgs, and `rustup` is deliberately absent because it shadows Nix-provided Rust inside devshells.
+
+To restore Zig and ZLS system-wide, first verify a compatible Zig/ZLS pair in a separate build. Then re-enable the Zig overlay in `lib/overlays.nix` and the matching Zig and ZLS entries in `modules/dev-langs.nix`; run the full NixOS build before switching. The root flake inputs stay pinned while these system packages are deferred.
 
 ## Project templates
 

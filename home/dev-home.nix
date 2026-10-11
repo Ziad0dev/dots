@@ -8,7 +8,10 @@
   programs.fzf.enable = true;
   programs.zoxide.enable = true;
   programs.lazygit.enable = true;
-  programs.gh.enable = true;
+  programs.gh = {
+    enable = true;
+    settings.git_protocol = "ssh";
+  };
   programs.bat.enable = true;
 
   programs.delta = {

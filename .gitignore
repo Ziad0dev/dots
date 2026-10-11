@@ -7,3 +7,8 @@ __pycache__/
 .direnv/
 config/broot/launcher/
 iso-test/
+# SOPS files and private keys are kept locally, outside this public repo.
+secrets/
+
+# Local private age identity used to decrypt the VM test secrets.
+hosts/vm/test-age-key.txt

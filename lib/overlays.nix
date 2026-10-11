@@ -1,7 +1,8 @@
 { inputs }:
 
 [
-  inputs.zig-overlay.overlays.default
+  # Keep the Zig overlay out of the initial host evaluation until Zig/ZLS are
+  # re-enabled together after a successful compatibility build.
   inputs.obsidian-extensions.overlays.default
   (final: _prev: {
     soulseek-rs = final.callPackage ../pkgs/soulseek-rs.nix { };

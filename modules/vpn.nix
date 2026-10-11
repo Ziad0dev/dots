@@ -41,6 +41,7 @@ in
   systemd.services.wg-dns = {
     description = "Pin the Mullvad resolver in the WireGuard config";
     wantedBy = [ "wg.service" ];
+    unitConfig.ConditionPathExists = wgConfig;
     before = [ "wg.service" ];
     serviceConfig = hardening // {
       Type = "oneshot";
@@ -59,6 +60,7 @@ in
   systemd.services.wg-resolv-options = {
     description = "Serialise A/AAAA lookups inside the wg namespace";
     wantedBy = [ "multi-user.target" ];
+    unitConfig.ConditionPathExists = wgConfig;
     after = [ "wg.service" ];
     partOf = [ "wg.service" ];
     before = [
@@ -81,10 +83,20 @@ in
     };
   };
 
+  # The desktop can be installed before its age key and encrypted Mullvad
+  # config are restored. Do not run the upstream wg-up script against a
+  # missing file (it emits a confusing shell arithmetic error).
+  systemd.services.wg.unitConfig.ConditionPathExists = wgConfig;
+
+  systemd.tmpfiles.rules = [
+    "d /etc/netns/wg 0755 root root -"
+  ];
+
   vpnNamespaces.wg = {
     enable = true;
     wireguardConfigFile = wgConfig;
     accessibleFrom = [ tailnet ];
+    allowedEgress = [ config.vpnNamespaces.wg.bridgeAddress ];
     portMappings = [
       {
         from = webPort;
@@ -98,10 +110,16 @@ in
   };
 
   networking.firewall.extraCommands = ''
+    iptables -w -D INPUT -s ${config.vpnNamespaces.wg.namespaceAddress} -d ${config.vpnNamespaces.wg.bridgeAddress} -p tcp --dport 7878 -j ACCEPT 2>/dev/null || true
+    iptables -w -I INPUT 1 -s ${config.vpnNamespaces.wg.namespaceAddress} -d ${config.vpnNamespaces.wg.bridgeAddress} -p tcp --dport 7878 -j ACCEPT
+    iptables -w -D INPUT -s ${config.vpnNamespaces.wg.namespaceAddress} -d ${config.vpnNamespaces.wg.bridgeAddress} -p tcp --dport 8989 -j ACCEPT 2>/dev/null || true
+    iptables -w -I INPUT 1 -s ${config.vpnNamespaces.wg.namespaceAddress} -d ${config.vpnNamespaces.wg.bridgeAddress} -p tcp --dport 8989 -j ACCEPT
     iptables -w -D ${forwardRule} 2>/dev/null || true
     iptables -w -I ${forwardRule}
   '';
   networking.firewall.extraStopCommands = ''
+    iptables -w -D INPUT -s ${config.vpnNamespaces.wg.namespaceAddress} -d ${config.vpnNamespaces.wg.bridgeAddress} -p tcp --dport 7878 -j ACCEPT 2>/dev/null || true
+    iptables -w -D INPUT -s ${config.vpnNamespaces.wg.namespaceAddress} -d ${config.vpnNamespaces.wg.bridgeAddress} -p tcp --dport 8989 -j ACCEPT 2>/dev/null || true
     iptables -w -D ${forwardRule} 2>/dev/null || true
   '';
 
@@ -140,6 +158,7 @@ in
   };
 
   systemd.services.qbittorrent = {
+    unitConfig.ConditionPathExists = wgConfig;
     vpnConfinement = {
       enable = true;
       vpnNamespace = "wg";
@@ -156,6 +175,7 @@ in
   };
 
   systemd.services.prowlarr = {
+    unitConfig.ConditionPathExists = wgConfig;
     vpnConfinement = {
       enable = true;
       vpnNamespace = "wg";
@@ -174,6 +194,7 @@ in
   };
 
   systemd.services.flaresolverr = {
+    unitConfig.ConditionPathExists = wgConfig;
     environment.HOST = "127.0.0.1";
     vpnConfinement = {
       enable = true;

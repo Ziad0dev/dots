@@ -97,7 +97,9 @@ in
     enable = true;
     group = "media";
     openFirewall = false;
-    settings.server.bindaddress = "127.0.0.1";
+    # Prowlarr runs in the wg namespace and reaches the host over its bridge.
+    # The host firewall below limits access to that namespace only.
+    settings.server.bindaddress = "0.0.0.0";
   };
 
   systemd.services.radarr.unitConfig.RequiresMountsFor = [ mediaRoot ];
@@ -107,7 +109,9 @@ in
     enable = true;
     group = "media";
     openFirewall = false;
-    settings.server.bindaddress = "127.0.0.1";
+    # Prowlarr runs in the wg namespace and reaches the host over its bridge.
+    # The host firewall below limits access to that namespace only.
+    settings.server.bindaddress = "0.0.0.0";
   };
 
   systemd.services.sonarr.unitConfig.RequiresMountsFor = [ mediaRoot ];

@@ -1,49 +1,35 @@
 # Secrets
 
-Secrets live in the repo, encrypted with [sops](https://github.com/getsops/sops), and are decrypted at boot by [sops-nix](https://github.com/Mic92/sops-nix) into `/run/secrets` (a ramfs, never the store). `modules/secrets.nix` wires it up behind `dots.secrets.enable`; each host declares its own `sops.secrets`.
+SOPS files and private keys are kept locally and ignored by Git. Host configurations still refer to `secrets/<host>.yaml`, so restore the encrypted files from a private backup before building a host. At boot, [sops-nix](https://github.com/Mic92/sops-nix) decrypts declared values into `/run/secrets` (a ramfs, never the store). `modules/secrets.nix` wires this up behind `dots.secrets.enable`.
 
 | File | Decrypted by | Edited by |
 |---|---|---|
-| `secrets/vm.yaml` | the `vm` host, with the **test** key `hosts/vm/test-age-key.txt` (public on purpose) | your GPG key |
+| `secrets/vm.yaml` | the `vm` host, with its local age identity | your GPG key |
 | `secrets/nixos.yaml` | the desktop, with `/var/lib/sops-nix/key.txt` | your GPG key |
 
-`.sops.yaml` lists who can decrypt what. Your GPG key (the one `pass` uses) is a recipient everywhere, so `sops secrets/<host>.yaml` opens any of them for editing.
+`.sops.yaml` contains public recipient information and creation rules. It is tracked so SOPS can select recipients; keep GPG and age private keys outside this public repo.
 
-## Moving the desktop's hand-made files into sops
+## Desktop secrets
 
-The desktop declares three secrets in `hosts/nixos/configuration.nix`, linked to the paths the modules already read, so nothing else changes:
+The desktop currently declares the Restic password. Mullvad's WireGuard config can be added after generating a fresh file from the Mullvad account; `the-page` is deferred.
 
 | Secret | Path |
 |---|---|
-| `mullvad-wg` | `/etc/wireguard/mullvad.conf` |
 | `restic-password` | `/etc/restic/password` |
-| `the-page-env` | `/var/lib/secrets/the-page.env` |
 
-1. **Host key.**
-   ```fish
-   sudo mkdir -p /var/lib/sops-nix
-   sudo age-keygen -o /var/lib/sops-nix/key.txt
-   sudo age-keygen -y /var/lib/sops-nix/key.txt   # the public half
-   ```
-   Back the private key up (it's the one thing a reinstall can't recreate), e.g. `sudo cat /var/lib/sops-nix/key.txt | pass insert -m dots/age-nixos`.
-2. **Recipients.** In `.sops.yaml`, uncomment the `&nixos` key with that public half and the `secrets/nixos.yaml` rule.
-3. **Encrypt.** Build the file from the current ones and encrypt it in place:
-   ```fish
-   begin
-     printf 'mullvad-wg: |\n'; sudo sed 's/^/  /' /etc/wireguard/mullvad.conf
-     printf 'restic-password: %s\n' (sudo cat /etc/restic/password)
-     printf 'the-page-env: |\n'; sudo sed 's/^/  /' /var/lib/secrets/the-page.env
-   end > secrets/nixos.yaml
-   sops encrypt -i secrets/nixos.yaml
-   git add secrets/nixos.yaml .sops.yaml
-   ```
-   Check with `sops decrypt secrets/nixos.yaml` before going on — the plaintext file must never be committed.
-4. **Enable.** `dots.secrets.enable = true;` in the host, `nh os switch`. The three paths become symlinks into `/run/secrets`; the old files are replaced.
+The host age key is `/var/lib/sops-nix/key.txt`; its encrypted backup is stored in the password store at `dots/age-nixos`. `.sops.yaml` has the matching public age recipient and your GPG key as recipients for `secrets/nixos.yaml`.
 
-Adding one later: `sops secrets/nixos.yaml`, add the key, then `sops.secrets.<name>` (optionally with `path`, `owner`, `mode`) in the host.
+To add Mullvad after generating a new WireGuard config, run `sops secrets/nixos.yaml` and add the config as a `mullvad-wg: |` block in the editor. Then declare its path in `hosts/nixos/configuration.nix`:
+
+```nix
+sops.secrets.mullvad-wg.path = "/etc/wireguard/mullvad.conf";
+```
+
+Keep the config out of chat and do not write a plaintext copy into the repo. Switch the system after declaring the secret; SOPS decrypts configured entries at boot.
 
 ## Rotating
 
 - A recipient changed: edit `.sops.yaml`, then `sops updatekeys secrets/<host>.yaml`.
 - A value changed: `sops secrets/<host>.yaml`, edit, save, switch.
-- A host key leaked: new key (step 1), update `.sops.yaml`, `sops updatekeys`, and rotate every value in that file — the old ciphertext is in git history.
+- The VM test age key was committed to public history. Treat it as compromised and use only disposable test values until the recipient and local fixture are rotated. Removing files from the current tree does not erase their copies from old commits.
+- A host key leaked: generate a new age key, update `.sops.yaml`, run `sops updatekeys`, and rotate every value in that file. Old ciphertext may remain in Git history and clones.

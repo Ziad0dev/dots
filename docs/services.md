@@ -48,7 +48,7 @@ host ─── bridge ────┤
       └─
 ```
 
-- The namespace is built from `/etc/wireguard/mullvad.conf` (not in the repo). `wg-dns` runs before `wg.service` and rewrites the file's `DNS =` line to Mullvad's resolver `100.64.0.7`, so lookups inside the namespace never leave the tunnel.
+- The namespace is built from `/etc/wireguard/mullvad.conf` (not in the repo). `wg-dns` runs before `wg.service` and rewrites the file's `DNS =` line to Mullvad's resolver `100.64.0.7`, so lookups inside the namespace never leave the tunnel. Units are skipped while that file is absent, such as after reinstall before restoring the host's sops key and enabling `dots.secrets`.
 - `accessibleFrom = [ tailnet ]` routes replies to tailnet clients back out of the bridge instead of into the tunnel.
 - A firewall rule drops forwarded traffic to 8081/9696 unless it came in on `tailscale0` — the mappings are tailnet-only, not LAN.
 - **qBittorrent** runs as its own system user in group `media`, saves to `/mnt/media/.incoming`, no UPnP, pauses at ratio 2 or after 24 h seeding, `MemoryHigh = 2G`. Web UI auth is skipped for the namespace subnet (`192.168.15.0/24`); the host reaches it at `http://192.168.15.1:8081`, which is what the bar's `dots-qbt` widget polls.
@@ -98,17 +98,17 @@ gpu-free                         # stop all llama units, unload Ollama models
 
 ## Backups
 
-`modules/backup.nix` — restic, `$HOME`, the media apps' state under `/var/lib` (minus artwork, metadata and logs) and the Secure Boot keys → `/mnt/backup/restic`, daily (persistent, up to 1 h random delay).
+`modules/backup.nix` — restic, `$HOME`, the media apps' state under `/var/lib` (minus artwork, metadata and logs) and the Secure Boot keys → `/mnt/backup/restic-new`, daily (persistent, up to 1 h random delay).
 
 - Excludes caches, Steam and other game libraries, replay recordings, flatpak and container storage, Downloads, Trash, and build junk (`node_modules`, `target`, `zig-cache`, `zig-out`, `.venv`, `.direnv`, `__pycache__`).
 - Retention: 7 daily, 4 weekly, 6 monthly. Each run checks a random 5 % of pack data.
-- Skips cleanly when the backup drive isn't mounted; runs at nice 19, idle I/O.
+- Skips cleanly when the backup drive isn't mounted or writable; runs at nice 19, idle I/O.
 - Password at `/etc/restic/password`; the unit refuses to start if the file is empty.
 
 ```fish
 sudo systemctl start restic-backups-home
 journalctl -u restic-backups-home -e
-sudo restic -r /mnt/backup/restic -p /etc/restic/password snapshots
+sudo restic -r /mnt/backup/restic-new -p /etc/restic/password snapshots
 ```
 
 ## Storage

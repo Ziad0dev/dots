@@ -3,7 +3,8 @@
 {
   services.restic.backups.home = {
     initialize = true;
-    repository = "/mnt/backup/restic";
+    # Keep any old, unreadable repository intact while starting a fresh one.
+    repository = "/mnt/backup/restic-new";
     passwordFile = "/etc/restic/password";
 
     paths = [
@@ -70,6 +71,7 @@
   systemd.services.restic-backups-home = {
     unitConfig.RequiresMountsFor = [ "/mnt/backup" ];
     unitConfig.ConditionPathIsMountPoint = "/mnt/backup";
+    unitConfig.ConditionPathIsReadWrite = "/mnt/backup";
     serviceConfig = {
       Nice = 19;
       IOSchedulingClass = "idle";

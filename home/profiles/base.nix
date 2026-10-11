@@ -234,6 +234,8 @@ in
         config.lib.file.mkOutOfStoreSymlink "${config.xdg.stateHome}/dots/theme/btop.theme";
     };
 
+    programs.gpg.enable = true;
+
     home.packages = with pkgs; [
       ripgrep
       fd

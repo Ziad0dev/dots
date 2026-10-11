@@ -190,6 +190,7 @@ body,
   border-radius: 0 !important;
 }
 
+/* Color surfaces while keeping the text readable. */
 [class*="bg_"],
 [class*="chatContent"],
 [class*="messagesWrapper"],
@@ -200,9 +201,7 @@ body,
 [class*="sidebarList"],
 [class*="membersWrap"],
 [class*="members_"],
-[class*="panels_"],
-[class*="username"],
-[class*="roleColor"] {
+[class*="panels_"] {
   color: ${foreground} !important;
 }
 
@@ -242,6 +241,11 @@ body,
 
 [class*="container_"] > [class*="scroller_"] {
   background-color: var(--dots-l1) !important;
+}
+
+/* The channel scroller sits over the server banner; let its image show through. */
+[class*="sidebar_"] [class*="scroller_"] {
+  background-color: transparent !important;
 }
 
 [class*="channelTextArea"],
@@ -307,10 +311,7 @@ pre,
   mask-image: none !important;
 }
 
-[class*="animatedContainer"],
-[class*="header_"] [class*="banner"],
-[class*="guildHeader"],
-[class*="headerContent"],
+/* Avoid resetting background images in Discord's server header. */
 [class*="toolbar_"],
 [class*="wordmark"] {
   background-color: transparent !important;
@@ -346,6 +347,37 @@ pre,
 [class*="headerText"] [class*="username"] {
   background-color: transparent !important;
   background-image: none !important;
+}
+
+/* Discord's display-name effects can bypass `color`. */
+[style*="--custom-display-name-styles-"] {
+  -webkit-text-fill-color: color-mix(in srgb, currentColor 55%, ${foreground}) !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
+}
+
+[style*="--custom-display-name-styles-"] {
+  --custom-display-name-styles-font-opacity: 1 !important;
+  background: none !important;
+  background-image: none !important;
+  -webkit-background-clip: unset !important;
+  background-clip: unset !important;
+  -webkit-text-stroke: 0 !important;
+}
+
+[class*="username"][class*="Gradient"],
+[class*="username"][class*="gradient"],
+[class*="roleColor"][class*="Gradient"],
+[class*="roleColor"][class*="gradient"] {
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  background-clip: unset !important;
+  -webkit-text-fill-color: color-mix(in srgb, currentColor 55%, ${foreground}) !important;
+  -webkit-text-stroke: 0 !important;
+  text-shadow: none !important;
+  filter: none !important;
 }
 
 li:has(a[href="/store"]),

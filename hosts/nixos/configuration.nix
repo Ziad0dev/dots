@@ -35,23 +35,19 @@
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.systemd-boot.configurationLimit = 3;
   boot.loader.systemd-boot.editor = false;
-  # Keep Secure Boot integration paused during reinstall; re-enable after
-  # restoring or creating the sbctl keys: docs/secure-boot.md
-  dots.secureBoot.enable = false;
-  # Re-enable after the new root LUKS volume has a TPM keyslot enrolled.
-  dots.secureBoot.tpmUnlock = [ ];
+  # Secure Boot keys have been enrolled; see docs/secure-boot.md.
+  dots.secureBoot.enable = true;
+  # The TPM keyslot is enrolled separately with systemd-cryptenroll.
+  dots.secureBoot.tpmUnlock = [ "luks-bd950db0-dc83-432a-bec6-0bc1a72bd76e" ];
   boot.loader.timeout = 1;
 
-  # Keep SOPS decryption off until the host age key and secrets file are
-  # restored after reinstall: docs/secrets.md.
+  # Host age key is backed up in pass at dots/age-nixos.
   dots.secrets = {
-    enable = false;
+    enable = true;
     file = ../../secrets/nixos.yaml;
   };
   sops.secrets = lib.mkIf config.dots.secrets.enable {
-    mullvad-wg.path = "/etc/wireguard/mullvad.conf";
     restic-password.path = "/etc/restic/password";
-    the-page-env.path = "/var/lib/secrets/the-page.env";
   };
 
   dots.recording.monitor = "DP-1";
@@ -107,6 +103,7 @@
     enable = true;
     extraPortals = with pkgs; [
       xdg-desktop-portal-gtk
+      xdg-desktop-portal-wlr
     ];
     config = {
       common.default = [
@@ -119,7 +116,7 @@
           "gtk"
         ];
         "org.freedesktop.impl.portal.ScreenCast" = [ "hyprland" ];
-        "org.freedesktop.impl.portal.Screenshot" = [ "hyprland" ];
+        "org.freedesktop.impl.portal.Screenshot" = [ "wlr" ];
       };
     };
   };
@@ -165,16 +162,17 @@
 
   virtualisation.podman.enable = true;
 
-  # Root has no password: with root unlocking from the TPM, an emergency shell
-  # at boot would otherwise be the way in. sudo still works for wheel; to
-  # recover a machine that won't boot, use the installer ISO.
+  # Root has no password; normal administration uses sudo from the wheel group.
+  # Use the installer ISO to recover a machine that will not boot.
   users.users.root.hashedPassword = "!";
 
   users.users.${username} = {
     isNormalUser = true;
     description = username;
 
-    uid = 1001;
+    # This account was created as UID 1000 on the installed desktop. Keep the
+    # declarative UID aligned so Home Manager activation accepts the account.
+    uid = 1000;
     extraGroups = [
       "wheel"
       "networkmanager"

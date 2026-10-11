@@ -3,9 +3,8 @@
 `modules/secureboot.nix` adds [lanzaboote](https://github.com/nix-community/lanzaboote)
 (pinned to a release tag in `flake.nix`): systemd-boot's signed stub and signed
 unified kernel images, with your own keys in `/var/lib/sbctl`. The desktop host
-currently keeps it disabled during reinstall. Set `dots.secureBoot.enable = true;`
-in `hosts/nixos/configuration.nix` only after restoring or creating those keys.
-`sbctl` is installed either way.
+configuration enables lanzaboote; Secure Boot still needs its keys enrolled in
+firmware and enabled in the firmware menu. `sbctl` is installed either way.
 
 The disks are already LUKS-encrypted; Secure Boot adds that only boot files you
 signed will run, so nobody can swap the kernel or initrd on the unencrypted
@@ -17,9 +16,9 @@ modules keep loading.
 
 ## Turning it on
 
-1. **Keys.** `sudo sbctl create-keys` (into `/var/lib/sbctl`, root-only).
-   Do this first: switching with the option on but no keys fails at the
-   bootloader step (the running generation keeps booting).
+1. **Keys.** If keys are not already present, run `sudo sbctl create-keys`
+   (into `/var/lib/sbctl`, root-only). Switching with the option on but no keys
+   fails at the bootloader step (the running generation keeps booting).
 2. **Sign.** Set `dots.secureBoot.enable = true;`, then `nh os switch`.
 3. **Check.** `sudo sbctl verify`: `EFI/Boot/bootx64.efi`,
    `EFI/systemd/systemd-bootx64.efi` and every `EFI/Linux/nixos-generation-*.efi`
@@ -54,22 +53,36 @@ The passphrase keyslot stays as the fallback. A firmware update or a change to
 the Secure Boot settings changes PCR 7: you get the passphrase prompt, then
 re-enroll.
 
-1. **Initrd.** `dots.secureBoot.tpmUnlock` lists the `boot.initrd.luks.devices`
-   names (root is already listed in `hosts/nixos/configuration.nix`). It switches
-   to the systemd initrd, which is the only one that can talk to the TPM. `nh os switch`,
-   reboot, and make sure the passphrase still works. With no TPM keyslot yet,
-   it asks for it like before.
-2. **Enroll.**
+1. **Confirm the root device.** On this host, the root container UUID is
+   `bd950db0-dc83-432a-bec6-0bc1a72bd76e` (currently `/dev/nvme1n1p2`; NVMe
+   device numbering can vary). The
+   separate encrypted swap container is `f04ed75f-34bc-4c92-b7db-379feff63a71`
+   (currently `/dev/nvme1n1p3`). Confirm these with `lsblk -f` before running
+   enrollment commands; use the stable UUID path below, not a guessed partition
+   number.
+2. **Initrd.** `dots.secureBoot.tpmUnlock` lists the
+   `boot.initrd.luks.devices` names. For this root, set it to
+   `[ "luks-bd950db0-dc83-432a-bec6-0bc1a72bd76e" ]` in
+   `hosts/nixos/configuration.nix`. Keep `dots.secureBoot.enable = true;` as
+   well, since the module requires Secure Boot for TPM unlock. Switch the
+   configuration and reboot; with no TPM keyslot yet, it should still ask for
+   the existing passphrase.
+3. **Enroll.** After Secure Boot is enabled in firmware, enroll the TPM key on
+   the root container (not the encrypted swap container):
    ```
-   sudo systemd-cryptenroll /dev/nvme0n1p3 --tpm2-device=auto \
+   sudo systemd-cryptenroll /dev/disk/by-uuid/bd950db0-dc83-432a-bec6-0bc1a72bd76e --tpm2-device=auto \
      --tpm2-pcrs=7+15:sha256=0000000000000000000000000000000000000000000000000000000000000000
    ```
    Add `--tpm2-with-pin=yes` to still type a short PIN at boot; the TPM
    rate-limits guesses.
-3. **Reboot.** Root should unlock without a prompt.
+4. **Reboot.** Root should unlock without a prompt. The encrypted swap mapping
+   partition is currently left untouched but is not configured as swap. The
+   host uses zram and a swapfile instead, so boot does not wait for that volume.
 
 Re-enroll after a PCR 7 change:
-`sudo systemd-cryptenroll /dev/nvme0n1p3 --wipe-slot=tpm2` followed by step 2's command.
+`sudo systemd-cryptenroll /dev/disk/by-uuid/bd950db0-dc83-432a-bec6-0bc1a72bd76e --wipe-slot=tpm2`
+followed by step 3's enrollment command. Verify the target UUID with `lsblk -f`
+before wiping or enrolling any slot.
 To drop it, wipe the slot and empty the list.
 
 ## Backing out

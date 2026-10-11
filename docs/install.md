@@ -17,7 +17,8 @@
 git clone https://github.com/Ziad0dev/dots ~/dots
 cd ~/dots
 nixos-generate-config --show-hardware-config > hosts/nixos/hardware-configuration.nix
-sudo nixos-rebuild switch --flake .#nixos
+sudo nixos-rebuild build --flake /home/ziad0dev/dots#nixos
+sudo nixos-rebuild switch --flake /home/ziad0dev/dots#nixos
 ```
 
 After the first switch, `nh` takes over (`update` in fish). See [Workflow](workflow.md).

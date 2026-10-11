@@ -25,9 +25,9 @@ let
   # Root (the databases belong to three different users), but sandboxed to
   # their state dirs and localhost. recover additionally enters the wg netns.
   stateDirs = [
-    "/var/lib/sonarr"
-    "/var/lib/radarr"
-    "/var/lib/private/prowlarr" # DynamicUser; /var/lib/prowlarr links here
+    "-/var/lib/sonarr"
+    "-/var/lib/radarr"
+    "-/var/lib/private/prowlarr" # DynamicUser; created when Prowlarr starts
   ];
   sandbox = import ../lib/hardening.nix // {
     ProtectSystem = "strict";
