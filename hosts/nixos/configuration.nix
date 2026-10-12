@@ -251,6 +251,7 @@
     coolercontrol.coolercontrol-gui
     kdePackages.ark
     kdePackages.qt6ct
+    inputs.dvr-patched.packages.${pkgs.stdenv.hostPlatform.system}.default
   ];
 
   fonts = {
