@@ -17,11 +17,11 @@
 git clone https://github.com/Ziad0dev/dots ~/dots
 cd ~/dots
 nixos-generate-config --show-hardware-config > hosts/nixos/hardware-configuration.nix
-sudo nixos-rebuild build --impure --flake /home/ziad0dev/dots#nixos
-sudo nixos-rebuild switch --impure --flake /home/ziad0dev/dots#nixos
+sudo nixos-rebuild build --flake /home/ziad0dev/dots#nixos
+sudo nixos-rebuild switch --flake /home/ziad0dev/dots#nixos
 ```
 
-Restore the encrypted SOPS file to `~/.local/share/dots/secrets/nixos.yaml` before building; see [Secrets](secrets.md).
+The encrypted SOPS file is in the repo; restore the host age key to `/var/lib/sops-nix/key.txt` before switching so secrets decrypt at boot. See [Secrets](secrets.md).
 
 After the first switch, `nh` takes over (`update` in fish). See [Workflow](workflow.md).
 
@@ -46,11 +46,10 @@ The desktop output is built for one box. On anything else, go through this list 
 
 ### Files that must exist out-of-band
 
-Plaintext secret values stay out of Git and the Nix store. The desktop's encrypted SOPS file is kept outside the repo at `~/.local/share/dots/secrets/nixos.yaml`; its ciphertext is copied into the store for evaluation. Restore that file before building the desktop. See [Secrets](secrets.md).
+Plaintext secret values stay out of Git and the Nix store. The desktop's encrypted SOPS file is tracked at `secrets/nixos.yaml`; only the age key has to be restored by hand. See [Secrets](secrets.md).
 
 | Path | Used by | Notes |
 |---|---|---|
-| `~/.local/share/dots/secrets/nixos.yaml` | `sops-nix` | Encrypted desktop SOPS file; required to evaluate the desktop |
 | `/var/lib/sops-nix/key.txt` | `sops-nix` | Host age private key; restore separately with root-only permissions |
 | `/etc/restic/password` | `sops-nix`, `modules/backup.nix` | Generated from the encrypted SOPS file; backup unit refuses to start if empty |
 | `/etc/wireguard/mullvad.conf` | `modules/vpn.nix` | Optional until the Mullvad secret is added; `wg-dns` rewrites its `DNS =` line on start |

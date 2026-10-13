@@ -172,6 +172,24 @@ The bar, launcher, control panel, pickers and notifications UI. Vendored in `con
 - The unit's PATH is pinned: the `dots-*` shims, wallpaper helpers and a fixed tool set come first, so the bar behaves the same regardless of your login environment. `DOTS_SHELL_PATH` points at the repo copy.
 - Bar widgets include workspaces, clock/calendar, media (MPRIS), audio, network, CPU/GPU/memory/temps, storage and mount health, power profile, weather, VPN, night light, idle inhibitor, notification silencing, dictation state, LLM unit, qBittorrent speeds, update indicator, screen recording, tray, and AI usage (Codex / OpenCode / OpenRouter quotas refreshed every 10 minutes by `dots-ai-usage.timer`).
 
+### System tray icons
+
+Settings (`SUPER + ,`) → **Bar → System tray** controls tinting, compact spacing, and the tray's own background. Tinting is on by default and uses the active palette accent; turn it off to keep each application's original icon colors. Tray icons appear directly on the bar; hovering an app with a DBus menu opens that menu, while clicking activates the app. There is no overflow dots button or separate AppMenu button.
+
+For Caelestia-style per-app icon substitutions or to hide specific tray items, add these optional keys to the root of `~/.local/state/dots/shell/settings.json` (use the exact `SystemTrayItem.id`):
+
+```json
+{
+  "trayIconSubs": [
+    { "id": "steam", "icon": "sports_esports" },
+    { "id": "some-tray-app", "image": "~/Pictures/icons/my-tray-icon.svg" }
+  ],
+  "trayHiddenIcons": ["unwanted-tray-app"]
+}
+```
+
+`icon` is a Material Symbols name; `image` is a file path or image URL and wins if both are set. The configuration reloads with the shell. Icon substitutions and hidden IDs are global, while tint/compact/background are normal Rise settings. The tray options follow [Caelestia's tray controls](https://github.com/caelestia-dots/shell), adapted to Rise's settings file and overflow panel.
+
 ### IPC
 
 ```fish

@@ -1,7 +1,7 @@
 { inputs, ... }:
 
 let
-  # Each app is pinned to a commit, so a switch installs exactly that build.
+  # Most apps are pinned to a commit, so a switch installs exactly that build.
   # To bump one: `flatpak remote-info --user --log <origin> <appId>`, pick a
   # commit, paste it here. Runtimes follow whatever the pinned app requires.
   pinned = origin: appId: commit: { inherit origin appId commit; };
@@ -52,11 +52,16 @@ in
       (pinned "flathub" "org.texstudio.TeXstudio"
         "e93228a667a4f56e53718e4794073b62dac1268206c6830d95a91af62644a078"
       )
+      # Follow the latest Flathub build; the Nix package is intentionally omitted.
+      { appId = "com.github.taiko2k.tauonmb"; origin = "flathub"; }
     ];
 
     # anything installed by hand is removed on the next switch, as before
     uninstallUnmanaged = true;
 
     overrides.settings."com.nvidia.geforcenow".Environment.SDL_VIDEODRIVER = "x11";
+    overrides.settings."com.github.taiko2k.tauonmb".Context.filesystems = [
+      "/mnt/media/music:ro"
+    ];
   };
 }

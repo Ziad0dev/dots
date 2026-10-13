@@ -3,7 +3,8 @@
 {
   services.restic.backups.home = {
     initialize = true;
-    # Keep any old, unreadable repository intact while starting a fresh one.
+    # /mnt/backup/restic is the pre-2026-10 repo; its password was lost with the
+    # old drive's SOPS file, so it cannot be opened. Fresh repo from here on.
     repository = "/mnt/backup/restic-new";
     passwordFile = "/etc/restic/password";
 

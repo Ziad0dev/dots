@@ -485,7 +485,6 @@ ThemeAiUsage {
         else if (name === "thermal") thermalBarX = x
         else if (name === "storage") storageBarX = x
         else if (name === "github") githubBarX = x
-        else if (name === "trayMenu") trayMenuX = x
     }
 
     function applyActiveBarAnchors() {
@@ -657,7 +656,7 @@ ThemeAiUsage {
         || memVisible || volVisible || controlVisible || networkVisible || bluetoothVisible
         || batteryVisible || brightnessVisible || mprisVisible || weatherVisible
         || workspaceVisible || notifVisible || powerProfileVisible || storageVisible
-        || trayVisible
+        || trayVisible || trayMenuVisible
 
     readonly property real activePanelCaretX:
         calendarVisible ? calendarBarX
@@ -680,6 +679,7 @@ ThemeAiUsage {
         : notifVisible ? notifBarX
         : powerProfileVisible ? powerBarX
         : storageVisible ? storageBarX
+        : trayMenuVisible ? trayBarX
         : trayVisible ? trayBarX
         : githubVisible ? githubBarX
         : 0
@@ -1842,6 +1842,20 @@ ThemeAiUsage {
         compactCpu: "bool", compactMemory: "bool", compactVolume: "bool",
         compactBluetooth: "bool", compactPower: "bool", compactMpris: "bool",
         archBadgePackages: "bool", archBadgeThemes: "bool", archBadgeShell: "bool",
+        trayBackground: "bool", trayCompact: "bool", trayRecolour: "bool",
+        trayIconSubs: function (v) {
+            return Array.isArray(v) && v.length <= 100 && v.every(function (entry) {
+                return entry && typeof entry === "object"
+                    && typeof entry.id === "string" && entry.id.trim() !== ""
+                    && (entry.icon === undefined || typeof entry.icon === "string")
+                    && (entry.image === undefined || typeof entry.image === "string")
+                    && (entry.icon !== undefined || entry.image !== undefined)
+            })
+        },
+        trayHiddenIcons: function (v) {
+            return Array.isArray(v) && v.length <= 100
+                && v.every(function (id) { return typeof id === "string" && id.trim() !== "" })
+        },
         styleBorder: "bool", styleShadow: "bool", styleFrost: "bool",
         styleRadiusSmall: "bool", styleIconLabels: "bool", styleDepth: "bool",
         styleFrame: "bool", popoutHover: "bool", styleFrameEdge: "bool", styleAutoHide: "bool", styleDeskClock: "bool", styleDeskVisualiser: "bool",
@@ -2053,6 +2067,13 @@ ThemeAiUsage {
     property bool   archBadgeThemes: true
     property bool   archBadgeShell: true
 
+    // ── System tray appearance (Caelestia-style icon controls) ──
+    property bool trayBackground: false
+    property bool trayCompact: false
+    property bool trayRecolour: true
+    property var trayIconSubs: []
+    property var trayHiddenIcons: []
+
     // ── Tray state ──
     property bool trayVisible: false
     onTrayVisibleChanged: popupOpened("trayVisible")
@@ -2084,9 +2105,8 @@ ThemeAiUsage {
     property bool trayMenuVisible: false
     onTrayMenuVisibleChanged: popupOpened("trayMenuVisible")
     property var  trayMenuHandle: null   // the QsMenuHandle of the clicked item
-    property real trayMenuX: 0           // global x to anchor the menu under the icon
     property string trayMenuTitle: ""
-    property string trayMenuIcon: ""
+    property var trayMenuItem: null
 
     function trayDisplayName(item) {
         if (!item) return "Tray App"
@@ -2119,17 +2139,35 @@ ThemeAiUsage {
         return ""
     }
 
-    function openTrayMenu(handle, x, title, icon) {
+    function openTrayMenu(handle, title, item, anchor) {
         if (!handle) return
         trayMenuHandle = handle
         trayMenuTitle = String(title || "App Menu")
-        trayMenuIcon = String(icon || "")
-        setPanelAnchor("trayMenu", x)
-        trayMenuVisible = true
+        trayMenuItem = item || null
+        if (anchor) popout.hoverOpen("trayMenuVisible", anchor, true)
+        else trayMenuVisible = true
     }
 
     function trayIsHidden(item) {
         return trayPinned.indexOf(item.id) < 0
+    }
+
+    function trayIsSuppressed(item) {
+        if (!item) return false
+        var id = String(item.id || "").toLowerCase()
+        for (var i = 0; i < trayHiddenIcons.length; i++)
+            if (String(trayHiddenIcons[i]).toLowerCase() === id) return true
+        return false
+    }
+
+    function trayIconSub(item) {
+        if (!item) return null
+        var id = String(item.id || "").toLowerCase()
+        for (var i = 0; i < trayIconSubs.length; i++) {
+            var sub = trayIconSubs[i]
+            if (sub && String(sub.id || "").toLowerCase() === id) return sub
+        }
+        return null
     }
 
     // toggle: hidden items get pinned (shown in bar); pinned items get unpinned (back to panel)

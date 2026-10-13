@@ -1,8 +1,7 @@
 { inputs }:
 
 [
-  # Keep the Zig overlay out of the initial host evaluation until Zig/ZLS are
-  # re-enabled together after a successful compatibility build.
+  inputs.zig-overlay.overlays.default
   inputs.obsidian-extensions.overlays.default
   (final: _prev: {
     soulseek-rs = final.callPackage ../pkgs/soulseek-rs.nix { };
@@ -24,5 +23,26 @@
           })
       else
         prev.feather;
+  })
+  # nixpkgs ships a stale pnpm deps hash for 6.0.2. Only applies while upstream
+  # still has the broken hash, so it goes inert once nixpkgs is fixed.
+  (final: prev: {
+    typescript-language-server =
+      if
+        prev.typescript-language-server.pnpmDeps.outputHash
+        == "sha256-MUSxDMlbG21KSesGdEvqa2kEpuVfLlXRUX1qV/FGsSo="
+      then
+        prev.typescript-language-server.overrideAttrs (
+          finalAttrs: _old: {
+            pnpmDeps = final.fetchPnpmDeps {
+              inherit (finalAttrs) pname version src;
+              pnpm = final.pnpm_12;
+              fetcherVersion = 4;
+              hash = "sha256-xR/EF60lVBsITKgH7wCM2wHM46PFQevD51KfCENSUH4=";
+            };
+          }
+        )
+      else
+        prev.typescript-language-server;
   })
 ]

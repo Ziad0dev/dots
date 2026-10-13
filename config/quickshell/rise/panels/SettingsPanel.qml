@@ -53,6 +53,11 @@ PanelWindow {
                 e("launcherLogoText", "Wordmark", "", o(root.launcherLogoTextOptions)),
                 e("launcherLogoIcon", "Icon", "", o(root.launcherLogoIconOptions))
             ] },
+            { title: "System tray", rows: [
+                b("trayRecolour", "Tint tray icons", "Use the bar accent for monochrome tray icons; turn off to keep app colours"),
+                b("trayCompact", "Compact tray", "Use smaller icons and tighter spacing"),
+                b("trayBackground", "Tray background", "Draw a separate rounded surface behind tray icons")
+            ] },
             { title: "Splits", rows: [
                 b("splitArch", "After the launcher", "Break the bar into separate pills here"),
                 b("splitMon", "Around the monitors"),
@@ -137,6 +142,7 @@ PanelWindow {
             "modCpu", "modCpuTemperature", "modGpu", "modMemory", "modStorage", "modWeather", "modAi", "modGithub",
             "compactMpris", "compactVolume", "compactBrightness", "compactNetwork", "compactBluetooth", "compactBattery",
             "compactPower", "compactCpu", "compactMemory", "archBadgePackages", "archBadgeThemes", "archBadgeShell",
+            "trayBackground", "trayCompact", "trayRecolour", "trayIconSubs", "trayHiddenIcons",
             "styleFrame", "popoutHover", "styleFrameEdge", "styleAutoHide", "styleFrost", "styleShadow", "styleBorder", "styleDepth",
             "styleRadiusSmall", "styleIconLabels", "styleDeskClock", "styleDeskVisualiser", "motionHover", "motionSweep", "motionDigits",
             "pickerStyle", "clock12h", "weatherImperial", "aiTool", "widgetColorStyles"]

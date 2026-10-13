@@ -162,7 +162,6 @@ in
       pavucontrol
       mpc
       rmpc
-      tauon
       easyeffects
       qpwgraph
 

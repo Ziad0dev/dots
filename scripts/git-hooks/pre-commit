@@ -20,6 +20,13 @@ if [ -n "$untracked" ]; then
     fail=1
 fi
 
+#    This repo is public: a tracked secrets file must be SOPS ciphertext.
+for f in $(git ls-files -- 'secrets/*'); do
+    if ! grep -q '^sops:' "$f" || ! grep -q 'ENC\[' "$f"; then
+        echo "pre-commit: $f is not SOPS-encrypted — refusing to commit it"; fail=1
+    fi
+done
+
 # 2. Legacy hyprctl dispatch strings fail SILENTLY under the Lua config
 #    (hyprctl still exits 0), so nothing else would catch these.
 if grep -rn "hyprctl dispatch" --include="*.conf" --include="*.jsonc" --include="*.sh" \
@@ -59,13 +66,8 @@ if command -v nix >/dev/null; then
         "nixosConfigurations.installer.config.system.build.isoImage" \
         "checks.x86_64-linux.vm"
     do
-        if [ "$out" = "nixosConfigurations.nixos.config.system.build.toplevel" ] &&
-           [ ! -r "$HOME/.local/share/dots/secrets/nixos.yaml" ]; then
-            echo "pre-commit: skipping desktop eval; local SOPS file is missing"
-            continue
-        fi
         echo "pre-commit: evaluating $out"
-        nix eval --impure --no-warn-dirty ".#${out}.drvPath" \
+        nix eval --no-warn-dirty ".#${out}.drvPath" \
             >/dev/null 2>/tmp/pre-commit-eval.log || {
             echo "pre-commit: EVAL FAILED for $out — see /tmp/pre-commit-eval.log"
             tail -15 /tmp/pre-commit-eval.log; fail=1; }

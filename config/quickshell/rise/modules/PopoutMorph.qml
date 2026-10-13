@@ -29,7 +29,7 @@ Item {
         "brightnessVisible", "mprisVisible", "weatherVisible", "calendarVisible",
         "cpuVisible", "memVisible", "gpuVisible", "thermalVisible", "storageVisible",
         "powerProfileVisible", "langVisible", "aiUsageVisible", "githubVisible",
-        "trayVisible", "workspaceVisible"
+        "trayVisible", "trayMenuVisible", "workspaceVisible"
     ]
     function hosts(flag) { return hosted.indexOf(flag) >= 0 }
 
@@ -150,8 +150,8 @@ Item {
         widgetX = next
     }
     // the popup screen is already the hovered bar's (BarSlot's HoverHandler)
-    function hoverOpen(flag, item) {
-        if (!hoverEnabled || !hosts(flag)) return
+    function hoverOpen(flag, item, force) {
+        if ((!hoverEnabled && !force) || !hosts(flag)) return
         noteItem(flag, item)
         if (open && !hoverMode) return          // a pinned popout ignores hover
         closeTimer.stop()

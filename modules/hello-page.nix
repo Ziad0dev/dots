@@ -1,15 +1,14 @@
-{ pkgs, username, ... }:
+{ lib, pkgs, ... }:
 
 let
-  dir = "/home/${username}/the-page";
-  user = username;
+  dir = "/home/ziad0dev/the-page";
+  user = "ziad0dev";
   port = 8137;
 
   hardening = import ../lib/hardening.nix // {
-    ProtectHome = "tmpfs";
-    BindPaths = [ dir ];
-    ReadWritePaths = [ dir ];
+    ProtectHome = false;
     ProtectSystem = "strict";
+    ReadWritePaths = [ dir ];
     SystemCallFilter = [
       "@system-service"
       "~@privileged"
@@ -18,6 +17,12 @@ let
   };
 in
 {
+  services.tailscale = {
+    enable = lib.mkDefault true;
+    useRoutingFeatures = lib.mkDefault "client";
+  };
+  networking.firewall.trustedInterfaces = [ "tailscale0" ];
+
   systemd.services.hello-page = {
     description = "the page";
     wantedBy = [ "multi-user.target" ];
@@ -32,9 +37,6 @@ in
       CONTENT_DIR = "${dir}/content";
     };
 
-    # skipped, not restarted every 5 s, on a machine without the app
-    unitConfig.ConditionPathExists = "${dir}/app.py";
-
     serviceConfig = hardening // {
       ExecStart = "${pkgs.python3}/bin/python3 ${dir}/app.py";
       WorkingDirectory = dir;
@@ -48,32 +50,34 @@ in
 
   systemd.services.hello-page-serve = {
     description = "publish the page to the tailnet";
-    wantedBy = [ "tailscaled.service" ];
+    wantedBy = [ "multi-user.target" ];
     after = [
       "tailscaled.service"
       "hello-page.service"
     ];
     wants = [ "tailscaled.service" ];
-    # only talks to tailscaled over its socket
-    serviceConfig = import ../lib/hardening.nix // {
-      RestrictAddressFamilies = [ "AF_UNIX" ];
+    serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
-      Restart = "on-failure";
-      RestartSec = 5;
       ExecStart = pkgs.writeShellScript "hello-page-serve" ''
         i=0
         while [ $i -lt 60 ]; do
-          state=$(${pkgs.tailscale}/bin/tailscale status --json 2>/dev/null | ${pkgs.jq}/bin/jq -r '.BackendState // empty')
-          if [ "$state" = "Running" ]; then
+          if ${pkgs.tailscale}/bin/tailscale status --json >/dev/null 2>&1; then
             exec ${pkgs.tailscale}/bin/tailscale serve --bg --https 443 http://127.0.0.1:${toString port}
           fi
           ${pkgs.coreutils}/bin/sleep 2
           i=$((i + 1))
         done
-        echo "tailscaled never became ready (last state: ''${state:-none})" >&2
+        echo "tailscaled never became ready" >&2
         exit 1
       '';
     };
+  };
+
+  systemd.targets = {
+    sleep.enable = false;
+    suspend.enable = false;
+    hibernate.enable = false;
+    hybrid-sleep.enable = false;
   };
 }

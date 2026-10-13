@@ -44,13 +44,14 @@ PanelWindow {
     readonly property int hiddenCount: {
         var n = 0, vals = SystemTray.items.values
         for (var i = 0; i < vals.length; i++)
-            if (root.trayPinned.indexOf(vals[i].id) < 0) n++
+            if (!root.trayIsSuppressed(vals[i]) && root.trayPinned.indexOf(vals[i].id) < 0) n++
         return n
     }
     readonly property int attentionCount: {
         var n = 0, vals = SystemTray.items.values
         for (var i = 0; i < vals.length; i++)
-            if (root.trayPinned.indexOf(vals[i].id) < 0 && vals[i].status === Status.NeedsAttention) n++
+            if (!root.trayIsSuppressed(vals[i]) && root.trayPinned.indexOf(vals[i].id) < 0
+                    && vals[i].status === Status.NeedsAttention) n++
         return n
     }
     onHiddenCountChanged: if (root.trayVisible && hiddenCount === 0) root.trayVisible = false
@@ -176,14 +177,12 @@ PanelWindow {
 
                                     width: trayRows.width
                                     height: visible ? 28 : 0
-                                    visible: root.trayPinned.indexOf(modelData.id) < 0
+                                    visible: !root.trayIsSuppressed(modelData)
+                                        && root.trayPinned.indexOf(modelData.id) < 0
 
                                     function openAppMenu() {
                                         if (!modelData.hasMenu) return
-                                        var gp = menuButton.mapToItem(null, 0, 0)
-                                        root.openTrayMenu(modelData.menu,
-                                                          gp.x + menuButton.width / 2 - 110,
-                                                          appName, modelData.icon)
+                                        root.openTrayMenu(modelData.menu, appName, modelData, appButton)
                                     }
 
                                     function activateApp() {
@@ -208,18 +207,14 @@ PanelWindow {
                                         border.width: 1
                                         Behavior on color { CAnim { ms: 120 } }
 
-                                        Image {
+                                        TrayAppIcon {
                                             id: appIcon
                                             anchors.left: parent.left
                                             anchors.leftMargin: 8
                                             anchors.verticalCenter: parent.verticalCenter
-                                            source: appRow.modelData.icon
-                                            sourceSize.width: 16
-                                            sourceSize.height: 16
-                                            width: 16
-                                            height: 16
-                                            fillMode: Image.PreserveAspectFit
-                                            smooth: true
+                                            root: trayPanel.root
+                                            item: appRow.modelData
+                                            size: 16
                                         }
 
                                         UiText {
@@ -241,9 +236,9 @@ PanelWindow {
                                             id: appTip
                                             root: trayPanel.root
                                             owner: appButton
-                                            text: appRow.statusDescription !== ""
-                                                ? appRow.appName + "\n" + appRow.statusDescription
-                                                : appRow.appName
+                                            text: appRow.appName
+                                                + (appRow.statusDescription !== "" ? "\n" + appRow.statusDescription : "")
+                                                + "\nID: " + appRow.modelData.id
                                         }
 
                                         MouseArea {
@@ -251,8 +246,14 @@ PanelWindow {
                                             anchors.fill: parent
                                             hoverEnabled: true
                                             cursorShape: Qt.PointingHandCursor
-                                            onEntered: appTip.show()
-                                            onExited: appTip.hide()
+                                            onEntered: {
+                                                appTip.show()
+                                                appRow.openAppMenu()
+                                            }
+                                            onExited: {
+                                                appTip.hide()
+                                                if (appRow.modelData.hasMenu) root.popout.hoverLeave()
+                                            }
                                             onClicked: {
                                                 appTip.hide()
                                                 if (appRow.modelData.onlyMenu && appRow.modelData.hasMenu)
@@ -290,42 +291,6 @@ PanelWindow {
                                             hoverEnabled: true
                                             cursorShape: Qt.PointingHandCursor
                                             onClicked: root.trayToggleHide(appRow.modelData)
-                                        }
-                                    }
-
-                                    Rectangle {
-                                        id: menuButton
-                                        anchors.left: pinButton.right
-                                        anchors.leftMargin: 8
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        width: appRow.cellWidth
-                                        height: 28
-                                        radius: root.tileRadius
-                                        color: appRow.modelData.hasMenu
-                                            ? (menuMa.containsMouse ? root.fillHover : root.fillIdle)
-                                            : "transparent"
-                                        border.color: appRow.modelData.hasMenu
-                                            ? (menuMa.containsMouse ? root.seal : root.sep)
-                                            : Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.10)
-                                        border.width: 1
-                                        opacity: appRow.modelData.hasMenu ? 1.0 : 0.42
-                                        Behavior on color { CAnim { ms: 120 } }
-
-                                        UiText {
-                                            anchors.centerIn: parent
-                                            text: appRow.modelData.hasMenu ? "AppMenu" : "No Menu"
-                                            color: menuMa.containsMouse && appRow.modelData.hasMenu ? root.seal : root.ink
-                                            font.family: root.mono
-                                            font.pixelSize: 11
-                                        }
-
-                                        MouseArea {
-                                            id: menuMa
-                                            anchors.fill: parent
-                                            enabled: appRow.modelData.hasMenu
-                                            hoverEnabled: enabled
-                                            cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-                                            onClicked: appRow.openAppMenu()
                                         }
                                     }
 

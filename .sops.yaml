@@ -1,6 +1,6 @@
 # Who can decrypt each secrets file. A host decrypts with its age key
 # (/var/lib/sops-nix/key.txt, made with age-keygen); you edit with GPG.
-# After changing recipients: sops updatekeys ~/.local/share/dots/secrets/nixos.yaml
+# After changing recipients: sops updatekeys secrets/nixos.yaml
 keys:
   - &ziad 281FA28A760126CAA5078FA029E4FB9FCDA8C97F # GPG, the pass key
   - &nixos age13ftcd0hgy8g82387ukezd6jgxwdrpu2uwkqu7ke7dd5l3fuhrsssje74rv

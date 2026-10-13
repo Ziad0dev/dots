@@ -51,7 +51,7 @@ These open a floating terminal (`$DOTS_TERMINAL`, default ghostty) with window c
 
 | Command | Opens |
 |---|---|
-| `dots-update` | `nh os switch --impure` in `~/dots`, waits for Enter |
+| `dots-update` | `nh os switch` in `~/dots`, waits for Enter |
 | `dots-launch-wifi` | impala |
 | `dots-launch-bluetooth` | bluetui |
 | `dots-launch-audio` | wiremix |
@@ -114,7 +114,7 @@ These open a floating terminal (`$DOTS_TERMINAL`, default ghostty) with window c
 
 | Abbrev | Expands to |
 |---|---|
-| `update` | `nh os switch --impure` (desktop) · `nh darwin switch` (mac) · `nh home switch` (minimal) |
+| `update` | `nh os switch` (desktop) · `nh darwin switch` (mac) · `nh home switch` (minimal) |
 | `upall` | the above + `-u` |
 | `flakeup` | `nix flake update --flake <repoPath>` |
 | `g` `gst` `gco` `gp` `gl` | git, status, checkout, push, pull |

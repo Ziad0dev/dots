@@ -7,8 +7,7 @@ __pycache__/
 .direnv/
 config/broot/launcher/
 iso-test/
-# SOPS files and private keys are kept locally, outside this public repo.
-secrets/
-
-# Legacy VM test key; keep it out of Git.
-hosts/vm/test-age-key.txt
+# Encrypted SOPS files are tracked (the pre-commit hook refuses plaintext);
+# anything else under secrets/ stays local.
+secrets/*
+!secrets/nixos.yaml

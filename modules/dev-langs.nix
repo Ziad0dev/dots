@@ -7,7 +7,8 @@
 
 {
   environment.systemPackages = with pkgs; [
-    # Zig and ZLS are deferred until the pinned versions build together.
+    zigpkgs."0.16.0"
+    inputs.zls.packages.${system}.zls
 
     nixd
     lua-language-server
