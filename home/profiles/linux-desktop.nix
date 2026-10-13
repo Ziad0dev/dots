@@ -1,5 +1,6 @@
 {
   config,
+  lib,
   pkgs,
   inputs,
   username,
@@ -101,6 +102,21 @@ in
   };
 
   services.ssh-agent.enable = true;
+
+  # Calibre keeps its library path in a file it rewrites itself, so seed it
+  # only when unset instead of managing the file.
+  home.activation.calibreLibrary = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    if [[ ! -v DRY_RUN ]]; then
+      f="$HOME/.config/calibre/global.py.json"
+      mkdir -p "$(dirname "$f")"
+      [ -s "$f" ] || echo '{}' > "$f"
+      if ${lib.getExe pkgs.jq} '.library_path //= "/mnt/media/books"' "$f" > "$f.tmp"; then
+        mv "$f.tmp" "$f"
+      else
+        rm -f "$f.tmp"
+      fi
+    fi
+  '';
 
   home.file = {
     ".config/hypr".source = link "hypr";

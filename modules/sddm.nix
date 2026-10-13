@@ -52,7 +52,7 @@ let
         ${lib.optionalString cfg.wallpaper ''
           for f in ${themeDir}/wallpaper.*; do
             [ -f "$f" ] || continue
-            magick "$f" -resize 2560x -blur 0x18 -modulate 45 "$dir/wallpaper.jpg"
+            magick "$f[0]" -resize 2560x -blur 0x18 -modulate 45 "$dir/wallpaper.jpg"
             echo "wallpaper=wallpaper.jpg" >>"$dir/theme.conf"
             break
           done

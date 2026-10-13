@@ -19,7 +19,7 @@ ln -sfn "$img" "$state/wallpaper"
 greeter=/var/lib/dots-theme
 if [ -w "$greeter" ]; then
     (
-        magick "$img" -resize 2560x -blur 0x18 -modulate 45 -quality 90 "$greeter/wallpaper.jpg.tmp" &&
+        magick "${img}[0]" -resize 2560x -blur 0x18 -modulate 45 -quality 90 "$greeter/wallpaper.jpg.tmp" &&
             mv -f "$greeter/wallpaper.jpg.tmp" "$greeter/wallpaper.jpg" &&
             if [ -f "$greeter/sddm.json" ]; then
                 jq '.wallpaper = "file:///var/lib/dots-theme/wallpaper.jpg"' "$greeter/sddm.json" >"$greeter/sddm.json.tmp" &&

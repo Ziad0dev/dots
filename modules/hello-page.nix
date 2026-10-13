@@ -74,6 +74,30 @@ in
     };
   };
 
+  # daily sqlite snapshot of the notes into ${dir}/backups (keeps the last 14)
+  systemd.timers.hello-page-backup = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnCalendar = "daily";
+      Persistent = true;
+    };
+  };
+  systemd.services.hello-page-backup = {
+    description = "snapshot the page's notes";
+    unitConfig.ConditionPathExists = "${dir}/tools/backup.sh";
+    path = with pkgs; [
+      sqlite
+      coreutils
+      findutils
+    ];
+    serviceConfig = hardening // {
+      Type = "oneshot";
+      User = user;
+      Group = "users";
+      ExecStart = "${pkgs.bash}/bin/bash ${dir}/tools/backup.sh";
+    };
+  };
+
   systemd.targets = {
     sleep.enable = false;
     suspend.enable = false;
