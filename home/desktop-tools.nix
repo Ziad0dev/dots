@@ -31,6 +31,21 @@ let
     ]
   );
 
+  appearance = script "dots-appearance" (
+    with pkgs;
+    [
+      coreutils
+      dconf
+      findutils
+      fontconfig
+      gawk
+      gnugrep
+      gnused
+      jq
+      procps
+    ]
+  );
+
   songrec = script "dots-songrec" (
     with pkgs;
     [
@@ -183,6 +198,7 @@ in
   config = {
     home.packages = [
       look
+      appearance
       songrec
       lens
       shot
@@ -196,6 +212,16 @@ in
       pkgs.songrec
     ]
     ++ lib.optional config.dots.tts.enable say;
+
+    # qt5ct/qt6ct.conf and fontconfig come from dots-appearance, and
+    # home-manager's own dconf values (gtk, pointerCursor) would otherwise
+    # undo your icon/cursor/font choices on every switch
+    home.activation.dotsAppearance = lib.hm.dag.entryAfter [ "linkGeneration" "dconfSettings" ] ''
+      if [[ ! -v DRY_RUN ]]; then
+        export DBUS_SESSION_BUS_ADDRESS="''${DBUS_SESSION_BUS_ADDRESS:-unix:path=/run/user/$(id -u)/bus}"
+        ${appearance}/bin/dots-appearance apply --quiet || true
+      fi
+    '';
 
     systemd.user.services.dots-usb-sound = {
       Unit = {

@@ -300,7 +300,7 @@ Item {
                                                 anchors.verticalCenter: parent.verticalCenter
                                                 width: Math.max(0, parent.width - rowTitle.width - 8)
                                                 text: row.bind.generated ? "a loop, " + row.modelData.group.length + " binds" : list.detailOf(row.bind)
-                                                font.family: row.bind.generated ? Services.DesktopTheme.font || Qt.application.font.family : "JetBrainsMono Nerd Font"
+                                                font.family: row.bind.generated ? Services.DesktopTheme.font || Qt.application.font.family : LockTheme.mono
                                                 font.pixelSize: 11
                                                 color: Colors.on_surface_variant
                                                 opacity: 0.75

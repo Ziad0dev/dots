@@ -268,7 +268,14 @@ in
   };
 
   systemd.user.services.quickshell = {
-    Unit.PartOf = [ "hyprland-session.target" ];
+    Unit = {
+      PartOf = [ "hyprland-session.target" ];
+      # quickshell is the tray's StatusNotifierWatcher: a restart on every
+      # switch drops apps that only register at startup (Discord/Electron).
+      # The QML live-reloads from ~/dots; after a package/env change run
+      # `systemctl --user restart quickshell` by hand.
+      X-RestartIfChanged = false;
+    };
     Service = {
       Environment = [
         "PATH=${risePath}:${dotsShims}/bin:/etc/profiles/per-user/${config.home.username}/bin:${homeDir}/.nix-profile/bin:/run/wrappers/bin:/run/current-system/sw/bin"

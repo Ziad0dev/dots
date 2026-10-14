@@ -29,6 +29,7 @@ in
     ../obsidian.nix
     ../cleanup.nix
     ../soulseek.nix
+    ../reversing.nix
     ../upstream-watch.nix
     ../desktop-tools.nix
     ../flatpak.nix
@@ -105,6 +106,14 @@ in
 
   # Calibre keeps its library path in a file it rewrites itself, so seed it
   # only when unset instead of managing the file.
+  # a new Zen profile starts without the dots chrome CSS; link it on every
+  # switch (idempotent, and a missing profile is not an error here)
+  home.activation.zenTheme = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+    if [[ ! -v DRY_RUN ]]; then
+      ${pkgs.bash}/bin/bash ${config.home.homeDirectory}/.config/zen-theme/zen-theme-link.sh >/dev/null 2>&1 || true
+    fi
+  '';
+
   home.activation.calibreLibrary = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     if [[ ! -v DRY_RUN ]]; then
       f="$HOME/.config/calibre/global.py.json"
@@ -266,6 +275,12 @@ in
     enable = true;
     storePath = "${config.home.homeDirectory}/.password-store";
   };
+  # keygrips pam-gnupg unlocks at login (modules/secrets.nix): the key behind
+  # ~/.password-store, signing + encryption subkey (gpg -K --with-keygrip)
+  xdg.configFile."pam-gnupg".text = ''
+    7BFB01517BE646B32D48809CF89185090C0758FF
+    48756139F39069A57E5F22BA9B1B35A89B46B7B9
+  '';
   services.udiskie = {
     enable = true;
     automount = true;

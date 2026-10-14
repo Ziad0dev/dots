@@ -46,11 +46,21 @@ in
         enable = true;
         pinentryPackage = pkgs.pinentry-qt;
         settings = {
-          default-cache-ttl = 28800;
-          max-cache-ttl = 86400;
+          # the login password unlocks the key for the whole session
+          # (pam-gnupg below); short TTLs would bring the prompt back mid-day
+          default-cache-ttl = 34560000;
+          max-cache-ttl = 34560000;
           no-allow-external-cache = "";
         };
       };
+
+      # pam-gnupg: logging in through SDDM (and unlocking the lock screen) hands the
+      # password to gpg-agent for the keygrips in ~/.config/pam-gnupg, so the
+      # GPG key behind pass/pass-secret-service never asks separately. Needs
+      # the GPG passphrase to equal the login password.
+      # sddm's PAM stack is just `include login`, so hook login itself
+      security.pam.services.login.gnupg.enable = true;
+      security.pam.services.quickshell-lock.gnupg.enable = true;
     }
 
     (lib.mkIf cfg.enable {

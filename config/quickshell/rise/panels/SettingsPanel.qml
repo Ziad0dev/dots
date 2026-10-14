@@ -54,7 +54,7 @@ PanelWindow {
                 e("launcherLogoIcon", "Icon", "", o(root.launcherLogoIconOptions))
             ] },
             { title: "System tray", rows: [
-                b("trayRecolour", "Tint tray icons", "Use the bar accent for monochrome tray icons; turn off to keep app colours"),
+                b("trayRecolour", "Tint tray icons", "Use the bar accent for monochrome (symbolic) tray icons; colour icons keep their own colours"),
                 b("trayCompact", "Compact tray", "Use smaller icons and tighter spacing"),
                 b("trayBackground", "Tray background", "Draw a separate rounded surface behind tray icons")
             ] },

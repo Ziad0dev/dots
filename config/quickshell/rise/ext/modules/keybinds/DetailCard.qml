@@ -188,7 +188,7 @@ Card {
                     anchors.fill: parent
                     anchors.margins: 8
                     text: card.codeOf(card.bind)
-                    font.family: "JetBrainsMono Nerd Font"
+                    font.family: LockTheme.mono
                     font.pixelSize: 11
                     color: Colors.on_surface
                     wrapMode: Text.WrapAnywhere

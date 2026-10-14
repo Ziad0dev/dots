@@ -2,6 +2,7 @@ pragma Singleton
 // Ported from dhrruvsharma/shell (quickshell/modules/lock/LockTheme.qml), GPL-3.0-or-later.
 import QtQuick
 import Quickshell
+import Quickshell.Io
 import qs.ext.colors
 
 // Palette and type for the lock screen HUD. The HUD always sits on a darkened
@@ -12,7 +13,10 @@ Singleton {
     id: root
 
     readonly property string display: "Orbitron"
-    readonly property string mono: "JetBrainsMono Nerd Font"
+    // the desktop's monospace choice (dots-appearance set mono …), live;
+    // fallback stays a Nerd Font for the icon glyphs
+    readonly property string mono: _appearanceMono !== "" ? _appearanceMono : "JetBrainsMono Nerd Font"
+    property string _appearanceMono: ""
     readonly property string icons: "Material Symbols Rounded"
 
     readonly property bool dark: Qt.color(Colors.background).hslLightness < 0.5
@@ -38,5 +42,19 @@ Singleton {
     function seg(p, from, to) {
         const x = Math.max(0, Math.min(1, (p - from) / (to - from)));
         return 1 - Math.pow(1 - x, 3);
+    }
+
+    FileView {
+        id: appearanceChoiceFile
+        path: Quickshell.env("HOME") + "/.local/state/dots/appearance/choice.json"
+        watchChanges: true
+        printErrors: false
+        onFileChanged: appearanceChoiceFile.reload()
+        onLoaded: {
+            var c = {}
+            try { c = JSON.parse(appearanceChoiceFile.text() || "{}") } catch (e) {}
+            root._appearanceMono = (c && typeof c.mono === "string") ? c.mono : ""
+        }
+        onLoadFailed: root._appearanceMono = ""
     }
 }

@@ -950,7 +950,7 @@ Item {
                 height: 48
                 radius: Services.DesktopTheme.rad(14)
                 font.pixelSize: 14
-                font.family: "JetBrainsMono Nerd Font"
+                font.family: LockTheme.mono
                 leftPadding: 14
                 backgroundColor: Colors.surface_container
                 focusBorderColor: Services.DesktopTheme.accent

@@ -289,7 +289,7 @@ Item {
                         anchors.verticalCenter: parent.verticalCenter
                         visible: !!chip.spec
                         text: chip.spec ? String(chip.spec.fill).toUpperCase() : ""
-                        font.family: "JetBrainsMono Nerd Font"
+                        font.family: LockTheme.mono
                         font.pixelSize: 9.5 * card.u
                         font.weight: Font.Medium
                         color: card.inkOn(chip.color)

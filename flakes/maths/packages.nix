@@ -1,19 +1,7 @@
 { lib, pkgs }:
-let
+(import ../lib/toolkit.nix).mkPackages {
+  inherit lib pkgs;
   names = import ./names.nix;
-
-  try =
-    e:
-    let
-      r = builtins.tryEval e;
-    in
-    if r.success then r.value else null;
-  lookup = n: try (lib.attrByPath (lib.splitString "." n) null pkgs);
-  usable = p: p != null && lib.defaultTo false (try (p.meta.available or true));
-
-  resolve = ns: lib.filter usable (map lookup ns);
-  gone = ns: lib.filter (n: !(usable (lookup n))) ns;
-
   extra = {
     python = [
       (pkgs.python3.withPackages (
@@ -29,9 +17,4 @@ let
       ))
     ];
   };
-in
-{
-  inherit names;
-  sets = lib.mapAttrs (n: ns: resolve ns ++ (extra.${n} or [ ])) names;
-  missing = lib.mapAttrs (_: gone) names;
 }

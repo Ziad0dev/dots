@@ -40,18 +40,18 @@ PanelWindow {
         height: hover ? popClip.height + gap : trayPanel.height
     }
 
-    // auto-close when there are no hidden (unpinned) items left to show
+    // the overflow: apps hidden from the bar (trayHiddenIcons); auto-closes
+    // once the last one is unhidden
     readonly property int hiddenCount: {
         var n = 0, vals = SystemTray.items.values
         for (var i = 0; i < vals.length; i++)
-            if (!root.trayIsSuppressed(vals[i]) && root.trayPinned.indexOf(vals[i].id) < 0) n++
+            if (root.trayIsSuppressed(vals[i])) n++
         return n
     }
     readonly property int attentionCount: {
         var n = 0, vals = SystemTray.items.values
         for (var i = 0; i < vals.length; i++)
-            if (!root.trayIsSuppressed(vals[i]) && root.trayPinned.indexOf(vals[i].id) < 0
-                    && vals[i].status === Status.NeedsAttention) n++
+            if (root.trayIsSuppressed(vals[i]) && vals[i].status === Status.NeedsAttention) n++
         return n
     }
     onHiddenCountChanged: if (root.trayVisible && hiddenCount === 0) root.trayVisible = false
@@ -173,16 +173,17 @@ PanelWindow {
                                     readonly property string statusDescription: needsAttention
                                         ? "\u26a0 " + (appDescription !== "" ? appDescription : "Needs attention")
                                         : appDescription
-                                    readonly property int cellWidth: 96
+                                    readonly property int cellWidth: 140
+                    readonly property int btnWidth: 64
 
                                     width: trayRows.width
                                     height: visible ? 28 : 0
-                                    visible: !root.trayIsSuppressed(modelData)
-                                        && root.trayPinned.indexOf(modelData.id) < 0
+                                    visible: root.trayIsSuppressed(modelData)
 
+                                    // by click: the menu replaces this panel in the shared popout
                                     function openAppMenu() {
                                         if (!modelData.hasMenu) return
-                                        root.openTrayMenu(modelData.menu, appName, modelData, appButton)
+                                        root.openTrayMenu(modelData.menu, appName, modelData, appButton, true)
                                     }
 
                                     function activateApp() {
@@ -246,14 +247,8 @@ PanelWindow {
                                             anchors.fill: parent
                                             hoverEnabled: true
                                             cursorShape: Qt.PointingHandCursor
-                                            onEntered: {
-                                                appTip.show()
-                                                appRow.openAppMenu()
-                                            }
-                                            onExited: {
-                                                appTip.hide()
-                                                if (appRow.modelData.hasMenu) root.popout.hoverLeave()
-                                            }
+                                            onEntered: appTip.show()
+                                            onExited: appTip.hide()
                                             onClicked: {
                                                 appTip.hide()
                                                 if (appRow.modelData.onlyMenu && appRow.modelData.hasMenu)
@@ -265,32 +260,64 @@ PanelWindow {
                                     }
 
                                     Rectangle {
-                                        id: pinButton
+                                        id: menuButton
                                         anchors.left: appButton.right
                                         anchors.leftMargin: 8
                                         anchors.verticalCenter: parent.verticalCenter
-                                        width: appRow.cellWidth
+                                        width: appRow.btnWidth
                                         height: 28
                                         radius: root.tileRadius
-                                        color: pinMa.containsMouse ? root.fillHover : root.fillIdle
-                                        border.color: pinMa.containsMouse ? root.seal : root.sep
+                                        visible: appRow.modelData.hasMenu
+                                        color: menuMa.containsMouse ? root.fillHover : root.fillIdle
+                                        border.color: menuMa.containsMouse ? root.seal : root.sep
                                         border.width: 1
                                         Behavior on color { CAnim { ms: 120 } }
 
                                         UiText {
                                             anchors.centerIn: parent
-                                            text: "Pin"
-                                            color: pinMa.containsMouse ? root.seal : root.ink
+                                            text: "Menu"
+                                            color: menuMa.containsMouse ? root.seal : root.ink
                                             font.family: root.mono
                                             font.pixelSize: 11
                                         }
 
                                         MouseArea {
-                                            id: pinMa
+                                            id: menuMa
                                             anchors.fill: parent
                                             hoverEnabled: true
                                             cursorShape: Qt.PointingHandCursor
-                                            onClicked: root.trayToggleHide(appRow.modelData)
+                                            onClicked: appRow.openAppMenu()
+                                        }
+                                    }
+
+                                    Rectangle {
+                                        id: unhideButton
+                                        anchors.left: (menuButton.visible ? menuButton : appButton).right
+                                        anchors.leftMargin: 8
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        width: appRow.btnWidth
+                                        height: 28
+                                        radius: root.tileRadius
+                                        visible: true
+                                        color: unhideMa.containsMouse ? root.fillHover : root.fillIdle
+                                        border.color: unhideMa.containsMouse ? root.seal : root.sep
+                                        border.width: 1
+                                        Behavior on color { CAnim { ms: 120 } }
+
+                                        UiText {
+                                            anchors.centerIn: parent
+                                            text: "Unhide"
+                                            color: unhideMa.containsMouse ? root.seal : root.ink
+                                            font.family: root.mono
+                                            font.pixelSize: 11
+                                        }
+
+                                        MouseArea {
+                                            id: unhideMa
+                                            anchors.fill: parent
+                                            hoverEnabled: true
+                                            cursorShape: Qt.PointingHandCursor
+                                            onClicked: root.trayToggleHidden(appRow.modelData)
                                         }
                                     }
 

@@ -48,6 +48,8 @@ in
 
     config = {
       frameless = true;
+      # translucent window for the themectl quickCss (Hyprland blurs behind it)
+      transparent = true;
       useQuickCss = true;
       plugins = {
         anonymiseFileNames.enable = true;

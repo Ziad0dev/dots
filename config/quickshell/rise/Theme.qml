@@ -125,7 +125,23 @@ ThemeAiUsage {
         return _contrastRatio(fill, paper) >= _contrastRatio(fill, ink) ? paper : ink
     }
 
-    readonly property string mono:  "JetBrainsMono Nerd Font"
+    // the desktop's monospace choice (dots-appearance set mono …), live;
+    // keep the fallback a Nerd Font: the bar's icons are its glyphs
+    readonly property string mono: _appearanceMono !== "" ? _appearanceMono : "JetBrainsMono Nerd Font"
+    property string _appearanceMono: ""
+    FileView {
+        id: appearanceChoiceFile
+        path: Quickshell.env("HOME") + "/.local/state/dots/appearance/choice.json"
+        watchChanges: true
+        printErrors: false
+        onFileChanged: appearanceChoiceFile.reload()
+        onLoaded: {
+            var c = {}
+            try { c = JSON.parse(appearanceChoiceFile.text() || "{}") } catch (e) {}
+            theme._appearanceMono = (c && typeof c.mono === "string") ? c.mono : ""
+        }
+        onLoadFailed: theme._appearanceMono = ""
+    }
     // grimoire type (assets/fonts, OFL): Grenze Gotisch blackletter for
     // headings and the clock (root.gothic), Cormorant Garamond for the
     // dashboard's prose (dash/DText) and Noto Sans Runic for the rune
@@ -2077,7 +2093,6 @@ ThemeAiUsage {
     // ── Tray state ──
     property bool trayVisible: false
     onTrayVisibleChanged: popupOpened("trayVisible")
-    property var trayPinned: []
     property real trayBarX: 10
 
     // ── slot-aware panel X anchors (center-X of each group; set by BarSlot) ──
@@ -2139,17 +2154,32 @@ ThemeAiUsage {
         return ""
     }
 
-    function openTrayMenu(handle, title, item, anchor) {
+    // hover: opens only with hover popouts on; click (pinned): always, and a
+    // second click on the same app closes it
+    function openTrayMenu(handle, title, item, anchor, pinned) {
         if (!handle) return
+        if (pinned && trayMenuVisible && !popout.hoverMode && trayMenuItem === item) {
+            trayMenuVisible = false
+            return
+        }
         trayMenuHandle = handle
         trayMenuTitle = String(title || "App Menu")
         trayMenuItem = item || null
-        if (anchor) popout.hoverOpen("trayMenuVisible", anchor, true)
-        else trayMenuVisible = true
-    }
-
-    function trayIsHidden(item) {
-        return trayPinned.indexOf(item.id) < 0
+        if (!pinned) {
+            // like caelestia: with a tray menu already up (hovered or pinned),
+            // hovering another tray app moves the menu over to that app
+            if (trayMenuVisible && popout.current === "trayMenuVisible") {
+                // hoverOpen also cancels the close timer the last icon's exit started
+                if (popout.hoverMode) popout.hoverOpen("trayMenuVisible", anchor, true)
+                else if (anchor) popout.noteItem("trayMenuVisible", anchor)
+                return
+            }
+            if (anchor) popout.hoverOpen("trayMenuVisible", anchor)
+            return
+        }
+        if (anchor) popout.noteItem("trayMenuVisible", anchor)
+        popout.hoverMode = false
+        trayMenuVisible = true
     }
 
     function trayIsSuppressed(item) {
@@ -2170,19 +2200,13 @@ ThemeAiUsage {
         return null
     }
 
-    // toggle: hidden items get pinned (shown in bar); pinned items get unpinned (back to panel)
-    function trayToggleHide(item) {
-        var key = item.id
-        if (!key) return
-        var i = trayPinned.indexOf(key)
-        if (i >= 0) {
-            var a = trayPinned.slice(0, i)
-            var b = trayPinned.slice(i + 1)
-            trayPinned = a.concat(b)
-            trayVisible = false
-        } else {
-            trayPinned = trayPinned.concat([key])
-        }
+    // hide an app's icon from the bar (into the overflow panel), or bring it back
+    function trayToggleHidden(item) {
+        var id = String(item && item.id || "")
+        if (id === "") return
+        var lower = id.toLowerCase()
+        var next = trayHiddenIcons.filter(function (h) { return String(h).toLowerCase() !== lower })
+        trayHiddenIcons = next.length === trayHiddenIcons.length ? trayHiddenIcons.concat([id]) : next
     }
 
     Process {

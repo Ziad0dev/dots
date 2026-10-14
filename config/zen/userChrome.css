@@ -23,7 +23,10 @@
   --zen-colors-tertiary: var(--oxo-base02) !important;
   --zen-colors-border: var(--oxo-base02) !important;
 
-  --toolbar-bgcolor: var(--oxo-base00) !important;
+  /* translucent chrome (zen.widget.linux.transparency, set by
+     zen-theme-link.sh) so Hyprland's blur shows through, 85% like ghostty */
+  --zen-main-browser-background: color-mix(in srgb, var(--oxo-base00) 85%, transparent) !important;
+  --toolbar-bgcolor: color-mix(in srgb, var(--oxo-base00) 85%, transparent) !important;
   --toolbar-color: var(--oxo-base05) !important;
   --lwt-accent-color: var(--oxo-base00) !important;
   --lwt-text-color: var(--oxo-base05) !important;
@@ -68,8 +71,24 @@ menupopup, panel {
   --panel-background: var(--oxo-base01) !important;
   --panel-color: var(--oxo-base05) !important;
   --panel-border-color: var(--oxo-base02) !important;
+  /* what context menus actually read; unset they fall back to the GTK
+     theme's Menu/MenuText */
+  /* translucent so Hyprland's popup blur (decoration.blur.popups, alpha
+     above popups_ignorealpha 0.2) shows through, like rise's Frost panels */
+  --panel-background-color: color-mix(in srgb, var(--oxo-base01) 62%, transparent) !important;
+  --panel-text-color: var(--oxo-base05) !important;
+  --panel-separator-color: var(--oxo-base02) !important;
+  /* the shadow margin would get blurred too: a fuzzy halo around the menu */
+  --panel-box-shadow: none !important;
+  --panel-box-shadow-margin: 0px !important;
 }
-menuitem:hover, menu:hover { background-color: var(--oxo-base02) !important; }
+menuitem:hover, menu:hover,
+menuitem[_moz-menuactive]:not([disabled]),
+menu[_moz-menuactive]:not([disabled]) {
+  background-color: var(--oxo-base02) !important;
+  color: var(--oxo-base05) !important;
+}
+menuitem[disabled], menu[disabled] { color: var(--oxo-base03) !important; }
 
 findbar { background-color: var(--oxo-base01) !important;
           color: var(--oxo-base05) !important; }

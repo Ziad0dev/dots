@@ -190,12 +190,43 @@ sddm_compat() {
     ) >"$dir/sddm.json.tmp" && mv -f "$dir/sddm.json.tmp" "$dir/sddm.json"
 }
 kvantum_compat() {
-    local out dir
+    local out base full dir
     out="$STATE/kvantum.kvconfig"
     [ -f "$out" ] || return 0
+    base="${XDG_CONFIG_HOME:-$HOME/.config}/Kvantum/KvGlass/KvGlass.kvconfig"
+    [ -f "$base" ] || return 0
+    # A "KvGlass#" kvconfig replaces KvGlass's whole config (widget sections
+    # included), so merge the rendered sections/keys over the base one.
+    full="$STATE/kvantum-full.kvconfig"
+    awk '
+        FNR == NR {
+            if ($0 ~ /^\[.*\]$/) { sec = $0; if (!(sec in seen)) { seen[sec] = 1; order[++n] = sec } next }
+            if ($0 ~ /^[^#;][^=]*=/) { k = substr($0, 1, index($0, "=") - 1); ov[sec, k] = $0; keys[sec] = keys[sec] SUBSEP k }
+            next
+        }
+        function flush(   i, m, ks) {
+            if (cur == "" || !(cur in seen)) return
+            m = split(keys[cur], ks, SUBSEP)
+            for (i = 2; i <= m; i++) if (!((cur, ks[i]) in done)) print ov[cur, ks[i]]
+            emitted[cur] = 1
+        }
+        /^\[.*\]$/ { flush(); cur = $0; print; next }
+        /^[^#;][^=]*=/ {
+            k = substr($0, 1, index($0, "=") - 1)
+            if ((cur, k) in ov) { print ov[cur, k]; done[cur, k] = 1; next }
+        }
+        { print }
+        END {
+            flush()
+            for (i = 1; i <= n; i++) if (!(order[i] in emitted)) {
+                print ""; print order[i]; cur = order[i]; flush()
+            }
+        }
+    ' "$out" "$base" >"$full.tmp" && mv -f "$full.tmp" "$full" || return 0
     dir="${XDG_CONFIG_HOME:-$HOME/.config}/Kvantum/KvGlass#"
     mkdir -p "$dir"
-    relink "$out" "$dir/KvGlass#.kvconfig"
+    relink "$full" "$dir/KvGlass#.kvconfig"
+    relink "${base%.kvconfig}.svg" "$dir/KvGlass#.svg"
 }
 gtk_compat() {
     local out d
@@ -225,6 +256,50 @@ zen_compat() {
     done >"$out.tmp" && mv -f "$out.tmp" "$out"
 }
 
+# VSCodium: a local extension holding the rendered theme. Its theme file
+# links into $STATE, so a theme switch reaches it on the next window reload.
+vscode_compat() {
+    local out="$STATE/vscode-theme.json" ext bg ui type settings tmp
+    [ -f "$out" ] || return 0
+    command -v codium >/dev/null 2>&1 || [ -d "$HOME/.vscode-oss" ] || return 0
+
+    # light themes need VS Code's light base, or unthemed bits stay dark
+    bg=$(sed -n 's/^  *"editor.background": "#\([0-9a-fA-F]\{6\}\)".*/\1/p' "$out" | head -n1)
+    ui=vs-dark type=dark
+    if [ -n "$bg" ] && (( (16#${bg:0:2} * 299 + 16#${bg:2:2} * 587 + 16#${bg:4:2} * 114) / 1000 > 140 )); then
+        ui=vs type=light
+    fi
+    sed -i "s/^  \"type\": \"[a-z]*\"/  \"type\": \"$type\"/" "$out"
+
+    ext="$HOME/.vscode-oss/extensions/dots.dots-theme-1.0.0"
+    mkdir -p "$ext/themes"
+    cat >"$ext/package.json" <<JSON
+{
+  "name": "dots-theme",
+  "displayName": "Dots",
+  "publisher": "dots",
+  "version": "1.0.0",
+  "engines": { "vscode": "^1.60.0" },
+  "categories": ["Themes"],
+  "contributes": {
+    "themes": [{ "label": "Dots", "uiTheme": "$ui", "path": "./themes/dots.json" }]
+  }
+}
+JSON
+    ln -sfn "$out" "$ext/themes/dots.json"
+
+    # pick it once; leave an explicit choice of another theme alone
+    settings="${XDG_CONFIG_HOME:-$HOME/.config}/VSCodium/User/settings.json"
+    command -v jq >/dev/null 2>&1 || return 0
+    mkdir -p "${settings%/*}"
+    [ -s "$settings" ] || printf '{}\n' >"$settings"
+    tmp="$settings.tmp"
+    if jq -e 'has("workbench.colorTheme") | not' "$settings" >/dev/null 2>&1; then
+        jq '. + {"workbench.colorTheme": "Dots"}' "$settings" >"$tmp" && mv -f "$tmp" "$settings"
+    fi
+    rm -f "$tmp"
+}
+
 gen_auto() {
     local wp="${1:-}" json
     if [ -z "$wp" ]; then
@@ -233,6 +308,9 @@ gen_auto() {
     if [ -z "$wp" ] || [ ! -f "$wp" ]; then
         die "auto: no wallpaper to sample"
     fi
+    # a video wallpaper: sample a grabbed frame of it
+    local still
+    still=$("${DOTS_SHELL_PATH:-$HOME/.config/quickshell/rise}/ext/scripts/wallpaper-still" "$wp" 2>/dev/null) && wp=$still
     json=$(matugen image "$wp" --json hex --dry-run --source-color-index 0 --mode dark 2>/dev/null) ||
         die "auto: matugen failed on $wp"
     mkdir -p "$AUTO"
@@ -340,6 +418,7 @@ write_theme() {
     gtk_compat
     vencord_compat
     zen_compat
+    vscode_compat
 }
 
 cmd_set() {
@@ -352,6 +431,10 @@ cmd_set() {
 
     write_theme "$name"
     reload_apps
+    # icons, cursor and fonts: the theme's look.conf under your own choices
+    if command -v dots-appearance >/dev/null 2>&1; then
+        dots-appearance apply --quiet || true
+    fi
 
     if wp=$(theme_wallpaper "$name"); then
         if command -v dots-set-wallpaper >/dev/null 2>&1; then

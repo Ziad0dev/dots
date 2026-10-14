@@ -25,3 +25,15 @@ highlight.text.color=${background}
 inactive.highlight.text.color=${background}
 link.color=${blue}
 link.visited.color=${magenta}
+
+[%General]
+# merged over KvGlass's own [%General] by themectl (kvantum_compat).
+# Translucent windows/menus; Hyprland does the blur, so Kvantum's own is off.
+translucent_windows=true
+reduce_window_opacity=15
+reduce_menu_opacity=38
+blurring=false
+popup_blurring=false
+# a shadow margin would be blurred as a box around menus/tooltips
+menu_shadow_depth=0
+tooltip_shadow_depth=0

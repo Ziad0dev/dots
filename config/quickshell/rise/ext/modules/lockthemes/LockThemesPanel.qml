@@ -8,7 +8,7 @@ import qs.ext.components
 import qs.ext.modules.lock
 import qs.ext.services as Services
 
-// Themes panel, two tabs.
+// Themes panel: Desktop, Widgets, Fonts & icons, Lock screen.
 //
 // Desktop: desktop themes (services/DesktopTheme.qml), a coordinated look for
 // the whole rice that still follows the wallpaper colours: pick one (or Off)
@@ -16,6 +16,9 @@ import qs.ext.services as Services
 // DesktopThemesTab.qml.
 //
 // Widgets: desktop widgets on/off and their arrangement (WidgetsTab.qml).
+//
+// Fonts & icons: icon theme, cursor and fonts for every app, following the
+// colour theme until you pick your own (FontsIconsTab.qml, dots-appearance).
 //
 // Lock screen: each card shows a live, scaled-down render of the theme itself.
 // Click a card to make it the lock screen; with Shuffle on, clicking adds or
@@ -26,7 +29,7 @@ import qs.ext.services as Services
 // Keys: Tab switches tabs, Esc closes. Lock screen tab: arrows move,
 // Enter/Space choose, P preview, S shuffle, L lock now. Desktop tab: ←→
 // ↑↓ choose, Enter use, W widgets. Widgets tab: ↑↓ choose, Enter toggle, R reset
-// positions.
+// positions. Fonts & icons tab: ←→ category.
 // `qs ipc call lockscreen toggle` (ALT+SHIFT+H), `qs ipc call themes desktop`.
 Item {
     id: root
@@ -67,7 +70,7 @@ Item {
             open();
     }
 
-    readonly property var tabs: ["desktop", "widgets", "lock"]
+    readonly property var tabs: ["desktop", "widgets", "look", "lock"]
 
     function openTab(which) {
         tab = tabs.includes(which) ? which : "lock";
@@ -153,6 +156,10 @@ Item {
                     const widgetsTab = widgetsLoader.item as WidgetsTab;
                     if (!widgetsTab || !widgetsTab.handleKey(event))
                         return;
+                } else if (root.tab === "look") {
+                    const lookTab = lookLoader.item as FontsIconsTab;
+                    if (!lookTab || !lookTab.handleKey(event))
+                        return;
                 } else if (event.key === Qt.Key_Right) {
                     root.cursor = (root.cursor + 1) % n;
                 } else if (event.key === Qt.Key_Left) {
@@ -208,7 +215,7 @@ Item {
 
                         Glyph {
                             anchors.centerIn: parent
-                            text: root.tab === "desktop" ? "desktop_windows" : root.tab === "widgets" ? "widgets" : "lock"
+                            text: root.tab === "desktop" ? "desktop_windows" : root.tab === "widgets" ? "widgets" : root.tab === "look" ? "format_shapes" : "lock"
                             filled: true
                             font.pixelSize: 24
                             color: Colors.on_primary_container
@@ -229,6 +236,7 @@ Item {
                             text: root.tab === "desktop"
                                 ? (Services.DesktopTheme.enabled ? Services.DesktopTheme.themeFor(Services.DesktopTheme.theme).name + " is on across the desktop" : "One look for the whole rice, in your wallpaper's colours")
                                 : root.tab === "widgets" ? "Clock, music, system monitor and more on your desktop, dressed by the theme"
+                                : root.tab === "look" ? "Icons, cursor and fonts for every app, matched to your colour theme"
                                 : root.shuffle ? "Shuffle: each lock picks one of the selected themes"
                                 : "Pick the design used when you lock"
                             font.pixelSize: 13
@@ -254,6 +262,7 @@ Item {
                             model: [
                                 { id: "desktop", label: "Desktop", icon: "desktop_windows" },
                                 { id: "widgets", label: "Widgets", icon: "widgets" },
+                                { id: "look", label: "Fonts & icons", icon: "format_shapes" },
                                 { id: "lock", label: "Lock screen", icon: "lock" }
                             ]
 
@@ -443,6 +452,16 @@ Item {
                 sourceComponent: WidgetsTab {}
             }
 
+            // ── Fonts & icons ─────────────────────────────────────────────────
+            Loader {
+                id: lookLoader
+                width: parent.width
+                height: gridLoader.height
+                visible: root.tab === "look"
+                active: root.visible && root.tab === "look"
+                sourceComponent: FontsIconsTab {}
+            }
+
             // ── Footer: progression shared by every theme ─────────────────────
             Item {
                 id: footer
@@ -502,7 +521,8 @@ Item {
                         anchors.rightMargin: 16
                         anchors.verticalCenter: parent.verticalCenter
                         text: root.tab === "lock" ? "←→ choose · Enter set · P preview · S shuffle · L lock · Tab desktop"
-                            : root.tab === "widgets" ? "↑↓ choose · Enter toggle · R reset · drag to move · Tab lock screens"
+                            : root.tab === "widgets" ? "↑↓ choose · Enter toggle · R reset · drag to move · Tab fonts & icons"
+                            : root.tab === "look" ? "←→ category · click to choose · Match theme hands it back · Tab lock screens"
                             : "←→↑↓ choose · Enter use · W widgets · Tab widgets · Esc close"
                         font.pixelSize: 12
                         color: Colors.on_surface_variant

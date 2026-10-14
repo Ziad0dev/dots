@@ -24,6 +24,15 @@ Item {
         return source
     }
 
+    // tint only icons that are meant to be one colour (symbolic/panel icons):
+    // tinting a full-colour icon flattens it into a blob
+    readonly property bool monochrome: symbol !== ""
+        || /symbolic|-panel|-tray|indicator|-mono/i.test(imageSource)
+    readonly property bool tinted: root.trayRecolour && monochrome
+    // no icon, or one the theme doesn't have: the app's initial instead of a gap
+    readonly property bool failed: symbol === ""
+        && (imageSource === "" || image.status === Image.Error)
+
     implicitWidth: size
     implicitHeight: size
 
@@ -34,7 +43,7 @@ Item {
         sourceSize: Qt.size(trayIcon.size * 2, trayIcon.size * 2)
         fillMode: Image.PreserveAspectFit
         smooth: true
-        visible: !trayIcon.root.trayRecolour
+        visible: !trayIcon.tinted && !trayIcon.failed
     }
 
     MultiEffect {
@@ -42,14 +51,24 @@ Item {
         source: image
         colorization: 1
         colorizationColor: trayIcon.root.seal
-        visible: trayIcon.root.trayRecolour && trayIcon.symbol === ""
+        visible: trayIcon.tinted && trayIcon.symbol === "" && !trayIcon.failed
+    }
+
+    UiText {
+        anchors.centerIn: parent
+        visible: trayIcon.failed
+        text: String(trayIcon.root.trayDisplayName(trayIcon.item) || "?").charAt(0).toUpperCase()
+        color: trayIcon.root.ink
+        font.family: trayIcon.root.mono
+        font.pixelSize: Math.round(trayIcon.size * 0.8)
+        font.weight: Font.Bold
     }
 
     IconText {
         anchors.fill: parent
         visible: trayIcon.symbol !== ""
         text: trayIcon.symbol
-        color: trayIcon.root.trayRecolour ? trayIcon.root.seal : trayIcon.root.ink
+        color: trayIcon.tinted ? trayIcon.root.seal : trayIcon.root.ink
         font.pixelSize: trayIcon.size
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter

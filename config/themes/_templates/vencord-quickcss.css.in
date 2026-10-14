@@ -2,8 +2,10 @@
 html,
 body,
 [class*="theme-"] {
-  --dots-l0: ${background};
-  --dots-l1: ${surface};
+  /* translucent (Vencord "transparent" window) so Hyprland's blur shows
+     through; 85% like ghostty, inner layers stack on it */
+  --dots-l0: ${background}d9;
+  --dots-l1: ${surface}b3;
   --dots-edge: color-mix(in srgb, ${foreground} 13%, ${background});
   --dots-frame: color-mix(in srgb, ${foreground} 22%, ${background});
   --dots-hover: ${accent}1a;
@@ -11,7 +13,11 @@ body,
   --dots-idle: #0000001f;
   --dots-weak: ${foreground}0d;
 
-  --font-code: "JetBrainsMono Nerd Font", monospace;
+  /* fontconfig's sans-serif/monospace, which dots-appearance sets */
+  --font-primary: sans-serif !important;
+  --font-display: sans-serif !important;
+  --font-headline: sans-serif !important;
+  --font-code: monospace;
 
   --radius-xs: 4px;
   --radius-sm: 6px;
@@ -263,9 +269,17 @@ body,
 
 [class*="modal_"],
 [class*="root_"][class*="fullscreenOnMobile"],
-[class*="menu_"],
 [class*="layerContainer"] > [class*="layer_"] > [class*="container_"] {
   background-color: var(--dots-l1) !important;
+  border: 1px solid var(--dots-frame) !important;
+  border-radius: var(--radius-sm) !important;
+}
+
+/* menus live inside Discord's window, so Hyprland can't blur them as
+   popups: blur what's behind them here instead (matches Zen/GTK at 62%) */
+[class*="menu_"] {
+  background-color: ${surface}9e !important;
+  backdrop-filter: blur(16px) saturate(1.2) !important;
   border: 1px solid var(--dots-frame) !important;
   border-radius: var(--radius-sm) !important;
 }
@@ -389,4 +403,14 @@ a[href="/quest-home"],
 button[aria-label*="gift" i],
 [role="button"][aria-label*="gift" i] {
   display: none !important;
+}
+
+/* let the transparent window show the desktop blur instead of a solid base */
+html,
+body,
+#app-mount,
+[class*="appMount_"],
+[class*="app_"],
+[class*="bg_"] {
+  background: transparent !important;
 }

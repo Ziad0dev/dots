@@ -30,6 +30,11 @@ PanelWindow {
         function onTrayMenuVisibleChanged() {
             trayMenu.menuStack = root.trayMenuVisible && root.trayMenuHandle ? [root.trayMenuHandle] : []
         }
+        // another tray app took over the open menu: show its menu from the top
+        function onTrayMenuHandleChanged() {
+            if (root.trayMenuVisible && root.trayMenuHandle)
+                trayMenu.menuStack = [root.trayMenuHandle]
+        }
     }
 
     QsMenuOpener {

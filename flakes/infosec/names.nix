@@ -49,9 +49,11 @@
 
   binary = [
     "ghidra-bin"
+    "ida-free"
     "rizin"
     "cutter"
     "radare2"
+    "iaito"
     "gdb"
     "gef"
     "imhex"
@@ -70,7 +72,8 @@
 
   pwn = [
     "python3Packages.pwntools"
-    "python3Packages.angr"
+    # "python3Packages.angr": 9.2.193 fails on python3.14 (its Rust extension
+    # needs setuptools-rust, which the nixpkgs package lacks), 2026-10-14
     "python3Packages.ropgadget"
     "one_gadget"
     "checksec"

@@ -595,7 +595,7 @@ Card {
                             Field {
                                 id: commandField
                                 Layout.fillWidth: true
-                                font.family: "JetBrainsMono Nerd Font"
+                                font.family: LockTheme.mono
                                 font.pixelSize: 12
                                 placeholderText: "Command, e.g. ghostty -e btop"
                                 text: editor.preset === "exec" || editor.preset === "ipc" ? editor.param : ""
@@ -699,7 +699,7 @@ Card {
                                     Text {
                                         width: parent.width
                                         text: ipcRow.modelData.text
-                                        font.family: "JetBrainsMono Nerd Font"
+                                        font.family: LockTheme.mono
                                         font.pixelSize: 10
                                         color: Colors.on_surface_variant
                                         elide: Text.ElideRight
@@ -761,7 +761,7 @@ Card {
                         Field {
                             Layout.fillWidth: true
                             visible: editor.preset === "layout"
-                            font.family: "JetBrainsMono Nerd Font"
+                            font.family: LockTheme.mono
                             font.pixelSize: 12
                             placeholderText: "Layout message, e.g. togglesplit or colresize +0.1"
                             text: editor.preset === "layout" ? editor.param : ""
@@ -838,7 +838,7 @@ Card {
                             Layout.fillHeight: true
 
                             TextArea {
-                                font.family: "JetBrainsMono Nerd Font"
+                                font.family: LockTheme.mono
                                 font.pixelSize: 12
                                 color: Colors.on_surface
                                 placeholderText: "hl.dsp.window.swap({ direction = \"l\" })"
@@ -999,7 +999,7 @@ Card {
                         anchors.fill: parent
                         anchors.margins: 8
                         text: editor.preview
-                        font.family: "JetBrainsMono Nerd Font"
+                        font.family: LockTheme.mono
                         font.pixelSize: 11
                         color: Colors.on_surface
                         wrapMode: Text.WrapAnywhere
@@ -1230,7 +1230,7 @@ Card {
                         Text {
                             width: parent.width
                             text: appRow.modelData.exec
-                            font.family: "JetBrainsMono Nerd Font"
+                            font.family: LockTheme.mono
                             font.pixelSize: 10
                             color: Colors.on_surface_variant
                             elide: Text.ElideRight

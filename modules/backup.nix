@@ -18,6 +18,9 @@
       "/var/lib/jellyfin"
       "/var/lib/audiobookshelf"
       "/var/lib/calibre-web"
+      # Forgejo's daily `forgejo dump` (repos, db, config) rather than the
+      # live sqlite/repos, which could be mid-write
+      "/var/lib/forgejo/dump"
       # Secure Boot keys: losing them means clearing and re-enrolling in firmware
       "/var/lib/sbctl"
     ];

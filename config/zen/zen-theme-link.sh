@@ -10,7 +10,9 @@ roots=()
 if [[ -n "${ROOT:-}" ]]; then
   roots=("$ROOT")
 else
-  for c in "$HOME/.zen-beta" "$HOME/.zen" "$HOME/.zen-twilight" \
+  # newer Zen keeps profiles under XDG config; older ones in ~/.zen*
+  for c in "${XDG_CONFIG_HOME:-$HOME/.config}/zen" \
+           "$HOME/.zen-beta" "$HOME/.zen" "$HOME/.zen-twilight" \
            "$HOME/.var/app/io.github.zen_browser.zen/.zen" \
            "$HOME/.mozilla/zen"; do
     [[ -f "$c/profiles.ini" ]] && roots+=("$c")
@@ -24,7 +26,7 @@ fi
 
 if (( ${#roots[@]} == 0 )); then
   echo "!! No Zen profiles.ini found. Checked:"
-  echo "     ~/.zen-beta  ~/.zen  ~/.zen-twilight  flatpak  ~/.mozilla/zen"
+  echo "     ~/.config/zen  ~/.zen-beta  ~/.zen  ~/.zen-twilight  flatpak  ~/.mozilla/zen"
   echo "   Launch Zen once and quit it fully, then re-run."
   echo "   Or locate it yourself and pass it:"
   echo "     find \$HOME -maxdepth 5 -name profiles.ini"
@@ -52,6 +54,9 @@ for root in "${roots[@]}"; do
     touch "$prof/user.js"
     grep -q 'toolkit.legacyUserProfileCustomizations.stylesheets' "$prof/user.js" \
       || echo 'user_pref("toolkit.legacyUserProfileCustomizations.stylesheets", true);' >> "$prof/user.js"
+    # transparent window so Hyprland's blur shows through the chrome
+    grep -q 'zen.widget.linux.transparency' "$prof/user.js" \
+      || echo 'user_pref("zen.widget.linux.transparency", true);' >> "$prof/user.js"
 
     echo "   linked  $path"
     ((linked++))

@@ -72,14 +72,21 @@ Scope {
             color: "transparent"
             mask: Region {}
 
-            ScreencopyView {
-                id: view
-                width: grabber.modelData.width
-                height: grabber.modelData.height
-                captureSource: grabber.modelData
-                onHasContentChanged: {
-                    if (hasContent)
-                        Qt.callLater(() => view.grabToImage(result => cap._keep(grabber.modelData.name, result)));
+            // Only alive while capturing: a ScreencopyView left bound to a
+            // screen that goes away (monitor sleep/unplug while locked)
+            // segfaults Quickshell in IccOutputSourceManager::captureOutput.
+            Loader {
+                active: !cap.done
+
+                sourceComponent: ScreencopyView {
+                    id: view
+                    width: grabber.modelData.width
+                    height: grabber.modelData.height
+                    captureSource: grabber.modelData
+                    onHasContentChanged: {
+                        if (hasContent)
+                            Qt.callLater(() => view.grabToImage(result => cap._keep(grabber.modelData.name, result)));
+                    }
                 }
             }
         }

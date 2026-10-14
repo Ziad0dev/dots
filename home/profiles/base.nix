@@ -134,6 +134,10 @@ in
     programs.git = {
       enable = true;
       settings = {
+        user = {
+          name = "ziad0dev";
+          email = "66523061+Ziad0dev@users.noreply.github.com";
+        };
         init.defaultBranch = "main";
         pull.rebase = true;
         push.autoSetupRemote = true;

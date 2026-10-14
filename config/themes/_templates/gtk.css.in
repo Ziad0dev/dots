@@ -21,23 +21,26 @@
 @define-color link_color ${accent};
 @define-color visited_link_color ${magenta};
 
-@define-color window_bg_color ${background};
+/* libadwaita/adw-gtk3 surfaces are translucent so Hyprland's blur shows
+   through (window 0.85 like ghostty's background-opacity; inner layers stack
+   on it). theme_* above stay opaque: GTK3 legacy apps and Zen read those. */
+@define-color window_bg_color alpha(${background}, 0.85);
 @define-color window_fg_color ${foreground};
-@define-color view_bg_color ${background};
+@define-color view_bg_color alpha(${background}, 0.35);
 @define-color view_fg_color ${foreground};
-@define-color headerbar_bg_color ${surface};
+@define-color headerbar_bg_color alpha(${surface}, 0.6);
 @define-color headerbar_fg_color ${foreground};
 @define-color headerbar_border_color ${dim};
-@define-color headerbar_backdrop_color ${background};
-@define-color sidebar_bg_color ${surface};
+@define-color headerbar_backdrop_color alpha(${background}, 0.6);
+@define-color sidebar_bg_color alpha(${surface}, 0.5);
 @define-color sidebar_fg_color ${foreground};
-@define-color sidebar_backdrop_color ${background};
+@define-color sidebar_backdrop_color alpha(${background}, 0.5);
 @define-color sidebar_border_color ${dim};
-@define-color secondary_sidebar_bg_color ${surface};
+@define-color secondary_sidebar_bg_color alpha(${surface}, 0.5);
 @define-color secondary_sidebar_fg_color ${foreground};
-@define-color card_bg_color ${surface};
+@define-color card_bg_color alpha(${surface}, 0.5);
 @define-color card_fg_color ${foreground};
-@define-color dialog_bg_color ${surface};
+@define-color dialog_bg_color alpha(${surface}, 0.85);
 @define-color dialog_fg_color ${foreground};
 @define-color popover_bg_color ${surface};
 @define-color popover_fg_color ${foreground};
@@ -53,3 +56,26 @@
 @define-color warning_fg_color ${background};
 @define-color error_bg_color ${red};
 @define-color error_fg_color ${background};
+
+/* translucent menus so Hyprland's popup blur shows through (GTK4 popovers
+   like Ghostty's right-click menu, GTK3 menus); keep above blur
+   popups_ignorealpha 0.2 */
+popover.menu > contents,
+popover > contents,
+menu,
+.menu,
+.context-menu {
+  background-color: alpha(@popover_bg_color, 0.62);
+}
+/* the shadow sits in a transparent margin that is part of the popup
+   surface, so Hyprland blurred it as a box around the menu */
+popover > contents,
+menu,
+.menu,
+.context-menu {
+  box-shadow: none;
+  margin: 0;
+}
+popover > arrow {
+  background-color: alpha(@popover_bg_color, 0.62);
+}

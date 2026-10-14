@@ -485,6 +485,13 @@ Scope {
         }
         function lockscreen(): void { ext.themesPanel().openTab("lock"); }
         function widgets(): void { ext.themesPanel().openTab("widgets"); }
+        // icon theme, cursor and fonts (FontsIconsTab, dots-appearance)
+        function look(): void {
+            if (themes.item && themes.item.visible && themes.item.tab === "look")
+                themes.item.close();
+            else
+                ext.themesPanel().openTab("look");
+        }
     }
 
     IpcHandler {
@@ -528,7 +535,7 @@ Scope {
             if (which === "themed" || which === "classic")
                 Quickshell.execDetached(["sh", "-c", "printf '%s\\n' \"$1\" > \"${XDG_STATE_HOME:-$HOME/.local/state}/dots/shell/ext/lock-engine\"", "sh", which]);
         }
-        function currentEngine(): string { return lockEngine.text().trim() || "classic"; }
+        function currentEngine(): string { return lockEngine.text().trim() || "themed"; }
         function preview(theme: string): void { ext.load(themes).preview(theme); }
     }
 

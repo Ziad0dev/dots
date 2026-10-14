@@ -14,6 +14,13 @@ box=${3:-512x512}
 bw=${box%x*}
 bh=${box#*x}
 
+# video wallpapers: thumbnail a grabbed (cached) frame instead
+case ${src,,} in
+*.mp4 | *.webm | *.mkv | *.mov | *.m4v)
+    src=$("$(dirname "$0")/../ext/scripts/wallpaper-still" "$src") || exit 1
+    ;;
+esac
+
 if command -v vipsthumbnail >/dev/null 2>&1 && command -v vipsheader >/dev/null 2>&1; then
     w=$(vipsheader -f width "$src" 2>/dev/null || echo 0)
     h=$(vipsheader -f height "$src" 2>/dev/null || echo 0)

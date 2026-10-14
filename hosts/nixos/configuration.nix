@@ -77,6 +77,17 @@
     memoryPercent = 50;
 
   };
+  # The installer's 17G swap partition (nvme1n1p3), re-keyed randomly every
+  # boot: nothing to unlock, nothing survives a reboot. Rules out hibernate,
+  # which is off anyway. By PARTUUID because the LUKS UUID changes each boot.
+  # Sits between zram (100) and the swapfile (-2).
+  swapDevices = [
+    {
+      device = "/dev/disk/by-partuuid/58b2a087-4fbb-4521-adb5-91688fb1cc7c";
+      randomEncryption.enable = true;
+      priority = 10;
+    }
+  ];
   services.xserver.videoDrivers = [ "nvidia" ];
 
   hardware.graphics = {
