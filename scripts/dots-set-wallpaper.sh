@@ -1,6 +1,8 @@
-img="$1"
+img="${1:-}"
 [ -n "$img" ] || exit 1
 [ -f "$img" ] || exit 1
+# absolute: it ends up behind a symlink in the state dir
+img=$(realpath -- "$img")
 
 # rise draws the wallpaper itself (with the desktop theme's layer and its own
 # transition) when it's running and no wallpaper command is set in its picker;

@@ -1,6 +1,28 @@
 @import url("dots-palette.css");
 @import url("dots-sites.css");
 
+/* Zen Internet (the extension) injects its per-site styles as page CSS; these
+   user-level !important rules outrank them, so its theme variables take the
+   palette and its transparent sites carry the theme's text, links and
+   surfaces. Pages it doesn't style never read these variables. */
+:root, body {
+  --trans-theme-primary-text: var(--dots-on_background_csv) !important;
+  --trans-theme-primary-bg: var(--dots-background_csv) !important;
+  --trans-theme-secondary-bg: var(--dots-surface_container_csv) !important;
+  --trans-theme-solid-bg: var(--dots-surface_container_high_csv) !important;
+  --trans-theme-link-text: var(--dots-primary_csv) !important;
+  --trans-theme-red: var(--dots-error_csv) !important;
+}
+
+/* every page: text selection and form controls in the theme's accent */
+:root {
+  accent-color: var(--dots-primary) !important;
+}
+::selection {
+  background-color: var(--dots-primary) !important;
+  color: var(--dots-on_primary) !important;
+}
+
 @-moz-document url("about:blank"), url("about:newtab"), url("about:home") {
   :root, body { background: var(--dots-background) !important; }
 }

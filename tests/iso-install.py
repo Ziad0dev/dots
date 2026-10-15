@@ -106,7 +106,7 @@ def main():
     sh(p, "command -v dots-install && ls /etc/dots/hosts")
 
     step("dots-install vm")
-    p.sendline("sudo dots-install vm; echo __RC=$?__")
+    p.sendline("sudo DOTS_YES=1 dots-install vm; echo __RC=$?__")
     p.expect_exact("disk passphrase: ", timeout=60)
     p.sendline(DISK_PW)
     p.expect_exact("again: ", timeout=30)

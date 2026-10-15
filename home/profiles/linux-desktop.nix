@@ -87,7 +87,8 @@ in
     gtk4.extraConfig.gtk-application-prefer-dark-theme = 1;
   };
 
-  dconf.settings."org/gnome/desktop/interface".color-scheme = "prefer-dark";
+  # org/gnome/desktop/interface/color-scheme (light/dark) is themectl's: it
+  # follows the theme, and a value here would reset it on every switch
 
   xdg.desktopEntries.discord = {
     name = "Discord";
@@ -294,6 +295,10 @@ in
         }
         {
           id_uuid = "2A0B-58D1";
+          ignore = true;
+        }
+        {
+          id_uuid = "323cb5ac-cf65-4c5a-8276-f7eebe12cda9";
           ignore = true;
         }
       ];

@@ -161,7 +161,8 @@
           modules = [ ./hosts/vm ];
         };
 
-        # installer ISO with the vm host prebuilt: dots-install vm
+        # installer ISO: `dots-install vm` offline (prebuilt), `dots-install
+        # nixos` online (built from this flake into the new disk's store)
         installer = mk.nixos {
           inherit username;
           hostname = "dots-installer";
@@ -169,7 +170,10 @@
           home = false;
           modules = [
             ./hosts/installer
-            { dots.installer.hosts.vm = self.nixosConfigurations.vm; }
+            {
+              dots.installer.hosts.vm = self.nixosConfigurations.vm;
+              dots.installer.onlineHosts.nixos = self.nixosConfigurations.nixos;
+            }
           ];
         };
 
@@ -180,6 +184,7 @@
           profile = "desktop";
           modules = [
             ./hosts/nixos/hardware-configuration.nix
+            ./hosts/nixos/disk.nix
             ./hosts/nixos/configuration.nix
           ]
           ++ desktopModules

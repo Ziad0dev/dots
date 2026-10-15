@@ -1,8 +1,13 @@
-{ lib, pkgs, ... }:
+{
+  lib,
+  pkgs,
+  username,
+  ...
+}:
 
 let
-  dir = "/home/ziad0dev/the-page";
-  user = "ziad0dev";
+  dir = "/home/${username}/the-page";
+  user = username;
   port = 8137;
 
   hardening = import ../lib/hardening.nix // {
@@ -28,6 +33,8 @@ in
     wantedBy = [ "multi-user.target" ];
     after = [ "network-online.target" ];
     wants = [ "network-online.target" ];
+    # the app lives outside the repo; a fresh install doesn't have it yet
+    unitConfig.ConditionPathExists = "${dir}/app.py";
 
     environment = {
       PORT = toString port;

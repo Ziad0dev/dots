@@ -53,36 +53,30 @@ The passphrase keyslot stays as the fallback. A firmware update or a change to
 the Secure Boot settings changes PCR 7: you get the passphrase prompt, then
 re-enroll.
 
-1. **Confirm the root device.** On this host, the root container UUID is
-   `bd950db0-dc83-432a-bec6-0bc1a72bd76e` (currently `/dev/nvme1n1p2`; NVMe
-   device numbering can vary). The
-   separate encrypted swap container is `f04ed75f-34bc-4c92-b7db-379feff63a71`
-   (currently `/dev/nvme1n1p3`). Confirm these with `lsblk -f` before running
-   enrollment commands; use the stable UUID path below, not a guessed partition
-   number.
-2. **Initrd.** `dots.secureBoot.tpmUnlock` lists the
-   `boot.initrd.luks.devices` names. For this root, set it to
-   `[ "luks-bd950db0-dc83-432a-bec6-0bc1a72bd76e" ]` in
-   `hosts/nixos/configuration.nix`. Keep `dots.secureBoot.enable = true;` as
-   well, since the module requires Secure Boot for TPM unlock. Switch the
-   configuration and reboot; with no TPM keyslot yet, it should still ask for
-   the existing passphrase.
+1. **Find the root container.** `hosts/nixos/disk.nix` names it:
+   today's install is `/dev/disk/by-uuid/bd950db0-dc83-432a-bec6-0bc1a72bd76e`;
+   after a `dots-install` reinstall (`useDisko = true`) it is
+   `/dev/disk/by-partlabel/disk-main-root`. Use those stable paths: the kernel
+   names (`nvme0n1`/`nvme1n1`) swap between boots on this board, and the
+   other NVMe holds Windows. The swap partition next to it is re-keyed
+   randomly every boot and has nothing to enroll.
+2. **Initrd.** `dots.secureBoot.tpmUnlock` (set in `hosts/nixos/disk.nix`,
+   per layout) lists the `boot.initrd.luks.devices` names the initrd tries
+   the TPM for. It needs `dots.secureBoot.enable = true;`. With no TPM keyslot
+   yet, boot still asks for the passphrase.
 3. **Enroll.** After Secure Boot is enabled in firmware, enroll the TPM key on
-   the root container (not the encrypted swap container):
+   the root container (`$root` = the path from step 1):
    ```
-   sudo systemd-cryptenroll /dev/disk/by-uuid/bd950db0-dc83-432a-bec6-0bc1a72bd76e --tpm2-device=auto \
+   sudo systemd-cryptenroll "$root" --tpm2-device=auto \
      --tpm2-pcrs=7+15:sha256=0000000000000000000000000000000000000000000000000000000000000000
    ```
    Add `--tpm2-with-pin=yes` to still type a short PIN at boot; the TPM
    rate-limits guesses.
-4. **Reboot.** Root should unlock without a prompt. The encrypted swap mapping
-   partition is currently left untouched but is not configured as swap. The
-   host uses zram and a swapfile instead, so boot does not wait for that volume.
+4. **Reboot.** Root should unlock without a prompt.
 
-Re-enroll after a PCR 7 change:
-`sudo systemd-cryptenroll /dev/disk/by-uuid/bd950db0-dc83-432a-bec6-0bc1a72bd76e --wipe-slot=tpm2`
-followed by step 3's enrollment command. Verify the target UUID with `lsblk -f`
-before wiping or enrolling any slot.
+Re-enroll after a PCR 7 change, or after a reinstall (a new LUKS header has
+no TPM slot): `sudo systemd-cryptenroll "$root" --wipe-slot=tpm2`, then
+step 3. Check the path with `lsblk -f` before wiping or enrolling any slot.
 To drop it, wipe the slot and empty the list.
 
 ## Backing out

@@ -38,6 +38,17 @@ rec_alive() {
     kill -0 "$pid" 2>/dev/null
 }
 
+# pw-record finalises the WAV header on exit; wait for that (up to 3 s)
+# instead of guessing, or whisper reads a truncated file
+stop_pid() {
+    local i=0
+    kill "$1" 2>/dev/null || return 0
+    while kill -0 "$1" 2>/dev/null && [ "$i" -lt 60 ]; do
+        sleep 0.05
+        i=$((i + 1))
+    done
+}
+
 get_phase() {
     local p="idle"
     [ -s "$PHASE" ] && p=$(cat "$PHASE")
@@ -62,7 +73,7 @@ emit_text() {
 }
 
 start_rec() {
-    if rec_alive; then kill "$(cat "$PIDF")" 2>/dev/null; sleep 0.2; fi
+    if rec_alive; then stop_pid "$(cat "$PIDF")"; fi
     rm -f "$WAV"
     pw-record --rate 16000 --channels 1 --format s16 "$WAV" &
     echo $! >"$PIDF"
@@ -72,9 +83,8 @@ start_rec() {
 stop_rec() {
     local pid model bin text
     pid=$(cat "$PIDF" 2>/dev/null) || pid=""
-    [ -n "$pid" ] && kill "$pid" 2>/dev/null
+    if [ -n "$pid" ]; then stop_pid "$pid"; fi
     rm -f "$PIDF"
-    sleep 0.2
     set_phase transcribing
 
     model=$(current_model) || model=""

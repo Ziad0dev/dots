@@ -16,7 +16,18 @@ red green yellow blue magenta cyan pink"
 DERIVED_KEYS="dim muted surface accent_dim accent_container"
 
 # substituted verbatim (no _hex/_rgb variants)
-RAW_KEYS="border_colors"
+RAW_KEYS="border_colors scheme"
+
+# dark or light, from the background's perceived brightness
+scheme_of() {
+    local h="${1#\#}"
+    if [[ "$h" =~ ^[0-9a-fA-F]{6} ]] &&
+        (( (16#${h:0:2} * 299 + 16#${h:2:2} * 587 + 16#${h:4:2} * 114) / 1000 > 140 )); then
+        echo light
+    else
+        echo dark
+    fi
+}
 
 mix() {
     local a="${1#\#}" b="${2#\#}" w="$3" i ca cb r out="#"
@@ -88,7 +99,7 @@ render_all() {
     [ -z "$missing" ] || die "theme '$name' is missing palette keys:$missing"
 
     varlist=""
-    for k in $PALETTE_KEYS $DERIVED_KEYS; do varlist="$varlist\${$k}\${${k}_hex}\${${k}_rgb}"; done
+    for k in $PALETTE_KEYS $DERIVED_KEYS; do varlist="$varlist\${$k}\${${k}_hex}\${${k}_rgb}\${${k}_rgb_csv}"; done
     for k in $RAW_KEYS; do varlist="$varlist\${$k}"; done
 
     mkdir -p "$STATE"
@@ -125,7 +136,12 @@ render_all() {
                 else
                     printf -v "${k}_rgb" "%s" "0 0 0"
                 fi
+                # for rgba(var(--x), a), which wants commas
+                rgbvar="${k}_rgb"
+                printf -v "${k}_rgb_csv" "%s" "${!rgbvar// /, }"
             done
+            # shellcheck disable=SC2034
+            scheme=$(scheme_of "$background")
             set +a
             envsubst "$varlist" <"$t"
         ) >"$out.tmp" && mv -f "$out.tmp" "$out"
@@ -229,7 +245,14 @@ kvantum_compat() {
     relink "${base%.kvconfig}.svg" "$dir/KvGlass#.svg"
 }
 gtk_compat() {
-    local out d
+    local out d scheme
+    # the desktop's light/dark preference: Zen and Firefox (and so every site
+    # through prefers-color-scheme) follow it live through the portal, as do
+    # libadwaita apps
+    scheme=$(sed -n 's/^ *--dots-color-scheme: *\([a-z]*\);.*/\1/p' "$STATE/zen-palette.css" 2>/dev/null | head -n1)
+    if [ -n "$scheme" ] && command -v dconf >/dev/null 2>&1; then
+        dconf write /org/gnome/desktop/interface/color-scheme "'prefer-$scheme'" >/dev/null 2>&1 || true
+    fi
     out="$STATE/gtk.css"
     [ -f "$out" ] || return 0
     for d in "${XDG_CONFIG_HOME:-$HOME/.config}/gtk-3.0" "${XDG_CONFIG_HOME:-$HOME/.config}/gtk-4.0"; do
@@ -249,11 +272,24 @@ vencord_compat() {
     cp -f "$out" "$dst" || return 0
 }
 zen_compat() {
-    local sites="$DOTS/config/zen/sites" out="$STATE/zen-sites.css" f
+    local sites="$DOTS/config/zen/sites" out="$STATE/zen-sites.css" f docs
     [ -d "$sites" ] || return 0
-    for f in "$sites"/*.css; do
-        [ -f "$f" ] && cat "$f"
-    done >"$out.tmp" && mv -f "$out.tmp" "$out"
+    # Zen Internet makes a page's root transparent. A site style here paints
+    # the site's containers, which end after the first screen; past them the
+    # browser showed through. So every web page a site style covers gets the
+    # theme background on its root, which spans the whole scroll. First, so a
+    # site's own html rule still wins.
+    docs=$(grep -h -E '^[[:space:]]*@-moz-document' "$sites"/*.css |
+        grep -o -E 'domain\("[^"]+"\)|url-prefix\("https?://[^"]+"\)' |
+        sort -u | paste -sd, - | sed 's/,/, /g')
+    {
+        if [ -n "$docs" ]; then
+            printf '@-moz-document %s {\n  html { background-color: var(--dots-background) !important; }\n}\n\n' "$docs"
+        fi
+        for f in "$sites"/*.css; do
+            [ -f "$f" ] && cat "$f"
+        done
+    } >"$out.tmp" && mv -f "$out.tmp" "$out"
 }
 
 # VSCodium: a local extension holding the rendered theme. Its theme file
@@ -266,7 +302,7 @@ vscode_compat() {
     # light themes need VS Code's light base, or unthemed bits stay dark
     bg=$(sed -n 's/^  *"editor.background": "#\([0-9a-fA-F]\{6\}\)".*/\1/p' "$out" | head -n1)
     ui=vs-dark type=dark
-    if [ -n "$bg" ] && (( (16#${bg:0:2} * 299 + 16#${bg:2:2} * 587 + 16#${bg:4:2} * 114) / 1000 > 140 )); then
+    if [ -n "$bg" ] && [ "$(scheme_of "$bg")" = light ]; then
         ui=vs type=light
     fi
     sed -i "s/^  \"type\": \"[a-z]*\"/  \"type\": \"$type\"/" "$out"
@@ -344,9 +380,20 @@ gen_auto() {
     mv -f "$AUTO/colors.sh.tmp" "$AUTO/colors.sh"
 }
 
+# SIGUSR2 reloads ghostty's config, but kills one that hasn't installed its
+# handler yet (just launched, e.g. by autostart): skip the young ones
+reload_ghostty() {
+    local pid age comm
+    while read -r pid age comm; do
+        case "$comm" in
+            *ghostty*) if [ "$age" -ge 3 ]; then kill -USR2 "$pid" 2>/dev/null || true; fi ;;
+        esac
+    done < <(ps -u "$(id -u)" -o pid=,etimes=,comm=)
+}
+
 reload_apps() {
 
-    pkill -SIGUSR2 ghostty 2>/dev/null || true
+    reload_ghostty
 
     if command -v qs >/dev/null 2>&1; then
         qs -c rise ipc call theme reload >/dev/null 2>&1 || true

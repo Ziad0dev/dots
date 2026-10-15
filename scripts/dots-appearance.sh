@@ -33,6 +33,17 @@ THEME_STATE=${XDG_STATE_HOME:-$HOME/.local/state}/dots/theme
 THEMES=${DOTS_DIR:-$HOME/dots}/config/themes
 DCONF=/org/gnome/desktop/interface
 
+# SIGUSR2 reloads ghostty's config, but kills one that hasn't installed its
+# handler yet (just launched, e.g. by autostart): skip the young ones
+reload_ghostty() {
+    local pid age comm
+    while read -r pid age comm; do
+        case "$comm" in
+            *ghostty*) if [ "$age" -ge 3 ]; then kill -USR2 "$pid" 2>/dev/null || true; fi ;;
+        esac
+    done < <(ps -u "$(id -u)" -o pid=,etimes=,comm=)
+}
+
 die() {
     printf 'dots-appearance: %s\n' "$1" >&2
     exit 1
@@ -218,14 +229,21 @@ cmd_apply() {
         rm -f "$fc"
     fi
 
-    # ghostty (config-file = ?~/.local/state/dots/appearance/ghostty), live on SIGUSR2
+    # ghostty (config-file = ?~/.local/state/dots/appearance/ghostty), live on SIGUSR2.
+    # Signal only on a change: a ghostty still starting up (autostart) has no
+    # USR2 handler yet and the signal kills it.
     mkdir -p "$STATE"
     {
         [ -n "$mono" ] && printf 'font-family = "%s"\n' "$mono"
         [ -n "$msize" ] && printf 'font-size = %s\n' "$msize"
         true
-    } >"$STATE/ghostty"
-    pkill -USR2 ghostty 2>/dev/null || true
+    } >"$STATE/ghostty.tmp"
+    if cmp -s "$STATE/ghostty.tmp" "$STATE/ghostty"; then
+        rm -f "$STATE/ghostty.tmp"
+    else
+        mv -f "$STATE/ghostty.tmp" "$STATE/ghostty"
+        reload_ghostty
+    fi
 
     # the cursor: live in Hyprland, and inherited by what it starts next
     if [ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ] && command -v hyprctl >/dev/null 2>&1; then

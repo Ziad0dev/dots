@@ -31,12 +31,13 @@ The desktop output is built for one box. On anything else, go through this list 
 
 | Where | Value | Why it matters |
 |---|---|---|
-| `hosts/nixos/hardware-configuration.nix` | LUKS root and `/boot` | Replace wholesale |
+| `hosts/nixos/hardware-configuration.nix` | initrd modules, microcode | Replace wholesale (or use nixos-facter) |
+| `hosts/nixos/disk.nix` | system disk by `/dev/disk/by-id`, LUKS/swap layout | See [Reinstalling the desktop](#reinstalling-the-desktop) |
 | `hosts/nixos/configuration.nix` | `hardware.nvidia` block (`nvidia_cachyos-bore`) | NVIDIA + CachyOS kernel only; drop on other GPUs |
 | `hosts/nixos/configuration.nix` | timezone, locale, `dots.sddm.theme` | |
 | `modules/gaming.nix` | `boot.kernelPackages = linuxPackages_cachyos-bore` | Kernel choice lives here, not in the host |
 | `modules/storage.nix`, `modules/media.nix` | Independent exFAT backup and media drives by UUID | `nofail`, so missing drives don't block boot; confirm each UUID still belongs to the intended drive |
-| `modules/lan.nix` | `lanInterface = "enp5s0"` | Jellyfin ports are opened on this interface only |
+| `hosts/nixos/configuration.nix` | `dots.lanInterface = "enp5s0"` | Jellyfin and Forgejo ports are opened on this interface only |
 | `hosts/nixos/configuration.nix` | `dots.recording.monitor = "DP-1"` | Replay buffer captures nothing if the output doesn't exist (manual recordings take the focused output) |
 | `modules/performance.nix` | `cpuProfile`, `pl1Watts` / `pl2Watts` | Intel RAPL limits for a 12400F |
 | `config/hypr/hyprland.lua` | `monitorProfiles`, workspace → monitor rules | Unknown outputs fall back to `preferred/auto` |
@@ -75,7 +76,7 @@ The first activation renders `dots.theme` (oxocarbon), so the session starts the
 ```nix
 imports = [
   inputs.disko.nixosModules.disko
-  (import ../../lib/disko.nix { device = "/dev/nvme0n1"; impermanence = true; })
+  (import ../../lib/disko.nix { device = "/dev/disk/by-id/nvme-<model>_<serial>"; impermanence = true; })
 ];
 ```
 
@@ -86,7 +87,29 @@ nix build .#nixosConfigurations.installer.config.system.build.isoImage
 sudo dd if=result/iso/*.iso of=/dev/sdX bs=4M status=progress oflag=sync
 ```
 
-Boot it and run `dots-install <host> [--age-key FILE]`. It asks for the disk passphrase, partitions and formats (erasing the disk), puts an age key where a secret-enabled host expects it, and installs the prebuilt system — offline, nothing is built. The desktop's hardware configuration remains specific to that computer; the installer layout is intended for separate single-disk targets.
+Boot it and run `dots-install <host> [--age-key FILE]`. It asks for the disk passphrase, partitions and formats (erasing the disk), puts an age key where a secret-enabled host expects it, and installs the prebuilt system — offline, nothing is built.
+
+Hosts in `dots.installer.onlineHosts` (the desktop) carry only their disk layout in the image; `dots-install` builds the system from the flake straight into the new disk's store, from the same binary caches the host uses.
+
+### Reinstalling the desktop
+
+The system disk lives in `hosts/nixos/disk.nix`. Today it describes the existing hand-made install (`useDisko = false`, UUIDs). For a reinstall it switches to `lib/disko.nix` on the Kingston NVMe by its `/dev/disk/by-id` name: ESP, a random-key 17G swap, LUKS2 `cryptroot` with btrfs `/`, `/home`, `/nix`. Partitions are found by partlabel, so nothing in the config changes from one install to the next, and the Windows disk is never described, so it is never touched.
+
+1. Back up what isn't in Git (restic does this daily to `/mnt/backup`), and make sure you have the age key (`pass dots/age-nixos`) and a copy of `/var/lib/sbctl` (also in restic).
+2. Set `useDisko = true` in `hosts/nixos/disk.nix`, commit and push. Don't switch the running system to it; the next boot would look for partitions that don't exist yet.
+3. Build the ISO and write it to a stick (above).
+4. Boot it, get online (`nmtui`), put the age key and the `sbctl` directory somewhere readable (e.g. restore them from `/mnt/backup` with `restic restore`), then:
+
+   ```sh
+   sudo dots-install nixos --age-key ./key.txt --sbctl ./sbctl
+   ```
+
+   It lists the disk it is about to erase (model and serial) and waits for `yes`, partitions, restores the age key to `/var/lib/sops-nix/key.txt` and the Secure Boot keys to `/var/lib/sbctl` (the firmware already trusts them, so lanzaboote signs and boots as before), builds and installs, and clones this repo to `~/dots` so home-manager's live links resolve on the first login.
+5. Reboot. Then re-enroll the TPM keyslot ([Secure Boot](secure-boot.md); the LUKS header is new) and `sudo tailscale up`.
+
+The data drives (`/mnt/media`, `/mnt/backup`) are mounted by filesystem UUID, which a reinstall doesn't change.
+
+For a different machine, copy `hosts/nixos/disk.nix` with its own `/dev/disk/by-id` path, and instead of `nixos-generate-config` consider a [nixos-facter](https://nix-community.github.io/nixos-facter/) report: `sudo nixos-facter -o hosts/<host>/facter.json` (it's on the ISO) plus `hardware.facter.reportPath = ./facter.json;` detects kernel modules, firmware, microcode and GPU for you.
 
 ### Testing in a VM
 

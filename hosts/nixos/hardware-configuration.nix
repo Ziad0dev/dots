@@ -28,25 +28,7 @@
   boot.kernelModules = [ "kvm-intel" ];
   boot.extraModulePackages = [ ];
 
-  fileSystems."/" = {
-    device = "/dev/mapper/luks-bd950db0-dc83-432a-bec6-0bc1a72bd76e";
-    fsType = "ext4";
-  };
-
-  boot.initrd.luks.devices."luks-bd950db0-dc83-432a-bec6-0bc1a72bd76e".device =
-    "/dev/disk/by-uuid/bd950db0-dc83-432a-bec6-0bc1a72bd76e";
-
-  fileSystems."/boot" = {
-    device = "/dev/disk/by-uuid/F9F7-7BCD";
-    fsType = "vfat";
-    options = [
-      "fmask=0077"
-      "dmask=0077"
-    ];
-  };
-
-  # The separate encrypted swap partition is not configured for unattended
-  # unlock. zram and /var/lib/swapfile provide swap without a boot-time wait.
+  # the system disk (LUKS root, /boot, swap) is in ./disk.nix
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
   hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;

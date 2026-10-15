@@ -173,7 +173,7 @@ case "$CMD" in
     dots-mounts)
         # names of declared mounts that are not currently healthy; empty = all ok
         bad=""
-        for m in /mnt/media /mnt/backup; do
+        for m in /mnt/media /mnt/backup /mnt/pool1; do
             unit=$(systemd-escape -p --suffix=mount "$m" 2>/dev/null) || continue
             auto="${unit%.mount}.automount"
             if [ "$(systemctl show -p LoadState --value "$auto" 2>/dev/null)" = "loaded" ]; then
@@ -181,8 +181,12 @@ case "$CMD" in
             else
                 watch="$unit"
             fi
+            # an armed automount stays active with its drive unplugged; the
+            # mount only fails once something touches it, so check the device
+            what=$(systemctl show -p What --value "$unit" 2>/dev/null) || what=""
             if systemctl is-failed --quiet "$unit" 2>/dev/null \
-                || ! systemctl is-active --quiet "$watch" 2>/dev/null; then
+                || ! systemctl is-active --quiet "$watch" 2>/dev/null \
+                || { [ -n "$what" ] && [ ! -e "$what" ]; }; then
                 bad="$bad ${m##*/}"
             fi
         done

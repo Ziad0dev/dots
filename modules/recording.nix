@@ -28,7 +28,9 @@ in
       gpu-screen-recorder-gtk
     ];
 
+    # tmpfiles creates missing parents as root, so ~/Videos is listed too
     systemd.tmpfiles.rules = [
+      "d ${dirOf replayDir} 0755 ${username} users -"
       "d ${replayDir} 0700 ${username} users -"
     ];
 

@@ -1,5 +1,5 @@
 :root {
-    --dots-color-scheme: dark;
+    --dots-color-scheme: ${scheme};
     --dots-background: ${background};
     --dots-on_background: ${foreground};
     --dots-surface: ${background};
@@ -49,4 +49,11 @@
     --dots-surface_container_rgb: ${base01_rgb};
     --dots-surface_container_high_rgb: ${base02_rgb};
     --dots-surface_container_low_rgb: ${surface_rgb};
+    /* comma-separated, for rgba(var(--x), a) (Zen Internet, userContent.css) */
+    --dots-background_csv: ${background_rgb_csv};
+    --dots-on_background_csv: ${foreground_rgb_csv};
+    --dots-surface_container_csv: ${base01_rgb_csv};
+    --dots-surface_container_high_csv: ${base02_rgb_csv};
+    --dots-primary_csv: ${accent_rgb_csv};
+    --dots-error_csv: ${red_rgb_csv};
 }

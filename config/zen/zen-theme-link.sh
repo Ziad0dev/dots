@@ -57,6 +57,12 @@ for root in "${roots[@]}"; do
     # transparent window so Hyprland's blur shows through the chrome
     grep -q 'zen.widget.linux.transparency' "$prof/user.js" \
       || echo 'user_pref("zen.widget.linux.transparency", true);' >> "$prof/user.js"
+    # web content may be transparent too: Zen Internet clears a page's
+    # backgrounds so the themed browser background shows through. Off, those
+    # pages fall back to a white canvas (what the Transparent Zen mod's
+    # "Allow zen browser to be transparent" turns on)
+    grep -q 'browser.tabs.allow_transparent_browser' "$prof/user.js" \
+      || echo 'user_pref("browser.tabs.allow_transparent_browser", true);' >> "$prof/user.js"
 
     echo "   linked  $path"
     ((linked++))

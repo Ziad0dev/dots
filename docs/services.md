@@ -118,8 +118,9 @@ sudo restic -r /mnt/backup/restic-new -p /etc/restic/password snapshots
 | `/` | LUKS, ext4 | |
 | `/mnt/media` | exFAT 10 TB | user:media, group-writable, automount, visible in file managers |
 | `/mnt/backup` | Independent exFAT backup drive, configured by its own UUID | root:root `0077`, automount (10 min idle), hidden from file managers |
+| `/mnt/pool1` | ext4 2 TB spare drive | owned by the user, automount (10 min idle), visible in file managers |
 
-exFAT has no permissions, so ownership comes from mount options. udiskie ignores both external exFAT drives by UUID — they belong to systemd — but still automounts real removable media. `dots-mounts` (the bar's storage alert) reports whether `/mnt/media` and `/mnt/backup` are healthy. If the backup drive is replaced, update its UUID in `modules/storage.nix`.
+exFAT has no permissions, so ownership comes from mount options. udiskie ignores both external exFAT drives by UUID — they belong to systemd — but still automounts real removable media. `dots-mounts` (the bar's storage alert) reports whether `/mnt/media`, `/mnt/backup` and `/mnt/pool1` are healthy. If the backup drive is replaced, update its UUID in `modules/storage.nix`.
 
 Games and wallpaper folders are created in your home directory. Replay captures go to `~/Videos/Replays`. llama.cpp's model files belong in `/var/lib/dots/models`; VM images and installer ISOs use `/var/lib/libvirt/images` and `/var/lib/libvirt/isos`. Restore or download those files separately after reinstalling. Ollama manages models under `/var/lib/ollama` when you start it.
 

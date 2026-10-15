@@ -35,10 +35,9 @@
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.systemd-boot.configurationLimit = 3;
   boot.loader.systemd-boot.editor = false;
-  # Secure Boot keys have been enrolled; see docs/secure-boot.md.
+  # Secure Boot keys have been enrolled; see docs/secure-boot.md. The TPM
+  # keyslot (enrolled separately with systemd-cryptenroll) is in ./disk.nix.
   dots.secureBoot.enable = true;
-  # The TPM keyslot is enrolled separately with systemd-cryptenroll.
-  dots.secureBoot.tpmUnlock = [ "luks-bd950db0-dc83-432a-bec6-0bc1a72bd76e" ];
   boot.loader.timeout = 1;
 
   # Host age key is backed up in pass at dots/age-nixos.
@@ -55,6 +54,7 @@
   dots.sddm.theme = "demon";
   networking.hostName = hostname;
   networking.networkmanager.enable = true;
+  dots.lanInterface = "enp5s0";
 
   time.timeZone = "Europe/Stockholm";
   i18n.defaultLocale = "en_US.UTF-8";
@@ -77,17 +77,7 @@
     memoryPercent = 50;
 
   };
-  # The installer's 17G swap partition (nvme1n1p3), re-keyed randomly every
-  # boot: nothing to unlock, nothing survives a reboot. Rules out hibernate,
-  # which is off anyway. By PARTUUID because the LUKS UUID changes each boot.
-  # Sits between zram (100) and the swapfile (-2).
-  swapDevices = [
-    {
-      device = "/dev/disk/by-partuuid/58b2a087-4fbb-4521-adb5-91688fb1cc7c";
-      randomEncryption.enable = true;
-      priority = 10;
-    }
-  ];
+  # the swap partition is in ./disk.nix
   services.xserver.videoDrivers = [ "nvidia" ];
 
   hardware.graphics = {

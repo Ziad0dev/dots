@@ -16,7 +16,6 @@
 
 let
   cfg = config.services.forgejo;
-  lanInterface = "enp5s0";
   httpPort = 3000;
   sshPort = 2222;
   servePort = 10000;
@@ -123,7 +122,7 @@ in
   ];
 
   # tailscale0 is already a trusted interface (hello-page.nix)
-  networking.firewall.interfaces.${lanInterface}.allowedTCPPorts = [
+  networking.firewall.interfaces.${config.dots.lanInterface}.allowedTCPPorts = [
     httpPort
     sshPort
   ];

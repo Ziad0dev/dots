@@ -1,4 +1,9 @@
-{ config, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
   hardening = import ../lib/hardening.nix;
@@ -35,7 +40,27 @@ let
     BindReadOnlyPaths = [ "/etc/netns/wg/resolv.conf:/run/systemd/resolve/stub-resolv.conf" ];
   };
 
-  forwardRule ="FORWARD -d ${config.vpnNamespaces.wg.namespaceAddress} -p tcp -m multiport --dports ${toString webPort},${toString indexerPort} ! -i tailscale0 -j DROP";
+  # The Web UI password hash comes from sops, not the (public) config. sops
+  # keeps key names in clear text, so the secret is only declared once the key
+  # is in the file: sops-nix would fail every secret over a missing one.
+  qbtSecret = "qbittorrent-webui-password";
+  qbtHasSecret =
+    config.dots.secrets.enable
+    && lib.hasInfix "\n${qbtSecret}:" ("\n" + builtins.readFile config.dots.secrets.file);
+  qbtConf = "${config.services.qbittorrent.profileDir}/qBittorrent/config/qBittorrent.conf";
+  # runs after the module has installed qBittorrent.conf from the store
+  qbtPassword = pkgs.writeShellScript "qbittorrent-webui-password" ''
+    conf=${qbtConf}
+    tmp=$(${pkgs.coreutils}/bin/mktemp "$conf.XXXXXX")
+    LINE="WebUI\\Password_PBKDF2=$(${pkgs.coreutils}/bin/cat ${
+      config.sops.secrets.${qbtSecret}.path
+    })" \
+      ${pkgs.gawk}/bin/awk '{ print } $0 == "[Preferences]" { print ENVIRON["LINE"] }' "$conf" >"$tmp"
+    ${pkgs.coreutils}/bin/chmod 600 "$tmp"
+    ${pkgs.coreutils}/bin/mv -f "$tmp" "$conf"
+  '';
+
+  forwardRule = "FORWARD -d ${config.vpnNamespaces.wg.namespaceAddress} -p tcp -m multiport --dports ${toString webPort},${toString indexerPort} ! -i tailscale0 -j DROP";
 in
 {
   systemd.services.wg-dns = {
@@ -143,7 +168,7 @@ in
         AuthSubnetWhitelist = "192.168.15.0/24";
         LocalHostAuth = false;
         Username = "admin";
-        Password_PBKDF2 = "@ByteArray(hm8nwYXMLuaC21xtTlnZgA==:CW/ljNjP7EJ09bUSv6OilUpCO6jNZJo+JGKdnZPISC2VfCGdogqSQdotFulINeRZGOsFcXY6B2qUREd3AXf70A==)";
+        # Password_PBKDF2: from sops (qbtPassword above)
       };
       BitTorrent.Session = {
         DefaultSavePath = "${mediaRoot}/.incoming";
@@ -166,7 +191,13 @@ in
     unitConfig.RequiresMountsFor = [ mediaRoot ];
     serviceConfig = netnsResolv // {
       MemoryHigh = "2G";
+      ExecStartPre = lib.mkIf qbtHasSecret (lib.mkAfter [ "${qbtPassword}" ]);
     };
+  };
+
+  sops.secrets.${qbtSecret} = lib.mkIf qbtHasSecret {
+    owner = config.services.qbittorrent.user;
+    restartUnits = [ "qbittorrent.service" ];
   };
 
   services.prowlarr = {
@@ -180,12 +211,15 @@ in
       enable = true;
       vpnNamespace = "wg";
     };
-    serviceConfig = hardening // netnsResolv // {
-      ExecStartPre = "${waitForVpnDns}";
-      TimeoutStartSec = 180;
-      Restart = "on-failure";
-      RestartSec = 10;
-    };
+    serviceConfig =
+      hardening
+      // netnsResolv
+      // {
+        ExecStartPre = "${waitForVpnDns}";
+        TimeoutStartSec = 180;
+        Restart = "on-failure";
+        RestartSec = 10;
+      };
   };
 
   services.flaresolverr = {
@@ -200,9 +234,12 @@ in
       enable = true;
       vpnNamespace = "wg";
     };
-    serviceConfig = browserHardening // netnsResolv // {
-      ExecStartPre = "${waitForVpnDns}";
-      TimeoutStartSec = 180;
-    };
+    serviceConfig =
+      browserHardening
+      // netnsResolv
+      // {
+        ExecStartPre = "${waitForVpnDns}";
+        TimeoutStartSec = 180;
+      };
   };
 }

@@ -25,12 +25,23 @@ ThemeGithub {
         if (githubVisible) refreshGithub()
     }
 
-    property string aiTool: "codex"   // "codex" or "opencode" — icon shown in the bar
+    property string aiTool: "codex"   // "claude", "codex", or "opencode" — icon shown in the bar
 
     // ── AI usage data (single source of truth) ───────────────────
     // The bar pill (AiWidget) and the AiUsagePanel both render from these —
     // the cache parsing lives ONLY here so the two views can never drift apart.
     // Token strings are bare "X.XXM / Y.YM"; the pill tooltip appends " tokens".
+
+    property bool   aiClHas: false
+    property bool   aiClFresh: false
+    property int    aiClPct5h: 0
+    property int    aiClPct7d: 0
+    property bool   aiClBlocked: false
+    property string aiClTokens: ""
+    property string aiClRate: ""
+    property int    aiClReset5hTs: 0
+    property int    aiClReset7dTs: 0
+    property int    aiClToday: 0
 
     property bool   aiCxHas: false
     property bool   aiCxFresh: false
@@ -249,6 +260,39 @@ ThemeGithub {
     }
 
     Process {
+        id: aiReadClaude
+        command: ["bash", "-c",
+            "f=\"$HOME/.cache/claude-usage.json\"; stat -c %Y \"$f\" 2>/dev/null; cat \"$f\" 2>/dev/null"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                var raw = this.text, nl = raw.indexOf("\n")
+                var mtime = nl > 0 ? (parseInt(raw.substring(0, nl)) || 0) : 0
+                var ageOk = mtime > 0 && (Date.now() / 1000 - mtime) < 900
+                try {
+                    var d = JSON.parse((nl > 0 ? raw.substring(nl + 1) : "").trim())
+                    theme.aiClHas = true
+                    theme.aiClFresh = ageOk && d._source !== "stale"
+                    theme.aiClPct5h = theme.aiPct(d["5h-utilization"])
+                    theme.aiClPct7d = theme.aiPct(d["7d-utilization"])
+                    theme.aiClBlocked = d.status === "rejected" || d.status === "blocked"
+                    theme.aiClReset5hTs = parseInt(d["5h-reset"]) || 0
+                    theme.aiClReset7dTs = parseInt(d["7d-reset"]) || 0
+                    var used = (d["_tokens_used"] || 0), lim = (d["_window_limit"] || 0)
+                    theme.aiClTokens = used ? (used / 1e6).toFixed(2) + "M / " + (lim / 1e6).toFixed(1) + "M" : ""
+                    var rateH = Math.round((d["_rate_per_hour"] || 0) / 1000)
+                    theme.aiClRate = rateH > 0 ? rateH + "k tok/h" : ""
+                    theme.aiClToday = parseInt(d._today_tokens) || 0
+                } catch (e) {
+                    theme.aiClHas = false; theme.aiClFresh = false
+                    theme.aiClPct5h = 0; theme.aiClPct7d = 0
+                    theme.aiClBlocked = false; theme.aiClTokens = ""; theme.aiClRate = ""
+                    theme.aiClReset5hTs = 0; theme.aiClReset7dTs = 0; theme.aiClToday = 0
+                }
+            }
+        }
+    }
+
+    Process {
         id: aiReadCodex
         command: ["bash", "-c",
             "f=\"$HOME/.cache/codex-usage.json\"; stat -c %Y \"$f\" 2>/dev/null; cat \"$f\" 2>/dev/null"]
@@ -303,6 +347,9 @@ ThemeGithub {
     function refreshAiUsage(selectedOnly) {
         aiClockTick++
         var only = selectedOnly === true
+        if (!only || aiTool === "claude") {
+            aiReadClaude.running = false; aiReadClaude.running = true
+        }
         if (!only || aiTool === "codex") {
             aiReadCodex.running = false;  aiReadCodex.running = true
         }
