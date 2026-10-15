@@ -3,3 +3,51 @@
 @define-color label ${foreground};
 @define-color image ${accent};
 @define-color progress ${accent};
+
+/* this file replaces SwayOSD's whole stylesheet: its default layout, in the
+   theme's colours, on a translucent card Hyprland blurs (layer "swayosd") */
+window#osd {
+  border-radius: 999px;
+  border: 1px solid alpha(@border-color, 0.5);
+  background: alpha(@background-color, 0.8);
+}
+window#osd #container {
+  margin: 16px;
+}
+window#osd label {
+  color: @label;
+}
+window#osd image {
+  color: @image;
+}
+window#osd progressbar:disabled,
+window#osd image:disabled {
+  opacity: 0.5;
+}
+window#osd progressbar,
+window#osd segmentedprogress {
+  min-height: 6px;
+  border-radius: 999px;
+  background: transparent;
+  border: none;
+}
+window#osd trough,
+window#osd segment {
+  min-height: inherit;
+  border-radius: inherit;
+  border: none;
+  background: alpha(@label, 0.25);
+}
+window#osd progress,
+window#osd segment.active {
+  min-height: inherit;
+  border-radius: inherit;
+  border: none;
+  background: @progress;
+}
+window#osd segment {
+  margin-left: 8px;
+}
+window#osd segment:first-child {
+  margin-left: 0;
+}

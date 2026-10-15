@@ -9,7 +9,7 @@ inner-pad=8
 icons-enabled=yes
 
 [colors]
-background=${background_hex}f2
+background=${background_hex}d9
 text=${foreground_hex}ff
 message=${muted_hex}ff
 prompt=${accent_hex}ff

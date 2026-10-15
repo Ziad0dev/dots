@@ -28,11 +28,13 @@ hl.window_rule({
     float = true,
 })
 
-for _, app in ipairs({ { "discord", "^(discord)$" }, { "spotify", "^(spotify)$" } }) do
+-- Discord draws its own translucency (Vencord transparent); Spotify can't, so
+-- the whole window goes see-through for Hyprland's blur (artwork included)
+for _, app in ipairs({ { "discord", "^(discord)$", "0.98" }, { "spotify", "^(spotify)$", "0.92" } }) do
     hl.window_rule({
         name      = app[1],
         match     = { class = app[2] },
-        opacity   = "0.98",
+        opacity   = app[3],
         workspace = "10 silent",
     })
 end

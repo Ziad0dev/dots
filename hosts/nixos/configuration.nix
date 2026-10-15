@@ -256,6 +256,20 @@
     packages = with pkgs; [
       nerd-fonts.fira-code
       nerd-fonts.jetbrains-mono
+      nerd-fonts.sauce-code-pro
+      source-code-pro
+      # picked for legibility; the quick picks in Themes → App style
+      inter
+      atkinson-hyperlegible-next
+      atkinson-hyperlegible-mono
+      lexend
+      ibm-plex
+      source-sans
+      nerd-fonts.blex-mono
+      nerd-fonts.commit-mono
+      nerd-fonts.hack
+      nerd-fonts.iosevka
+      b612 # the lumon theme's mono (rise-theme-fonts only has B612)
       noto-fonts
       noto-fonts-cjk-sans
       noto-fonts-cjk-serif

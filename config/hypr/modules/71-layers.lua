@@ -43,3 +43,14 @@ hl.layer_rule({
     match   = { namespace = "^quickshell-popup-dismiss$" },
     no_anim = true,
 })
+
+-- Launcher (fuzzel) and the volume/brightness OSD: the same Frost blur behind
+-- their translucent cards. ignore_alpha keeps it off their transparent margins.
+for _, l in ipairs({ { "launcher", "^launcher$" }, { "osd", "^swayosd$" } }) do
+    hl.layer_rule({
+        name         = l[1],
+        match        = { namespace = l[2] },
+        blur         = true,
+        ignore_alpha = 0.12,
+    })
+end

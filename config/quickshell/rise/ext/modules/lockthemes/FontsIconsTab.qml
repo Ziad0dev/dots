@@ -7,10 +7,11 @@ import qs.ext.components
 import qs.ext.modules.lock
 import qs.ext.services as Services
 
-// Themes panel, Fonts & icons tab: icon theme, cursor and fonts for the whole
-// desktop (GTK, Qt, fontconfig, Hyprland, ghostty) through dots-appearance.
-// Each one follows the colour theme (config/themes/<name>/look.conf) until
-// you pick your own; "Match theme" hands it back.
+// Themes panel, App style tab: GTK theme, Qt (Kvantum) style, icon theme,
+// cursor and fonts for the whole desktop (GTK, Qt, fontconfig, Hyprland,
+// ghostty) through dots-appearance. Each one follows the colour theme
+// (config/themes/<name>/look.conf) until you pick your own; "Match theme"
+// hands it back. Themes with a full kit name their own GTK/Qt themes.
 //
 // Keys (forwarded by the panel): ←→ category.
 Item {
@@ -18,10 +19,12 @@ Item {
 
     property var st: null       // `dots-appearance state`
     property var lists: null    // `dots-appearance lists`
-    property string cat: "icons"
+    property string cat: "gtk"
     property string query: ""
 
     readonly property var cats: [
+        { id: "gtk", label: "GTK theme", icon: "web_asset", sizeKey: "" },
+        { id: "kvantum", label: "Qt style", icon: "widgets", sizeKey: "" },
         { id: "icons", label: "Icons", icon: "apps", sizeKey: "" },
         { id: "cursor", label: "Cursor", icon: "arrow_selector_tool", sizeKey: "cursor_size" },
         { id: "font", label: "Interface font", icon: "text_fields", sizeKey: "font_size" },
@@ -53,6 +56,8 @@ Item {
         return "Default";
     }
     function label(value) { return value !== "" ? value : "System default"; }
+    // the colour theme ships its own GTK or Qt theme, not just colours
+    readonly property bool themeKit: !!(st && (st.look.gtk || st.look.kvantum))
 
     function set(key, value) {
         if (setProc.running) {
@@ -185,7 +190,9 @@ Item {
 
         StyledText {
             width: side.width
-            text: tab.st && tab.st.theme ? "Colour theme: " + tab.st.theme + ". Anything you haven't picked follows it." : ""
+            text: !tab.st || !tab.st.theme ? ""
+                : "Colour theme: " + tab.st.theme + (tab.themeKit ? ", a full kit (its own GTK/Qt themes, icons and cursor)" : "")
+                  + ". Anything you haven't picked follows it."
             wrapMode: Text.WordWrap
             font.pixelSize: 11
             color: Colors.on_surface_variant
@@ -338,10 +345,67 @@ Item {
             }
         }
 
+        // quick picks: a short list of the best choices for this category
+        // (dots-appearance PICKS), one click each
+        Column {
+            id: picks
+            readonly property var items: tab.lists && tab.lists.picks && tab.lists.picks[tab.cat] ? tab.lists.picks[tab.cat] : []
+            width: pane.width
+            visible: items.length > 0
+            height: visible ? implicitHeight : 0
+            spacing: 6
+
+            StyledText {
+                text: "Quick picks"
+                font.pixelSize: 11
+                font.weight: Font.DemiBold
+                color: Colors.on_surface_variant
+            }
+
+            Flow {
+                width: parent.width
+                spacing: 8
+
+                Repeater {
+                    model: picks.items
+
+                    ClickableRect {
+                        id: pick
+                        required property string modelData
+                        readonly property bool inUse: tab.eff(tab.cat) === modelData
+                        readonly property bool isFont: tab.cat === "font" || tab.cat === "mono"
+                        width: pickText.implicitWidth + 24
+                        height: 32
+                        radius: Services.DesktopTheme.rad(16)
+                        color: inUse ? Colors.primary : pick.hovered ? Colors.surface_container_high : Colors.surface_container
+                        border.width: inUse ? 0 : 1
+                        border.color: Colors.withAlpha(Colors.outline_variant, 0.6)
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: tab.set(tab.cat, modelData)
+
+                        Behavior on color {
+                            ColorAnimation { duration: 140 }
+                        }
+
+                        StyledText {
+                            id: pickText
+                            anchors.centerIn: parent
+                            text: pick.modelData === "KvGlass#" ? "KvGlass (theme colours)" : pick.modelData
+                            font.family: pick.isFont ? pick.modelData : font.family
+                            font.pixelSize: pick.isFont ? 14 : 12
+                            font.weight: Font.DemiBold
+                            color: pick.inUse ? Colors.on_primary : Colors.on_surface
+                        }
+                    }
+                }
+            }
+        }
+
         Loader {
             width: pane.width
-            height: pane.height - tools.height - follow.height - 2 * pane.spacing
-            sourceComponent: !tab.lists ? loading : tab.cat === "icons" ? iconGrid : tab.cat === "cursor" ? cursorGrid : fontList
+            height: pane.height - tools.height - follow.height - picks.height - (picks.visible ? 3 : 2) * pane.spacing
+            sourceComponent: !tab.lists ? loading : tab.cat === "gtk" || tab.cat === "kvantum" ? nameGrid
+                : tab.cat === "icons" ? iconGrid : tab.cat === "cursor" ? cursorGrid : fontList
         }
     }
 
@@ -372,6 +436,58 @@ Item {
 
         Behavior on color {
             ColorAnimation { duration: 140 }
+        }
+    }
+
+    // GTK and Kvantum themes: just names ("KvGlass#" is KvGlass in the
+    // colour theme's colours)
+    Component {
+        id: nameGrid
+
+        GridView {
+            id: nameView
+            clip: true
+            boundsBehavior: Flickable.StopAtBounds
+            readonly property string key: tab.cat
+            cellWidth: width / Math.max(1, Math.floor(width / 230))
+            cellHeight: 60
+            model: tab.lists && tab.lists[key] ? tab.lists[key] : []
+
+            delegate: Item {
+                id: nameCell
+                required property string modelData
+                width: nameView.cellWidth
+                height: nameView.cellHeight
+
+                Choice {
+                    id: nameCard
+                    anchors.fill: parent
+                    anchors.margins: 5
+                    key: nameView.key
+                    value: nameCell.modelData
+
+                    Glyph {
+                        id: nameIcon
+                        x: 14
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: nameView.key === "gtk" ? "web_asset" : "widgets"
+                        filled: nameCard.inUse
+                        font.pixelSize: 20
+                        color: nameCard.picked ? Colors.on_primary_container : Colors.on_surface_variant
+                    }
+
+                    StyledText {
+                        x: nameIcon.x + nameIcon.width + 10
+                        width: nameCard.width - x - 12
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: nameCell.modelData === "KvGlass#" ? "KvGlass (theme colours)" : nameCell.modelData.replace(/-/g, " ")
+                        elide: Text.ElideRight
+                        font.pixelSize: 13
+                        font.weight: Font.DemiBold
+                        color: nameCard.picked ? Colors.on_primary_container : Colors.on_surface
+                    }
+                }
+            }
         }
     }
 

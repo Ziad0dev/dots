@@ -53,12 +53,22 @@ in
         "e93228a667a4f56e53718e4794073b62dac1268206c6830d95a91af62644a078"
       )
       # Follow the latest Flathub build; the Nix package is intentionally omitted.
-      { appId = "com.github.taiko2k.tauonmb"; origin = "flathub"; }
+      {
+        appId = "com.github.taiko2k.tauonmb";
+        origin = "flathub";
+      }
     ];
 
     # anything installed by hand is removed on the next switch, as before
     uninstallUnmanaged = true;
 
+    # every app reads the themed gtk.css (theme colours, translucency for
+    # Hyprland's blur) that themectl writes as a real file; GTK/icon themes
+    # live in the Nix store, which sandboxes can't see
+    overrides.settings.global.Context.filesystems = [
+      "xdg-config/gtk-3.0:ro"
+      "xdg-config/gtk-4.0:ro"
+    ];
     overrides.settings."com.nvidia.geforcenow".Environment.SDL_VIDEODRIVER = "x11";
     overrides.settings."com.github.taiko2k.tauonmb".Context.filesystems = [
       "/mnt/media/music:ro"

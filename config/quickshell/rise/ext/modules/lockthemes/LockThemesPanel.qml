@@ -8,7 +8,7 @@ import qs.ext.components
 import qs.ext.modules.lock
 import qs.ext.services as Services
 
-// Themes panel: Desktop, Widgets, Fonts & icons, Lock screen.
+// Themes panel: Desktop, Widgets, App style, Lock screen.
 //
 // Desktop: desktop themes (services/DesktopTheme.qml), a coordinated look for
 // the whole rice that still follows the wallpaper colours: pick one (or Off)
@@ -17,7 +17,7 @@ import qs.ext.services as Services
 //
 // Widgets: desktop widgets on/off and their arrangement (WidgetsTab.qml).
 //
-// Fonts & icons: icon theme, cursor and fonts for every app, following the
+// App style: GTK/Qt theme, icons, cursor and fonts for every app, following the
 // colour theme until you pick your own (FontsIconsTab.qml, dots-appearance).
 //
 // Lock screen: each card shows a live, scaled-down render of the theme itself.
@@ -29,7 +29,7 @@ import qs.ext.services as Services
 // Keys: Tab switches tabs, Esc closes. Lock screen tab: arrows move,
 // Enter/Space choose, P preview, S shuffle, L lock now. Desktop tab: ←→
 // ↑↓ choose, Enter use, W widgets. Widgets tab: ↑↓ choose, Enter toggle, R reset
-// positions. Fonts & icons tab: ←→ category.
+// positions. App style tab: ←→ category.
 // `qs ipc call lockscreen toggle` (ALT+SHIFT+H), `qs ipc call themes desktop`.
 Item {
     id: root
@@ -262,7 +262,7 @@ Item {
                             model: [
                                 { id: "desktop", label: "Desktop", icon: "desktop_windows" },
                                 { id: "widgets", label: "Widgets", icon: "widgets" },
-                                { id: "look", label: "Fonts & icons", icon: "format_shapes" },
+                                { id: "look", label: "App style", icon: "format_shapes" },
                                 { id: "lock", label: "Lock screen", icon: "lock" }
                             ]
 
@@ -452,7 +452,7 @@ Item {
                 sourceComponent: WidgetsTab {}
             }
 
-            // ── Fonts & icons ─────────────────────────────────────────────────
+            // ── App style ─────────────────────────────────────────────────────
             Loader {
                 id: lookLoader
                 width: parent.width

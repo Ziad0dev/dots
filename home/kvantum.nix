@@ -1,4 +1,4 @@
-{ ... }:
+{ lib, ... }:
 
 {
   qt = {
@@ -9,10 +9,10 @@
     # dots-appearance (home/desktop-tools.nix), so they can change at runtime
   };
 
-  qt.kvantum = {
-    enable = true;
-    # the "#" copy themectl writes (KvGlass + the theme's colours and
-    # translucency); plain "KvGlass" never picked up the colours
-    settings.General.theme = "KvGlass#";
-  };
+  # kvantum.kvconfig (which theme) is written by dots-appearance: "KvGlass#",
+  # the copy themectl recolours, unless a theme's look.conf names another
+  qt.kvantum.enable = true;
+  # the module's settings default is never {} (General.theme = null), so it
+  # always writes a "theme=null" kvantum.kvconfig that would fight the above
+  xdg.configFile."Kvantum/kvantum.kvconfig".enable = lib.mkForce false;
 }

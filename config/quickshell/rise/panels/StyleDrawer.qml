@@ -27,7 +27,7 @@ PanelWindow {
     readonly property int bottomBand: root.barPosition === "bottom" ? barBottom : (framed ? root.frameThickness : 0)
 
     property string tab: "themes"             // "themes" | "wallpapers"
-    property var themes: []                   // [{ name, preview }]
+    property var themes: []                   // [{ name, preview, kit }]
     property var wallpapers: []               // [path]
     property string currentWallpaper: ""
     readonly property string themesDir: root.dotsShellRoot + "/../../themes"
@@ -38,13 +38,15 @@ PanelWindow {
             "shopt -s nullglob nocaseglob; for d in \"$1\"/*/; do n=$(basename \"$d\"); " +
             "[ \"${n#_}\" = \"$n\" ] || continue; p=; for c in \"$d\"wallpaper.* \"$d\"preview.* \"$d\"backgrounds/*; do " +
             "case \"$c\" in *.jpg|*.jpeg|*.png|*.webp) p=$c; break;; esac; done; " +
-            "[ -n \"$p\" ] && printf '%s\\t%s\\n' \"$n\" \"$p\"; done", "_", drawer.themesDir]
+            "k=0; grep -qsE '^(gtk|kvantum)=.' \"$d\"look.conf && k=1; " +
+            "[ -n \"$p\" ] && printf '%s\\t%s\\t%s\\n' \"$n\" \"$p\" \"$k\"; done", "_", drawer.themesDir]
         stdout: StdioCollector {
             onStreamFinished: {
                 var out = [], rows = String(this.text || "").split("\n")
                 for (var i = 0; i < rows.length; i++) {
                     var f = rows[i].split("\t")
-                    if (f.length === 2) out.push({ name: f[0], preview: f[1] })
+                    // kit: the theme names its own GTK/Qt themes (look.conf)
+                    if (f.length === 3) out.push({ name: f[0], preview: f[1], kit: f[2] === "1" })
                 }
                 drawer.themes = out
             }
@@ -252,6 +254,24 @@ PanelWindow {
                         sourceSize.width: 440
                         fillMode: Image.PreserveAspectCrop
                         asynchronous: true
+                    }
+                    // full kit: GTK/Qt themes, icons and cursor, not just colours
+                    Rectangle {
+                        visible: cell.isTheme && cell.modelData.kit === true
+                        anchors { top: parent.top; right: parent.right; margins: 7 }
+                        width: kitText.implicitWidth + 12
+                        height: 18
+                        radius: 9
+                        color: Qt.rgba(0, 0, 0, 0.55)
+                        border.color: root.seal
+                        border.width: 1
+                        UiText {
+                            id: kitText
+                            anchors.centerIn: parent
+                            text: "full kit"
+                            color: "white"
+                            font.family: root.mono; font.pixelSize: 9
+                        }
                     }
                     MouseArea {
                         id: thumbMa

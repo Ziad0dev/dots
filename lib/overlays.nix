@@ -8,6 +8,8 @@
     caelestia-blobs = final.callPackage ../pkgs/caelestia-blobs { };
     google-sans-flex = final.callPackage ../pkgs/google-sans-flex { };
     rise-theme-fonts = final.callPackage ../pkgs/rise-theme-fonts { };
+    sweet-gtk = final.callPackage ../pkgs/sweet-gtk { };
+    papirus-tinted = final.callPackage ../pkgs/papirus-tinted { };
   })
   (final: prev: {
     feather =

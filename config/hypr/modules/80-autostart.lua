@@ -9,7 +9,7 @@ hl.on("hyprland.start", function()
         "systemctl --user start hyprland-session.target\n'",
         SESSION_VARS, SESSION_VARS))
 
-    -- icons, cursor and fonts (Themes → Fonts & icons): the cursor needs
+    -- icons, cursor and fonts (Themes → App style): the cursor needs
     -- Hyprland up, and home-manager's dconf may have reset the rest
     hl.exec_cmd("dots-appearance apply --quiet")
     hl.exec_cmd("awww-daemon")

@@ -6,7 +6,8 @@
 }
 
 .window {
-  background-color: ${background};
+  /* translucent so Hyprland's blur shows through, like the other windows */
+  background-color: alpha(${background}, 0.85);
   border: solid 2px ${surface};
   border-radius: 8px;
   margin: 2px;
@@ -45,7 +46,7 @@ tabs > tab:focus > .tab-label {
 
 flowboxchild > .card,
 button > .card {
-  background-color: ${surface};
+  background-color: alpha(${surface}, 0.6);
   border: solid 2px ${surface};
   border-radius: 6px;
   padding: 5px;
@@ -66,7 +67,7 @@ button:focus > .card {
 }
 
 .card-loading {
-  background-color: ${surface};
+  background-color: alpha(${surface}, 0.6);
   border: solid 2px ${surface};
   border-radius: 6px;
   padding: 5px;

@@ -26,6 +26,7 @@ in
     ../ai-usage.nix
     ../github-inbox.nix
     ../kvantum.nix
+    ../theme-kits.nix
     ../obsidian.nix
     ../cleanup.nix
     ../soulseek.nix
@@ -62,6 +63,8 @@ in
     size = 24;
   };
 
+  # the GTK theme, icons and cursor in effect are dots-appearance's (the
+  # theme's look.conf, then your choices); these are the fallbacks
   gtk = {
     enable = true;
     theme = {
@@ -86,6 +89,11 @@ in
     gtk4.theme = null;
     gtk4.extraConfig.gtk-application-prefer-dark-theme = 1;
   };
+
+  # settings.ini is dots-appearance's too: it follows the theme (light/dark,
+  # GTK theme, icons, cursor, font) where home-manager's is fixed
+  xdg.configFile."gtk-3.0/settings.ini".enable = lib.mkForce false;
+  xdg.configFile."gtk-4.0/settings.ini".enable = lib.mkForce false;
 
   # org/gnome/desktop/interface/color-scheme (light/dark) is themectl's: it
   # follows the theme, and a value here would reset it on every switch

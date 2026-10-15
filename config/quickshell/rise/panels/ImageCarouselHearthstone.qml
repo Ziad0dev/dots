@@ -228,6 +228,11 @@ PanelWindow {
             if (paths[i]) args.push(panel.shq(paths[i]))
         return args.join(" ")
     }
+    // look.conf's GTK/Qt theme, icons and cursor, for a theme that ships a
+    // full kit (names its own GTK or Qt theme); empty otherwise
+    function kitReadCmd(pathExpr) {
+        return "awk '{ i = index($0, \"=\"); if (i) v[substr($0, 1, i - 1)] = substr($0, i + 1) } END { if (v[\"gtk\"] == \"\" && v[\"kvantum\"] == \"\") exit; n = split(\"gtk GTK kvantum Qt icons icons cursor cursor\", a, \" \"); for (i = 1; i < n; i += 2) if (v[a[i]] != \"\") { if (out != \"\") out = out \" · \"; out = out a[i + 1] \" \" v[a[i]] } print out }' " + pathExpr + " 2>/dev/null"
+    }
     function paletteReadCmd(pathExpr) {
         return "awk -F'\"' 'function valid(v){ return v ~ /^#[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?$/ } { k=$1; gsub(/[[:space:]=]/,\"\",k); if (valid($2)) c[k]=$2 } END { split(\"color1 red color2 green color3 yellow color4 blue color5 magenta color6 cyan\", a, \" \"); for (i=1; i<=6; i++) { p=a[i*2-1]; q=a[i*2]; v=c[p]; if (v == \"\") v=c[q]; if (v != \"\") { if (out != \"\") out=out \",\"; out=out v } } print out }' " + pathExpr + " 2>/dev/null"
     }
@@ -308,7 +313,8 @@ PanelWindow {
             "  author=$(printf '%s' \"$repo\" | sed -nE 's#.*github\\.com[:/]+([^/]+)/.*#\\1#p');" +
             "fi;" +
             "pal=$(" + paletteReadCmd("\"$d/colors.sh\"") + ");" +
-            "printf '%s\\t%s\\t%s\\n' \"$author\" \"$repo\" \"$pal\""]
+            "kit=$(" + kitReadCmd("\"$d/look.conf\"") + ");" +
+            "printf '%s\\t%s\\t%s\\t%s\\n' \"$author\" \"$repo\" \"$pal\" \"$kit\""]
         metaProc.running = false; metaProc.running = true
     }
     Process {
@@ -318,7 +324,7 @@ PanelWindow {
             onStreamFinished: {
                 var parts = String(this.text || "").replace(/\n+$/, "").split("\t")
                 var m = panel.metaCache
-                m[panel._metaDir] = { author: parts[0] || "", repo: parts[1] || "", palette: parts[2] || "" }
+                m[panel._metaDir] = { author: parts[0] || "", repo: parts[1] || "", palette: parts[2] || "", kit: parts[3] || "" }
                 panel.metaCache = m
             }
         }
@@ -344,7 +350,7 @@ PanelWindow {
                 for (var i = 0; i < lines.length; i++) {
                     if (!lines[i]) continue
                     var p = lines[i].split("\t")
-                    if (p[0] && !m[p[0]]) m[p[0]] = { author: p[1] || "", repo: p[2] || "", palette: p[3] || "" }
+                    if (p[0] && !m[p[0]]) m[p[0]] = { author: p[1] || "", repo: p[2] || "", palette: p[3] || "", kit: p[4] || "" }
                 }
                 panel.metaCache = m
             }
@@ -361,7 +367,8 @@ PanelWindow {
             "if [ -f \"$d/.git/config\" ]; then repo=$(sed -nE 's#^[[:space:]]*url = (.*)$#\\1#p' \"$d/.git/config\" | head -1);" +
             "author=$(printf '%s' \"$repo\" | sed -nE 's#.*github\\.com[:/]+([^/]+)/.*#\\1#p'); fi;" +
             "pal=$(" + paletteReadCmd("\"$d/colors.sh\"") + ");" +
-            "printf '%s\\t%s\\t%s\\t%s\\n' \"$d\" \"$author\" \"$repo\" \"$pal\"; done",
+            "kit=$(" + kitReadCmd("\"$d/look.conf\"") + ");" +
+            "printf '%s\\t%s\\t%s\\t%s\\t%s\\n' \"$d\" \"$author\" \"$repo\" \"$pal\" \"$kit\"; done",
             "warm"].concat(dirs)
         metaWarmProc.running = false; metaWarmProc.running = true
     }
@@ -670,6 +677,17 @@ PanelWindow {
                     border.color: Qt.rgba(1, 1, 1, 0.18); border.width: 1
                 }
             }
+        }
+
+        // full kit — the theme's own GTK/Qt theme, icons and cursor
+        Text {
+            visible: panel.isThemeMode && panel.selMeta && (panel.selMeta.kit || "").length > 0
+            anchors.horizontalCenter: parent.horizontalCenter
+            width: panel.focusedW + 120
+            text: "◆ full kit  " + (panel.selMeta ? panel.selMeta.kit || "" : "")
+            color: panel.textDim
+            font.family: root.mono; font.pixelSize: 11
+            horizontalAlignment: Text.AlignHCenter; elide: Text.ElideRight
         }
 
         // current badge · author

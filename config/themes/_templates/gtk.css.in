@@ -79,3 +79,88 @@ menu,
 popover > arrow {
   background-color: alpha(@popover_bg_color, 0.62);
 }
+
+/* Every GTK window translucent like the libadwaita ones, whatever the GTK
+   theme: GTK 3 apps and plain GTK 4 apps (file choosers, pavucontrol, …) get
+   the same surfaces as above so Hyprland's blur shows through. Selected and
+   hovered rows keep the theme's look. */
+window.background:not(.nemo-desktop-window) {
+  background-color: @window_bg_color;
+  background-image: none;
+}
+.view:not(:selected):not(:hover),
+iconview:not(:selected),
+textview text,
+treeview.view:not(:selected):not(:hover) {
+  background-color: @view_bg_color;
+}
+/* gtk3-only:begin (themectl leaves this out of gtk-4.0/gtk.css: libadwaita
+   already has these surfaces, and flat header bars must stay flat) */
+notebook > stack,
+scrolledwindow > viewport,
+scrolledwindow > viewport > list,
+list:not(.boxed-list),
+statusbar {
+  background-color: transparent;
+}
+headerbar,
+.titlebar,
+toolbar,
+.primary-toolbar,
+actionbar > revealer > box {
+  background-color: @headerbar_bg_color;
+  background-image: none;
+  box-shadow: none;
+}
+.sidebar,
+placessidebar,
+stacksidebar {
+  background-color: @sidebar_bg_color;
+  background-image: none;
+}
+notebook > header {
+  background-color: alpha(${surface}, 0.45);
+  background-image: none;
+}
+
+/* Nemo (GTK 3) the same as the libadwaita apps: one translucent window
+   surface so Hyprland's blur shows through, with everything inside it
+   transparent instead of stacking opaque theme colours. Works whatever the
+   GTK theme (this file outranks themes and Nemo's own CSS). Selection,
+   hover and the rename box keep the theme's look. */
+.nemo-window,
+.nemo-window.background {
+  background-color: alpha(${background}, 0.78);
+  background-image: none;
+}
+.nemo-window .nemo-window-pane,
+.nemo-window paned,
+.nemo-window notebook,
+.nemo-window notebook > stack,
+.nemo-window scrolledwindow,
+.nemo-window viewport,
+.nemo-window statusbar,
+.nemo-window .view:not(:selected):not(:hover),
+.nemo-window iconview:not(:selected),
+.nemo-window .places-treeview:not(:selected):not(:hover) {
+  background-color: transparent;
+  background-image: none;
+}
+.nemo-window .nemo-places-sidebar {
+  background-color: alpha(${surface}, 0.35);
+  background-image: none;
+}
+.nemo-window .primary-toolbar,
+.nemo-window toolbar,
+.nemo-window notebook > header {
+  background-color: alpha(${surface}, 0.45);
+  background-image: none;
+  border-color: alpha(${dim}, 0.5);
+  box-shadow: none;
+}
+/* the unfocused pane of a split view (F3): a light shade, not opaque */
+.nemo-window .nemo-inactive-pane .view:not(:selected),
+.nemo-window .nemo-inactive-pane iconview {
+  background-color: alpha(${background}, 0.3);
+}
+/* gtk3-only:end */

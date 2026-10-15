@@ -255,10 +255,11 @@ gtk_compat() {
     fi
     out="$STATE/gtk.css"
     [ -f "$out" ] || return 0
-    for d in "${XDG_CONFIG_HOME:-$HOME/.config}/gtk-3.0" "${XDG_CONFIG_HOME:-$HOME/.config}/gtk-4.0"; do
-        mkdir -p "$d"
-        cp -f "$out" "$d/gtk.css"
-    done
+    local cfg="${XDG_CONFIG_HOME:-$HOME/.config}"
+    mkdir -p "$cfg/gtk-3.0" "$cfg/gtk-4.0"
+    cp -f "$out" "$cfg/gtk-3.0/gtk.css"
+    # GTK 4 skips the GTK 3 only rules (between the gtk3-only markers)
+    sed '/gtk3-only:begin/,/gtk3-only:end/d' "$out" >"$cfg/gtk-4.0/gtk.css"
 }
 vencord_compat() {
     local out dst

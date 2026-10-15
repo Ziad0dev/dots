@@ -1,28 +1,46 @@
-# dots-appearance: icon theme, cursor and fonts for the whole desktop, from
-# one place (rise's Themes panel → Fonts & icons, or this CLI).
+# dots-appearance: GTK/Kvantum theme, icons, cursor and fonts for the whole
+# desktop, from one place (rise's Themes panel → App style, or this CLI).
 #
 #   dots-appearance state            JSON: current theme, its look, your
 #                                    choices and what's in effect
-#   dots-appearance lists            JSON: installed icon/cursor themes and
-#                                    font families (with icon previews)
+#   dots-appearance lists            JSON: installed GTK/Kvantum/icon/cursor
+#                                    themes and font families (icon previews)
 #   dots-appearance set KEY [VALUE]  choose (no VALUE: follow the theme again)
 #   dots-appearance reset            follow the theme for everything
 #   dots-appearance apply [--quiet]  push what's in effect to the apps
 #
-# KEY: icons cursor cursor_size font font_size mono mono_size
+# KEY: gtk kvantum icons cursor cursor_size font font_size mono mono_size
+#
+# `lists` also carries .picks: a short list per key (PICKS below, installed
+# ones only), shown as Quick picks in App style.
 #
 # Each value is your choice, else the colour theme's (config/themes/<name>/
 # look.conf, same keys), else the default below. Fonts with no value anywhere
 # are left to the system (NixOS fonts.fontconfig.defaultFonts).
 #
-# Where it goes: GTK through dconf (the settings portal makes it live),
-# Qt through qt5ct/qt6ct.conf (new windows), fontconfig's sans-serif and
+# Where it goes: GTK through dconf (the settings portal makes it live; the
+# GTK theme reaches GTK 3 and plain GTK 4 apps, libadwaita ones only take
+# themectl's gtk.css colours), Qt through qt5ct/qt6ct.conf and Kvantum's
+# kvantum.kvconfig (new windows), fontconfig's sans-serif and
 # monospace (new windows), Hyprland's cursor (live) and ghostty (live).
 
-KEYS="icons cursor cursor_size font font_size mono mono_size"
+KEYS="gtk kvantum icons cursor cursor_size font font_size mono mono_size"
+# KvGlass# is the copy themectl recolours to the current theme
 declare -A DEF=(
+    [gtk]=adw-gtk3-dark [kvantum]="KvGlass#"
     [icons]=candy-icons [cursor]=Bibata-Modern-Classic [cursor_size]=24
     [font]="" [font_size]=11 [mono]="" [mono_size]=""
+)
+
+# quick picks per key, best first: chosen for legibility (fonts) and for
+# going with the colour themes (the rest). `lists` keeps the installed ones.
+declare -A PICKS=(
+    [font]="Inter Variable|Atkinson Hyperlegible Next|Lexend|IBM Plex Sans|Source Sans 3|Noto Sans"
+    [mono]="JetBrainsMono Nerd Font|Iosevka Nerd Font|SauceCodePro Nerd Font|BlexMono Nerd Font|CommitMono Nerd Font|Atkinson Hyperlegible Mono|Hack Nerd Font"
+    [icons]="candy-icons|Papirus-Dark|Tela-circle-dark|Colloid-Dark|Papirus-Light|Tela-circle-light"
+    [cursor]="Bibata-Modern-Classic|Bibata-Modern-Ice|phinger-cursors-dark|phinger-cursors-light|Sweet-cursors|catppuccin-mocha-dark-cursors"
+    [gtk]="adw-gtk3-dark|adw-gtk3|Sweet-Dark-v40|catppuccin-mocha-blue-standard|Nordic|Dracula"
+    [kvantum]="KvGlass#|Sweet|Nordic|Dracula|catppuccin-mocha-blue"
 )
 
 CFG=${XDG_CONFIG_HOME:-$HOME/.config}
@@ -73,10 +91,18 @@ theme_look() {
 
 choice() { if [ -s "$CHOICE" ]; then jq -c 'if type == "object" then . else {} end' "$CHOICE" 2>/dev/null || printf '{}'; else printf '{}'; fi; }
 
+# light or dark, as themectl worked it out from the theme's background
+scheme() {
+    sed -n 's/^ *--dots-color-scheme: *\([a-z]*\);.*/\1/p' "$THEME_STATE/zen-palette.css" 2>/dev/null | head -n1
+}
+
 defaults() {
-    local k out='{}'
+    local k v out='{}'
     for k in $KEYS; do
-        out=$(jq -c --arg k "$k" --arg v "${DEF[$k]}" '.[$k] = $v' <<<"$out")
+        v=${DEF[$k]}
+        # a light theme with no GTK theme of its own gets light adw-gtk3
+        [ "$k" = gtk ] && [ "$(scheme)" = light ] && v=adw-gtk3
+        out=$(jq -c --arg k "$k" --arg v "$v" '.[$k] = $v' <<<"$out")
     done
     printf '%s' "$out"
 }
@@ -124,10 +150,15 @@ previews() {
     if [ ! -s "$out" ]; then
         mkdir -p "$CACHE"
         local -a want=(folder user-home utilities-terminal web-browser preferences-system multimedia-video-player text-x-generic)
-        local found
-        found=$(find -L "$dir" -type f \( -name '*.svg' -o -name '*.png' \) 2>/dev/null |
+        # a thin theme (Papirus-Dark-teal: folders only) shows the rest from
+        # the first theme it inherits, found next to it
+        local found parent search=("$dir")
+        parent=$(sed -n 's/^Inherits=\([^,]*\).*/\1/p' "$dir/index.theme" 2>/dev/null | head -n1)
+        [ -n "$parent" ] && [ -d "${dir%/*}/$parent" ] && search+=("${dir%/*}/$parent")
+        found=$(find -L "${search[@]}" -type f \( -name '*.svg' -o -name '*.png' \) 2>/dev/null |
             grep -E "/($(IFS='|'; echo "${want[*]}"))\.(svg|png)$" |
-            awk '{ s = ($0 ~ /scalable|\/48|@2x|\/64/) ? 0 : 1; print s "\t" $0 }' | sort -t$'\t' -k1,1n | cut -f2-)
+            awk -v own="$dir/" '{ s = ($0 ~ /scalable|\/48|@2x|\/64/) ? 0 : 1; if (index($0, own) != 1) s += 2; print s "\t" $0 }' |
+            sort -t$'\t' -k1,1n | cut -f2-)
         local list=()
         for n in "${want[@]}"; do
             f=$(grep -m1 -E "/$n\.(svg|png)$" <<<"$found" || true)
@@ -136,6 +167,24 @@ previews() {
         printf '%s\n' "${list[@]}" | jq -R . | jq -sc 'map(select(. != ""))' >"$out"
     fi
     cat "$out"
+}
+
+# GTK themes (a gtk-3.0 dir under share/themes) and Kvantum themes
+# (share/Kvantum and ~/.config/Kvantum), first dir wins
+gtk_themes() {
+    local d IFS=:
+    for d in "$HOME/.themes" "${XDG_DATA_HOME:-$HOME/.local/share}/themes" ${XDG_DATA_DIRS:-/run/current-system/sw/share}; do
+        [[ $d == */themes ]] || d=$d/themes
+        find -L "$d" -mindepth 2 -maxdepth 2 -name gtk-3.0 -type d -printf '%h\n' 2>/dev/null
+    done | awk -F/ '!seen[$NF]++ { print $NF }' | sort -f | jq -R . | jq -sc .
+}
+
+kvantum_themes() {
+    local d IFS=:
+    for d in "$CFG/Kvantum" ${XDG_DATA_DIRS:-/run/current-system/sw/share}; do
+        [[ $d == */Kvantum ]] || d=$d/Kvantum
+        find -L "$d" -mindepth 2 -maxdepth 2 -name '*.kvconfig' -printf '%h\n' 2>/dev/null
+    done | awk -F/ '!seen[$NF]++ { print $NF }' | sort -f | jq -R . | jq -sc .
 }
 
 cmd_lists() {
@@ -160,8 +209,24 @@ cmd_lists() {
     fonts=$(fc-list --format '%{family[0]}\n' 2>/dev/null | grep -v '^$' | grep -vP "$junk" | sort -fu | jq -R . | jq -sc .)
     monos=$( { fc-list ':spacing=100' --format '%{family[0]}\n'; fc-list ':spacing=90' --format '%{family[0]}\n'; } 2>/dev/null |
         grep -v '^$' | grep -vP "$junk" | sort -fu | jq -R . | jq -sc .)
-    jq -nc --argjson icons "$icons" --argjson cursors "$cursors" --argjson fonts "$fonts" --argjson monos "$monos" \
-        '{ icons: $icons, cursors: ($cursors | sort_by(ascii_downcase)), fonts: $fonts, monos: $monos }'
+    local picks='{}' k
+    for k in "${!PICKS[@]}"; do
+        picks=$(jq -c --arg k "$k" --arg v "${PICKS[$k]}" '.[$k] = ($v | split("|"))' <<<"$picks")
+    done
+    jq -nc --argjson gtk "$(gtk_themes)" --argjson kvantum "$(kvantum_themes)" \
+        --argjson icons "$icons" --argjson cursors "$cursors" --argjson fonts "$fonts" --argjson monos "$monos" \
+        --argjson picks "$picks" '
+        { gtk: $gtk, kvantum: $kvantum, icons: $icons, cursors: ($cursors | sort_by(ascii_downcase)), fonts: $fonts, monos: $monos }
+        | . as $l
+        # quick picks that are installed, in order
+        | .picks = {
+            font: [$picks.font[] | select(. as $f | $l.fonts | index($f))],
+            mono: [$picks.mono[] | select(. as $f | $l.monos | index($f))],
+            icons: [$picks.icons[] | select(. as $f | $l.icons | map(.id) | index($f))],
+            cursor: [$picks.cursor[] | select(. as $f | $l.cursors | index($f))],
+            gtk: [$picks.gtk[] | select(. as $f | $l.gtk | index($f))],
+            kvantum: [$picks.kvantum[] | select(. as $f | $l.kvantum | index($f))]
+          }'
 }
 
 # ── apply ────────────────────────────────────────────────────────────────────
@@ -187,8 +252,10 @@ qtct() {
 }
 
 cmd_apply() {
-    local quiet=${1:-} s icons cursor csize font fsize mono msize
+    local quiet=${1:-} s gtk kvantum icons cursor csize font fsize mono msize
     s=$(cmd_state)
+    gtk=$(jq -r '.effective.gtk' <<<"$s")
+    kvantum=$(jq -r '.effective.kvantum' <<<"$s")
     icons=$(jq -r '.effective.icons' <<<"$s")
     cursor=$(jq -r '.effective.cursor' <<<"$s")
     csize=$(jq -r '.effective.cursor_size' <<<"$s")
@@ -202,6 +269,7 @@ cmd_apply() {
 
     # GTK, live through the settings portal
     if command -v dconf >/dev/null 2>&1; then
+        dconf write "$DCONF/gtk-theme" "$(gv "$gtk")"
         dconf write "$DCONF/icon-theme" "$(gv "$icons")"
         dconf write "$DCONF/cursor-theme" "$(gv "$cursor")"
         dconf write "$DCONF/cursor-size" "$csize"
@@ -209,9 +277,29 @@ cmd_apply() {
         if [ -n "$mono" ]; then dconf write "$DCONF/monospace-font-name" "$(gv "$mono $fsize")"; else dconf reset "$DCONF/monospace-font-name"; fi
     fi
 
+    # GTK's settings.ini: what apps read without the settings portal (XWayland,
+    # anything up before it), and the only place GTK 3 takes its light/dark
+    # preference from. GTK 4 gets no theme name (libadwaita warns about it).
+    local dark=1 v ini
+    [ "$(scheme)" = light ] && dark=0
+    for v in 3 4; do
+        ini="$CFG/gtk-$v.0/settings.ini"
+        writable "$ini"
+        {
+            printf '[Settings]\ngtk-application-prefer-dark-theme=%s\n' "$dark"
+            [ "$v" = 3 ] && printf 'gtk-theme-name=%s\n' "$gtk"
+            printf 'gtk-icon-theme-name=%s\ngtk-cursor-theme-name=%s\ngtk-cursor-theme-size=%s\n' "$icons" "$cursor" "$csize"
+            [ -n "$font" ] && printf 'gtk-font-name=%s %s\n' "$font" "$fsize"
+            true
+        } >"$ini.tmp" && mv -f "$ini.tmp" "$ini"
+    done
+
     # Qt (qtct + Kvantum): read when an app starts
     qtct 5 "$icons" "$font" "$fsize" "$mono"
     qtct 6 "$icons" "$font" "$fsize" "$mono"
+    local kv="$CFG/Kvantum/kvantum.kvconfig"
+    writable "$kv"
+    printf '[General]\ntheme=%s\n' "$kvantum" >"$kv.tmp" && mv -f "$kv.tmp" "$kv"
 
     # fontconfig: what "sans-serif"/"monospace" mean for everything else.
     # Loaded from 50-user.conf, before NixOS's defaults; <prefer> inserts right
