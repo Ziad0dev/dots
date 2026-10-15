@@ -45,7 +45,9 @@ let
     ];
   };
 
-  gpuUnit = self: {
+  # a missing model would fail and retry every 5 min until someone notices;
+  # skip the start instead (the unit just stays inactive)
+  gpuUnit = self: model: {
     conflicts = lib.filter (n: n != self) [
       "llama-cpp.service"
       "llama-uncensored.service"
@@ -58,6 +60,7 @@ let
     ];
     unitConfig = {
       StartLimitBurst = 5;
+      ConditionPathExists = model;
     };
     wantedBy = lib.mkForce [ ];
     serviceConfig.ExecStartPre = freeGpu;
@@ -78,97 +81,115 @@ in
     };
   };
 
-  systemd.services.llama-cpp = gpuUnit "llama-cpp.service";
+  systemd.services.llama-cpp = gpuUnit "llama-cpp.service" config.services.llama-cpp.settings.model;
 
-  systemd.services.llama-uncensored = lib.recursiveUpdate (gpuUnit "llama-uncensored.service") {
-    description = "Huihui Qwen3.5-9B abliterated (uncensored general)";
-    serviceConfig = sandbox // {
-      ExecStart = ''
-        ${llama}/bin/llama-server \
-          -m ${modelDir}/Huihui-Qwen3.5-9B-abliterated.Q6_K.gguf \
-          --host 127.0.0.1 --port 8080 \
-          -c 16384 -ngl 99 --flash-attn on --jinja
-      '';
-    };
-  };
+  systemd.services.llama-uncensored =
+    lib.recursiveUpdate
+      (gpuUnit "llama-uncensored.service" "${modelDir}/Huihui-Qwen3.5-9B-abliterated.Q6_K.gguf")
+      {
+        description = "Huihui Qwen3.5-9B abliterated (uncensored general)";
+        serviceConfig = sandbox // {
+          ExecStart = ''
+            ${llama}/bin/llama-server \
+              -m ${modelDir}/Huihui-Qwen3.5-9B-abliterated.Q6_K.gguf \
+              --host 127.0.0.1 --port 8080 \
+              -c 16384 -ngl 99 --flash-attn on --jinja
+          '';
+        };
+      };
 
   # 8.1 GB of weights: 8k context with a q8 KV cache keeps it on a 12 GB card
   # next to the desktop's own VRAM use
-  systemd.services.llama-hermes = lib.recursiveUpdate (gpuUnit "llama-hermes.service") {
-    description = "Hermes 4 14B (steerable)";
-    serviceConfig = sandbox // {
-      ExecStart = ''
-        ${llama}/bin/llama-server \
-          -m ${modelDir}/NousResearch_Hermes-4-14B-IQ4_XS.gguf \
-          --host 127.0.0.1 --port 8080 \
-          -c 8192 -ngl 99 --flash-attn on --jinja \
-          --cache-type-k q8_0 --cache-type-v q8_0
-      '';
-    };
-  };
+  systemd.services.llama-hermes =
+    lib.recursiveUpdate
+      (gpuUnit "llama-hermes.service" "${modelDir}/NousResearch_Hermes-4-14B-IQ4_XS.gguf")
+      {
+        description = "Hermes 4 14B (steerable)";
+        serviceConfig = sandbox // {
+          ExecStart = ''
+            ${llama}/bin/llama-server \
+              -m ${modelDir}/NousResearch_Hermes-4-14B-IQ4_XS.gguf \
+              --host 127.0.0.1 --port 8080 \
+              -c 8192 -ngl 99 --flash-attn on --jinja \
+              --cache-type-k q8_0 --cache-type-v q8_0
+          '';
+        };
+      };
 
-  systemd.services.llama-sec = lib.recursiveUpdate (gpuUnit "llama-sec.service") {
-    description = "WhiteRabbitNeo V3-7B (security)";
-    serviceConfig = sandbox // {
-      ExecStart = ''
-        ${llama}/bin/llama-server \
-          -m ${modelDir}/WhiteRabbitNeo_WhiteRabbitNeo-V3-7B-Q5_K_M.gguf \
-          --host 127.0.0.1 --port 8080 \
-          -c 16384 -ngl 99 --flash-attn on --jinja
-      '';
-    };
-  };
+  systemd.services.llama-sec =
+    lib.recursiveUpdate
+      (gpuUnit "llama-sec.service" "${modelDir}/WhiteRabbitNeo_WhiteRabbitNeo-V3-7B-Q5_K_M.gguf")
+      {
+        description = "WhiteRabbitNeo V3-7B (security)";
+        serviceConfig = sandbox // {
+          ExecStart = ''
+            ${llama}/bin/llama-server \
+              -m ${modelDir}/WhiteRabbitNeo_WhiteRabbitNeo-V3-7B-Q5_K_M.gguf \
+              --host 127.0.0.1 --port 8080 \
+              -c 16384 -ngl 99 --flash-attn on --jinja
+          '';
+        };
+      };
 
-  systemd.services.llama-agent = lib.recursiveUpdate (gpuUnit "llama-agent.service") {
-    description = "Qwen2.5-Coder-14B (agent / tool-calling)";
-    serviceConfig = sandbox // {
-      ExecStart = ''
-        ${llama}/bin/llama-server \
-          -m ${modelDir}/Qwen2.5-Coder-14B-Instruct-Q4_K_M.gguf \
-          --host 127.0.0.1 --port 8080 \
-          -c 16384 -ngl 99 --flash-attn on --jinja
-      '';
-    };
-  };
+  systemd.services.llama-agent =
+    lib.recursiveUpdate
+      (gpuUnit "llama-agent.service" "${modelDir}/Qwen2.5-Coder-14B-Instruct-Q4_K_M.gguf")
+      {
+        description = "Qwen2.5-Coder-14B (agent / tool-calling)";
+        serviceConfig = sandbox // {
+          ExecStart = ''
+            ${llama}/bin/llama-server \
+              -m ${modelDir}/Qwen2.5-Coder-14B-Instruct-Q4_K_M.gguf \
+              --host 127.0.0.1 --port 8080 \
+              -c 16384 -ngl 99 --flash-attn on --jinja
+          '';
+        };
+      };
 
-  systemd.services.llama-gemma = lib.recursiveUpdate (gpuUnit "llama-gemma.service") {
-    description = "Gemma 4 12B Unified (general / vision / audio)";
-    serviceConfig = sandbox // {
-      ExecStart = ''
-        ${llama}/bin/llama-server \
-          -m ${modelDir}/gemma-4-12B-it-Q4_K_M.gguf \
-          --host 127.0.0.1 --port 8080 \
-          -c 16384 -ngl 99 --flash-attn on --jinja \
-          --temp 1.0 --top-p 0.95 --top-k 64
-      '';
-    };
-  };
+  systemd.services.llama-gemma =
+    lib.recursiveUpdate (gpuUnit "llama-gemma.service" "${modelDir}/gemma-4-12B-it-Q4_K_M.gguf")
+      {
+        description = "Gemma 4 12B Unified (general / vision / audio)";
+        serviceConfig = sandbox // {
+          ExecStart = ''
+            ${llama}/bin/llama-server \
+              -m ${modelDir}/gemma-4-12B-it-Q4_K_M.gguf \
+              --host 127.0.0.1 --port 8080 \
+              -c 16384 -ngl 99 --flash-attn on --jinja \
+              --temp 1.0 --top-p 0.95 --top-k 64
+          '';
+        };
+      };
 
-  systemd.services.llama-coder = lib.recursiveUpdate (gpuUnit "llama-coder.service") {
-    description = "Gemma 4 26B A4B MoE (coding / agentic)";
-    serviceConfig = sandbox // {
-      ExecStart = ''
-        ${llama}/bin/llama-server \
-          -m ${modelDir}/gemma-4-26B-A4B-it-Q4_K_M.gguf \
-          --host 127.0.0.1 --port 8080 \
-          -c 16384 -ngl 99 --n-cpu-moe 18 --flash-attn on --jinja \
-          --temp 1.0 --top-p 0.95 --top-k 64 \
-          --cache-type-k q8_0 --cache-type-v q8_0
-      '';
-    };
-  };
+  systemd.services.llama-coder =
+    lib.recursiveUpdate (gpuUnit "llama-coder.service" "${modelDir}/gemma-4-26B-A4B-it-Q4_K_M.gguf")
+      {
+        description = "Gemma 4 26B A4B MoE (coding / agentic)";
+        serviceConfig = sandbox // {
+          ExecStart = ''
+            ${llama}/bin/llama-server \
+              -m ${modelDir}/gemma-4-26B-A4B-it-Q4_K_M.gguf \
+              --host 127.0.0.1 --port 8080 \
+              -c 16384 -ngl 99 --n-cpu-moe 18 --flash-attn on --jinja \
+              --temp 1.0 --top-p 0.95 --top-k 64 \
+              --cache-type-k q8_0 --cache-type-v q8_0
+          '';
+        };
+      };
 
-  systemd.services.llama-fim = lib.recursiveUpdate (gpuUnit "llama-fim.service") {
-    description = "Qwen2.5-Coder-3B FIM (llama.vim)";
-    serviceConfig = sandbox // {
-      ExecStart = ''
-        ${llama}/bin/llama-server \
-          -m ${modelDir}/qwen2.5-coder-3b-q8_0.gguf \
-          --host 127.0.0.1 --port 8012 \
-          -c 8192
-      '';
-    };
-  };
+  systemd.services.llama-fim =
+    lib.recursiveUpdate (gpuUnit "llama-fim.service" "${modelDir}/qwen2.5-coder-3b-q8_0.gguf")
+      {
+        description = "Qwen2.5-Coder-3B FIM (llama.vim)";
+        serviceConfig = sandbox // {
+          ExecStart = ''
+            ${llama}/bin/llama-server \
+              -m ${modelDir}/qwen2.5-coder-3b-q8_0.gguf \
+              --host 127.0.0.1 --port 8012 \
+              -c 8192
+          '';
+        };
+      };
 
   security.polkit.extraConfig = ''
     polkit.addRule(function(action, subject) {
