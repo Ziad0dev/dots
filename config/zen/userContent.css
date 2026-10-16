@@ -23,6 +23,14 @@
   color: var(--dots-on_primary) !important;
 }
 
+/* a frame with nothing visible (an ad slot uBlock emptied) on a page Dark
+   Reader turned dark: a light document in a dark embedder paints an opaque
+   white canvas. Following the preferred scheme matches the embedder, so the
+   frame stays transparent. Pages with content keep their own scheme */
+:root:not(:has(body :not(script, style, noscript, link, meta, template))) {
+  color-scheme: light dark !important;
+}
+
 @-moz-document url("about:blank"), url("about:newtab"), url("about:home") {
   :root, body { background: var(--dots-background) !important; }
 }

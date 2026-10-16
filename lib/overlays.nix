@@ -3,6 +3,7 @@
 [
   inputs.zig-overlay.overlays.default
   inputs.obsidian-extensions.overlays.default
+  inputs.millennium.overlays.default
   (final: _prev: {
     soulseek-rs = final.callPackage ../pkgs/soulseek-rs.nix { };
     caelestia-blobs = final.callPackage ../pkgs/caelestia-blobs { };

@@ -23,7 +23,10 @@ let
   rootUrl = "https://${tailnetHost}:${toString servePort}/";
 
   forgejoCli = "${lib.getExe cfg.package} --work-path ${cfg.stateDir} --config ${cfg.customDir}/conf/app.ini";
-  runnerTokenFile = "${cfg.stateDir}/actions-runner.env";
+  runnerName = "nixos";
+  # 40 hex chars: the runner's token, and the source of its UUID
+  runnerSecretFile = "${cfg.stateDir}/actions-runner.secret";
+  runnerUuidFile = "${cfg.stateDir}/actions-runner.uuid";
 in
 {
   services.forgejo = {
@@ -127,13 +130,14 @@ in
     sshPort
   ];
 
-  # Actions: the runner registers with a token Forgejo mints for itself, once
-  # (the file is kept; delete it to re-register).
-  systemd.services.forgejo-runner-token = {
-    description = "mint the Forgejo Actions runner registration token";
+  # Actions: forgejo-runner 13 no longer registers itself; it needs a UUID and
+  # token that Forgejo already knows. Pre-register one from a locally generated
+  # secret (idempotent, so it runs on every boot; delete the secret file for a
+  # fresh runner).
+  systemd.services.forgejo-runner-secret = {
+    description = "pre-register the Forgejo Actions runner";
     after = [ "forgejo.service" ];
     requires = [ "forgejo.service" ];
-    unitConfig.ConditionPathExists = "!${runnerTokenFile}";
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
@@ -142,30 +146,29 @@ in
       UMask = "0077";
     };
     script = ''
+      if [ ! -s ${runnerSecretFile} ]; then
+        od -An -tx1 -N20 /dev/urandom | tr -d ' \n' > ${runnerSecretFile}
+      fi
+      secret=$(cat ${runnerSecretFile})
+      # same derivation as `forgejo-runner create-runner-file`: the UUID is the
+      # secret's first 16 characters taken as bytes
+      hex=$(printf '%s' "''${secret:0:16}" | od -An -tx1 | tr -d ' \n')
+      printf '%s-%s-%s-%s-%s' "''${hex:0:8}" "''${hex:8:4}" "''${hex:12:4}" "''${hex:16:4}" "''${hex:20:12}" > ${runnerUuidFile}
+
       i=0
-      until token=$(${forgejoCli} actions generate-runner-token 2>/dev/null) && [ -n "$token" ]; do
+      until ${forgejoCli} forgejo-cli actions register --name ${runnerName} --secret-file ${runnerSecretFile}; do
         i=$((i + 1))
         [ $i -ge 30 ] && { echo "forgejo never answered" >&2; exit 1; }
         sleep 2
       done
-      printf 'TOKEN=%s\n' "$token" > ${runnerTokenFile}
     '';
   };
 
-  services.gitea-actions-runner = {
+  services.forgejo-runner = {
     package = pkgs.forgejo-runner;
-    instances.nixos = {
+    instances.${runnerName} = {
       enable = true;
-      name = config.networking.hostName;
-      url = "http://127.0.0.1:${toString httpPort}";
-      tokenFile = runnerTokenFile;
-      # container jobs run in Podman (already on); `native` runs on the host
-      labels = [
-        "ubuntu-latest:docker://node:22-bookworm"
-        "debian-latest:docker://node:22-bookworm"
-        "docker:docker://node:22-bookworm"
-        "native:host"
-      ];
+      secrets.server.connections.default.token_url = runnerSecretFile;
       hostPackages = with pkgs; [
         bash
         coreutils
@@ -179,13 +182,36 @@ in
       ];
       settings = {
         container.network = "host";
-        runner.capacity = 2;
+        runner = {
+          capacity = 2;
+          # container jobs run in Podman (already on); `native` runs on the host
+          labels = [
+            "ubuntu-latest:docker://node:22-bookworm"
+            "debian-latest:docker://node:22-bookworm"
+            "docker:docker://node:22-bookworm"
+            "native:host"
+          ];
+        };
+        server.connections.default = {
+          url = "http://127.0.0.1:${toString httpPort}";
+          uuid = "@UUID@";
+        };
       };
     };
   };
 
-  systemd.services.gitea-runner-nixos = {
-    after = [ "forgejo-runner-token.service" ];
-    requires = [ "forgejo-runner-token.service" ];
+  # The module has no uuid_url yet, so fill the UUID in at start, the way
+  # nixpkgs' own forgejo test does.
+  systemd.services."forgejo-runner-${runnerName}" = {
+    after = [ "forgejo-runner-secret.service" ];
+    requires = [ "forgejo-runner-secret.service" ];
+    preStart = ''
+      install -m 600 ${config.services.forgejo-runner.instances.${runnerName}.configFile} ./config.yaml
+      ${lib.getExe pkgs.replace-secret} "@UUID@" "$CREDENTIALS_DIRECTORY/UUID" ./config.yaml
+    '';
+    serviceConfig = {
+      ExecStart = lib.mkForce "${lib.getExe config.services.forgejo-runner.package} daemon --config ./config.yaml";
+      LoadCredential = [ "UUID:${runnerUuidFile}" ];
+    };
   };
 }

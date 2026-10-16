@@ -18,5 +18,7 @@
   };
 
   nix.settings.warn-dirty = false;
+  # newest release series instead of nixpkgs' default; nixVersions.stable to go back
+  nix.package = pkgs.nixVersions.latest;
 
 }

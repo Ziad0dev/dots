@@ -1,0 +1,56 @@
+/* Simply Dark's colours (colors.css and webkit/reservedWebkitColors.css),
+   in the theme's palette: the Millennium theme (home/gaming-home.nix) links
+   both files here. Its greys become steps from the background, darker ones
+   toward black and lighter ones toward the foreground, the blues the accent.
+   Steam picks a theme switch up when it restarts. */
+:root {
+  --dots-bg: ${background};
+  --dots-fg: ${foreground};
+
+  /* colors.css */
+  --color-light: color-mix(in srgb, var(--dots-fg) 10%, var(--dots-bg));
+  --color-dark: color-mix(in srgb, var(--dots-fg) 4%, var(--dots-bg));
+  --color-darker: var(--dots-bg);
+  --color-darkest: color-mix(in srgb, #000 20%, var(--dots-bg));
+  --scrollbar: color-mix(in srgb, var(--dots-fg) 10%, var(--dots-bg));
+  --black: #000000;
+  --blacker-ish: color-mix(in srgb, var(--dots-fg) 1%, var(--dots-bg));
+  --blacker: color-mix(in srgb, var(--dots-fg) 1.5%, var(--dots-bg));
+  --grey: color-mix(in srgb, var(--dots-fg) 9%, var(--dots-bg));
+  --lightgrey: color-mix(in srgb, var(--dots-fg) 16%, var(--dots-bg));
+  --lightergrey: color-mix(in srgb, var(--dots-fg) 12%, var(--dots-bg));
+  --grey-ish: color-mix(in srgb, var(--dots-fg) 19%, var(--dots-bg));
+  --darkergrey: color-mix(in srgb, #000 16%, var(--dots-bg));
+  --thegrey: color-mix(in srgb, #000 4%, var(--dots-bg));
+  --begrey: color-mix(in srgb, var(--dots-fg) 6%, var(--dots-bg));
+  --littlegrey: color-mix(in srgb, var(--dots-fg) 7%, var(--dots-bg));
+  --darkgrey: color-mix(in srgb, var(--dots-fg) 2%, var(--dots-bg));
+  --darkerwhite: ${muted};
+  --darkwhite: color-mix(in srgb, var(--dots-fg) 83%, var(--dots-bg));
+  --white: var(--dots-fg);
+  --ingame: ${green};
+  --online: ${accent};
+  --offline: ${dim};
+
+  /* webkit/reservedWebkitColors.css */
+  --black-ish: #00000000;
+  --realblack: color-mix(in srgb, #000 36%, var(--dots-bg));
+  --lightblack: color-mix(in srgb, #000 28%, var(--dots-bg));
+  --bedarkgrey: color-mix(in srgb, #000 12%, var(--dots-bg));
+  --darkblue: ${accent_container};
+  --blue: ${accent};
+  --brightblue: ${accent};
+  --blu: color-mix(in srgb, ${accent} 80%, var(--dots-fg));
+  --blue-ish: color-mix(in srgb, ${accent} 70%, var(--dots-fg));
+  --blue-er: color-mix(in srgb, ${accent} 50%, var(--dots-fg));
+  --lightblue: color-mix(in srgb, ${accent} 30%, var(--dots-fg));
+  --darkgreen: color-mix(in srgb, ${green} 55%, var(--dots-bg));
+  --green: ${green};
+  --gold: ${yellow};
+  --bronze: color-mix(in srgb, ${yellow} 40%, var(--dots-bg));
+  --purple: ${magenta};
+  --pink: ${pink};
+  --red: ${red};
+  --orange: ${base09};
+  --yellow: ${yellow};
+}

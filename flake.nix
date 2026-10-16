@@ -72,6 +72,13 @@
     # declarative flatpaks (home/flatpak.nix); no inputs of its own
     nix-flatpak.url = "github:gmodena/nix-flatpak";
 
+    # Millennium-patched Steam, for client themes (modules/gaming.nix); not in
+    # nixpkgs yet. Its nixpkgs-bun stays its own: the bun hash depends on it.
+    millennium = {
+      url = "github:SteamClientHomebrew/Millennium?dir=packages/nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     vpn-confinement = {
       url = "github:Maroka-chan/VPN-Confinement";
     };

@@ -65,7 +65,7 @@ for root in "${roots[@]}"; do
       || echo 'user_pref("browser.tabs.allow_transparent_browser", true);' >> "$prof/user.js"
 
     echo "   linked  $path"
-    ((linked++))
+    linked=$((linked + 1))
   done < <(grep -i '^Path=' "$ini" | cut -d= -f2-)
 done
 

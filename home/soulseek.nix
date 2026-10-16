@@ -59,6 +59,40 @@ let
         -not -path '*/dupes/*' -not -path '*/superseded/*' | wc -l
     '';
   };
+  # Nicotine+ "run command after folder finishes" hook: afterfolder = slsk-import $
+  slsk-import = pkgs.writeShellApplication {
+    name = "slsk-import";
+    runtimeInputs = [
+      config.programs.beets.package
+      pkgs.coreutils
+      pkgs.findutils
+      pkgs.util-linux
+      pkgs.libnotify
+    ];
+    text = ''
+      src="$1"
+      [ -d "$src" ] || exit 0
+      log="${config.xdg.stateHome}/slsk-import.log"
+      mkdir -p ${staging} "$(dirname "$log")"
+      exec >>"$log" 2>&1
+
+      name="$(basename "$src")"
+      dest="${staging}/$name"
+      [ -e "$dest" ] && dest="$dest.$(date +%s)"
+      echo "== $(date -Is) $src -> $dest"
+      mv -- "$src" "$dest"
+
+      # one beets run at a time; the library is a single sqlite db
+      flock "''${XDG_RUNTIME_DIR:-/tmp}/slsk-import.lock" beet import -q "$dest" || true
+      find "$dest" -depth -type d -empty -delete 2>/dev/null || true
+
+      if [ -d "$dest" ]; then
+        notify-send -a Nicotine+ "beets skipped: $name" "left in ${staging}, run: beet import ${staging}" || true
+      else
+        notify-send -a Nicotine+ "Imported: $name" || true
+      fi
+    '';
+  };
 in
 {
   home.packages = [
@@ -67,6 +101,7 @@ in
     pkgs.mp3val
     album-doctor
     music-fill
+    slsk-import
   ];
 
   programs.beets = {
