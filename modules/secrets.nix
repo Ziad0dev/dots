@@ -46,10 +46,11 @@ in
         enable = true;
         pinentryPackage = pkgs.pinentry-qt;
         settings = {
-          # the login password unlocks the key for the whole session
-          # (pam-gnupg below); short TTLs would bring the prompt back mid-day
-          default-cache-ttl = 34560000;
-          max-cache-ttl = 34560000;
+          # the login password unlocks the key (pam-gnupg below) and every
+          # lock-screen unlock hands it over again, so 12h covers a working day
+          # without leaving pass open to any process for days on end
+          default-cache-ttl = 43200;
+          max-cache-ttl = 43200;
           no-allow-external-cache = "";
         };
       };

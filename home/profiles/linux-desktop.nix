@@ -243,12 +243,7 @@ in
       inputs.helium.packages.${system}.default
       (pkgs.callPackage ../../pkgs/nyxt { })
       inputs.vm-curator.packages.${system}.default
-      #inputs.hyprland-preview-share-picker.packages.${system}.default
-      (inputs.hyprland-preview-share-picker.packages.${system}.default.overrideAttrs (old: {
-        postPatch = (old.postPatch or "") + ''
-          cp ${../../pkgs/hyprland-preview-share-picker/outputs.rs} src/views/outputs.rs
-        '';
-      }))
+      inputs.hyprland-preview-share-picker.packages.${system}.default
     ];
 
   services.cliphist.enable = true;

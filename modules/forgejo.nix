@@ -1,8 +1,7 @@
-# Forgejo: self-hosted git forge with Actions, for the tailnet and the LAN.
+# Forgejo: self-hosted git forge with Actions, for the LAN only (the tailnet
+# gets just the page and Jellyfin).
 #
-#   tailnet  https://nixos.taile88a1e.ts.net:10000   (tailscale serve; 443 is
-#            the page and 8443 Jellyfin, 10000 is the last port serve allows)
-#   LAN      http://<lan ip>:3000
+#   LAN      http://nixos.local:3000   (avahi)
 #   git+ssh  ssh://forgejo@<host>:2222/<owner>/<repo>.git  (built-in server)
 #
 # First admin (forgejo-admin wraps the CLI, see below):
@@ -18,9 +17,8 @@ let
   cfg = config.services.forgejo;
   httpPort = 3000;
   sshPort = 2222;
-  servePort = 10000;
-  tailnetHost = "nixos.taile88a1e.ts.net";
-  rootUrl = "https://${tailnetHost}:${toString servePort}/";
+  lanHost = "nixos.local";
+  rootUrl = "http://${lanHost}:${toString httpPort}/";
 
   forgejoCli = "${lib.getExe cfg.package} --work-path ${cfg.stateDir} --config ${cfg.customDir}/conf/app.ini";
   runnerName = "nixos";
@@ -46,7 +44,7 @@ in
       DEFAULT.APP_NAME = "forge";
 
       server = {
-        DOMAIN = tailnetHost;
+        DOMAIN = lanHost;
         ROOT_URL = rootUrl;
         HTTP_ADDR = "0.0.0.0";
         HTTP_PORT = httpPort;
@@ -89,32 +87,9 @@ in
     };
   };
 
-  # Publish to the tailnet over HTTPS, like hello-page and Jellyfin.
-  systemd.services.forgejo-serve = {
-    description = "publish Forgejo to the tailnet";
-    wantedBy = [ "multi-user.target" ];
-    after = [
-      "tailscaled.service"
-      "forgejo.service"
-    ];
-    wants = [ "tailscaled.service" ];
-    serviceConfig = {
-      Type = "oneshot";
-      RemainAfterExit = true;
-      ExecStart = pkgs.writeShellScript "forgejo-serve" ''
-        i=0
-        while [ $i -lt 60 ]; do
-          if ${pkgs.tailscale}/bin/tailscale status --json >/dev/null 2>&1; then
-            exec ${pkgs.tailscale}/bin/tailscale serve --bg --https ${toString servePort} http://127.0.0.1:${toString httpPort}
-          fi
-          ${pkgs.coreutils}/bin/sleep 2
-          i=$((i + 1))
-        done
-        echo "tailscaled never became ready" >&2
-        exit 1
-      '';
-    };
-  };
+  # every dump gets a new timestamped name and the module never prunes them;
+  # keep a week (restic holds the history)
+  systemd.tmpfiles.rules = [ "e ${cfg.dump.backupDir} - - - 7d" ];
 
   # the module doesn't put the CLI on PATH; this runs it as the service user
   # with the service's config: `forgejo-admin admin user list`
@@ -124,7 +99,6 @@ in
     '')
   ];
 
-  # tailscale0 is already a trusted interface (hello-page.nix)
   networking.firewall.interfaces.${config.dots.lanInterface}.allowedTCPPorts = [
     httpPort
     sshPort
@@ -181,15 +155,19 @@ in
         nix
       ];
       settings = {
+        # jobs check out from Forgejo on 127.0.0.1; the qBittorrent Web UI
+        # rejects their uid (vpn.nix)
         container.network = "host";
+        # ROOT_URL's mDNS name doesn't resolve inside a container
+        container.options = "--add-host=${lanHost}:127.0.0.1";
         runner = {
           capacity = 2;
-          # container jobs run in Podman (already on); `native` runs on the host
+          # container jobs run in Podman (already on); no `native:host` label,
+          # so no job runs directly on the host
           labels = [
             "ubuntu-latest:docker://node:22-bookworm"
             "debian-latest:docker://node:22-bookworm"
             "docker:docker://node:22-bookworm"
-            "native:host"
           ];
         };
         server.connections.default = {

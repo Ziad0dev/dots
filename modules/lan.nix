@@ -12,6 +12,9 @@
     allowedTCPPorts = [
       8096
       8920
+      # soulseek-rs listener (home/soulseek.nix); peers reach it through a
+      # port forward on the router
+      2234
     ];
     allowedUDPPorts = [ 5353 ];
   };

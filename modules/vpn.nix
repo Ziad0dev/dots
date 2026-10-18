@@ -2,6 +2,7 @@
   config,
   lib,
   pkgs,
+  username,
   ...
 }:
 
@@ -23,10 +24,7 @@ let
   mullvadDns = "100.64.0.7";
   mullvadFallbackDns = "10.64.0.1";
 
-  tailnet = "100.64.0.0/10";
-
   webPort = 8081;
-  indexerPort = 9696;
   torrentPort = 51413;
   mediaRoot = "/mnt/media";
 
@@ -60,7 +58,14 @@ let
     ${pkgs.coreutils}/bin/mv -f "$tmp" "$conf"
   '';
 
-  forwardRule = "FORWARD -d ${config.vpnNamespaces.wg.namespaceAddress} -p tcp -m multiport --dports ${toString webPort},${toString indexerPort} ! -i tailscale0 -j DROP";
+  # The Web UI skips auth for the bridge subnet, and every host process reaches
+  # the namespace from the bridge address. Only these users may connect.
+  qbtClients = [
+    config.services.sonarr.user
+    config.services.radarr.user
+    username
+  ];
+  qbtJump = "OUTPUT -d ${config.vpnNamespaces.wg.namespaceAddress} -p tcp --dport ${toString webPort} -j qbt-webui";
 in
 {
   systemd.services.wg-dns = {
@@ -120,18 +125,9 @@ in
   vpnNamespaces.wg = {
     enable = true;
     wireguardConfigFile = wgConfig;
-    accessibleFrom = [ tailnet ];
+    # not published to the tailnet or LAN: the host reaches the namespace
+    # directly over the bridge
     allowedEgress = [ config.vpnNamespaces.wg.bridgeAddress ];
-    portMappings = [
-      {
-        from = webPort;
-        to = webPort;
-      }
-      {
-        from = indexerPort;
-        to = indexerPort;
-      }
-    ];
   };
 
   networking.firewall.extraCommands = ''
@@ -139,13 +135,20 @@ in
     iptables -w -I INPUT 1 -s ${config.vpnNamespaces.wg.namespaceAddress} -d ${config.vpnNamespaces.wg.bridgeAddress} -p tcp --dport 7878 -j ACCEPT
     iptables -w -D INPUT -s ${config.vpnNamespaces.wg.namespaceAddress} -d ${config.vpnNamespaces.wg.bridgeAddress} -p tcp --dport 8989 -j ACCEPT 2>/dev/null || true
     iptables -w -I INPUT 1 -s ${config.vpnNamespaces.wg.namespaceAddress} -d ${config.vpnNamespaces.wg.bridgeAddress} -p tcp --dport 8989 -j ACCEPT
-    iptables -w -D ${forwardRule} 2>/dev/null || true
-    iptables -w -I ${forwardRule}
+    iptables -w -N qbt-webui 2>/dev/null || iptables -w -F qbt-webui
+    ${lib.concatMapStrings (u: ''
+      iptables -w -A qbt-webui -m owner --uid-owner ${u} -j RETURN
+    '') qbtClients}
+    iptables -w -A qbt-webui -p tcp -j REJECT --reject-with tcp-reset
+    iptables -w -D ${qbtJump} 2>/dev/null || true
+    iptables -w -I ${qbtJump}
   '';
   networking.firewall.extraStopCommands = ''
     iptables -w -D INPUT -s ${config.vpnNamespaces.wg.namespaceAddress} -d ${config.vpnNamespaces.wg.bridgeAddress} -p tcp --dport 7878 -j ACCEPT 2>/dev/null || true
     iptables -w -D INPUT -s ${config.vpnNamespaces.wg.namespaceAddress} -d ${config.vpnNamespaces.wg.bridgeAddress} -p tcp --dport 8989 -j ACCEPT 2>/dev/null || true
-    iptables -w -D ${forwardRule} 2>/dev/null || true
+    iptables -w -D ${qbtJump} 2>/dev/null || true
+    iptables -w -F qbt-webui 2>/dev/null || true
+    iptables -w -X qbt-webui 2>/dev/null || true
   '';
 
   users.users.qbittorrent = {

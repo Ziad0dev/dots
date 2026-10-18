@@ -261,17 +261,6 @@ gtk_compat() {
     # GTK 4 skips the GTK 3 only rules (between the gtk3-only markers)
     sed '/gtk3-only:begin/,/gtk3-only:end/d' "$out" >"$cfg/gtk-4.0/gtk.css"
 }
-vencord_compat() {
-    local out dst
-    out="$STATE/vencord-quickcss.css"
-    dst="${XDG_CONFIG_HOME:-$HOME/.config}/Vencord/settings/quickCss.css"
-    [ -f "$out" ] || return 0
-    [ -d "${dst%/*}" ] || return 0
-    if [ -L "$dst" ]; then
-        rm -f "$dst"
-    fi
-    cp -f "$out" "$dst" || return 0
-}
 zen_compat() {
     local sites="$DOTS/config/zen/sites" out="$STATE/zen-sites.css" f docs
     [ -d "$sites" ] || return 0
@@ -464,7 +453,6 @@ write_theme() {
     sddm_compat "$name"
     kvantum_compat "$name"
     gtk_compat
-    vencord_compat
     zen_compat
     vscode_compat
 }

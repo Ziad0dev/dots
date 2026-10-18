@@ -35,6 +35,20 @@ in
   programs.nixcord = {
     enable = true;
 
+    # no theme, just hide the upsell: Nitro, Shop, Quests and the gift button
+    quickCss = ''
+      li:has(a[href="/store"]),
+      li:has(a[href="/shop"]),
+      li:has(a[href="/quest-home"]),
+      a[href="/store"],
+      a[href="/shop"],
+      a[href="/quest-home"],
+      button[aria-label*="gift" i],
+      [role="button"][aria-label*="gift" i] {
+        display: none !important;
+      }
+    '';
+
     discord = {
       enable = true;
       package = discord;
@@ -48,8 +62,7 @@ in
 
     config = {
       frameless = true;
-      # translucent window for the themectl quickCss (Hyprland blurs behind it)
-      transparent = true;
+      transparent = false;
       useQuickCss = true;
       plugins = {
         anonymiseFileNames.enable = true;

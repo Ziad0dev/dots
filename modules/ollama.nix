@@ -37,8 +37,10 @@
     "d /var/lib/ollama 0750 ollama ollama -"
   ];
 
+  # starts at boot but holds no VRAM until a model is requested; pi's
+  # ollama-unload extension frees it on exit, KEEP_ALIVE covers crashes
   systemd.services.ollama = {
-    wantedBy = lib.mkForce [ ];
+    wantedBy = lib.mkForce [ "multi-user.target" ];
   };
 
   users.users.ollama.extraGroups = [

@@ -26,7 +26,9 @@ in
     enable = lib.mkDefault true;
     useRoutingFeatures = lib.mkDefault "client";
   };
-  networking.firewall.trustedInterfaces = [ "tailscale0" ];
+  # the tailnet only gets the page (443, tailscale serve) and Jellyfin
+  # (media.nix); nothing else on this host is reachable from it
+  networking.firewall.interfaces.tailscale0.allowedTCPPorts = [ 443 ];
 
   systemd.services.hello-page = {
     description = "the page";

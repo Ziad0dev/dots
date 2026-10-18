@@ -76,7 +76,6 @@ Templates use `${key}` for `#rrggbb`, `${key_hex}` for the bare hex (Hyprland's 
 | `swayosd.css.in` | `swayosd.css` | linked as `~/.config/swayosd/style.css` |
 | `gtk.css.in` | `gtk.css` | copied to `~/.config/gtk-3.0/` and `gtk-4.0/` |
 | `kvantum.kvconfig.in` | `kvantum.kvconfig` | linked into `~/.config/Kvantum/KvGlass#/` |
-| `vencord-quickcss.css.in` | `vencord-quickcss.css` | copied to Vencord's `quickCss.css` if Vencord's settings dir exists; also hides the Nitro, Shop and Quests tabs and the gift button |
 | `zathura.in` | `zathura` | `include`d at the end of the zathurarc from `home/documents.nix` |
 | `tmux.conf.in` | `tmux.conf` | `source-file -q` at the end of `config/tmux/tmux.conf`; re-sourced on switch |
 | `cava.in` | `cava` | linked as `~/.config/cava/config` (`home/theming.nix`) |

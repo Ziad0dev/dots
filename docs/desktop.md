@@ -141,7 +141,8 @@ The last three go through `dots-shot`: saved as `~/Pictures/<date>_<time>.png`, 
 | `zen-beta`, `dev.dots.sideterm` | Workspace 1 |
 | `org.qbittorrent.qBittorrent` | Workspace 3 (silent) |
 | `dev.dots.sysmon` | Workspace 9 (silent, no focus) — tmux session `sysmon` with btop over nvtop |
-| `discord`, `spotify` | Workspace 10 (silent), 0.98 opacity |
+| `discord` | Workspace 10 (silent) |
+| `spotify` | Workspace 10 (silent), 0.92 opacity |
 | `org.pwmt.zathura` | Opaque, no blur, inhibits idle when fullscreen |
 | `flameshot` | Floating, pinned |
 | `com.gabm.satty` (screenshot editor) | Floating |

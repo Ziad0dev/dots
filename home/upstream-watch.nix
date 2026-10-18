@@ -9,7 +9,8 @@ let
 
   watchDir = pkgs.runCommandLocal "dots-upstream-watches" { } (
     lib.concatStringsSep "\n" (
-      lib.mapAttrsToList (name: w: ''
+      [ ''mkdir -p "$out"'' ]
+      ++ lib.mapAttrsToList (name: w: ''
         mkdir -p "$out/${name}"
         cp ${pkgs.writeText "upstream-watch-${name}-description" w.description} "$out/${name}/description"
         cp ${pkgs.writeText "upstream-watch-${name}-url" w.url} "$out/${name}/url"
@@ -79,40 +80,6 @@ in
 
   config = lib.mkIf cfg.enable {
     home.packages = [ engine ];
-
-    dots.upstreamWatch.watches.share-picker = {
-      description = "hyprland-preview-share-picker: drop-hyprland-rs merged to master";
-      url = "https://github.com/WhySoBad/hyprland-preview-share-picker";
-      check = ''
-        repo=WhySoBad/hyprland-preview-share-picker
-
-        outputs=$(raw "$repo" master src/views/outputs.rs) || {
-            echo "cannot reach raw.githubusercontent.com"
-            exit 2
-        }
-        manifest=$(raw "$repo" master Cargo.toml) || {
-            echo "cannot reach raw.githubusercontent.com"
-            exit 2
-        }
-
-        filters=no
-        printf '%s' "$outputs" | grep -q 'monitor\.disabled' && filters=yes
-
-        depends=no
-        printf '%s' "$manifest" | grep -Eq '^hyprland[[:space:]]*=' && depends=yes
-
-        if [ "$filters" = no ] && [ "$depends" = no ]; then
-            echo "master no longer filters monitor.disabled and no longer depends on hyprland-rs"
-            echo "set custom_picker_binary back in config/hypr/xdph.conf, then flakeup"
-            echo "region command must become lowercase: slurp -f '%o@%x,%y,%w,%h'"
-            exit 0
-        fi
-
-        head=$(remote_ref "https://github.com/$repo.git" refs/heads/master)
-        echo "master ''${head:0:8} still filtering: $filters, hyprland-rs dep: $depends"
-        exit 1
-      '';
-    };
 
     systemd.user.services.dots-upstream-watch = {
       Unit.Description = "Check whether watched upstream fixes have landed";

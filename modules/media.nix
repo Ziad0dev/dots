@@ -122,8 +122,10 @@ in
     openFirewall = true;
   };
 
+  # 8443: Jellyfin over HTTPS via `tailscale serve --https 8443` (set by hand)
   networking.firewall.interfaces.tailscale0.allowedTCPPorts = [
     8096
+    8443
     8920
   ];
 
