@@ -173,7 +173,7 @@ Every unit that uses an external drive should have `unitConfig.RequiresMountsFor
 
 ### qBittorrent / Prowlarr unreachable
 
-They live in the `wg` namespace. Check `systemctl status wg wg-dns qbittorrent`, that `/etc/wireguard/mullvad.conf` exists, and that you're coming from the tailnet (LAN is dropped by design) or from the host via `http://192.168.15.1:8081`.
+They live in the `wg` namespace and are exposed only to Tailscale clients: use `http://<host-tailnet-ip>:8081` for qBittorrent and `http://<host-tailnet-ip>:9696` for Prowlarr. LAN access is dropped by design. Check `systemctl status wg wg-dns wg-resolv-options qbittorrent prowlarr`, that `/etc/wireguard/mullvad.conf` exists, and that `tailscale status` shows this host connected. From the host, qBittorrent is at `http://192.168.15.1:8081` and Prowlarr at `http://192.168.15.1:9696`.
 
 ### A devshell re-downloads everything after a few days
 
