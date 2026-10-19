@@ -665,11 +665,11 @@
         "treefmt-nix": "treefmt-nix"
       },
       "locked": {
-        "lastModified": 1792403507,
-        "narHash": "sha256-JZGEgljanwAaViY45I3+EKerohbnkoHbOeZLOEbT1Hs=",
+        "lastModified": 1792412467,
+        "narHash": "sha256-+8HD0xrtrXiSMgxVSLVzxEk2EicPZBz9/bBHc2u6vb0=",
         "owner": "numtide",
         "repo": "llm-agents.nix",
-        "rev": "904b519e8182e716f91428a31eb5107334c1eb59",
+        "rev": "8fa7ff4193be923056b342d48d5bb38466791fe1",
         "type": "github"
       },
       "original": {
@@ -893,11 +893,11 @@
         "treefmt-nix": "treefmt-nix_3"
       },
       "locked": {
-        "lastModified": 1792314935,
-        "narHash": "sha256-f9waa0MXs5JDxDP3zDX+92oq4gjoqLQg2KDar9zgjaY=",
+        "lastModified": 1792405583,
+        "narHash": "sha256-N0bb0xi5R/md3Wg3kzIuV+4JUTsNbAlilz8vfMgUETA=",
         "owner": "karaolidis",
         "repo": "nix-obsidian-extensions",
-        "rev": "71dd3d98caed333c55b573441a3686c0261d458a",
+        "rev": "88fb633c7bce1befc18caeb147bd33cb0bc3f8f8",
         "type": "github"
       },
       "original": {
@@ -1261,11 +1261,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1792271801,
-        "narHash": "sha256-LYN8miMEew9CxgRrF/RCnAyOe6476dQM/JzELnFQef0=",
+        "lastModified": 1792412429,
+        "narHash": "sha256-01La/n5mmzoHiAuBxMNNUx3EFPxJoNxr4uTWh3kk5m0=",
         "owner": "0xc000022070",
         "repo": "zen-browser-flake",
-        "rev": "e1b9b3578ebb388b56012cd9ddd80e19681d2d39",
+        "rev": "dfc5cd756966ccfc924f8925628acb1fe6f51651",
         "type": "github"
       },
       "original": {
