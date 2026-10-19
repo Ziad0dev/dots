@@ -122,6 +122,14 @@ in
   # missing file (it emits a confusing shell arithmetic error).
   systemd.services.wg.unitConfig.ConditionPathExists = wgConfig;
 
+  # Keep FlareSolverr and Prowlarr on the same address family for Cloudflare
+  # sessions. Disabling IPv6 in this namespace fixed uIndex's challenge/retry.
+  # wg-up creates the namespace before ExecStartPost runs; applying it here
+  # also reapplies the setting whenever wg.service recreates the namespace.
+  systemd.services.wg.serviceConfig.ExecStartPost = lib.mkAfter [
+    "${pkgs.iproute2}/bin/ip netns exec wg ${pkgs.procps}/bin/sysctl -w net.ipv6.conf.all.disable_ipv6=1"
+  ];
+
   systemd.tmpfiles.rules = [
     "d /etc/netns/wg 0755 root root -"
   ];

@@ -49,6 +49,7 @@ host ─── bridge ────┤
 ```
 
 - The namespace uses `/etc/wireguard/mullvad.conf` (not in the repo). The current SOPS file declares only the Restic password; add the Mullvad secret as described in [Secrets](secrets.md), or provision the WireGuard file manually. Until that file exists, the WireGuard namespace services are skipped. `wg-dns` runs before `wg.service` and rewrites its `DNS =` line to Mullvad's resolver `100.64.0.7` so lookups inside the namespace stay in the tunnel.
+- IPv6 is disabled inside `wg` after the namespace starts. This fixed uIndex: FlareSolverr solved the Cloudflare challenge, but Prowlarr's follow-up request still failed until both used IPv4.
 - `accessibleFrom = [ tailnet ]` routes replies to tailnet clients back out of the bridge instead of into the tunnel.
 - A firewall rule drops forwarded traffic to 8081/9696 unless it came in on `tailscale0` — the mappings are tailnet-only, not LAN.
 - **qBittorrent** runs as its own system user in group `media`, saves to `/mnt/media/.incoming`, no UPnP, pauses at ratio 2 or after 24 h seeding, `MemoryHigh = 2G`. Web UI auth is skipped for the namespace subnet (`192.168.15.0/24`); the host reaches it at `http://192.168.15.1:8081`, which is what the bar's `dots-qbt` widget polls.
