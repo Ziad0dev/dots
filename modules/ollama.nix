@@ -1,6 +1,5 @@
 {
   config,
-  lib,
   pkgs,
   ...
 }:
@@ -23,6 +22,8 @@
 
       OLLAMA_MAX_LOADED_MODELS = "1";
 
+      # starts at boot but holds no VRAM until a model is requested; pi's
+      # ollama-unload extension frees it on exit, KEEP_ALIVE covers crashes
       OLLAMA_KEEP_ALIVE = "5m";
 
       OLLAMA_FLASH_ATTENTION = "1";
@@ -36,12 +37,6 @@
   systemd.tmpfiles.rules = [
     "d /var/lib/ollama 0750 ollama ollama -"
   ];
-
-  # starts at boot but holds no VRAM until a model is requested; pi's
-  # ollama-unload extension frees it on exit, KEEP_ALIVE covers crashes
-  systemd.services.ollama = {
-    wantedBy = lib.mkForce [ "multi-user.target" ];
-  };
 
   users.users.ollama.extraGroups = [
     "video"

@@ -2,12 +2,14 @@
 
 ## Ports
 
-Only Jellyfin and mDNS are admitted on the LAN. Other services use loopback or the VPN namespace; Radarr and Sonarr bind wildcard sockets but the host firewall admits them only from the VPN namespace bridge.
+On the LAN only Jellyfin, Forgejo, the Soulseek listener and mDNS are admitted; on the tailnet only Jellyfin, the page and the VPN namespace's port mappings. Other services use loopback or the VPN namespace; Radarr and Sonarr bind wildcard sockets but the host firewall admits them only from the VPN namespace bridge.
 
 | Service | Address | Reachable from |
 |---|---|---|
-| Jellyfin | `:8096` http, `:8920` https | LAN (`enp5s0`) and tailnet (`tailscale0`) |
-| qBittorrent web UI | `:8081` in namespace `wg` | tailnet via port mapping; host at `http://192.168.15.1:8081` |
+| Jellyfin | `:8096` http, `:8920` https; `tailscale serve` on 8443 | LAN (`enp5s0`) and tailnet (`tailscale0`) |
+| Forgejo | `:3000` http (`http://nixos.local:3000`), `:2222` git+ssh | LAN |
+| soulseek-rs | `:2234` | LAN (router port forward) |
+| qBittorrent web UI | `:8081` in namespace `wg` | tailnet via port mapping; host at `http://192.168.15.1:8081` (only Sonarr, Radarr and your user) |
 | Prowlarr | `:9696` in namespace `wg` | tailnet via port mapping; host at the namespace address |
 | FlareSolverr | `127.0.0.1:8191` in namespace `wg` | Prowlarr only |
 | Radarr / Sonarr | `*:7878` / `*:8989` | host; firewall admits the VPN namespace bridge only |
@@ -84,7 +86,7 @@ How they behave:
 
 - **CUDA** build of llama.cpp, kernels for the RTX 3060 (sm_86) only. No binary cache carries it, so it builds locally (~14 min) — measured +32% prompt processing over the Vulkan build. All layers on GPU (`-ngl 99`), 16k context unless noted, flash attention, `--jinja` chat templates.
 - **One at a time.** Every llama unit `Conflicts=` every other llama unit, so starting one stops the last. Before starting, `free-gpu` asks Ollama to unload whatever it holds. Ollama keeps at most one model loaded and drops it after 5 minutes idle.
-- **Never at boot.** `wantedBy` is forced empty on all of them, Ollama included.
+- **Never at boot.** `wantedBy` is forced empty on all the llama units. Ollama does start at boot, but holds no VRAM until a model is requested.
 - **No sudo.** A polkit rule lets your active local session start and stop these units.
 - **Sandboxed.** The llama units run as `DynamicUser` with `ProtectHome`, `ProtectSystem=strict`, no capabilities and `MemoryDenyWriteExecute`. GGUF files must be world-readable.
 - llama.cpp's model directory is created for your user. Download or copy GGUF files there; the services do not download them. Ollama creates and manages its own model files.

@@ -32,7 +32,7 @@ A fresh home gets `dots.theme` (oxocarbon) on its first activation, so nothing s
 2. Records the name in `~/.local/state/dots/theme/current`.
 3. Points `~/.local/state/dots/shell/current/` at the palette, wallpaper directory, preview and background — what Quickshell and the lock screen read.
 4. Writes `/var/lib/dots-theme/sddm.json` for the login greeter (if the directory is writable).
-5. Links or copies the rendered Kvantum, GTK and Vencord files into place, and concatenates `config/zen/sites/*.css` into `zen-sites.css`.
+5. Links or copies the rendered Kvantum and GTK files into place, and concatenates `config/zen/sites/*.css` into `zen-sites.css`.
 6. Reloads: Ghostty (`SIGUSR2`), Quickshell (`theme reload` over IPC), GTK (theme name bounce), btop (`SIGUSR2`), tmux, dunst (sway only), Hyprland, swayosd. Zen reads its CSS only at startup.
 7. If the theme ships a `wallpaper.*`, sets it with a random `awww` transition.
 

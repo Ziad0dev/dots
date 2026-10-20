@@ -18,4 +18,10 @@
     ];
     allowedUDPPorts = [ 5353 ];
   };
+
+  # answer for <hostname>.local on the LAN: Forgejo's ROOT_URL is nixos.local
+  config.services.avahi.publish = {
+    enable = true;
+    addresses = true;
+  };
 }

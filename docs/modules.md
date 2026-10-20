@@ -87,7 +87,7 @@ Per-user: MangoHud in `home/gaming-home.nix` (hidden by default, `Right Shift + 
 | `mullvad.nix` | Mullvad daemon + GUI for the host; systemd-resolved with LLMNR off | |
 | `lan.nix` | Jellyfin ports on the LAN interface only | |
 | `llm.nix` | Eight llama.cpp units (CUDA, sm_86), mutually exclusive, user-startable without sudo | [Services](services.md#local-llms) |
-| `ollama.nix` | Ollama (Vulkan) on `127.0.0.1:11434`, not autostarted | [Services](services.md#local-llms) |
+| `ollama.nix` | Ollama (Vulkan) on `127.0.0.1:11434`, starts at boot, loads models on demand | [Services](services.md#local-llms) |
 | `backup.nix` | Daily restic of `$HOME`, the media apps' state and the Secure Boot keys to `/mnt/backup/restic-new` | [Services](services.md#backups) |
 | `arr-automation.nix` | Clears stale *arr indexer backoff at boot and once the VPN path works again, a daily backlog search, and the `arr-status` command | [Services](services.md#vpn-namespace) |
 | `storage.nix` | Independent `/mnt/backup` exFAT drive (root-only, hidden from file managers) | [Services](services.md#storage) |
