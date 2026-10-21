@@ -74,6 +74,9 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # OMP terminal coding agent (home/profiles/base.nix)
+    omp.url = "github:can1357/oh-my-pi";
+
     vpn-confinement = {
       url = "github:Maroka-chan/VPN-Confinement";
     };

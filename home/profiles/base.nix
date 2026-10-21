@@ -35,6 +35,7 @@ let
 in
 {
   imports = [
+    inputs.omp.homeManagerModules.default
     inputs.nix-index-database.homeModules.default
     ../dev-home.nix
     ../fastfetch.nix
@@ -90,6 +91,8 @@ in
     home.stateVersion = "24.05";
 
     programs.home-manager.enable = true;
+
+    programs.omp.enable = true;
 
     # the NixOS host installs nh itself; everywhere else it comes from here
     programs.nh = lib.mkIf (standalone || isDarwin) {
