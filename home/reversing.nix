@@ -1,5 +1,5 @@
 # Reverse engineering on the desktop: the infosec toolkit's binary/pwn sets
-# (radare2 + iaito, Cutter/rizin with rz-ghidra, Ghidra, GDB + GEF, ImHex,
+# (radare2 + iaito, rizin with rz-ghidra, Ghidra, GDB + GEF, ImHex,
 # pwntools, ROPgadget, …) and a radare2 config whose colours follow themectl.
 { config, ... }:
 {

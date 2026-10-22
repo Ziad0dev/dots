@@ -5,10 +5,26 @@
   ...
 }:
 
+let
+  zls = inputs.zls.packages.${system}.zls.overrideAttrs (old: {
+    preCheck = (old.preCheck or "") + ''
+      # Zig lazily compiles translate-c on first use; warm the test cache so
+      # ZLS's cimport test stays within its 90-second timeout.
+      mkdir -p .zig-cache/zls
+      printf 'void zls_check_warmup(int);\n' > .translate-c-warmup.h
+      zig translate-c \
+        --zig-lib-dir ${pkgs.zigpkgs."0.16.0"}/lib \
+        --cache-dir .zig-cache/zls \
+        --global-cache-dir .zig-cache/zls \
+        -lc .translate-c-warmup.h > /dev/null
+      rm .translate-c-warmup.h
+    '';
+  });
+in
 {
   environment.systemPackages = with pkgs; [
     zigpkgs."0.16.0"
-    inputs.zls.packages.${system}.zls
+    zls
 
     nixd
     lua-language-server

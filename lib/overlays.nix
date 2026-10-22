@@ -48,4 +48,49 @@
       else
         prev.typescript-language-server;
   })
+  # pyopenjtalk-plus 0.4.1-post9 changed two TypeError messages without
+  # updating the corresponding test expectations.
+  (final: prev: {
+    pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
+      (pyFinal: pyPrev: {
+        pyopenjtalk-plus = pyPrev.pyopenjtalk-plus.overridePythonAttrs (old: {
+          postPatch = (old.postPatch or "") + ''
+            substituteInPlace tests/test_frontend.py \
+              --replace-fail 'match="must be str"' 'match="Expected str"'
+            sed -i '/^def test_make_label_validation_error_should_not_break_next_call():$/,/^def test_make_label_missing_field_should_not_break_next_call():$/s/match="Expected str"/match="NJD feature field must be str"/' \
+              tests/test_frontend.py
+          '';
+        });
+      })
+    ];
+  })
+  # Calibre enables speech support but depends on speechd-minimal, which
+  # removes the Python client API that Calibre imports at runtime.
+  (final: prev:
+    let
+      # speechd sets strictDeps but only lists python in buildInputs, so
+      # configure finds no interpreter and silently skips the bindings.
+      speechdWithPython = (prev.speechd.override {
+        python3Packages = final.python314Packages;
+      }).overrideAttrs (old: {
+        nativeBuildInputs = old.nativeBuildInputs ++ [ final.python314Packages.python ];
+      });
+    in
+    {
+      calibre = prev.calibre.overrideAttrs (old: {
+        postInstall = (old.postInstall or "") + ''
+          mkdir -p "$out/lib/calibre"
+          cp -a ${speechdWithPython}/${final.python314Packages.python.sitePackages}/speechd \
+            "$out/lib/calibre/"
+        '';
+
+        preInstallCheck = (old.preInstallCheck or "") + ''
+          export PYTHONPATH="$out/lib/calibre''${PYTHONPATH:+:$PYTHONPATH}"
+        '';
+
+        preFixup = ''
+          qtWrapperArgs+=(--prefix PYTHONPATH : "$out/lib/calibre")
+        '' + (old.preFixup or "");
+      });
+    })
 ]

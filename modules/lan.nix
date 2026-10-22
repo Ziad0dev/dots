@@ -20,8 +20,8 @@
   };
 
   # answer for <hostname>.local on the LAN: Forgejo's ROOT_URL is nixos.local
-  config.services.avahi.publish = {
-    enable = true;
-    addresses = true;
+  config.services.avahi.settings.publish = {
+    "disable-publishing" = false;
+    "publish-addresses" = true;
   };
 }

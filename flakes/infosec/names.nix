@@ -51,7 +51,6 @@
     "ghidra-bin"
     "ida-free"
     "rizin"
-    "cutter"
     "radare2"
     "iaito"
     "gdb"
