@@ -12,7 +12,7 @@ hl.on("hyprland.start", function()
     -- icons, cursor and fonts (Themes → App style): the cursor needs
     -- Hyprland up, and home-manager's dconf may have reset the rest
     hl.exec_cmd("dots-appearance apply --quiet")
-    hl.exec_cmd("awww-daemon")
+    hl.exec_cmd("awww-daemon --no-cache")
     hl.exec_cmd("easyeffects --gapplication-service")
 
     hl.exec_cmd("zen-beta")

@@ -214,7 +214,6 @@ in
       cliamp
       wlopm
 
-      chromium
       tor
       tor-browser
       feather

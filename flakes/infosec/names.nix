@@ -9,6 +9,10 @@
     "jq"
     "hexyl"
     "proxychains-ng"
+    "python2"
+    "python3"
+    "uv"
+    "dig"
   ];
 
   recon = [
@@ -27,6 +31,7 @@
     "theharvester"
     "asnmap"
     "fierce"
+    "nuclei"
   ];
 
   web = [
