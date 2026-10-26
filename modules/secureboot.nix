@@ -54,8 +54,7 @@ in
           message = "dots.secureBoot.tpmUnlock needs dots.secureBoot.enable";
         }
       ];
-      # the scripted initrd can't talk to the TPM
-      boot.initrd.systemd.enable = true;
+      # NixOS now only supports the systemd initrd, which can talk to the TPM.
       # tpm2-measure-pcr extends PCR 15 once a volume is open, so a key sealed
       # to PCR 15 = 0 can't be unsealed again after a decoy volume was unlocked
       boot.initrd.luks.devices = lib.genAttrs cfg.tpmUnlock (_: {
