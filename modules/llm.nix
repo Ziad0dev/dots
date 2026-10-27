@@ -213,7 +213,7 @@ in
 
   environment.systemPackages = with pkgs; [
     nvtopPackages.nvidia
-
+    omp
     llama
   ];
 }

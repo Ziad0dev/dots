@@ -149,6 +149,23 @@ Scope {
         id: overlay
 
         screen: ext.theme.activePopupScreen
+
+        // The compositor can drop the layer surface (monitor DPMS / hotplug);
+        // the panels then draw their frame blobs with no content until the
+        // shell reloads. Same recovery as the bar (VariantRoot.qml).
+        Connections {
+            target: overlay
+            function onResourcesLost() { overlayRecover.restart() }
+            function onClosed() { overlayRecover.restart() }
+        }
+        Timer {
+            id: overlayRecover
+            interval: 750
+            onTriggered: {
+                if (overlay.screen && overlay.screen.width > 0)
+                    overlay.visible = true
+            }
+        }
         readonly property real screenW: screen ? screen.width : 1920
         readonly property real screenH: screen ? screen.height : 1080
 
