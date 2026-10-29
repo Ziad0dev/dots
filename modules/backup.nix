@@ -1,5 +1,17 @@
 { pkgs, username, ... }:
 
+let
+  staging = "/var/lib/restic-backup-staging";
+  snapshot = pkgs.writeShellApplication {
+    name = "dots-restic-snapshot";
+    runtimeInputs = with pkgs; [
+      coreutils
+      rsync
+      systemd
+    ];
+    text = builtins.readFile ../scripts/restic-snapshot.sh;
+  };
+in
 {
   services.restic.backups.home = {
     initialize = true;
@@ -8,19 +20,17 @@
     repository = "/mnt/backup/restic-new";
     passwordFile = "/etc/restic/password";
 
+    # Quiesce application state, copy it to a static tree, then restart the
+    # services before Restic reads that tree. The upload causes no service downtime.
+    backupPrepareCommand = ''
+      #!${pkgs.bash}/bin/bash
+      exec ${snapshot}/bin/dots-restic-snapshot ${staging}
+    '';
+
     paths = [
       "/home/${username}"
-      # the media apps' own state: indexers, libraries, users, watch history
-      "/var/lib/sonarr"
-      "/var/lib/radarr"
-      "/var/lib/private/prowlarr" # DynamicUser
-      "/var/lib/qBittorrent"
-      "/var/lib/jellyfin"
-      "/var/lib/audiobookshelf"
-      "/var/lib/calibre-web"
-      # Forgejo's daily `forgejo dump` (repos, db, config) rather than the
-      # live sqlite/repos, which could be mid-write
-      "/var/lib/forgejo/dump"
+      # Quiesced media/download application state, prepared above.
+      staging
       # Secure Boot keys: losing them means clearing and re-enrolling in firmware
       "/var/lib/sbctl"
     ];
@@ -38,11 +48,7 @@
       "/home/${username}/.local/share/umu"
       "/home/${username}/.local/share/baloo"
       "/home/${username}/.config/heroic"
-      # regenerable: artwork, scraped metadata, logs
-      "/var/lib/jellyfin/metadata"
-      "/var/lib/jellyfin/log"
-      "/var/lib/**/MediaCover"
-      "/var/lib/**/logs"
+      # Application caches/artwork/logs are excluded while staging.
       "**/Cache"
       "**/CachedData"
       "**/Code Cache"

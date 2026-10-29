@@ -64,6 +64,10 @@ in
       security.pam.services.quickshell-lock.gnupg.enable = true;
     }
 
+    (lib.mkIf (cfg.enable && config.dots.impermanence.enable) {
+      dots.impermanence.files = [ cfg.keyFile ];
+    })
+
     (lib.mkIf cfg.enable {
       sops = {
         defaultSopsFile = cfg.file;

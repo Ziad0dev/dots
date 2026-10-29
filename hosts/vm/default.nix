@@ -1,8 +1,8 @@
 # A small NixOS host for testing the dots end to end: the installer ISO puts
 # it on a blank disk (disko), root is a tmpfs (impermanence), and
-# home-manager runs the minimal profile with config/ copied into the store
-# (liveConfig = false). The console auto-logs in for tests; it has no account
-# password and uses no SOPS data.
+# home-manager runs the minimal profile with config/ copied into the store by
+# default. The console auto-logs in for tests; it has no account password and
+# uses no SOPS data.
 {
   config,
   lib,
@@ -66,8 +66,6 @@
     shell = config.programs.fish.package;
     hashedPassword = "!";
   };
-
-  home-manager.users.${username}.dots.liveConfig = false;
 
   nix.settings.experimental-features = [
     "nix-command"

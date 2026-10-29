@@ -15,14 +15,14 @@ update                      # nh os switch
 
 | You edited | Takes effect |
 |---|---|
-| Anything under `config/` that is symlinked (hypr, nvim, ghostty, tmux, quickshell, yazi, mpv, …) | Immediately — `hyprctl reload`, restart the app, or nothing at all |
-| `config/quickshell/rise/**` | Quickshell reloads QML on save; `dots-shell restart` if it wedges. The bar's helper scripts in `rise/scripts/` run straight from the repo |
-| `config/themes/*/colors.sh`, `config/themes/_templates/*.in` | `themectl reload` — no rebuild. Exception: the theme baked into SDDM / Spotify, see below |
+| Anything under `config/` that is linked (hypr, nvim, ghostty, tmux, quickshell, yazi, mpv, …) | Rebuild by default. With `dots.liveConfig = true`, restart the app or reload it instead |
+| `config/quickshell/rise/**` | Rebuild by default. In live mode, Quickshell reloads QML on save; `dots-shell restart` if it wedges. Only live mode runs the bar's helper scripts straight from the repo |
+| `config/themes/*/colors.sh`, `config/themes/_templates/*.in` | Rebuild by default. In live mode, `themectl reload` — no rebuild. Exception: the theme baked into SDDM / Spotify, see below |
 | `config/sddm/**`, or the theme named by `dots.sddm.theme` / `dots.theme` | Rebuild — the greeter and Spicetify theme are generated at build time |
 | `scripts/*.sh` | Rebuild. `themectl`, `dots-compat` (all `dots-*` shims), `voxtype` and the wallpaper helpers are packaged with `writeShellApplication`; the thing on PATH is a store copy. The git hook runs from the repo |
 | Any `.nix` file | Rebuild |
 
-A switch that prints `PATHS +0, -0` after a `config/`-only change is expected — no store path moved.
+In live mode, a switch that prints `PATHS +0, -0` after a `config/`-only change is expected — no store path moved. Pure mode copies the changed config into a new store path.
 
 ## Rebuilding
 

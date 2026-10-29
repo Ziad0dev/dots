@@ -5,6 +5,8 @@
 unified kernel images, with your own keys in `/var/lib/sbctl`. The desktop host
 configuration enables lanzaboote; Secure Boot still needs its keys enrolled in
 firmware and enabled in the firmware menu. `sbctl` is installed either way.
+On an impermanent host, `/var/lib/sbctl` is persisted under `/persist`, and the
+installer restores the keys there.
 
 The disks are already LUKS-encrypted; Secure Boot adds that only boot files you
 signed will run, so nobody can swap the kernel or initrd on the unencrypted

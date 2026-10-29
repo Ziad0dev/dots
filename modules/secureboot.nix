@@ -19,8 +19,7 @@ in
 {
   imports = [ inputs.lanzaboote.nixosModules.lanzaboote ];
 
-  options.dots.secureBoot.enable =
-    lib.mkEnableOption "Secure Boot via lanzaboote (needs keys in /var/lib/sbctl first)";
+  options.dots.secureBoot.enable = lib.mkEnableOption "Secure Boot via lanzaboote (needs keys in /var/lib/sbctl first)";
 
   # The keyslot itself is enrolled by hand (systemd-cryptenroll, see the docs);
   # this only makes the initrd try the TPM before asking for the passphrase.
@@ -43,6 +42,10 @@ in
         pkiBundle = "/var/lib/sbctl";
         configurationLimit = config.boot.loader.systemd-boot.configurationLimit;
       };
+    })
+
+    (lib.mkIf (cfg.enable && config.dots.impermanence.enable) {
+      dots.impermanence.directories = [ config.boot.lanzaboote.pkiBundle ];
     })
 
     (lib.mkIf (cfg.tpmUnlock != [ ]) {

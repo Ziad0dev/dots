@@ -5,10 +5,11 @@
 ```
 flake.nix       inputs, username, every output
 lib/            mk.nix (output builders), overlays, shared systemd hardening, nvidia fix
+pkgs/           local packages and store-owned service sources
 hosts/          nixos/ (the desktop), darwin/
 modules/        NixOS modules, one concern per file
 home/           home-manager: home.nix dispatcher, profiles/, one module per app
-config/         raw app config, symlinked live into ~/.config
+config/         raw app config, linked into ~/.config from the store by default
 config/themes/  palettes + templates rendered by themectl
 flakes/         standalone tool flakes (infosec, maths), also imported as HM modules
 templates/      `nix flake init` templates
@@ -25,7 +26,7 @@ scripts/        shell sources packaged by the nix modules, plus the git hook
 | `homeConfigurations."ziad0dev@linux"` | `mk.home` | x86_64-linux, minimal |
 | `homeConfigurations."ziad0dev@linux-desktop"` | `mk.home` | x86_64-linux, desktop |
 | `homeConfigurations."ziad0dev@aarch64-linux"` | `mk.home` | aarch64-linux, minimal |
-| `nixosConfigurations.vm` | `mk.nixos` | `hosts/vm`: a small test host — disko layout, root on tmpfs, console auto-login, no SOPS data, home-manager minimal with `liveConfig = false` |
+| `nixosConfigurations.vm` | `mk.nixos` | `hosts/vm`: a small test host — disko layout, root on tmpfs, console auto-login, no SOPS data, home-manager minimal with the default pure config |
 | `nixosConfigurations.installer` | `mk.nixos` (no home) | `hosts/installer`: minimal ISO + `dots-install`, with every host in `dots.installer.hosts` prebuilt |
 | `checks.x86_64-linux.vm` | `tests/vm.nix` | NixOS test booting the VM host: test account, pure home-manager, default theme |
 | `templates.*` | — | nine project templates, see [Development](development.md#project-templates) |
@@ -55,6 +56,7 @@ When home-manager rides on a system (`mk.nixos`, `mk.darwin`) it runs with `useG
 | `nixpkgs` | — | `follows = "chaotic/nixpkgs"` |
 | `home-manager` | | chaotic's HM follows this one |
 | `nix-darwin` | Mac output | |
+| `ghostty` | terminal emulator | Upstream flake package through `lib/overlays.nix`; keeps its own nixpkgs pin to match upstream binary-cache builds |
 | `hyprland` | compositor + portal, NixOS module | hyprland.cachix.org substituter configured |
 | `hyprland-preview-share-picker` | screenshare picker for xdph | |
 | `zen-browser`, `helium` | browsers | |
@@ -66,7 +68,7 @@ When home-manager rides on a system (`mk.nixos`, `mk.darwin`) it runs with `useG
 | `vpn-confinement` | `vpnNamespaces` NixOS module | |
 | `vm-curator` | VM management tool | |
 
-Every input that has a nixpkgs input follows ours; duplicates are what drag in a second or third nixpkgs.
+Most inputs with a nixpkgs input follow ours; Ghostty and llm-agents intentionally keep their own pins to match upstream binary-cache builds. Other duplicates drag in a second or third nixpkgs.
 
 ## Home-manager composition
 
@@ -91,10 +93,10 @@ Everything under `home/` that isn't a profile is an app module imported by one o
 
 | `dots.liveConfig` | `~/.config/hypr` points at | Edits | Rollback |
 |---|---|---|---|
-| `true` (default) | `<repoPath>/config/hypr`, via `mkOutOfStoreSymlink` | land immediately, no rebuild | does **not** revert config — the link follows the working tree |
-| `false` | `<store copy of config/>/config/hypr` | need a rebuild | reverts with the generation; no checkout needed |
+| `true` | `<repoPath>/config/hypr`, via `mkOutOfStoreSymlink` | land immediately, no rebuild | does **not** revert config — the link follows the working tree |
+| `false` (default) | `<store copy of config/>/config/hypr` | need a rebuild | reverts with the generation; no checkout needed |
 
-Pure mode is what the `vm` host uses, and what to pick on a machine you deploy to rather than edit on. Configs are read-only there, so apps that write into their own config dir (btop saving `btop.conf`, lazy.nvim's `lazy-lock.json`) can't persist those writes.
+Pure mode is the default on every profile, including the `vm` host. Configs are read-only there, so apps that write into their own config dir (btop saving `btop.conf`, lazy.nvim's `lazy-lock.json`) can't persist those writes. Enable live mode explicitly only on a checkout where immediate edits matter more than generation rollback.
 
 Either way home-manager doesn't know the contents of a linked directory — so **each config path has exactly one owner**: either a `dotsLink` or an HM module, never both.
 

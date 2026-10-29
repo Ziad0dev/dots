@@ -16,7 +16,7 @@ The desktop currently declares the Restic password. Mullvad's WireGuard config c
 |---|---|
 | `restic-password` | `/etc/restic/password` |
 
-The host age key is `/var/lib/sops-nix/key.txt`; its encrypted backup is stored in the password store at `dots/age-nixos`. Keep an independent backup of the age key and the GPG key recovery material: the home Restic backup holds the password store, so it cannot be the only recovery copy. `.sops.yaml` has the matching public age recipient and your GPG key as recipients for the desktop file.
+The host age key is `/var/lib/sops-nix/key.txt`; its encrypted backup is stored in the password store at `dots/age-nixos`. On an impermanent host the key is bind-mounted from `/persist`, and the installer restores it there. Keep an independent backup of the age key and the GPG key recovery material: the home Restic backup holds the password store, so it cannot be the only recovery copy. `.sops.yaml` has the matching public age recipient and your GPG key as recipients for the desktop file.
 
 To add Mullvad after generating a new WireGuard config, run `sops secrets/nixos.yaml` and add the config as a `mullvad-wg: |` block in the editor. Then declare its path in `hosts/nixos/configuration.nix`:
 

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="void">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>·</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" id="favicon" href="/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://lastfm-img.freetls.fastly.net" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Barlow+Condensed:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<div class="wallpaper" id="wallA"></div>
+<div class="wallpaper" id="wallB"></div>
+<div class="scrim"></div>
+
+<main class="page" id="page" hidden>
+
+  <header class="rail">
+    <span class="rail-sky">
+      <span class="rail-bit"><b id="moon"></b> <span id="moonName"></span></span>
+      <span class="rail-bit" id="railMansion"></span>
+      <span class="rail-bit" id="railDay"></span>
+      <span class="rail-bit" id="railNext"></span>
+    </span>
+    <span class="rail-right">
+      <span class="rail-hours">
+        <b id="herTime">--:--</b> here
+        <span class="rail-dot">·</span>
+        <b id="myTime">--:--</b> <span id="myWho"></span>
+      </span>
+      <span class="themes" id="themes">
+        <button class="themes-open" id="themesOpen" type="button" aria-haspopup="true" aria-expanded="false">theme</button>
+        <div class="themes-list" id="themesList" hidden></div>
+      </span>
+    </span>
+  </header>
+
+  <form class="seek" id="seek" autocomplete="off">
+    <span class="seek-mark" aria-hidden="true">⁂</span>
+    <input class="seek-input" id="seekInput" type="text" spellcheck="false"
+           aria-label="search" placeholder="ask for something">
+    <span class="seek-hint" id="seekHint">!y !w !d !a !f !l !p</span>
+  </form>
+
+  <section class="hero">
+    <p class="hero-line" id="heroLine"></p>
+    <p class="hero-sub" id="heroSub"></p>
+  </section>
+
+  <section class="note" id="note">
+    <p class="note-body" id="noteBody"></p>
+  </section>
+
+  <div class="panes">
+    <section class="pane weather" id="weather" hidden>
+      <h2 class="cap" id="weatherPlace">outside</h2>
+      <p class="weather-now">
+        <span id="temp"></span><button class="unit" id="unit" type="button" aria-label="switch between celsius and fahrenheit"></button>
+        <span class="weather-words" id="weatherWords"></span>
+      </p>
+      <p class="weather-light" id="daylight"></p>
+      <p class="weather-sun" id="sun"></p>
+      <div class="weather-there" id="weatherThere" hidden>
+        <span class="weather-there-place" id="therePlace"></span>
+        <span class="weather-there-temp" id="thereTemp"></span>
+        <span class="weather-there-words" id="thereWords"></span>
+      </div>
+    </section>
+
+    <section class="pane sky" id="sky" hidden>
+      <h2 class="cap">the hour</h2>
+      <p class="sky-hour"><span class="sky-glyph" id="hourGlyph"></span><span id="hourRuler"></span></p>
+      <p class="sky-when" id="hourWhen"></p>
+      <p class="sky-signs" id="skySigns"></p>
+      <p class="sky-retro" id="retro" hidden>mercury retrograde</p>
+      <p class="sky-aurora" id="aurora" hidden></p>
+    </section>
+
+    <section class="pane playing" id="playing" hidden>
+      <h2 class="cap" id="playingCap">last played</h2>
+      <div class="playing-row">
+        <img class="playing-art" id="playingArt" alt="" hidden>
+        <div>
+          <p class="playing-track" id="playingTrack"></p>
+          <p class="playing-artist" id="playingArtist"></p>
+        </div>
+      </div>
+      <div class="playing-there" id="playingThere" hidden>
+        <span class="playing-there-who" id="thereWho"></span>
+        <span class="playing-there-track" id="thereTrack"></span>
+      </div>
+      <p class="playing-both" id="playingBoth" hidden></p>
+    </section>
+  </div>
+
+  <nav class="links" id="links" aria-label="shortcuts"></nav>
+
+  <section class="verse" id="verse" aria-label="the leaves so far" hidden>
+    <div class="verse-past" id="versePast"></div>
+    <p class="verse-today" id="verseToday"></p>
+    <p class="verse-meta" id="verseMeta"></p>
+  </section>
+
+  <button class="candle" id="candle" type="button">
+    <span class="candle-mark" aria-hidden="true">†</span>
+    <span class="candle-label" id="candleLabel">light one for him</span>
+  </button>
+
+  <section class="say" id="say">
+    <div class="say-head">
+      <h2 class="cap">between us</h2>
+      <span class="say-seen" id="saySeen"></span>
+    </div>
+    <form class="say-form" id="sayForm">
+      <textarea class="say-input" id="sayInput" rows="1" maxlength="4000"
+                placeholder="leave him something"></textarea>
+      <button class="say-send" id="saySend" type="submit">send</button>
+    </form>
+    <p class="say-status" id="sayStatus"></p>
+    <div class="say-thread" id="sayThread"></div>
+    <button class="say-more" id="sayMore" type="button" hidden>everything we've said</button>
+  </section>
+
+  <a class="door" id="door" href="/game" hidden>something is waiting downstairs</a>
+
+  <section class="record" id="record" hidden>
+    <h2 class="cap rule">his record today</h2>
+    <p class="record-album" id="recordAlbum"></p>
+    <p class="record-artist" id="recordArtist"></p>
+    <p class="record-mine" id="recordMine" hidden></p>
+  </section>
+
+  <section class="poem" id="poem" hidden>
+    <div class="poem-head rule">
+      <h2 class="cap">today's poem</h2>
+      <button class="poem-toggle" id="poemToggle" type="button" aria-expanded="false">the whole book</button>
+    </div>
+    <p class="poem-text" id="poemText"></p>
+    <p class="poem-meta" id="poemMeta"></p>
+    <div class="poem-all" id="poemAll" hidden></div>
+  </section>
+
+  <section class="archive">
+    <button class="archive-toggle" id="archiveToggle" type="button" aria-expanded="false">everything so far</button>
+    <div class="archive-body" id="archiveBody" hidden></div>
+  </section>
+
+</main>
+
+<p class="loading" id="loading">·</p>
+<script src="/app.js"></script>
+</body>
+</html>

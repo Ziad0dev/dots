@@ -37,13 +37,13 @@ The desktop output is built for one box. On anything else, go through this list 
 | `hosts/nixos/configuration.nix` | timezone, locale, `dots.sddm.theme` | |
 | `modules/gaming.nix` | `boot.kernelPackages = linuxPackages_cachyos-bore` | Kernel choice lives here, not in the host |
 | `modules/storage.nix`, `modules/media.nix` | Independent exFAT backup and media drives by UUID | `nofail`, so missing drives don't block boot; confirm each UUID still belongs to the intended drive |
-| `hosts/nixos/configuration.nix` | `dots.lanInterface = "enp5s0"` | Jellyfin and Forgejo ports are opened on this interface only |
+| `hosts/nixos/configuration.nix` | `dots.lanInterface = "enp5s0"` | Jellyfin, Soulseek, and mDNS ports are opened on this interface only |
 | `hosts/nixos/configuration.nix` | `dots.recording.monitor = "DP-1"` | Replay buffer captures nothing if the output doesn't exist (manual recordings take the focused output) |
 | `modules/performance.nix` | `cpuProfile`, `pl1Watts` / `pl2Watts` | Intel RAPL limits for a 12400F |
 | `config/hypr/hyprland.lua` | `monitorProfiles`, workspace → monitor rules | Unknown outputs fall back to `preferred/auto` |
 | `home/profiles/linux-desktop.nix` | MPD `hw:CARD=G30`, udiskie ignore list | Bit-perfect DAC output, drive UUIDs |
 | `modules/vpn.nix` | qBittorrent `AuthSubnetWhitelist`, Mullvad DNS | |
-| `modules/hello-page.nix` | expects `~/the-page/app.py` | Skipped (`ConditionPathExists`) when the app isn't there |
+| `modules/hello-page.nix` | expects `~/the-page/{data.db,config.json,content}` | Skipped (`ConditionPathExists`) when the database isn't there; code ships in `pkgs/hello-page` |
 
 ### Files that must exist out-of-band
 
@@ -104,7 +104,7 @@ The system disk lives in `hosts/nixos/disk.nix`. Today it describes the existing
    sudo dots-install nixos --age-key ./key.txt --sbctl ./sbctl
    ```
 
-   It lists the disk it is about to erase (model and serial) and waits for `yes`, partitions, restores the age key to `/var/lib/sops-nix/key.txt` and the Secure Boot keys to `/var/lib/sbctl` (the firmware already trusts them, so lanzaboote signs and boots as before), builds and installs, and clones this repo to `~/dots` so home-manager's live links resolve on the first login.
+   It lists the disk it is about to erase (model and serial) and waits for `yes`, partitions, restores the age key to `/var/lib/sops-nix/key.txt` and the Secure Boot keys to `/var/lib/sbctl` (under `/persist` on impermanent hosts), builds and installs, and creates `~/dots` from the same source revision as the ISO for `nh` and future updates.
 5. Reboot. Then re-enroll the TPM keyslot ([Secure Boot](secure-boot.md); the LUKS header is new) and `sudo tailscale up`.
 
 The data drives (`/mnt/media`, `/mnt/backup`) are mounted by filesystem UUID, which a reinstall doesn't change.
@@ -162,11 +162,11 @@ Set both options — one is a NixOS option, the other a home-manager option:
 
 ```nix
 dots.repoPath = "/path/to/dots";                               # NixOS, drives nh's flake path
-home-manager.users.<you>.dots.repoPath = "/path/to/dots";      # HM, drives every config/ symlink
+home-manager.users.<you>.dots.repoPath = "/path/to/dots";      # HM, drives live links and checkout-aware commands
 ```
 
 For standalone home-manager, `mk.home` takes a `repoPath` argument. Scripts get the path baked in at build time, so nothing else needs it.
 
-### No checkout at all
+### Live config from the checkout
 
-Set `dots.liveConfig = false` and every linked config comes from the flake source in the store instead of `repoPath` — see [Architecture](architecture.md#live-config-dotslink-and-dotsliveconfig).
+Linked configs come from the flake source in the store by default, so they need no checkout at runtime and roll back with the generation. Set `dots.liveConfig = true` to link `config/` from `repoPath` instead when immediate edits matter more than rollback — see [Architecture](architecture.md#live-config-dotslink-and-dotsliveconfig).

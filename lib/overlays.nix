@@ -1,6 +1,9 @@
 { inputs }:
 
 [
+  (final: _prev: {
+    ghostty = inputs.ghostty.packages.${final.stdenv.hostPlatform.system}.default;
+  })
   inputs.zig-overlay.overlays.default
   inputs.obsidian-extensions.overlays.default
   inputs.millennium.overlays.default

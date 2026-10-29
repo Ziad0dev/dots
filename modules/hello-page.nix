@@ -6,13 +6,16 @@
 }:
 
 let
+  source = ../pkgs/hello-page;
   dir = "/home/${username}/the-page";
   user = username;
   port = 8137;
 
   hardening = import ../lib/hardening.nix // {
-    ProtectHome = false;
+    ProtectHome = "read-only";
     ProtectSystem = "strict";
+    # SQLite creates journal/WAL sidecars next to data.db. The service uses
+    # this directory only for state; executable code and assets are in the store.
     ReadWritePaths = [ dir ];
     SystemCallFilter = [
       "@system-service"
@@ -35,8 +38,7 @@ in
     wantedBy = [ "multi-user.target" ];
     after = [ "network-online.target" ];
     wants = [ "network-online.target" ];
-    # the app lives outside the repo; a fresh install doesn't have it yet
-    unitConfig.ConditionPathExists = "${dir}/app.py";
+    unitConfig.ConditionPathExists = "${dir}/data.db";
 
     environment = {
       PORT = toString port;
@@ -47,8 +49,8 @@ in
     };
 
     serviceConfig = hardening // {
-      ExecStart = "${pkgs.python3}/bin/python3 ${dir}/app.py";
-      WorkingDirectory = dir;
+      ExecStart = "${pkgs.python3}/bin/python3 ${source}/app.py";
+      WorkingDirectory = "${source}";
       User = user;
       Group = "users";
       Restart = "always";
@@ -93,7 +95,11 @@ in
   };
   systemd.services.hello-page-backup = {
     description = "snapshot the page's notes";
-    unitConfig.ConditionPathExists = "${dir}/tools/backup.sh";
+    unitConfig.ConditionPathExists = "${dir}/data.db";
+    environment = {
+      DB_PATH = "${dir}/data.db";
+      BACKUP_DIR = "${dir}/backups";
+    };
     path = with pkgs; [
       sqlite
       coreutils
@@ -103,14 +109,8 @@ in
       Type = "oneshot";
       User = user;
       Group = "users";
-      ExecStart = "${pkgs.bash}/bin/bash ${dir}/tools/backup.sh";
+      ExecStart = "${pkgs.bash}/bin/bash ${source}/tools/backup.sh";
     };
   };
 
-  systemd.targets = {
-    sleep.enable = false;
-    suspend.enable = false;
-    hibernate.enable = false;
-    hybrid-sleep.enable = false;
-  };
 }

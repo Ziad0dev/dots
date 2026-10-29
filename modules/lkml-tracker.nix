@@ -1,6 +1,4 @@
-# Kernel & Nix tracker: the dashboard from ~/Ziad0dev/LKML (tracker.py), on
-# http://127.0.0.1:8138. Runs straight from the checkout, so a code change
-# only needs `systemctl restart lkml-tracker`.
+# Kernel & Nix tracker dashboard on http://127.0.0.1:8138.
 #
 # Optional GitHub token for the PR/release cards (higher rate limit):
 #   /var/lib/secrets/lkml-tracker.env   GITHUB_TOKEN=...
@@ -11,11 +9,11 @@
 }:
 
 let
-  dir = "/home/${username}/Ziad0dev/LKML";
+  source = ../pkgs/lkml-tracker;
   port = 8138; # 8080 is llama.cpp (llm.nix)
 
   hardening = import ../lib/hardening.nix // {
-    ProtectHome = false;
+    ProtectHome = true;
     ProtectSystem = "strict";
     SystemCallFilter = [
       "@system-service"
@@ -30,15 +28,12 @@ in
     wantedBy = [ "multi-user.target" ];
     after = [ "network-online.target" ];
     wants = [ "network-online.target" ];
-    # the app lives outside the repo; a fresh install doesn't have it yet
-    unitConfig.ConditionPathExists = "${dir}/tracker.py";
 
-    # the checkout is read-only to the service
     environment.PYTHONDONTWRITEBYTECODE = "1";
 
     serviceConfig = hardening // {
-      ExecStart = "${pkgs.python3}/bin/python3 ${dir}/tracker.py --host 127.0.0.1 --port ${toString port}";
-      WorkingDirectory = dir;
+      ExecStart = "${pkgs.python3}/bin/python3 ${source}/tracker.py --host 127.0.0.1 --port ${toString port}";
+      WorkingDirectory = "${source}";
       User = username;
       Group = "users";
       Restart = "always";

@@ -54,7 +54,7 @@ in
 
   options.dots.liveConfig = lib.mkOption {
     type = lib.types.bool;
-    default = true;
+    default = false;
     description = ''
       Link config/ from the checkout at dots.repoPath, so edits land without a
       rebuild. Off, every linked config is copied into the store instead: pure,

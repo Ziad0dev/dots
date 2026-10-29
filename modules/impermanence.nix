@@ -22,6 +22,12 @@ in
       default = [ ];
       description = "Extra directories to keep across boots.";
     };
+
+    files = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [ ];
+      description = "Extra files to keep across boots.";
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -35,9 +41,21 @@ in
         "/var/lib/systemd" # timers, random seed, coredumps
         "/etc/NetworkManager/system-connections"
       ]
-      ++ cfg.directories;
-      files = [ "/etc/machine-id" ];
+      ++ cfg.directories
+      ++ lib.optional config.services.tailscale.enable "/var/lib/tailscale";
+      files = [ "/etc/machine-id" ] ++ cfg.files;
     };
+
+    assertions = [
+      {
+        assertion =
+          config.users.allowNoPasswordLogin
+          || lib.all (
+            user: !user.isNormalUser || user.hashedPassword != null || user.hashedPasswordFile != null
+          ) (lib.attrValues config.users.users);
+        message = "root on tmpfs needs hashedPassword(File) for every normal user, or an explicit passwordless-login policy";
+      }
+    ];
 
     # passwords can't be changed with passwd on a root that resets; they come
     # from the config (hashedPasswordFile, e.g. a sops secret)

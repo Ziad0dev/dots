@@ -2,12 +2,11 @@
 
 ## Ports
 
-On the LAN only Jellyfin, Forgejo, the Soulseek listener and mDNS are admitted; on the tailnet only Jellyfin, the page and the VPN namespace's port mappings. Other services use loopback or the VPN namespace; Radarr and Sonarr bind wildcard sockets but the host firewall admits them only from the VPN namespace bridge.
+On the LAN only Jellyfin, the Soulseek listener and mDNS are admitted; on the tailnet only Jellyfin, the page and the VPN namespace's port mappings. Other services use loopback or the VPN namespace; Radarr and Sonarr bind wildcard sockets but the host firewall admits them only from the VPN namespace bridge.
 
 | Service | Address | Reachable from |
 |---|---|---|
 | Jellyfin | `:8096` http, `:8920` https; `tailscale serve` on 8443 | LAN (`enp5s0`) and tailnet (`tailscale0`) |
-| Forgejo | `:3000` http (`http://nixos.local:3000`), `:2222` git+ssh | LAN |
 | soulseek-rs | `:2234` | LAN (router port forward) |
 | qBittorrent web UI | `:8081` in namespace `wg` | tailnet via port mapping; host at `http://192.168.15.1:8081` (only Sonarr, Radarr and your user) |
 | Prowlarr | `:9696` in namespace `wg` | tailnet via port mapping; host at the namespace address |
@@ -101,12 +100,18 @@ gpu-free                         # stop all llama units, unload Ollama models
 
 ## Backups
 
-`modules/backup.nix` — restic, `$HOME`, the media apps' state under `/var/lib` (minus artwork, metadata and logs) and the Secure Boot keys → `/mnt/backup/restic-new`, daily (persistent, up to 1 h random delay).
+`modules/backup.nix` — restic, `$HOME`, quiesced media/download application state, and the Secure Boot keys → `/mnt/backup/restic-new`, daily (persistent, up to 1 h random delay).
+
+- Before each run, `scripts/restic-snapshot.sh` records which of Sonarr, Radarr, Prowlarr, qBittorrent, Jellyfin, Audiobookshelf, and calibre-web are active, stops them, and copies their state into root-only `/var/lib/restic-backup-staging`. It restarts only the previously active services before Restic starts, so upload/prune/check time causes no application downtime.
+- A failed stop or copy skips Restic and restores the recorded services. Initially inactive services stay inactive. Restic never reads a partially copied staging tree.
+- Application databases, configuration, qBittorrent `BT_backup`, and service backup directories are retained; caches, artwork, metadata, and logs are filtered during staging.
 
 - Excludes caches, Steam and other game libraries, replay recordings, flatpak and container storage, Downloads, Trash, and build junk (`node_modules`, `target`, `zig-cache`, `zig-out`, `.venv`, `.direnv`, `__pycache__`).
 - Retention: 7 daily, 4 weekly, 6 monthly. Each run checks a random 5 % of pack data.
 - Skips cleanly when the backup drive isn't mounted or writable; runs at nice 19, idle I/O.
 - Password at `/etc/restic/password`; the unit refuses to start if the file is empty.
+
+For recovery, restore the Restic snapshot to a temporary target, stop the application, then `rsync -aHAX --numeric-ids` its staged directory back to the live path. Staged names match `/var/lib` except `prowlarr`, which restores to `/var/lib/private/prowlarr`; the other six restore to `/var/lib/<staged-name>`. Preserve the staged numeric owners and permissions, and do not restore over a running service.
 
 ```fish
 sudo systemctl start restic-backups-home
@@ -139,7 +144,7 @@ Games and wallpaper folders are created in your home directory. Replay captures 
 
 ## hello-page
 
-`modules/hello-page.nix` runs `~/the-page/app.py` (system python, as your user, heavily sandboxed, read-write only to that directory) on `127.0.0.1:8137`. `hello-page-serve` waits for tailscaled, then publishes it with `tailscale serve --bg --https 443`. Environment overrides go in `/var/lib/secrets/the-page.env`.
+`modules/hello-page.nix` runs the store-owned source in `pkgs/hello-page` with system Python as your user on `127.0.0.1:8137`. Mutable state stays in `~/the-page`; the sandbox makes home read-only except for the database, config, content, and backups. `hello-page-serve` waits for tailscaled, then publishes it with `tailscale serve --bg --https 443`. Environment overrides go in `/var/lib/secrets/the-page.env`.
 
 ## Containers and VMs
 

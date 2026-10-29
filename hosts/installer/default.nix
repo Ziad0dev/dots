@@ -32,12 +32,18 @@ let
       let
         sc = sys.config;
         online = onlineHosts ? ${name};
+        impermanent = lib.attrByPath [ "dots" "impermanence" "enable" ] false sc;
         keyfile =
           if lib.attrByPath [ "dots" "secrets" "enable" ] false sc then
-            lib.attrByPath [ "dots" "secrets" "keyFile" ] "/var/lib/sops-nix/key.txt" sc
+            "${lib.optionalString impermanent "/persist"}${
+              lib.attrByPath [ "dots" "secrets" "keyFile" ] "/var/lib/sops-nix/key.txt" sc
+            }"
           else
             "";
         secureboot = lib.attrByPath [ "dots" "secureBoot" "enable" ] false sc;
+        pki = "${lib.optionalString impermanent "/persist"}${
+          lib.attrByPath [ "boot" "lanzaboote" "pkiBundle" ] "/var/lib/sbctl" sc
+        }";
         user = sys._module.specialArgs.username or "";
         u = sc.users.users.${user} or null;
         disks = lib.mapAttrsToList (_: d: d.device) sc.disko.devices.disk;
@@ -49,7 +55,7 @@ let
             diskoOn=${lib.boolToString sc.disko.enableConfig}
             keyfile=${keyfile}
             secureboot=${lib.boolToString secureboot}
-            pki=${lib.attrByPath [ "boot" "lanzaboote" "pkiBundle" ] "/var/lib/sbctl" sc}
+            pki=${pki}
             user=${user}
             owner=${
               if u != null && u.uid != null then
@@ -164,27 +170,32 @@ let
           nixos-install --flake "${flakeRef}#$host" --no-root-passwd --no-channel-copy
       fi
 
-      # home-manager links config/ out of ~/dots (dots.liveConfig): put the
-      # checkout there before the first boot, or the session starts with
-      # dangling links
+      # Keep a checkout for nh and future updates, but never pair the installed
+      # generation with a different revision of the dots source.
       if [ "$clone" = 1 ] && [ -n "$user" ] && [ -n "$owner" ]; then
           home="/mnt/home/$user"
           dots="$home/dots"
           if [ ! -e "$dots" ]; then
               echo ">> checkout -> ~$user/dots"
               mkdir -p "$home"
-              if git clone --quiet ${lib.escapeShellArg cfg.repoUrl} "$dots" 2>/dev/null; then
-                  : # the clone's default branch, or the exact commit the ISO was built from:
-                  ${lib.optionalString (inputs.self ? rev) ''
-                    git -C "$dots" checkout --quiet ${inputs.self.rev} 2>/dev/null || true
-                  ''}
-              else
-                  # offline: the source the ISO was built from, as a fresh repo
+              use_embedded_source() {
+                  rm -rf "$dots"
+                  mkdir -p "$dots"
                   cp -a /etc/dots/. "$dots"/
                   chmod -R u+w "$dots"
                   git -C "$dots" init --quiet -b main
                   git -C "$dots" remote add origin ${lib.escapeShellArg cfg.repoUrl}
-                  echo "   (offline: copied without history; 'git fetch' and reset once online)"
+                  echo "   (used the ISO's exact source; 'git fetch' and reset once online)"
+              }
+              if [ -n ${lib.escapeShellArg (inputs.self.rev or "")} ] &&
+                  git clone --quiet ${lib.escapeShellArg cfg.repoUrl} "$dots" 2>/dev/null; then
+                  if ! git -C "$dots" checkout --quiet ${
+                    lib.escapeShellArg (inputs.self.rev or "")
+                  } 2>/dev/null; then
+                      use_embedded_source
+                  fi
+              else
+                  use_embedded_source
               fi
               chown -R "$owner" "$home"
               chmod 0700 "$home"

@@ -73,7 +73,6 @@ def set_prompt(p, shell="bash"):
     else:
         p.sendline(f"export PS1='{PROMPT}'")
     p.expect_exact(PROMPT, timeout=30)
-    p.expect_exact(PROMPT, timeout=30)
 
 
 def boot_installed(p):
@@ -130,13 +129,14 @@ def boot_checks():
     boot_installed(p)
     sh(p, "for m in / /nix /persist /home /boot; do findmnt -no TARGET,FSTYPE,SOURCE $m; done")
     sh(p, "systemctl is-system-running --wait", timeout=300, ok=False)
-    sh(p, "systemctl --failed --no-legend")
-    sh(p, "readlink ~/.config/nvim ~/.config/tmux")
-    sh(p, "cat ~/.local/state/dots/theme/current && ls ~/.local/state/dots/theme | wc -l")
-    sh(p, "themectl current && themectl list | wc -l")
+    sh(p, 'test -z "$(systemctl --failed --no-legend)"')
+    sh(p, "readlink -f ~/.config/nvim | grep -q '^/nix/store/.*-source/config/nvim$'")
+    sh(p, "readlink -f ~/.config/tmux | grep -q '^/nix/store/.*-source/config/tmux$'")
+    sh(p, 'test "$(cat ~/.local/state/dots/theme/current)" = oxocarbon')
+    sh(p, "themectl current")
     sh(p, "getent passwd " + USER + " | cut -d: -f7")
-    sh(p, "systemctl status home-manager-" + USER + " --no-pager | head -5")
-    sh(p, "cat /etc/machine-id")
+    sh(p, "systemctl is-active --quiet home-manager-" + USER)
+    machine_id, _ = sh(p, "cat /etc/machine-id")
     sh(p, "sudo sh -c 'touch /etc/ephemeral-test /var/log/persist-test'")
     sh(p, "touch ~/home-persist-test")
     p.sendline("sudo reboot")
@@ -147,8 +147,10 @@ def boot_checks():
     sh(p, "test ! -e /etc/ephemeral-test && echo 'root reset: /etc/ephemeral-test gone'")
     sh(p, "test -e /var/log/persist-test && echo '/var/log kept'")
     sh(p, "test -e ~/home-persist-test && echo '/home kept'")
-    sh(p, "cat /etc/machine-id")
-    sh(p, "systemctl --failed --no-legend")
+    persisted_machine_id, _ = sh(p, "cat /etc/machine-id")
+    if persisted_machine_id != machine_id:
+        raise SystemExit("FAILED: machine-id changed across reboot")
+    sh(p, 'test -z "$(systemctl --failed --no-legend)"')
     p.sendline("sudo poweroff")
     p.expect(pexpect.EOF, timeout=180)
     step("ALL CHECKS PASSED")

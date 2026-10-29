@@ -18,7 +18,7 @@
   <a href="docs/troubleshooting.md">Troubleshooting</a>
 </p>
 
-One flake for a NixOS + Hyprland desktop, a nix-darwin Mac, and standalone home-manager on anything else with Nix. Config under `config/` is symlinked live, so most edits land without a rebuild; `themectl` recolours the whole session — bar, borders, terminal, lock screen, login greeter, editor — in one command.
+One flake for a NixOS + Hyprland desktop, a nix-darwin Mac, and standalone home-manager on anything else with Nix. Config under `config/` is linked from the Nix store by default, so edits and rollbacks follow configuration generations; `dots.liveConfig = true` opts into live checkout links. `themectl` recolours the whole session — bar, borders, terminal, lock screen, login greeter, editor — in one command.
 
 ## Highlights
 
@@ -84,7 +84,7 @@ flake.nix     username, hostnames, every output
 hosts/        nixos/ · darwin/
 modules/      system config, one file per concern
 home/         home-manager: profiles/ + one module per app
-config/       app config, symlinked live into ~/.config
+config/       app config, linked from the Nix store by default
 flakes/       curated tool sets, usable standalone
 templates/    nix flake init templates
 scripts/      themectl, the dots-* shims, voxtype, git hook

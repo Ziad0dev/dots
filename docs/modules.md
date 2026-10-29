@@ -34,7 +34,7 @@ The package test for the system list: root needs it, a system service needs it, 
 | `dev.nix` | `programs.nh` (flake = `dots.repoPath`), nh's GC timer `--keep 3 --keep-since 4d`, `warn-dirty = false` |
 | `cleanup.nix` | Coredump storage capped at 1 GiB |
 | `secrets.nix` | secretspec, pass, gnupg agent with pinentry-qt, bitwarden-cli, sops + age; sops-nix behind `dots.secrets.enable` (enabled on the desktop). See [Secrets](secrets.md) |
-| `impermanence.nix` | `dots.impermanence.enable` (off on the desktop): root on tmpfs, `/var/log`, `/var/lib/{nixos,systemd}`, NM connections and `machine-id` kept in `/persist`, immutable users. Needs the matching disk layout (`lib/disko.nix`) |
+| `impermanence.nix` | `dots.impermanence.enable` (off on the desktop): root on tmpfs, baseline state plus enabled Tailscale, SOPS-key and Secure Boot-key state kept in `/persist`; immutable users require declarative password hashes unless passwordless login is explicit. Needs the matching disk layout (`lib/disko.nix`) |
 
 #### CPU profile (`performance.nix`)
 
@@ -88,10 +88,11 @@ Per-user: MangoHud in `home/gaming-home.nix` (hidden by default, `Right Shift + 
 | `lan.nix` | Jellyfin ports on the LAN interface only | |
 | `llm.nix` | Eight llama.cpp units (CUDA, sm_86), mutually exclusive, user-startable without sudo | [Services](services.md#local-llms) |
 | `ollama.nix` | Ollama (Vulkan) on `127.0.0.1:11434`, starts at boot, loads models on demand | [Services](services.md#local-llms) |
-| `backup.nix` | Daily restic of `$HOME`, the media apps' state and the Secure Boot keys to `/mnt/backup/restic-new` | [Services](services.md#backups) |
+| `backup.nix` | Daily restic of `$HOME`, quiesced media/download application state and the Secure Boot keys to `/mnt/backup/restic-new` | [Services](services.md#backups) |
 | `arr-automation.nix` | Clears stale *arr indexer backoff at boot and once the VPN path works again, a daily backlog search, and the `arr-status` command | [Services](services.md#vpn-namespace) |
 | `storage.nix` | Independent `/mnt/backup` exFAT drive (root-only, hidden from file managers) | [Services](services.md#storage) |
-| `hello-page.nix` | A small Python site from `~/the-page`, published on the tailnet with `tailscale serve` | [Services](services.md#hello-page) |
+| `hello-page.nix` | Store-owned Python site from `pkgs/hello-page`, state in `~/the-page`, published on the tailnet with `tailscale serve` | [Services](services.md#hello-page) |
+| `lkml-tracker.nix` | Store-owned kernel/Nix tracker from `pkgs/lkml-tracker` on loopback port 8138 | |
 
 ## Adding a module
 

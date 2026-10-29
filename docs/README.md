@@ -42,7 +42,7 @@ home/home.nix ── profiles/base.nix           always
              ├── profiles/linux-desktop.nix  Linux + profile "desktop"
              └── profiles/darwin.nix         macOS
 
-config/  ── symlinked live into ~/.config (edit, no rebuild); dots.liveConfig = false copies it into the store
+config/  ── linked from the Nix store by default; dots.liveConfig = true links the checkout instead
 config/themes/ + themectl ── rendered into ~/.local/state/dots/theme/
 ```
 
@@ -50,4 +50,4 @@ config/themes/ + themectl ── rendered into ~/.local/state/dots/theme/
 
 1. **`git add` before nix sees it.** The flake is a git checkout; untracked files do not exist to Nix.
 2. **One owner per path.** A config directory is either a live symlink into `config/` or managed by a home-manager module, never both.
-3. **Edits under `config/` are live; edits to `.nix` and `scripts/` need a rebuild.** Scripts are packaged with `writeShellApplication`, so the installed copy is a store path.
+3. **Config, `.nix`, and `scripts/` edits need a rebuild by default.** `dots.liveConfig = true` makes linked `config/` paths live instead. Scripts are packaged with `writeShellApplication`, so the installed copy is always a store path.

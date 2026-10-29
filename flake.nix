@@ -12,6 +12,9 @@
       url = "github:nix-darwin/nix-darwin/master";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    # no nixpkgs follows: keeps upstream's binary cache hitting
+    ghostty.url = "github:ghostty-org/ghostty";
+
     helium = {
       url = "github:schembriaiden/helium-browser-nix-flake";
       inputs.nixpkgs.follows = "nixpkgs";
