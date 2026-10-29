@@ -13,7 +13,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     # no nixpkgs follows: keeps upstream's binary cache hitting
-    ghostty.url = "github:ghostty-org/ghostty";
+    ghostty.url = "github:ghostty-org/ghostty/v1.4.0";
 
     helium = {
       url = "github:schembriaiden/helium-browser-nix-flake";

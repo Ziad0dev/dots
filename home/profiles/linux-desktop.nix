@@ -239,7 +239,15 @@ in
       beamPkgs.elixir
       beamPkgs.elixir-ls
       inputs.zen-browser.packages.${system}.default
-      inputs.helium.packages.${system}.default
+      (pkgs.symlinkJoin {
+        name = "helium-srgb";
+        paths = [ inputs.helium.packages.${system}.default ];
+        nativeBuildInputs = [ pkgs.makeWrapper ];
+        postBuild = ''
+          wrapProgram $out/bin/helium \
+            --add-flags "--disable-features=WaylandWpColorManagerV1 --force-color-profile=srgb"
+        '';
+      })
       (pkgs.callPackage ../../pkgs/nyxt { })
       inputs.vm-curator.packages.${system}.default
       inputs.hyprland-preview-share-picker.packages.${system}.default

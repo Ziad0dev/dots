@@ -1,4 +1,9 @@
-{ lib, pkgs, options, ... }:
+{
+  lib,
+  pkgs,
+  options,
+  ...
+}:
 let
   vencord = options.programs.nixcord.discord.vencord.package.default.overrideAttrs (o: {
     postPatch = (o.postPatch or "") + ''
@@ -13,25 +18,8 @@ let
     args: pkgs.discord.override (builtins.intersectAttrs (lib.functionArgs pkgs.discord.override) args)
   )) { };
 
-  openasar = builtins.toJSON {
-    cmdPreset = "perf";
-    customFlags = "--disable-features=WaylandWpColorManagerV1,EnableDrDc --disable-gpu-memory-buffer-video-frames --disable-accelerated-video-decode";
-  };
 in
 {
-  home.activation.discordOpenasarFlags = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    if [[ ! -v DRY_RUN ]]; then
-      f="$HOME/.config/discord/settings.json"
-      mkdir -p "$(dirname "$f")"
-      [ -s "$f" ] || echo '{}' > "$f"
-      if ${lib.getExe pkgs.jq} --argjson oa '${openasar}' '.openasar = ((.openasar // {}) + $oa)' "$f" > "$f.tmp"; then
-        mv "$f.tmp" "$f"
-      else
-        rm -f "$f.tmp"
-      fi
-    fi
-  '';
-
   programs.nixcord = {
     enable = true;
 
@@ -56,8 +44,11 @@ in
         enable = true;
         package = vencord;
       };
-      openASAR.enable = true;
-      commandLineArgs = [ "--enable-logging=file" ];
+      openASAR.enable = false;
+      commandLineArgs = [
+        "--disable-features=WaylandWpColorManagerV1,EnableDrDc"
+
+      ];
     };
 
     config = {
