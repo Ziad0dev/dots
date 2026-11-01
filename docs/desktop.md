@@ -13,7 +13,7 @@ SDDM (kwin greeter, dots theme)
             │     ├─ quickshell (rise)         ├─ swayosd-server
             │     │                            └─ hypridle, cliphist, udiskie, mpdris2, …
             ├─ awww-daemon
-            └─ apps: zen, sideterm, sysmon, discord, spotify, easyeffects
+            └─ apps: zen, sideterm, sysmon, discord, spotify
 ```
 
 `hyprland-session.target` is defined in `home/profiles/linux-desktop.nix`. Without it `graphical-session.target` never activates and nothing that hangs off it starts. On exit, the `hyprland.shutdown` handler stops the target.
@@ -236,7 +236,7 @@ qs -c rise ipc call <target> <function>
 
 `modules/recording.nix` sets up gpu-screen-recorder with its capability wrapper and a `gsr-replay` user unit:
 
-- Captures `dots.recording.monitor` (`DP-1`, set in the host) at 60 fps, HEVC, very-high quality, desktop audio **plus** the EasyEffects source, into a 300 s rolling buffer.
+- Captures `dots.recording.monitor` (`DP-1`, set in the host) at 60 fps, HEVC, very-high quality, desktop audio into a 300 s rolling buffer.
 - Not started automatically. `SUPER + ALT + R` arms/disarms; `SUPER + SHIFT + R` sends `SIGUSR1` (via `systemctl reload`) to dump the buffer to `~/Videos/Replays`.
 - `gpu-screen-recorder-gtk` for ad-hoc recording; the bar's record widget drives `dots-capture-screenrecording`.
 

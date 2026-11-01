@@ -8,12 +8,10 @@
 
 let
   modelDir = "/var/lib/dots/models";
-  # CUDA kernels for the RTX 3060 (sm_86) only. No binary cache carries a CUDA
-  # llama.cpp, so this builds locally (~14 min); one arch keeps that short.
-  # Measured against llama-cpp-vulkan on this card: prompt processing +32%
-  # (9B Q6_K, 14B IQ4_XS), generation same on the 9B, +21% on the 14B.
+  # CUDA kernels for the RTX 5060 Ti (sm_120) only. No binary cache carries a
+  # CUDA llama.cpp, so this builds locally; one arch keeps that shorter.
   llama = (pkgs.llama-cpp.override { cudaSupport = true; }).overrideAttrs (o: {
-    cmakeFlags = (o.cmakeFlags or [ ]) ++ [ "-DCMAKE_CUDA_ARCHITECTURES=86" ];
+    cmakeFlags = (o.cmakeFlags or [ ]) ++ [ "-DCMAKE_CUDA_ARCHITECTURES=120" ];
   });
 
   freeGpu = pkgs.writeShellScript "free-gpu" ''

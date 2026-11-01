@@ -64,7 +64,7 @@ These open a floating terminal (`$DOTS_TERMINAL`, default ghostty) with window c
 
 | Command | Does |
 |---|---|
-| `dots-capture-screenrecording` | Start recording the focused output (HEVC, desktop + EasyEffects audio) to `~/Videos` as transient unit `dots-gsr`; `DOTS_GSR_ARGS` replaces the capture flags |
+| `dots-capture-screenrecording` | Start recording the focused output (HEVC, desktop audio) to `~/Videos` as transient unit `dots-gsr`; `DOTS_GSR_ARGS` replaces the capture flags |
 | `dots-capture-screenrecording --stop` | Stop `dots-gsr` (SIGINT, so the mp4 is finalised) |
 | `dots-capture-screenrecording --save-replay` | Dump the replay buffer if `gsr-replay` is armed |
 | `dots-swayosd-client`, `dots-swayosd-brightness` | Pass through to `swayosd-client` (no-op if missing) |

@@ -196,7 +196,6 @@ in
       pavucontrol
       mpc
       rmpc
-      easyeffects
       qpwgraph
 
       imv

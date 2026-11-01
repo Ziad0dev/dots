@@ -52,8 +52,10 @@ passphrase. The key is sealed to two PCRs (TPM measurement registers):
 Because the disk opens by itself, root's password is locked (`users.users.root.hashedPassword = "!"` in the host): a boot that drops to emergency mode refuses to open a shell instead of handing one to whoever is at the keyboard. Recover a machine that won't boot from the installer ISO; `sudo` is unaffected.
 
 The passphrase keyslot stays as the fallback. A firmware update or a change to
-the Secure Boot settings changes PCR 7: you get the passphrase prompt, then
-re-enroll.
+the Secure Boot settings changes PCR 7; hardware changes can also leave the
+enrolled policy out of date on some firmware. You then get the passphrase
+prompt, and must re-enroll. Confirm a policy mismatch with
+`journalctl -b -g 'TPM policy|No valid TPM2 token'` before changing the slot.
 
 1. **Find the root container.** `hosts/nixos/disk.nix` names it:
    today's install is `/dev/disk/by-uuid/bd950db0-dc83-432a-bec6-0bc1a72bd76e`;

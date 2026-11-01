@@ -218,5 +218,4 @@ exec sh -c 'systemctl --user unset-environment HYPRLAND_INSTANCE_SIGNATURE && db
 exec swaymsg -t subscribe '["shutdown"]' && systemctl --user stop sway-session.target && systemctl --user unset-environment SWAYSOCK
 exec awww-daemon
 exec autotiling-rs
-exec easyeffects --gapplication-service
 exec sh -c 'tmux has-session -t sysmon 2>/dev/null || { tmux new-session -d -s sysmon -n sysmon "btop || exec fish" && tmux split-window -v -t sysmon:sysmon "nvtop || exec fish"; } && $term --class=dev.dots.sysmon -e tmux new-session -A -s sysmon'

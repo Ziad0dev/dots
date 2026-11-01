@@ -18,6 +18,11 @@
 
     modelsDir = "/var/lib/ollama";
 
+    loadModels = [
+      "qwen2.5-coder:14b"
+      "qwen2.5-coder:7b"
+    ];
+
     environmentVariables = {
 
       OLLAMA_MAX_LOADED_MODELS = "1";

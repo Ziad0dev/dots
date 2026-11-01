@@ -13,7 +13,6 @@ hl.on("hyprland.start", function()
     -- Hyprland up, and home-manager's dconf may have reset the rest
     hl.exec_cmd("dots-appearance apply --quiet")
     hl.exec_cmd("awww-daemon --no-cache")
-    hl.exec_cmd("easyeffects --gapplication-service")
 
     hl.exec_cmd("zen-beta")
     hl.exec_cmd("discord")

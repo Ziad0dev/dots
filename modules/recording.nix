@@ -53,7 +53,7 @@ in
           "-k h264"
           "-ac aac"
           "-q very_high"
-          "-a default_output|easyeffects_source"
+          "-a default_output"
           "-r 300"
           "-o ${replayDir}"
         ];
