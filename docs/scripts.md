@@ -129,6 +129,8 @@ These open a floating terminal (`$DOTS_TERMINAL`, default ghostty) with window c
 | `y` | yazi, `cd`s to where you quit |
 | `gpu-check` | running `llama-*` units + `ollama ps` |
 | `gpu-free` | stop every `llama-*` unit and unload Ollama's models |
+| `omp-local` | OMP with local Qwen3.5 9B via Ollama; normal `omp` keeps its configured model |
+| `claude-local` | Claude Code with local Qwen3.5 9B via Ollama; normal `claude` keeps its configured model |
 
 Fish starts in vi mode and sources the themed fzf colours.
 

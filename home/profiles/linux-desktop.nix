@@ -44,6 +44,11 @@ in
     DOCKER_HOST = "unix://$XDG_RUNTIME_DIR/docker.sock";
   };
 
+  programs.fish.shellAliases = {
+    omp-local = "omp --model ollama/qwen3.5:9b";
+    claude-local = "env CLAUDE_CODE_MAX_CONTEXT_TOKENS=32768 ollama launch claude --model qwen3.5:9b";
+  };
+
   programs.fish.functions.docker = {
     description = "Start the rootless daemon on first use, then run docker";
     body = ''

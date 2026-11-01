@@ -19,8 +19,10 @@
     modelsDir = "/var/lib/ollama";
 
     loadModels = [
+      "qwen3.5:9b"
       "qwen2.5-coder:14b"
       "qwen2.5-coder:7b"
+      "devstral-small-2:24b"
     ];
 
     environmentVariables = {
@@ -35,7 +37,9 @@
 
       OLLAMA_KV_CACHE_TYPE = "q8_0";
 
-      OLLAMA_CONTEXT_LENGTH = "16384";
+      # Repository agents need more than the old 16k default. 32k fits the
+      # 9B/14B models on the 16 GB card; larger models can offload KV cache.
+      OLLAMA_CONTEXT_LENGTH = "32768";
     };
   };
 

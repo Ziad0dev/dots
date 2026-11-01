@@ -79,7 +79,7 @@ Mullvad for the host itself is separate (`modules/mullvad.nix`, the GUI and `dot
 | `llama-gemma` | Gemma 4 12B Q4_K_M | 8080 | general, vision, audio |
 | `llama-coder` | Gemma 4 26B-A4B MoE Q4_K_M | 8080 | coding / agentic — 10 expert layers on CPU, q8_0 KV cache |
 | `llama-fim` | Qwen2.5-Coder-3B Q8_0 | 8012 | llama.vim fill-in-the-middle |
-| `ollama` | Qwen2.5-Coder 14B + 7B; other models on demand | 11434 | local coding and trying models quickly |
+| `ollama` | Qwen3.5 9B, Qwen2.5-Coder 14B + 7B, Devstral Small 2 24B; other models on demand | 11434 | local coding agents and trying models quickly |
 
 How they behave:
 
@@ -88,7 +88,17 @@ How they behave:
 - **Never at boot.** `wantedBy` is forced empty on all the llama units. Ollama does start at boot, but holds no VRAM until a model is requested.
 - **No sudo.** A polkit rule lets your active local session start and stop these units.
 - **Sandboxed.** The llama units run as `DynamicUser` with `ProtectHome`, `ProtectSystem=strict`, no capabilities and `MemoryDenyWriteExecute`. GGUF files must be world-readable.
-- llama.cpp's model directory is created for your user. Download or copy GGUF files there; the services do not download them. Ollama creates and manages its own model files.
+- llama.cpp's model directory is created for your user. Download or copy GGUF files there; the services do not download them. Ollama creates and manages its own model files. Its declared coding models use a 32k default context and q8 KV cache.
+
+For local coding agents, `omp-local` starts OMP with Qwen3.5 9B and
+`claude-local` starts Claude Code with the same model through Ollama's
+Anthropic-compatible API. The normal `omp` and `claude` commands are unchanged.
+For the heavier coding model, run `omp --model ollama/devstral-small-2:24b` or
+`env CLAUDE_CODE_MAX_CONTEXT_TOKENS=32768 ollama launch claude --model devstral-small-2:24b`.
+Qwen3.5 is the fast default; Devstral trades some speed and host memory for
+multi-file coding quality. The explicit context override makes Claude Code
+compact at Ollama's real 32k limit instead of assuming a 200k window. OMP's
+entries in `~/.omp/agent/models.yml` are pinned to the same 32k window.
 
 ```fish
 systemctl start llama-coder      # swap models
