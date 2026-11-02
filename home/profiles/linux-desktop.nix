@@ -179,6 +179,8 @@ in
       grim
       slurp
       satty
+      xdg-utils
+      zenity
       (flameshot.override { enableWlrSupport = true; })
       spotify
       (tesseract.override {
