@@ -39,7 +39,7 @@
 
       # Repository agents need more than the old 16k default. 32k fits the
       # 9B/14B models on the 16 GB card; larger models can offload KV cache.
-      OLLAMA_CONTEXT_LENGTH = "32768";
+      OLLAMA_CONTEXT_LENGTH = "131072";
     };
   };
 

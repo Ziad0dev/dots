@@ -1,0 +1,18 @@
+modelRoles:
+  advisor: venice/z-ai-glm-5-3
+  default: ollama/deepseek-v4.1-flash:cloud:max
+  web: web/google
+  memory: local/qwen3-1.7b:high
+setupVersion: 2
+composer:
+  shape: band
+compaction:
+  thresholdTokens: 110000
+provider:
+  appendOnlyContext: "on"
+tools:
+  artifactSpillThreshold: 10
+retry:
+  fallbackChains:
+    local/qwen3-1.7b:
+      - local/qwen3-1.7b

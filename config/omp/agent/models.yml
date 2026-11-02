@@ -1,0 +1,79 @@
+providers:
+  ollama:
+    api: openai-responses
+    auth: none
+    baseUrl: http://127.0.0.1:11434/v1
+    discovery:
+      type: ollama
+    models:
+      - contextWindow: 1048576
+        id: glm-5.3-flash:cloud
+        input:
+          - text
+          - image
+        maxTokens: 1048576
+        name: glm-5.3-flash:cloud
+      - contextWindow: 1048576
+        id: kimi-k3:cloud
+        input:
+          - text
+          - image
+        maxTokens: 1048576
+        name: kimi-k3:cloud
+      - contextWindow: 1048576
+        id: deepseek-v4.1-flash:cloud
+        input:
+          - text
+          - image
+        maxTokens: 393216
+        name: deepseek-v4.1-flash:cloud
+      - contextWindow: 32768
+        id: qwen3.5:9b
+        input:
+          - text
+          - image
+        name: qwen3.5:9b
+      - contextWindow: 131072
+        id: devstral-small-2:24b
+        input:
+          - text
+          - image
+        name: devstral-small-2:24b
+      - id: qwen3.5:4b
+        input:
+          - text
+        name: qwen3.5:4b
+      - id: gemma4:12b
+        input:
+          - text
+        name: gemma4:12b
+      - id: qwen3.8:27b
+        input:
+          - text
+        name: qwen3.8:27b
+      - contextWindow: 131072
+        id: huihui_ai/gemma3-abliterated:12b
+        input:
+          - text
+          - image
+        name: huihui_ai/gemma3-abliterated:12b
+      - contextWindow: 40960
+        id: huihui_ai/qwen3-abliterated:14b
+        input:
+          - text
+        name: huihui_ai/qwen3-abliterated:14b
+      - contextWindow: 40960
+        id: huihui_ai/qwen3-abliterated:8b
+        input:
+          - text
+        name: huihui_ai/qwen3-abliterated:8b
+      - contextWindow: 40960
+        id: qwen3-abliterated-14b-16k:latest
+        input:
+          - text
+        name: qwen3-abliterated-14b-16k:latest
+      - contextWindow: 40960
+        id: qwen3-abliterated-8b-32k:latest
+        input:
+          - text
+        name: qwen3-abliterated-8b-32k:latest

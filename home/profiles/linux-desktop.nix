@@ -153,6 +153,10 @@ in
     ".config/zen-theme".source = link "zen";
     ".config/nyxt/config.lisp".source = link "nyxt/config.lisp";
     ".config/hyprland-preview-share-picker".source = link "hyprland-preview-share-picker";
+    ".omp/agent/models.yml".source =
+      config.lib.file.mkOutOfStoreSymlink "${config.dots.repoPath}/config/omp/models.yml";
+    ".omp/agent/config.yml".source =
+      config.lib.file.mkOutOfStoreSymlink "${config.dots.repoPath}/config/omp/config.yml";
   };
 
   home.packages =
