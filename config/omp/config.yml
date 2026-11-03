@@ -1,3 +1,29 @@
 modelRoles:
-  default: kimi-code/k3.1-pro-highspeed:max
+  default: lc-big/gpt-oss-20b
+  smol: lc-small/qwen3-4b
+  task: lc-small/qwen3-4b
+  tiny: lc-small/qwen3-4b
+  memory: lc-small/qwen3-4b:low
+  commit: lc-small/qwen3-4b:low
+  plan: lc-big/gpt-oss-20b:high
+  advisor: lc-big/gpt-oss-20b:high
+  vision: lc-vision/qwen3-vl-8b
+  web: web/google
 setupVersion: 2
+composer:
+  shape: band
+compaction:
+  thresholdTokens: 48000
+provider:
+  appendOnlyContext: "on"
+tools:
+  artifactSpillThreshold: 4
+  enabled: [read, edit, bash, grep]
+retry:
+  fallbackChains:
+    lc-big/gpt-oss-20b:
+      - lc-small/qwen3-4b
+    lc-small/qwen3-4b:
+      - lc-big/gpt-oss-20b
+    lc-vision/qwen3-vl-8b:
+      - lc-big/gpt-oss-20b

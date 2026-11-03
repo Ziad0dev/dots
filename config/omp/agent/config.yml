@@ -1,18 +1,29 @@
 modelRoles:
-  advisor: venice/z-ai-glm-5-3
-  default: ollama/deepseek-v4.1-flash:cloud:max
+  default: lc-big/gpt-oss-20b
+  smol: lc-small/qwen3-4b
+  task: lc-small/qwen3-4b
+  tiny: lc-small/qwen3-4b
+  memory: lc-small/qwen3-4b:low
+  commit: lc-small/qwen3-4b:low
+  plan: lc-big/gpt-oss-20b:high
+  advisor: lc-big/gpt-oss-20b:high
+  vision: lc-vision/qwen3-vl-8b
   web: web/google
-  memory: local/qwen3-1.7b:high
 setupVersion: 2
 composer:
   shape: band
 compaction:
-  thresholdTokens: 110000
+  thresholdTokens: 48000
 provider:
   appendOnlyContext: "on"
 tools:
-  artifactSpillThreshold: 10
+  artifactSpillThreshold: 4
+  enabled: [read, edit, bash, grep]
 retry:
   fallbackChains:
-    local/qwen3-1.7b:
-      - local/qwen3-1.7b
+    lc-big/gpt-oss-20b:
+      - lc-small/qwen3-4b
+    lc-small/qwen3-4b:
+      - lc-big/gpt-oss-20b
+    lc-vision/qwen3-vl-8b:
+      - lc-big/gpt-oss-20b
