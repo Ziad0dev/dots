@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
 
@@ -14,6 +19,44 @@ let
   nvimSynctex = pkgs.writeShellScriptBin "nvim-synctex" ''
     exec nvim --headless -c "VimtexInverseSearch $1 '$2'"
   '';
+
+  # mupdf's JS engine does the annotation / redaction / text-search work
+  annotJs = ../scripts/dots-pdf-annot.js;
+
+  dotsPdfsign = pkgs.writeShellApplication {
+    name = "dots-pdfsign";
+    runtimeInputs = with pkgs; [
+      coreutils
+      gawk
+      imagemagick
+      mupdf
+      openssl
+      poppler-utils
+      pyhanko-cli
+    ];
+    text = "export DOTS_PDF_JS=${annotJs}\n" + builtins.readFile ../scripts/dots-pdfsign.sh;
+  };
+
+  dotsPdf = pkgs.writeShellApplication {
+    name = "dots-pdf";
+    runtimeInputs = with pkgs; [
+      coreutils
+      diffutils
+      exiftool
+      gawk
+      ghostscript
+      img2pdf
+      mupdf
+      ocrmypdf
+      pdfcpu
+      pdfgrep
+      poppler-utils
+      pyhanko-cli
+      qpdf
+      util-linux
+    ];
+    text = "export DOTS_PDF_JS=${annotJs}\n" + builtins.readFile ../scripts/dots-pdf.sh;
+  };
 in
 {
   home.packages = with pkgs; [
@@ -29,6 +72,12 @@ in
     qpdf
 
     nvimSynctex
+
+    # PDF workbench — driven from Neovim via :Pdf (config/nvim/lua/pdf)
+    dotsPdf
+    dotsPdfsign
+    xournalpp # freehand ink, drawn signatures
+    pdfarranger # drag-and-drop page organiser
   ];
 
   programs.zathura = {

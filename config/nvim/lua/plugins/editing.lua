@@ -56,6 +56,7 @@ return {
         { "<leader>m", group = "markdown" },
         { "<leader>r", group = "rename/refactor" },
         { "<leader>d", group = "document (tex/typst)" },
+        { "<leader>p", group = "pdf (sign, annotate, redact, ...)", mode = { "n", "x" } },
         { "<leader>u", group = "ui" },
         { "<leader>x", group = "diagnostics" },
         { "<leader>D", group = "debug" },

@@ -5,6 +5,7 @@ IFS=$'\n'
 
 FILE_PATH="${1}"
 PV_WIDTH="${2}"
+# shellcheck disable=SC2034  # part of the scope.sh calling convention
 PV_HEIGHT="${3}"
 IMAGE_CACHE_PATH="${4}"
 PV_IMAGE_ENABLED="${5}"
@@ -15,6 +16,7 @@ FILE_EXTENSION_LOWER=$(echo ${FILE_EXTENSION} | tr '[:upper:]' '[:lower:]')
 HIGHLIGHT_SIZE_MAX=262143
 HIGHLIGHT_TABWIDTH=8
 HIGHLIGHT_STYLE='pablo'
+# shellcheck disable=SC2034  # option kept from upstream scope.sh; edit to taste
 PYGMENTIZE_STYLE='autumn'
 
 handle_extension() {
@@ -90,6 +92,7 @@ handle_mime() {
                 local pygmentize_format='terminal256'
                 local highlight_format='xterm256'
             else
+                # shellcheck disable=SC2034  # kept from upstream scope.sh
                 local pygmentize_format='terminal'
                 local highlight_format='ansi'
             fi

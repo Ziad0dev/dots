@@ -1,0 +1,62 @@
+name: security
+
+# Catches what a green build does not: leaked secrets, unsafe workflows, sloppy
+# shell, broken Lua, and a NixOS config that quietly became insecure or slow.
+# Every job runs scripts/audit.sh, so `scripts/audit.sh all` locally = this.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # weekly: new scanner rules can flag old code
+    - cron: "0 7 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # the whole history: a secret removed later is still public
+          persist-credentials: false
+      - uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31.11.1
+      - run: bash scripts/audit.sh secrets
+
+  workflows:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31.11.1
+      - run: bash scripts/audit.sh workflows
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31.11.1
+      - run: bash scripts/audit.sh shell
+      - run: bash scripts/audit.sh lua
+      - run: bash scripts/audit.sh nixfmt
+
+  # Evaluates the NixOS config and asserts security/performance properties
+  # (tests/policy.nix). Evaluation only: nothing is built.
+  policy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31.11.1
+      - run: bash scripts/audit.sh policy

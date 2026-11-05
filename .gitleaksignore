@@ -1,0 +1,11 @@
+# gitleaks allow-list: one fingerprint per line (commit:file:rule:line).
+# Both are in old history only; neither file exists in HEAD.
+
+# false positive: `export GIT_*` lines in a since-deleted script, not a credential
+ccdefb07beb2088b07baf376ec535bdd6de36445:scripts/qs-theme-update-check.sh:generic-api-key:64
+
+# REAL-LOOKING: a 32-hex weather API key in the first commit (2021, polybar
+# config). It can't be un-published without rewriting history, so the fix is to
+# revoke/rotate it at the provider; it is only ignored here so CI stays useful
+# for NEW leaks. Delete this line once the key is revoked.
+8c513825c4d78e5fe742076d1048f6ea200883a6:polybar/modules.ini:generic-api-key:671

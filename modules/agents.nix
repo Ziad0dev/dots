@@ -1,4 +1,10 @@
-{ config, lib, inputs, system, ... }:
+{
+  config,
+  lib,
+  inputs,
+  system,
+  ...
+}:
 
 let
   cfg = config.programs.agents;

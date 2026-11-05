@@ -5,7 +5,15 @@ return {
     lazy = false,
     opts = {
       bigfile = { enabled = true },
-      image = { enabled = true },
+      image = {
+        enabled = true,
+        -- no "pdf": snacks would grab *.pdf with a one-page image stub and
+        -- fight lua/pdf (text view + sign/annotate tools) for the buffer.
+        formats = {
+          "png", "jpg", "jpeg", "gif", "bmp", "webp", "tiff", "heic", "avif",
+          "mp4", "mov", "avi", "mkv", "webm", "icns",
+        },
+      },
       quickfile = { enabled = true },
       input = { enabled = true },
       notifier = { enabled = true, timeout = 2500 },
