@@ -143,7 +143,7 @@ let
 
   failures = builtins.concatLists [
     # ---- security -------------------------------------------------------------
-    (when (cfg.networking.firewall.enable) "firewall is disabled")
+    (when cfg.networking.firewall.enable "firewall is disabled")
     (when ((cfg.networking.firewall.allowedTCPPorts or [ ]) == [ ])
       "TCP ports are open on every interface (${toString cfg.networking.firewall.allowedTCPPorts}); open them per interface"
     )
@@ -169,7 +169,7 @@ let
         ]
       )
     ) "sshd is enabled with password auth or root login allowed")
-    (when (cfg.security.sudo.wheelNeedsPassword) "sudo no longer asks wheel users for a password")
+    (when cfg.security.sudo.wheelNeedsPassword "sudo no longer asks wheel users for a password")
     (when (
       !anyOf (
         r: anyOf (c: c.command == "ALL" && elem "NOPASSWD" (c.options or [ ])) (r.commands or [ ])

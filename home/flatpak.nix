@@ -15,16 +15,9 @@ in
         name = "flathub";
         location = "https://dl.flathub.org/repo/flathub.flatpakrepo";
       }
-      {
-        name = "GeForceNOW";
-        location = "https://international.download.nvidia.com/GFNLinux/flatpak/geforcenow.flatpakrepo";
-      }
     ];
 
     packages = [
-      (pinned "GeForceNOW" "com.nvidia.geforcenow"
-        "f04023919e48360fa55cc550f79b1041c1725680d30414e5bda9fd73ef26d324"
-      )
       (pinned "flathub" "com.github.johnfactotum.Foliate"
         "4ca532b545422340d60651e8d4a912192dade5dc6f0af264f051215c5e6f489c"
       )
@@ -69,7 +62,6 @@ in
       "xdg-config/gtk-3.0:ro"
       "xdg-config/gtk-4.0:ro"
     ];
-    overrides.settings."com.nvidia.geforcenow".Environment.SDL_VIDEODRIVER = "x11";
     overrides.settings."com.github.taiko2k.tauonmb".Context.filesystems = [
       "/mnt/media/music:ro"
     ];
