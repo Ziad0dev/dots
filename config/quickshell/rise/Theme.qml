@@ -1464,6 +1464,17 @@ ThemeAiUsage {
     property string pickerStyle: "tanzaku"   // "tanzaku", "hearthstone", "carousel"
     property bool appLauncherVisible: false
     property bool clipboardVisible: false
+    // The full-screen panels that take exclusive keyboard focus. closePopups()
+    // doesn't know them (each has its own Esc / click-away), so a second
+    // keybind used to stack one on top of another; opening one closes the rest.
+    readonly property var _modalFlags: ["appLauncherVisible", "clipboardVisible", "openRouterVisible", "overviewVisible"]
+    function modalOpened(prop) {
+        if (!theme[prop]) return
+        for (var i = 0; i < _modalFlags.length; i++)
+            if (_modalFlags[i] !== prop && theme[_modalFlags[i]]) theme[_modalFlags[i]] = false
+    }
+    onAppLauncherVisibleChanged: modalOpened("appLauncherVisible")
+    onClipboardVisibleChanged: modalOpened("clipboardVisible")
     property string launcherLogoMode: "text"     // "text" or "icon"
     property string launcherLogoText: "nixos"  // "dots", "hyprland", or "nixos"
     property string launcherLogoIcon: "nix"  // see launcherLogoIconGlyph()
@@ -2064,10 +2075,10 @@ ThemeAiUsage {
         }
     }
     property bool openRouterVisible: false
-    onOpenRouterVisibleChanged: popupOpened("openRouterVisible")
+    onOpenRouterVisibleChanged: { popupOpened("openRouterVisible"); modalOpened("openRouterVisible") }
 
     property bool overviewVisible: false
-    onOverviewVisibleChanged: popupOpened("overviewVisible")
+    onOverviewVisibleChanged: { popupOpened("overviewVisible"); modalOpened("overviewVisible") }
 
     function gotoWorkspace(id) {
         if (hyprUsesLua)

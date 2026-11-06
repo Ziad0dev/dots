@@ -20,6 +20,10 @@ while getopts "s:t:f:w:o:" opt; do
     esac
 done
 
+[ "$(realpath -m -- "$out")" != "$(realpath -- "$in")" ] || {
+    printf 'dots-gif: refusing to overwrite the input (%s); pass -o\n' "$in" >&2
+    exit 1
+}
 [[ "$fps" =~ ^[0-9]+$ ]] || usage
 [[ "$width" =~ ^[0-9]+$ ]] || usage
 

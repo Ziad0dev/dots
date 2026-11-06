@@ -71,10 +71,33 @@ case "$CMD" in
                 systemctl --user stop dots-gsr.service 2>/dev/null || true
                 ;;
             *)
+                # a second start would only fail inside systemd-run (quietly);
+                # say so before asking for an area to be selected
+                if systemctl --user is-active --quiet dots-gsr.service; then
+                    notify-send -a dots "Already recording" "Stop the current recording first" 2>/dev/null || true
+                    exit 0
+                fi
                 out="$HOME/Videos/recording-$(date +%Y%m%d-%H%M%S).mp4"
                 mkdir -p "$HOME/Videos"
                 mon=$(hyprctl monitors -j 2>/dev/null \
                     | jq -r 'first(.[] | select(.focused)) | .name') || true
+                capture="-w ${mon:-screen}"
+                if [ "${1:-}" = "--region" ]; then
+                    # pick an area first; Esc / right-click cancels. Even
+                    # width/height: H.264 can't encode odd sizes.
+                    geom=$(slurp -d -f '%w %h %x %y') || exit 0
+                    [ -n "$geom" ] || exit 0
+                    read -r gw gh gx gy <<<"$geom"
+                    gw=$((gw / 2 * 2))
+                    gh=$((gh / 2 * 2))
+                    if [ "$gw" -lt 2 ] || [ "$gh" -lt 2 ]; then
+                        notify-send "Recording" "Selected area too small" 2>/dev/null || true
+                        exit 0
+                    fi
+                    capture="-w region -region ${gw}x${gh}+${gx}+${gy}"
+                    # let the selection overlay disappear before the first frame
+                    sleep 0.3
+                fi
                 # a transient UNIT, not a scope: lifetime independent of this
                 # shim, so it survives us exiting. SIGINT lets gsr finalise the
                 # mp4 instead of being SIGTERMed mid-write.
@@ -84,8 +107,16 @@ case "$CMD" in
                 systemd-run --user --unit=dots-gsr --quiet --collect \
                     --property=KillSignal=SIGINT \
                     --property=TimeoutStopSec=15 \
-                    -- gpu-screen-recorder ${DOTS_GSR_ARGS:--w ${mon:-screen} -f 60 -c mp4 -k h264 -ac aac -q very_high -a default_output} \
+                    -- gpu-screen-recorder ${DOTS_GSR_ARGS:-$capture -f 60 -c mp4 -k h264 -ac aac -q very_high -a default_output} \
                        -o "$out"
+                # gpu-screen-recorder exits at once on a bad region, a missing
+                # audio device or a busy GPU; with --collect the unit is then
+                # gone and nothing says the recording never started
+                sleep 1.5
+                if ! systemctl --user is-active --quiet dots-gsr.service; then
+                    notify-send -u critical -a dots "Recording failed to start" \
+                        "gpu-screen-recorder exited right away (journalctl --user -u dots-gsr)" 2>/dev/null || true
+                fi
                 ;;
         esac
         exit 0

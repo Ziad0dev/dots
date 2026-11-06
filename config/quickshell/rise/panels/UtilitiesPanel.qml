@@ -97,6 +97,8 @@ PanelWindow {
         { id: "night", label: "Night light", glyph: "", shown: true, on: nightLight, cmd: "dots-nightlight toggle" },
         { id: "rec", label: root.screenRecording ? "Stop rec" : "Record", glyph: "", shown: true, on: root.screenRecording,
           cmd: root.screenRecording ? "dots-capture-screenrecording --stop" : "dots-capture-screenrecording" },
+        { id: "recarea", label: "Record area", glyph: "crop", shown: !root.screenRecording, on: false,
+          cmd: "dots-capture-screenrecording --region" },
         // rise/ext panels (ExtRoot.qml)
         { id: "timer", label: "Timer", glyph: "timer", shown: true, on: false, ext: true,
           cmd: "qs -c rise ipc call timer toggle" },
@@ -109,7 +111,7 @@ PanelWindow {
 
     function activate(tile) {
         if (tile.id === "inhibit") { root.idleInhibited = !root.idleInhibited; return }
-        if (tile.id === "rec" || tile.ext) root.utilitiesVisible = false   // don't record the panel itself; ext panels take over
+        if (tile.id === "rec" || tile.id === "recarea" || tile.ext) root.utilitiesVisible = false   // don't record the panel itself; ext panels take over
         run(tile.cmd)
     }
 

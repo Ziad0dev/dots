@@ -25,11 +25,13 @@ listen() {
     WAV="$wav"
 
     if [ "$mode" = mic ]; then
-        target=$(source_name)
+        target=$(source_name) || target=""
+        [ -n "$target" ] || { notify -u critical "Song recognition" "no microphone found"; exit 1; }
         notify -t "$((SECONDS_TO_RECORD * 1000))" "Listening" "microphone, ${SECONDS_TO_RECORD}s"
         timeout -s INT "$SECONDS_TO_RECORD" pw-record --target "$target" "$wav" || true
     else
-        target=$(sink_name)
+        target=$(sink_name) || target=""
+        [ -n "$target" ] || { notify -u critical "Song recognition" "no audio output found"; exit 1; }
         notify -t "$((SECONDS_TO_RECORD * 1000))" "Listening" "desktop audio, ${SECONDS_TO_RECORD}s"
         timeout -s INT "$SECONDS_TO_RECORD" pw-record --target "$target" -P '{ stream.capture.sink = true }' "$wav" || true
     fi

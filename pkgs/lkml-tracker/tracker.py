@@ -54,6 +54,8 @@ REPOLOGY = "https://repology.org/api/v1/project"
 TINYGRAD = "/repos/tinygrad/tinygrad"
 BOUNTY_SHEET = "https://docs.google.com/spreadsheets/d/1WKHbT-7KOgjEawq5h5Ic1qUWzpfAzuD_J06N1JwOCGs/edit?usp=sharing"
 LKML_WINDOW = timedelta(hours=24)
+MIN_REFRESH = 30   # seconds: ?refresh=1 can't hit an upstream more often than this
+RETRY_AFTER = 60   # seconds to wait after a failed fetch before trying that source again
 
 # seconds each source stays cached
 TTL = {"system": 60, "kernel": 900, "channels": 600, "lkml": 1200, "kernel-prs": 600, "discourse": 600, "nix": 3600,
@@ -113,6 +115,8 @@ def kernel_cycle(version, released, today=None):
     released = date.fromisoformat(released)
     since = ((today or date.today()) - released).days
     m = re.match(r"(\d+)\.(\d+)(?:-rc(\d+))?$", version)
+    if not m:  # a moniker version in a shape we don't know: no cycle, not a failed page
+        return None
     major, minor, rc = int(m.group(1)), int(m.group(2)), m.group(3)
     if rc is None:
         # a fresh release opens the merge window for the next version
@@ -261,7 +265,14 @@ def merge_window(known, new, now):
     for m in new:
         known[m.msgid] = m
     cutoff = now - LKML_WINDOW
-    for msgid in [k for k, m in known.items() if not m.updated or parse_time(m.updated) < cutoff]:
+
+    def expired(m):
+        try:
+            return not m.updated or parse_time(m.updated) < cutoff
+        except ValueError:  # a malformed timestamp must not wedge the whole source
+            return True
+
+    for msgid in [k for k, m in known.items() if expired(m)]:
         del known[msgid]
     return known
 
@@ -290,6 +301,7 @@ class Sources:
         self.lkml_pages = lkml_pages
         self.lkml_messages = {}  # msgid -> Message, the rolling 24h window
         self.cache = {}
+        self.failed = {}  # name -> (exception, time) of the last failed fetch
         self.locks = {name: threading.Lock() for name in TTL}
 
     def system(self):
@@ -375,12 +387,31 @@ class Sources:
         """Return (payload, fetched_at), using the cache within the source's TTL.
 
         One lock per source, so concurrent page loads trigger a single upstream fetch.
+        A forced refresh is rate-limited, a failure is remembered for RETRY_AFTER
+        (otherwise every page load re-hits an upstream that is down or rate
+        limited, e.g. GitHub's 60 requests an hour), and while a source is
+        failing the last good payload is served instead of an error.
         """
         with self.locks[name]:
+            now = time.time()
             hit = self.cache.get(name)
-            if hit and not refresh and time.time() - hit[1] < TTL[name]:
-                return hit
-            data = getattr(self, name.replace("-", "_"))()
+            if hit:
+                age = now - hit[1]
+                if age < (MIN_REFRESH if refresh else TTL[name]):
+                    return hit
+            failure = self.failed.get(name)
+            if failure and now - failure[1] < RETRY_AFTER:
+                if hit:
+                    return hit
+                raise failure[0]
+            try:
+                data = getattr(self, name.replace("-", "_"))()
+            except Exception as e:
+                self.failed[name] = (e, now)
+                if hit:
+                    return hit
+                raise
+            self.failed.pop(name, None)
             self.cache[name] = (data, time.time())
             return self.cache[name]
 

@@ -44,8 +44,12 @@ def locked():
         except OSError:
             continue
         if args and args[0].endswith(b"quickshell"):
+            # the classic lock is `quickshell -c lock`; the default one is
+            # rise's `quickshell -p .../ExtLock.qml` (ext/scripts/lock)
             for a, b in zip(args, args[1:]):
                 if a == b"-c" and b == b"lock":
+                    return True
+                if a in (b"-p", b"--path") and b.endswith(b"/ExtLock.qml"):
                     return True
     return False
 

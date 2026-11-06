@@ -82,17 +82,42 @@ def fetch_env() -> dict | None:
 
 
 # ── authoritative live limits via the Codex app-server JSON-RPC ──
+def _read_line(proc, deadline):
+    """One line from the app-server, or None when the deadline passes.
+
+    Reads the raw fd into our own buffer. select() + proc.stdout.readline()
+    loses data: when a notification and a response arrive in one write,
+    readline() returns the first and leaves the second in Python's buffer,
+    where select() (which only sees the fd) never reports it, so the request
+    timed out and the widget fell back to the old rollout snapshot."""
+    buf = proc.__dict__.setdefault("_rpc_buf", bytearray())
+    fd = proc.stdout.fileno()
+    while True:
+        nl = buf.find(b"\n")
+        if nl >= 0:
+            line = bytes(buf[:nl])
+            del buf[:nl + 1]
+            return line.decode("utf-8", "replace")
+        remaining = deadline - time.time()
+        if remaining <= 0:
+            return None
+        ready, _, _ = select.select([fd], [], [], min(0.25, remaining))
+        if not ready:
+            continue
+        chunk = os.read(fd, 65536)
+        if not chunk:
+            raise EOFError("app-server closed its output")
+        buf.extend(chunk)
+
+
 def rpc_request(proc, request_id, method, params=None, timeout=8):
     proc.stdin.write(json.dumps({"id": request_id, "method": method,
                                  "params": params or {}}) + "\n")
     proc.stdin.flush()
     deadline = time.time() + timeout
-    while time.time() < deadline:
-        ready, _, _ = select.select([proc.stdout], [], [], 0.25)
-        if not ready:
-            continue
-        line = proc.stdout.readline()
-        if not line:
+    while True:
+        line = _read_line(proc, deadline)
+        if line is None:
             break
         try:
             msg = json.loads(line)

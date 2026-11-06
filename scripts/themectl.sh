@@ -144,7 +144,13 @@ render_all() {
             scheme=$(scheme_of "$background")
             set +a
             envsubst "$varlist" <"$t"
-        ) >"$out.tmp" && mv -f "$out.tmp" "$out"
+        ) >"$out.tmp" || {
+            # keep the previous file rather than a half-rendered one
+            rm -f "$out.tmp"
+            printf 'themectl: warning: could not render %s; left as it was\n' "$out" >&2
+            continue
+        }
+        mv -f "$out.tmp" "$out"
 
         if grep -qE '\$\{[A-Za-z_]' "$out"; then
             printf 'themectl: warning: unsubstituted tokens remain in %s\n' "$out" >&2
@@ -271,7 +277,7 @@ zen_compat() {
     # site's own html rule still wins.
     docs=$(grep -h -E '^[[:space:]]*@-moz-document' "$sites"/*.css |
         grep -o -E 'domain\("[^"]+"\)|url-prefix\("https?://[^"]+"\)' |
-        sort -u | paste -sd, - | sed 's/,/, /g')
+        sort -u | paste -sd, - | sed 's/,/, /g') || docs=""
     {
         if [ -n "$docs" ]; then
             printf '@-moz-document %s {\n  html { background-color: var(--dots-background) !important; }\n}\n\n' "$docs"
@@ -539,6 +545,22 @@ cmd_bg() {
             ;;
     esac
 }
+
+# One writer at a time: every mutating command rewrites the same state files
+# (the auto palette goes through one shared .tmp) and reloads running apps, so
+# two overlapping runs (a held wallpaper-next key) would interleave. Readers
+# (current, list) don't lock. Waits for its turn instead of dropping the press.
+lock_state() {
+    local lockfile="${XDG_STATE_HOME:-$HOME/.local/state}/dots/themectl.lock"
+    mkdir -p "${lockfile%/*}"
+    exec 9>"$lockfile"
+    flock -w 60 9 || die "another themectl run has held the lock for 60s"
+}
+
+case "${1:-}" in
+    set | next | prev | reload | render) lock_state ;;
+    bg) [ -z "${2:-}" ] || lock_state ;; # bare `bg` only prints the current one
+esac
 
 case "${1:-}" in
     set) cmd_set "${2:-}" "${3:-}" ;;

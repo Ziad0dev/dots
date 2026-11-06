@@ -36,7 +36,11 @@ set)
         [ $touch6 = 1 ] && args+=(ipv6.dns "" ipv6.ignore-auto-dns no)
     else
         args=(ipv4.dns "$v4" ipv4.ignore-auto-dns yes)
-        [ $touch6 = 1 ] && [ -n "$v6" ] && args+=(ipv6.dns "$v6" ipv6.ignore-auto-dns yes)
+        if [ $touch6 = 1 ]; then
+            # no v6 servers given: still ignore the ones the router advertises,
+            # or queries keep leaking to them despite the pin ("ignore DHCP/RA DNS")
+            args+=(ipv6.dns "$v6" ipv6.ignore-auto-dns yes)
+        fi
     fi
     nmcli connection modify uuid "$uuid" "${args[@]}" || exit 1
     nmcli device reapply "$iface" >/dev/null || exit 1

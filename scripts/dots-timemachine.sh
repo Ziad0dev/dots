@@ -40,7 +40,10 @@ back() {
     if [ "$kind" = stash ]; then
         ref=$(git stash list --format='%gd %s' | awk -v t="$TAG" '$0 ~ t { print $1; exit }')
         if [ -n "$ref" ]; then
-            git stash pop --quiet "$ref"
+            # --index keeps what was staged staged; if that conflicts, fall
+            # back to a plain pop. Either way a failure leaves the stash intact.
+            git stash pop --index --quiet "$ref" 2>/dev/null || git stash pop --quiet "$ref" \
+                || printf 'warning: could not re-apply the %s stash; it is kept (git stash list)\n' "$TAG" >&2
         else
             printf 'warning: the %s stash is gone; nothing to restore\n' "$TAG" >&2
         fi

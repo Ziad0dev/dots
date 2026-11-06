@@ -22,7 +22,17 @@ DISK = f"{S}/vm-disk.qcow2"
 VARS = f"{S}/vm-vars.fd"
 LOG = open(f"{S}/isotest-serial.log", "a")
 
-DISK_PW = os.urandom(32).hex()
+# The passphrase the installer sets must survive to a --skip-install run, or
+# that run can never unlock the disk it is meant to re-check. It lives next to
+# the throwaway disk image, readable by the owner only.
+PWFILE = f"{S}/disk-passphrase"
+if "--skip-install" in sys.argv and os.path.exists(PWFILE):
+    DISK_PW = open(PWFILE).read().strip()
+else:
+    DISK_PW = os.urandom(32).hex()
+    fd = os.open(PWFILE, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    with os.fdopen(fd, "w") as f:
+        f.write(DISK_PW + "\n")
 USER = "ziad0dev"
 PROMPT = "ISOTEST$ "
 

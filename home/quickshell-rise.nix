@@ -292,7 +292,13 @@ in
             pkgs.qt6.qtmultimedia
           ]
         }"
-        "QT_PLUGIN_PATH=${pkgs.qt6.qtmultimedia}/${pkgs.qt6.qtbase.qtPluginPrefix}"
+        # qtimageformats: the WebP decoder (many wallpapers are WebP saved as .png)
+        "QT_PLUGIN_PATH=${
+          lib.concatMapStringsSep ":" (p: "${p}/${pkgs.qt6.qtbase.qtPluginPrefix}") [
+            pkgs.qt6.qtmultimedia
+            pkgs.qt6.qtimageformats
+          ]
+        }"
         # video wallpapers: VA-API frames can't be exported as textures on the
         # NVIDIA driver (a warning per frame); copy them over instead
         "QT_DISABLE_HW_TEXTURES_CONVERSION=1"

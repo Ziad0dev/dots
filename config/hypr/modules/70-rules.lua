@@ -70,3 +70,16 @@ hl.window_rule({
     workspace = "1 silent",
 })
 
+
+-- Helium/Chromium video Picture-in-Picture: small, pinned over every workspace,
+-- bottom-right, aspect-locked, and it must not steal focus from what you're doing
+hl.window_rule({
+    name              = "helium-pip",
+    match             = { class = "^(helium)$", title = "^(Picture in picture)$" },
+    float             = true,
+    pin               = true,
+    keep_aspect_ratio = true,
+    size              = {480, 270},
+    move              = "100%-w-24 100%-h-24",
+    no_initial_focus  = true,
+})

@@ -55,6 +55,8 @@ fi
 # CI runs this hook too; there whoami is the runner, not the flake's username.
 user="${DOTS_USERNAME:-$(whoami)}"
 if command -v nix >/dev/null; then
+    evallog=$(mktemp "${TMPDIR:-/tmp}/pre-commit-eval.XXXXXX")
+    trap 'rm -f "$evallog"' EXIT
     for out in \
         "nixosConfigurations.nixos.config.system.build.toplevel" \
         "homeConfigurations.\"${user}@linux\".activationPackage" \
@@ -68,9 +70,9 @@ if command -v nix >/dev/null; then
     do
         echo "pre-commit: evaluating $out"
         nix eval --no-warn-dirty ".#${out}.drvPath" \
-            >/dev/null 2>/tmp/pre-commit-eval.log || {
-            echo "pre-commit: EVAL FAILED for $out — see /tmp/pre-commit-eval.log"
-            tail -15 /tmp/pre-commit-eval.log; fail=1; }
+            >/dev/null 2>"$evallog" || {
+            echo "pre-commit: EVAL FAILED for $out"
+            tail -15 "$evallog"; fail=1; }
     done
 fi
 

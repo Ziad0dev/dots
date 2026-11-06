@@ -392,6 +392,21 @@ def safe_name(name):
     return name[:180] or "Unknown"
 
 
+def free_path(p):
+    """p, or the first "name (2).ext" that doesn't exist yet. Path.rename and
+    shutil.move silently replace an existing file, and the places that use
+    this (the old-versions archive, the dupes quarantine) exist to keep files
+    that would otherwise be lost, so they must never overwrite one."""
+    if not p.exists():
+        return p
+    n = 2
+    while True:
+        q = p.with_name(f"{p.stem} ({n}){p.suffix}")
+        if not q.exists():
+            return q
+        n += 1
+
+
 def replaced_log(add=None):
     f = CACHE / "replaced.json"
     try:
@@ -843,7 +858,7 @@ def merge(library, staging, execute, prune, use_mb=True, mixed=4, max_expected=4
                         if execute:
                             old_dir.mkdir(parents=True, exist_ok=True)
                             try:
-                                cur["path"].rename(old_dir / cur["path"].name)
+                                cur["path"].rename(free_path(old_dir / cur["path"].name))
                             except OSError:
                                 pass
             target = dest / t["path"].name
@@ -1016,7 +1031,7 @@ def dedupe(library, staging, execute, prune):
                         print(f"    error {e}", file=sys.stderr)
                     continue
                 rel = t["path"].relative_to(library)
-                dest = quarantine / rel
+                dest = free_path(quarantine / rel)
                 try:
                     dest.parent.mkdir(parents=True, exist_ok=True)
                     t["path"].rename(dest)

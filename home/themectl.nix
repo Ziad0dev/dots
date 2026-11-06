@@ -22,6 +22,7 @@ let
         jq
         matugen
         procps
+        util-linux # flock: one themectl writer at a time
       ]
       # only reached through `systemctl --user` in the app reloads
       ++ lib.optional stdenv.hostPlatform.isLinux systemd;

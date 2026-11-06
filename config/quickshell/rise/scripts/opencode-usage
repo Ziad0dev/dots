@@ -34,13 +34,22 @@ LIMIT_5H = env_int("OPENCODE_USAGE_5H_LIMIT", DEFAULT_5H_LIMIT)
 LIMIT_7D = env_int("OPENCODE_USAGE_7D_LIMIT", DEFAULT_7D_LIMIT)
 
 
+def write_cache(obj: dict) -> None:
+    """Write-then-rename: the widget polls this file, and a plain write_text()
+    is visible half-written (truncated JSON) for a moment."""
+    CACHE_FILE.parent.mkdir(parents=True, exist_ok=True)
+    tmp = CACHE_FILE.with_name(f"{CACHE_FILE.name}.{os.getpid()}.tmp")
+    tmp.write_text(json.dumps(obj))
+    os.replace(tmp, CACHE_FILE)
+
+
 def stale_last() -> None:
     if not CACHE_FILE.exists():
         return
     try:
         cur = json.loads(CACHE_FILE.read_text())
         cur["_source"] = "stale"
-        CACHE_FILE.write_text(json.dumps(cur))
+        write_cache(cur)
     except Exception:
         pass
 
@@ -260,8 +269,7 @@ def main() -> None:
         "_cost_today": cost_today,
         "status": "allowed_warning" if tok_5h >= LIMIT_5H * 0.9 else "allowed",
     }
-    CACHE_FILE.parent.mkdir(parents=True, exist_ok=True)
-    CACHE_FILE.write_text(json.dumps(out))
+    write_cache(out)
 
 
 if __name__ == "__main__":

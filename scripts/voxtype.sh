@@ -1,6 +1,7 @@
 STATE="${XDG_STATE_HOME:-$HOME/.local/state}/dots/voxtype"
 WAV="$STATE/capture.wav"
 PIDF="$STATE/rec.pid"
+TXPID="$STATE/transcribe.pid" # the stop_rec that owns phase=transcribing
 PHASE="$STATE/phase"
 MODELF="$STATE/model"
 MODELDIR="${VOXTYPE_MODEL_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/voxtype/models}"
@@ -57,6 +58,18 @@ get_phase() {
         set_phase idle
         p="idle"
     fi
+    # a stop_rec that was killed (logout, OOM, whisper hung and got reaped)
+    # never leaves "transcribing"; without this, toggle would ignore every
+    # press from then on
+    if [ "$p" = "transcribing" ]; then
+        local tx
+        tx=$(cat "$TXPID" 2>/dev/null) || tx=""
+        if [ -z "$tx" ] || ! kill -0 "$tx" 2>/dev/null; then
+            rm -f "$TXPID"
+            set_phase idle
+            p="idle"
+        fi
+    fi
     printf '%s' "$p"
 }
 
@@ -85,25 +98,29 @@ stop_rec() {
     pid=$(cat "$PIDF" 2>/dev/null) || pid=""
     if [ -n "$pid" ]; then stop_pid "$pid"; fi
     rm -f "$PIDF"
+    printf '%s' "$$" >"$TXPID"
     set_phase transcribing
 
     model=$(current_model) || model=""
     bin=$(whisper_bin) || bin=""
     if [ -z "$bin" ]; then
+        rm -f "$TXPID"
         set_phase idle
         notify-send -a voxtype "whisper not found" 2>/dev/null || true
         return 0
     fi
     if [ -z "$model" ]; then
+        rm -f "$TXPID"
         set_phase idle
         notify-send -a voxtype "No model" "Put ggml-*.bin in $MODELDIR" 2>/dev/null || true
         return 0
     fi
 
     rm -f "$STATE/out.txt"
-    "$bin" -m "$model" -f "$WAV" -nt -np -otxt -of "$STATE/out" >/dev/null 2>&1 || true
+    timeout 180 "$bin" -m "$model" -f "$WAV" -nt -np -otxt -of "$STATE/out" >/dev/null 2>&1 || true
     text=$(cat "$STATE/out.txt" 2>/dev/null) || text=""
     text=$(printf '%s' "$text" | tr -s '[:space:]' ' ' | sed 's/^ *//; s/ *$//')
+    rm -f "$TXPID"
     set_phase idle
     emit_text "$text"
 }

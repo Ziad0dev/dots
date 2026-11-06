@@ -34,6 +34,17 @@ if (( ${#roots[@]} == 0 )); then
   exit 1
 fi
 
+# ln -sfn replaces a regular file without asking: keep a hand-written
+# userChrome.css (or any real file in the way) as <name>.dots-backup once
+link() {
+  local src="$1" dst="$2"
+  if [[ -e "$dst" && ! -L "$dst" ]]; then
+    mv -n -- "$dst" "$dst.dots-backup"
+    echo "   kept your existing $(basename "$dst") as $(basename "$dst").dots-backup"
+  fi
+  ln -sfn "$src" "$dst"
+}
+
 linked=0
 for root in "${roots[@]}"; do
   echo "==> $root"
@@ -45,11 +56,11 @@ for root in "${roots[@]}"; do
     [[ -d "$prof" ]] || { echo "   skip (missing): $path"; continue; }
 
     mkdir -p "$prof/chrome"
-    ln -sfn "$SRC/userChrome.css"  "$prof/chrome/userChrome.css"
-    ln -sfn "$SRC/userContent.css" "$prof/chrome/userContent.css"
-    ln -sfn "$THEME/zen-palette.css" "$prof/chrome/dots-palette.css"
-    ln -sfn "$THEME/zen-sites.css"   "$prof/chrome/dots-sites.css"
-    ln -sfn "$THEME/zen-desktop-theme.css" "$prof/chrome/dots-desktop-theme.css"
+    link "$SRC/userChrome.css"  "$prof/chrome/userChrome.css"
+    link "$SRC/userContent.css" "$prof/chrome/userContent.css"
+    link "$THEME/zen-palette.css" "$prof/chrome/dots-palette.css"
+    link "$THEME/zen-sites.css"   "$prof/chrome/dots-sites.css"
+    link "$THEME/zen-desktop-theme.css" "$prof/chrome/dots-desktop-theme.css"
 
     touch "$prof/user.js"
     grep -q 'toolkit.legacyUserProfileCustomizations.stylesheets' "$prof/user.js" \

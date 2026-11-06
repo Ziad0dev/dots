@@ -89,6 +89,27 @@ let
     ]
   );
 
+  mediaClip = script "dots-media-clip" (
+    with pkgs;
+    [
+      coreutils
+      libnotify
+      wl-clipboard
+      xdg-user-dirs
+      yt-dlp
+    ]
+  );
+
+  micMode = script "dots-mic-mode" (
+    with pkgs;
+    [
+      coreutils
+      easyeffects
+      libnotify
+      procps
+    ]
+  );
+
   voice =
     let
       base = "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/amy/medium/en_US-amy-medium";
@@ -202,6 +223,8 @@ in
       songrec
       lens
       shot
+      mediaClip
+      micMode
       usbSound
       mono
       timemachine

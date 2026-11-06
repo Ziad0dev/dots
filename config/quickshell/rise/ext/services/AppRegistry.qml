@@ -157,13 +157,16 @@ Singleton {
                     const parts = line.split("|")
 
                     if (parts.length >= 4) {
+                        // find-apps.sh emits exactly name|comment|icon|exec. The exec is
+                        // last and may itself contain "|" (sh -c 'a | b'): rejoin it
+                        // instead of letting the tail pose as extra fields.
                         registry.registerApp(
                             parts[0].trim(),
                             parts[1].trim(),
                             parts[2].trim(),
-                            parts[3].trim(),
-                                parts.length >= 5 ? parts[4].trim() : "",
-                                parts.length >= 6 ? parts[5].trim() : ""
+                            parts.slice(3).join("|").trim(),
+                            "",
+                            ""
                         )
                     }
                 }

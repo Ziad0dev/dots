@@ -110,7 +110,14 @@ def main():
     a = ap.parse_args()
 
     ts = themes(a.themes)
-    base = dict(ts)[a.base]
+    known = dict(ts)
+    if a.base not in known:
+        raise SystemExit(f"no theme named {a.base!r}; have: {', '.join(known)}")
+    base = known[a.base]
+    need = ("background", "foreground", "base03", "base04", "color1", "color4", "color5")
+    missing = [k for k in need if k not in base]
+    if missing:
+        raise SystemExit(f"theme {a.base!r} lacks {', '.join(missing)}; pick another with --base")
     a.out.mkdir(parents=True, exist_ok=True)
     (a.out / "banner.svg").write_text(banner(ts, base))
     (a.out / "themes.svg").write_text(gallery(ts))

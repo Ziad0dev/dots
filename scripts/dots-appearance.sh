@@ -248,6 +248,8 @@ qtct() {
             [ -n "$mono" ] && printf 'fixed="%s,%s,%s"\n' "$mono" "$fsize" "$tail"
             [ -n "$font" ] && printf 'general="%s,%s,%s"\n' "$font" "$fsize" "$tail"
         fi
+        true # the group's status is its last command's: with no UI font that was
+             # a failed `[ -n ]`, so the `&& mv` below never ran
     } >"$file.tmp" && mv -f "$file.tmp" "$file"
 }
 

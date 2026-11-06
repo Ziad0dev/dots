@@ -139,10 +139,16 @@ cmd_import() {
     printf '%s' "$pass" | openssl pkcs12 -in "$src" -nokeys -passin stdin >/dev/null 2>&1 ||
         die "wrong passphrase or not a PKCS#12 file"
 
-    install -m 600 "$src" "$CERT"
+    # public half first: if it can't be extracted nothing is installed, so a
+    # retry isn't blocked by a half-imported certificate
     printf '%s' "$pass" | openssl pkcs12 -in "$src" -nokeys -clcerts -passin stdin 2>/dev/null |
-        openssl x509 -out "$TRUST"
+        openssl x509 -out "$TRUST.tmp" || {
+        rm -f "$TRUST.tmp"
+        die "could not read the certificate out of $src"
+    }
+    mv -f "$TRUST.tmp" "$TRUST"
     chmod 644 "$TRUST"
+    install -m 600 "$src" "$CERT"
     rm -f "$PASS"
     if ((store)); then
         (umask 077 && printf '%s' "$pass" >"$PASS")
@@ -360,7 +366,13 @@ cmd_sign() {
         die "no passphrase: set DOTS_PDFSIGN_PASS or run from a terminal"
     fi
 
-    pyhanko "${args[@]}" pkcs12 "${pass_in[@]}" "$pdf" "$out" "$CERT" >&2
+    local rc=0
+    pyhanko "${args[@]}" pkcs12 "${pass_in[@]}" "$pdf" "$out" "$CERT" >&2 || rc=$?
+    if ((rc != 0)); then
+        # a half-written .signed.pdf looks like a real one; don't leave it
+        rm -f "$out"
+        exit "$rc"
+    fi
     printf '%s\n' "$out"
 }
 

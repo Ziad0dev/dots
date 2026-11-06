@@ -46,7 +46,7 @@ cmd_anim() {
         "") cur=$(get animation); echo "${cur:-snap}"; return ;;
         pick)
             cur=$(get animation)
-            name=$(pick animation "${cur:-snap}" "${list[@]}")
+            name=$(pick animation "${cur:-snap}" "${list[@]}") || exit 0
             [ -n "$name" ] || exit 0
             ;;
     esac
@@ -65,7 +65,7 @@ cmd_shader() {
         "") cur=$(get shader); echo "${cur:-off}"; return ;;
         pick)
             cur=$(get shader)
-            name=$(pick shader "${cur:-off}" off "${list[@]}")
+            name=$(pick shader "${cur:-off}" off "${list[@]}") || exit 0
             [ -n "$name" ] || exit 0
             ;;
     esac

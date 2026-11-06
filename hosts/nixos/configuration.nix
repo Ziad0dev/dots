@@ -184,6 +184,24 @@
     shell = pkgs.fish;
   };
   programs.fish.enable = true;
+
+  # Declarative Helium extensions: /etc/chromium/policies/managed (Helium reads it).
+  # IDs were checked against the Chrome Web Store update endpoint.
+  programs.chromium = {
+    enable = true;
+    extensions = [
+      "mnjggcdmjocbbbhaepdhchncahnbgone" # SponsorBlock
+      "gebbhagfogifgggkldgodflihgfeippi" # Return YouTube Dislike
+      "dbepggeogbaibhgnhhndojpepiihcmeb" # Vimium
+      "pkehgijcmpdhfbdbbnkijodmdjhbjlgp" # Privacy Badger (learns and blocks trackers)
+      "ldpochfccmkkmhdbclfhpagapcfdljkj" # Decentraleyes (serves common CDN libraries locally)
+      "mdjildafknihdffpkfmmpnpoiajfjnjd" # Consent-O-Matic (auto-declines cookie banners)
+      "hhinaapppaileiechjoiifaancjggfjm" # Web Scrobbler (already installed)
+      "padcfdpdlnpdojcihidkgjnmleeingep" # Bandcamp Enhancement Suite (already installed)
+      "nngceckbapebfimnlniiiahkandclblb" # Bitwarden (already installed)
+    ];
+  };
+
   programs.agents.enable = true;
   programs.agents = {
     codex.enable = true;

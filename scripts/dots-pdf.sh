@@ -150,6 +150,20 @@ annot_out() {
 
 pcpu() { pdfcpu -c disable "$@"; }
 
+# qpdf exits 3 for "finished, with warnings" (a PDF it had to repair): the
+# output file is complete and valid. Treating that as failure aborted the
+# command before it printed the output path, so callers saw an error for a
+# file that was in fact written.
+qpdf() {
+    local rc=0
+    command qpdf "$@" || rc=$?
+    if ((rc == 3)); then
+        printf 'dots-pdf: qpdf finished with warnings\n' >&2
+        return 0
+    fi
+    return "$rc"
+}
+
 # run quietly, but show the output if it fails
 quiet() {
     local log
@@ -635,10 +649,28 @@ cmd_from_images() {
 cmd_from_office() {
     command -v soffice >/dev/null || die "LibreOffice (soffice) is not installed"
     [[ -f ${1:-} ]] || die "not a file: ${1:-}"
-    local dir
-    dir="$(dirname "$1")"
-    soffice --headless --convert-to pdf --outdir "$dir" "$1" >/dev/null
-    done_msg "$dir/$(basename "${1%.*}").pdf"
+    local src="$1" base made out n=1
+    base="${src%.*}"
+    if [[ -n $OUT ]]; then
+        out="$OUT"
+        [[ ! -e $out || $FORCE -eq 1 ]] || die "already exists: $out (use --force)"
+    else
+        out="$base.pdf"
+        while [[ -e $out ]]; do
+            n=$((n + 1))
+            out="$base-$n.pdf"
+        done
+    fi
+    mktmp
+    # convert in a scratch dir, never next to the source: soffice overwrites
+    # <name>.pdf there without asking. Its own profile dir too, so a
+    # LibreOffice that is already open can't swallow the request.
+    soffice -env:UserInstallation="file://$TMP/lo-profile" --headless \
+        --convert-to pdf --outdir "$TMP" "$src" >/dev/null
+    made="$TMP/$(basename "${src%.*}").pdf"
+    [[ -f $made ]] || die "LibreOffice produced no PDF for $src"
+    mv -- "$made" "$out"
+    done_msg "$out"
 }
 
 # --- gui ---------------------------------------------------------------------

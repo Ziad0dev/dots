@@ -1,5 +1,6 @@
 import os
 import signal
+import stat
 import subprocess
 import sys
 
@@ -36,7 +37,14 @@ def stop():
 def read_text(args):
     if args:
         return " ".join(args)
-    if not sys.stdin.isatty():
+    # only a pipe or a redirected file is input. A keybind (or systemd) hands
+    # us /dev/null, which is "not a tty" too: reading it gave "" and the
+    # clipboard fallback below was never reached.
+    try:
+        mode = os.fstat(sys.stdin.fileno()).st_mode
+    except (OSError, ValueError):
+        mode = 0
+    if stat.S_ISFIFO(mode) or stat.S_ISREG(mode):
         return sys.stdin.read()
     for cmd in (["wl-paste", "--primary", "--no-newline"], ["wl-paste", "--no-newline"]):
         r = subprocess.run(cmd, capture_output=True, text=True, check=False)

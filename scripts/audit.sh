@@ -70,11 +70,17 @@ stage_secrets() {
     gitleaks detect --no-banner --redact --log-opts=--all
 }
 
+# NB: main() runs every stage as `stage_x || failed+=(x)`, and bash switches
+# errexit off for everything inside a function called that way, so a failing
+# command only counts if the function's own exit status says so. Each stage
+# must therefore return non-zero explicitly; never rely on `set -e` in here.
 stage_workflows() {
+    local rc=0
     heading "workflows: actionlint"
-    actionlint
+    actionlint || rc=1
     heading "workflows: zizmor (medium and above)"
-    zizmor --no-progress --min-severity medium .github/workflows
+    zizmor --no-progress --min-severity medium .github/workflows || rc=1
+    return "$rc"
 }
 
 stage_shell() {
@@ -114,8 +120,15 @@ stage_policy() {
     }
     local out
     out="$(nix eval --impure --json --expr \
-        "let f = builtins.getFlake (toString ./.); in import ./tests/policy.nix { cfg = f.nixosConfigurations.\"$HOST\".config; }")"
-    jq -r '.stats | to_entries[] | "  \(.key): \(.value)"' <<<"$out"
+        "let f = builtins.getFlake (toString ./.); in import ./tests/policy.nix { cfg = f.nixosConfigurations.\"$HOST\".config; }")" || {
+        echo "policy: nix eval failed, so nothing was checked" >&2
+        return 1
+    }
+    [[ -n $out ]] || {
+        echo "policy: nix eval printed nothing" >&2
+        return 1
+    }
+    jq -r '.stats | to_entries[] | "  \(.key): \(.value)"' <<<"$out" || return 1
     if [[ $(jq '.failures | length' <<<"$out") -gt 0 ]]; then
         jq -r '.failures[] | "FAIL: \(.)"' <<<"$out" >&2
         return 1

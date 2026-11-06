@@ -36,3 +36,16 @@ hl.bind(mod .. " + ALT + R", util.sh([[if systemctl --user is-active --quiet gsr
         systemctl --user start gsr-replay
         notify-send -t 3000 "gsr-toggle" "replay buffer armed - 5 min rolling"
       fi]]))
+
+-- media keys -> whichever MPRIS player is active (Helium, Zen, mpd, mpv...)
+hl.bind("XF86AudioPlay",  util.sh([[playerctl play-pause]]), { locked = true })
+hl.bind("XF86AudioPause", util.sh([[playerctl pause]]),      { locked = true })
+hl.bind("XF86AudioNext",  util.sh([[playerctl next]]),       { locked = true })
+hl.bind("XF86AudioPrev",  util.sh([[playerctl previous]]),   { locked = true })
+
+-- copy a video/stream URL in the browser, then: play it in mpv / download it with yt-dlp
+hl.bind(mod .. " + SHIFT + M", hl.dsp.exec_cmd("dots-media-clip play"))
+hl.bind(mod .. " + SHIFT + Y", hl.dsp.exec_cmd("dots-media-clip download"))
+
+-- mic denoise owner: EasyEffects (clean) <-> Discord's Krisp (discord), never both
+hl.bind(mod .. " + ALT + D", hl.dsp.exec_cmd("dots-mic-mode toggle"))

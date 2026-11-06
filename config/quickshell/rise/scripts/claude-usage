@@ -10,7 +10,7 @@ Writes ~/.cache/claude-usage.json in the format the widget reads. The 5h/7d
 percentages come straight from the server; the token breakdown shown in the
 tooltip is a lightweight local count over the current 5h window.
 """
-import json, re, subprocess, sys, urllib.request, urllib.error
+import json, os, re, subprocess, sys, urllib.request, urllib.error
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -18,6 +18,15 @@ CRED_FILE  = Path.home() / ".claude" / ".credentials.json"
 CACHE_FILE = Path.home() / ".cache"  / "claude-usage.json"
 PROJECTS   = Path.home() / ".claude" / "projects"
 ENDPOINT   = "https://api.anthropic.com/api/oauth/usage"
+
+
+def write_cache(obj: dict) -> None:
+    """Write-then-rename: the widget polls this file, and a plain write_text()
+    is visible half-written (truncated JSON) for a moment."""
+    CACHE_FILE.parent.mkdir(parents=True, exist_ok=True)
+    tmp = CACHE_FILE.with_name(f"{CACHE_FILE.name}.{os.getpid()}.tmp")
+    tmp.write_text(json.dumps(obj))
+    os.replace(tmp, CACHE_FILE)
 
 
 def claude_version() -> str:
@@ -103,10 +112,12 @@ def main():
     # Fall back to the last good cache if the fetch failed (e.g. token expired
     # while Claude Code isn't running) — keeps the last numbers on screen.
     if not data:
-        if CACHE_FILE.exists():
+        try:
             cur = json.loads(CACHE_FILE.read_text())
             cur["_source"] = "stale"
-            CACHE_FILE.write_text(json.dumps(cur))
+            write_cache(cur)
+        except (OSError, ValueError):
+            pass  # no cache yet, or a corrupt one: nothing to keep on screen
         return
 
     fh = data.get("five_hour") or {}
@@ -135,7 +146,7 @@ def main():
                   else "allowed_warning" if util5h >= 0.9
                   else "allowed",
     }
-    CACHE_FILE.write_text(json.dumps(out))
+    write_cache(out)
 
 
 if __name__ == "__main__":

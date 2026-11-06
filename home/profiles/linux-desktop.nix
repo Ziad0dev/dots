@@ -21,6 +21,7 @@ in
     ../gaming-home.nix
     ../documents.nix
     ../quickshell-rise.nix
+    ../easyeffects.nix
     ../theming.nix
     ../sway.nix
     ../ai-usage.nix
@@ -157,7 +158,17 @@ in
       config.lib.file.mkOutOfStoreSymlink "${config.dots.repoPath}/config/omp/models.yml";
     ".omp/agent/config.yml".source =
       config.lib.file.mkOutOfStoreSymlink "${config.dots.repoPath}/config/omp/config.yml";
+
+    # Helium ships no Widevine; point its component loader at nixpkgs' CDM so DRM
+    # sites (Netflix-style players, Tidal, ...) can play. Verify at helium://components.
+    ".config/net.imput.helium/WidevineCdm/latest-component-updated-widevine-cdm" = {
+      force = true;
+      text = builtins.toJSON { Path = "${pkgs.widevine-cdm}/share/google/chrome/WidevineCdm"; };
+    };
   };
+
+  # mic processing for the EPZ G30 boom mic (presets in ../easyeffects.nix); output stays untouched
+  services.easyeffects.enable = true;
 
   home.packages =
     let
@@ -254,8 +265,14 @@ in
         paths = [ inputs.helium.packages.${system}.default ];
         nativeBuildInputs = [ pkgs.makeWrapper ];
         postBuild = ''
+          # NVIDIA VA-API video decode (nvidia-vaapi-driver) so Twitch offers all qualities.
+          # Chromium honours only ONE --enable-features / --disable-features switch, so keep each merged.
           wrapProgram $out/bin/helium \
-            --add-flags "--disable-features=WaylandWpColorManagerV1 --force-color-profile=srgb"
+            --set LIBVA_DRIVER_NAME nvidia \
+            --set NVD_BACKEND direct \
+            --add-flags "--ozone-platform-hint=auto --force-color-profile=srgb" \
+            --add-flags "--enable-features=AcceleratedVideoDecodeLinuxGL,AcceleratedVideoDecodeLinuxZeroCopyGL,VaapiVideoDecoder,VaapiIgnoreDriverChecks,VaapiOnNvidiaGPUs,WaylandWindowDecorations" \
+            --add-flags "--disable-features=WaylandWpColorManagerV1"
         '';
       })
       (pkgs.callPackage ../../pkgs/nyxt { })

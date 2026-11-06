@@ -642,15 +642,23 @@ def guest_gate_on():
     return bool(CFG.get("guest_token", "").strip())
 
 
+def same_secret(a, b):
+    """Constant-time equality for two strings. hmac.compare_digest on str
+    raises TypeError for non-ASCII, which made a non-ASCII password (or a
+    probe sending one) a 500 instead of a normal wrong-password answer."""
+    return hmac.compare_digest(str(a).encode("utf-8", "replace"), str(b).encode("utf-8", "replace"))
+
+
 def check_password(given):
     wanted = str(CFG.get("admin_password", "") or "")
     if not wanted:
         return False
-    return hmac.compare_digest(str(given or ""), wanted)
+    return same_secret(given or "", wanted)
 
 
 class Handler(BaseHTTPRequestHandler):
     server_version = "quiet/1.0"
+    timeout = 30  # seconds of silence before the connection is dropped
 
     def log_message(self, fmt, *args):
         if CFG.get("access_log"):
@@ -718,7 +726,7 @@ class Handler(BaseHTTPRequestHandler):
     def read_json(self):
         try:
             length = int(self.headers.get("Content-Length", 0))
-            if length > 65536:
+            if length < 0 or length > 65536:  # negative would make read() wait for EOF
                 return {}
             return json.loads(self.rfile.read(length) or b"{}")
         except Exception:
@@ -728,7 +736,7 @@ class Handler(BaseHTTPRequestHandler):
         raw = self.headers.get("Cookie", "")
         for part in raw.split(";"):
             name, _, value = part.strip().partition("=")
-            if name == "invited" and hmac.compare_digest(value, cookie_value()):
+            if name == "invited" and same_secret(value, cookie_value()):
                 return True
         return False
 
@@ -738,7 +746,7 @@ class Handler(BaseHTTPRequestHandler):
 
         if guest_gate_on():
             token = CFG["guest_token"].strip()
-            if path == "/k/" + token:
+            if same_secret(path, "/k/" + token):
                 self.send_response(302)
                 self.send_header("Location", "/")
                 self.send_header(

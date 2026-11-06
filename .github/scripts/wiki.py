@@ -114,6 +114,12 @@ def main():
         raise SystemExit(f"no markdown in {docs}")
     names = {md.name: page_name(md) for md in sources}
 
+    # the output dir is wiped first; refuse the ones that would take the
+    # source (or the directory you're standing in) with them
+    out = a.out.resolve()
+    cwd = Path.cwd().resolve()
+    if out == docs or out in docs.parents or out == cwd or out in cwd.parents or out == Path.home().resolve():
+        raise SystemExit(f"refusing to wipe {out}: it contains the docs or your working directory")
     if a.out.exists():
         shutil.rmtree(a.out)
     a.out.mkdir(parents=True)
