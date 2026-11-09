@@ -2,9 +2,15 @@
 # DNS switcher for the network panel. Edits the NetworkManager profile behind
 # the default route, so the choice survives reconnects and reboots.
 #
-#   qs-dns status                  iface<TAB>auto|manual<TAB>configured v4<TAB>servers in use
-#   qs-dns set auto                back to the servers DHCP/RA hand out
-#   qs-dns set <v4,...> [v6,...]   pin these servers, ignore DHCP/RA DNS
+# resolved runs with DNS-over-TLS and DNSSEC both strict (modules/mullvad.nix), so
+# every pinned server has to speak TLS and carry its certificate name: the
+# hostname goes into the profile as "ip#host".
+#
+#   qs-dns status                       iface<TAB>auto|manual<TAB>configured v4<TAB>servers in use
+#   qs-dns set auto                     back to the servers DHCP/RA hand out; a plain-DNS router
+#                                       cannot answer under strict DoT, so lookups fail until a
+#                                       server is pinned again
+#   qs-dns set <v4,...> [v6,...] [host] pin these servers (tls name: host), ignore DHCP/RA DNS
 set -uo pipefail
 
 die() { echo "$*" >&2; exit 1; }
@@ -17,15 +23,22 @@ uuid=$(nmcli -t -f UUID,DEVICE connection show --active | awk -F: -v d="$iface" 
 case "${1:-}" in
 status)
     ignore=$(nmcli -g ipv4.ignore-auto-dns connection show uuid "$uuid")
-    v4=$(nmcli -g ipv4.dns connection show uuid "$uuid")
-    inuse=$(resolvectl dns "$iface" 2>/dev/null | sed 's/^[^:]*: *//')
+    v4=$(nmcli -g ipv4.dns connection show uuid "$uuid" | sed 's/#[^,]*//g')
+    inuse=$(resolvectl dns "$iface" 2>/dev/null | sed 's/^[^:]*: *//; s/#[^ ]*//g')
     [ "$ignore" = yes ] && [ -n "$v4" ] && mode=manual || mode=auto
     printf '%s\t%s\t%s\t%s\n' "$iface" "$mode" "$v4" "$inuse"
     ;;
 set)
     v4=${2:-}
     v6=${3:-}
-    [ -n "$v4" ] || die "usage: qs-dns set auto | <v4,...> [v6,...]"
+    host=${4:-}
+    [ -n "$v4" ] || die "usage: qs-dns set auto | <v4,...> [v6,...] [host]"
+    # "a,b" -> "a#host,b#host" (no host: leave the list as it is)
+    tag() { [ -n "$host" ] && [ -n "$1" ] && printf '%s' "$1" | sed "s/,/#$host,/g; s/\$/#$host/" || printf '%s' "$1"; }
+    if [ "$v4" != auto ]; then
+        v4=$(tag "$v4")
+        v6=$(tag "$v6")
+    fi
     # ipv6.dns is rejected on profiles with IPv6 disabled
     case $(nmcli -g ipv6.method connection show uuid "$uuid") in
     auto | dhcp | manual) touch6=1 ;;
@@ -47,6 +60,6 @@ set)
     resolvectl flush-caches 2>/dev/null || true
     ;;
 *)
-    die "usage: qs-dns status | set auto | set <v4,...> [v6,...]"
+    die "usage: qs-dns status | set auto | set <v4,...> [v6,...] [host]"
     ;;
 esac

@@ -127,13 +127,14 @@ PanelWindow {
 
     // ── DNS (NetworkManager profile behind the default route, via scripts/qs-dns) ──
     readonly property string dnsScript: Qt.resolvedUrl("../scripts/qs-dns").toString().replace(/^file:\/\//, "")
+    // resolved enforces DNS-over-TLS + DNSSEC (modules/mullvad.nix), so only
+    // providers with DoT belong here, each with the name on its certificate.
+    // No "Auto": the router's plain DNS cannot answer under strict DoT.
     readonly property var dnsPresets: [
-        { label: "Auto",       v4: "auto",                    v6: "" },
-        { label: "Cloudflare", v4: "1.1.1.1,1.0.0.1",         v6: "2606:4700:4700::1111,2606:4700:4700::1001" },
-        { label: "Quad9",      v4: "9.9.9.9,149.112.112.112", v6: "2620:fe::fe,2620:fe::9" },
-        { label: "Google",     v4: "8.8.8.8,8.8.4.4",         v6: "2001:4860:4860::8888,2001:4860:4860::8844" },
-        { label: "AdGuard",    v4: "94.140.14.14,94.140.15.15", v6: "2a10:50c0::ad1:ff,2a10:50c0::ad2:ff" },
-        { label: "OpenDNS",    v4: "208.67.222.222,208.67.220.220", v6: "2620:119:35::35,2620:119:53::53" }
+        { label: "Cloudflare", host: "one.one.one.one",       v4: "1.1.1.1,1.0.0.1",         v6: "2606:4700:4700::1111,2606:4700:4700::1001" },
+        { label: "Quad9",      host: "dns.quad9.net",         v4: "9.9.9.9,149.112.112.112", v6: "2620:fe::fe,2620:fe::9" },
+        { label: "Google",     host: "dns.google",            v4: "8.8.8.8,8.8.4.4",         v6: "2001:4860:4860::8888,2001:4860:4860::8844" },
+        { label: "AdGuard",    host: "dns.adguard-dns.com",   v4: "94.140.14.14,94.140.15.15", v6: "2a10:50c0::ad1:ff,2a10:50c0::ad2:ff" }
     ]
     property bool   dnsManaged: false
     property string dnsActive: ""       // preset v4 key, "auto", or "custom"
@@ -146,7 +147,7 @@ PanelWindow {
             return
         dnsError = ""
         dnsPending = preset.v4
-        dnsApply.command = ["bash", dnsScript, "set", preset.v4, preset.v6]
+        dnsApply.command = ["bash", dnsScript, "set", preset.v4, preset.v6, preset.host]
         dnsApply.running = false
         dnsApply.running = true
     }
