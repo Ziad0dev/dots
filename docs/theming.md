@@ -88,7 +88,6 @@ Not template-driven but still themed:
 |---|---|
 | Quickshell Rise, lock screen | read `colors.sh` directly via `~/.local/state/dots/shell/current/theme/colors.sh` |
 | SDDM | baked palette + live `sddm.json` — see [Desktop → login](desktop.md#login-sddm) |
-| Spotify (Spicetify) | palette of `dots.theme` (home-manager option, default `oxocarbon`) parsed from `colors.sh` **at build time** |
 | Obsidian | hardcoded oxocarbon |
 | Websites in Zen | `config/zen/sites/<domain>.css` (from dusky), each wrapped in `@-moz-document domain(…)` and coloured from `--dots-*`; delete a file to stop theming that site |
 

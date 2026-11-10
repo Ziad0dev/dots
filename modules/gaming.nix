@@ -4,9 +4,9 @@
 
   boot.kernelPackages = pkgs.linuxPackages_cachyos-bore;
 
-  services.scx = {
+  services.scx-loader = {
     enable = false;
-    scheduler = "scx_lavd";
+    config.default_sched = "scx_lavd";
   };
 
   programs.steam = {

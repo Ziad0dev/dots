@@ -13,6 +13,11 @@ let
   link = dotsLink;
 in
 {
+  # English only: drop translated man page trees from the user profile
+  home.extraProfileCommands = ''
+    find $out/share/man -mindepth 1 -maxdepth 1 ! -name 'man[0-9n]*' -exec rm -rf {} + 2>/dev/null || true
+  '';
+
   imports = [
     inputs.nixcord.homeModules.nixcord
     ../nixcord.nix
@@ -193,7 +198,6 @@ in
       xdg-utils
       zenity
       (flameshot.override { enableWlrSupport = true; })
-      spotify
       (tesseract.override {
         enableLanguages = [
           "eng"

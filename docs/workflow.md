@@ -17,8 +17,8 @@ update                      # nh os switch
 |---|---|
 | Anything under `config/` that is linked (hypr, nvim, ghostty, tmux, quickshell, yazi, mpv, …) | Rebuild by default. With `dots.liveConfig = true`, restart the app or reload it instead |
 | `config/quickshell/rise/**` | Rebuild by default. In live mode, Quickshell reloads QML on save; `dots-shell restart` if it wedges. Only live mode runs the bar's helper scripts straight from the repo |
-| `config/themes/*/colors.sh`, `config/themes/_templates/*.in` | Rebuild by default. In live mode, `themectl reload` — no rebuild. Exception: the theme baked into SDDM / Spotify, see below |
-| `config/sddm/**`, or the theme named by `dots.sddm.theme` / `dots.theme` | Rebuild — the greeter and Spicetify theme are generated at build time |
+| `config/themes/*/colors.sh`, `config/themes/_templates/*.in` | Rebuild by default. In live mode, `themectl reload` — no rebuild. Exception: the theme baked into SDDM, see below |
+| `config/sddm/**`, or the theme named by `dots.sddm.theme` / `dots.theme` | Rebuild — the greeter theme is generated at build time |
 | `scripts/*.sh` | Rebuild. `themectl`, `dots-compat` (all `dots-*` shims), `voxtype` and the wallpaper helpers are packaged with `writeShellApplication`; the thing on PATH is a store copy. The git hook runs from the repo |
 | Any `.nix` file | Rebuild |
 
@@ -74,7 +74,6 @@ The bar's update indicator comes from two shims: `dots-updates` compares the loc
 | Thumbnails 60 d, Trash / mpv / nvidia / cpptools caches 30 d | `home/cleanup.nix` (user tmpfiles) |
 | Unused flatpak runtimes, weekly | `home/cleanup.nix` |
 | Quickshell picker thumbnails unused for 30 d, weekly | `home/quickshell-rise.nix` |
-| Spotify cache pinned to 4 GiB | `home/cleanup.nix` activation |
 
 `nix.gc.automatic` is deliberately absent on NixOS — two collectors racing is worse than one, and nh's understands boot and home-manager generations. (The Mac has no nh, so it uses `nix.gc`.)
 

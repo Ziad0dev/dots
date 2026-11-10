@@ -101,6 +101,11 @@ stdenv.mkDerivation {
     substituteInPlace _build/named-readtables/src/cruft.lisp \
       --replace-fail ${lib.escapeShellArg "(if reader-fn${yieldIndent}"} \
         ${lib.escapeShellArg "(if (and reader-fn (not (eql reader-fn 0)))${yieldIndent}"}
+
+    # SBCL 2.6.9 warns (fatal under ASDF) on delete-duplicates over a quoted
+    # literal, the tail that append shares.
+    substituteInPlace source/prompt-buffer.lisp \
+      --replace-fail "'(extra-modes)))))" "(list 'extra-modes)))))"
   '';
 
   postConfigure = ''

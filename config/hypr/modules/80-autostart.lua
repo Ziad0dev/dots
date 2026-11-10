@@ -16,7 +16,6 @@ hl.on("hyprland.start", function()
 
     hl.exec_cmd("zen-beta")
     hl.exec_cmd("discord")
-    hl.exec_cmd("spotify")
 
     hl.exec_cmd([[sh -c 'sleep 2; ghostty --class=dev.dots.sideterm']])
     hl.exec_cmd([[sh -c '

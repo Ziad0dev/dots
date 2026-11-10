@@ -13,7 +13,7 @@ SDDM (kwin greeter, dots theme)
             │     ├─ quickshell (rise)         ├─ swayosd-server
             │     │                            └─ hypridle, cliphist, udiskie, mpdris2, …
             ├─ awww-daemon
-            └─ apps: zen, sideterm, sysmon, discord, spotify
+            └─ apps: zen, sideterm, sysmon, discord
 ```
 
 `hyprland-session.target` is defined in `home/profiles/linux-desktop.nix`. Without it `graphical-session.target` never activates and nothing that hangs off it starts. On exit, the `hyprland.shutdown` handler stops the target.
@@ -142,7 +142,6 @@ The last three go through `dots-shot`: saved as `~/Pictures/<date>_<time>.png`, 
 | `org.qbittorrent.qBittorrent` | Workspace 3 (silent) |
 | `dev.dots.sysmon` | Workspace 9 (silent, no focus) — tmux session `sysmon` with btop over nvtop |
 | `discord` | Workspace 10 (silent) |
-| `spotify` | Workspace 10 (silent), 0.92 opacity |
 | `org.pwmt.zathura` | Opaque, no blur, inhibits idle when fullscreen |
 | `flameshot` | Floating, pinned |
 | `com.gabm.satty` (screenshot editor) | Floating |

@@ -51,6 +51,21 @@
       else
         prev.typescript-language-server;
   })
+  # cargoSetupHook now forces system libs (RUSTONIG_SYSTEM_LIBONIG,
+  # ZSTD_SYS_USE_PKG_CONFIG), but omp lists neither oniguruma nor zstd, so
+  # onig_sys/zstd-sys fail at pkg-config. Inert once upstream adds them.
+  (final: prev: {
+    omp =
+      if builtins.elem final.oniguruma (prev.omp.buildInputs or [ ]) then
+        prev.omp
+      else
+        prev.omp.overrideAttrs (old: {
+          buildInputs = (old.buildInputs or [ ]) ++ [
+            final.oniguruma
+            final.zstd
+          ];
+        });
+  })
   # pyopenjtalk-plus 0.4.1-post9 changed two TypeError messages without
   # updating the corresponding test expectations.
   (final: prev: {

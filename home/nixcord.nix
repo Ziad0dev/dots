@@ -63,7 +63,6 @@ in
         disableDeepLinks.enable = true;
         fakeNitro.enable = true;
         fixImagesQuality.enable = true;
-        fixSpotifyEmbeds.enable = true;
         fixYoutubeEmbeds.enable = true;
         gameActivityToggle.enable = true;
         messageLogger.enable = true;
@@ -76,7 +75,6 @@ in
         reverseImageSearch.enable = true;
         settings.enable = true;
         silentTyping.enable = true;
-        spotifyControls.enable = true;
         translate.enable = true;
         unsuppressEmbeds.enable = true;
         viewRaw.enable = true;
@@ -84,7 +82,6 @@ in
         youtubeAdblock.enable = true;
         disableCallIdle.enable = true;
         memberCount.enable = true;
-        spotifyCrack.enable = true;
         voiceChatDoubleClick.enable = true;
         voiceMessages.enable = true;
       };

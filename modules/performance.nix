@@ -53,6 +53,7 @@ in
   systemd.services.nix-daemon.serviceConfig = {
     MemoryAccounting = true;
 
+    MemoryHigh = "50%";
     MemoryMax = "75%";
 
     OOMScoreAdjust = 500;
@@ -60,7 +61,7 @@ in
 
   nix.settings = {
 
-    max-jobs = 3;
+    max-jobs = 4;
     cores = 4;
 
     min-free = 1024 * 1024 * 1024;

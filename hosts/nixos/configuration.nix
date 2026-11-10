@@ -70,11 +70,21 @@
     LC_TIME = "en_US.UTF-8";
   };
 
+  # English only: only these glibc locales are generated, and the translated
+  # man page trees (man/de, man/ja, ...) are dropped from the system profile
+  i18n.supportedLocales = [
+    "C.UTF-8/UTF-8"
+    "en_US.UTF-8/UTF-8"
+  ];
+  environment.extraSetup = ''
+    find $out/share/man -mindepth 1 -maxdepth 1 ! -name 'man[0-9n]*' -exec rm -rf {} + 2>/dev/null || true
+  '';
+
   services.xserver.xkb.layout = "us";
 
   zramSwap = {
     enable = true;
-    memoryPercent = 50;
+    memoryPercent = 150;
 
   };
   # the swap partition is in ./disk.nix
@@ -200,6 +210,10 @@
       "padcfdpdlnpdojcihidkgjnmleeingep" # Bandcamp Enhancement Suite (already installed)
       "nngceckbapebfimnlniiiahkandclblb" # Bitwarden (already installed)
     ];
+    # "Continue where you left off": 1 = restore last session. Chromium only keeps
+    # session cookies (logins without an expiry) across quits when this is set;
+    # otherwise they are dropped on every exit and you get logged out.
+    extraOpts.RestoreOnStartup = 1;
   };
 
   programs.agents.enable = true;

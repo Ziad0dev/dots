@@ -41,24 +41,6 @@ in
         };
       }
     );
-    # Qt's uic rejects template arguments in .ui class names. Give the
-    # default AddressableItemList<> specialization a plain alias for those files.
-    iaito = pkgs.iaito.overrideAttrs (
-      final: prev: {
-        postPatch = (prev.postPatch or "") + ''
-          substituteInPlace \
-            dialogs/XrefsDialog.ui \
-            widgets/BreakpointWidget.ui \
-            widgets/FlagsWidget.ui \
-            widgets/ListDockWidget.ui \
-            widgets/SearchWidget.ui \
-            widgets/StringsWidget.ui \
-            --replace-fail 'AddressableItemList&lt;&gt;' 'AddressableItemListWidget'
-          sed -i '/^#endif.*ADDRESSABLE_ITEM_LIST_H$/i using AddressableItemListWidget = AddressableItemList<>;' \
-            widgets/AddressableItemList.h
-        '';
-      }
-    );
     # pwntools ships its own bin/checksec; the real checksec wins
     # (pwntools' stays reachable as `pwn checksec`)
     "python3Packages.pwntools" = lib.lowPrio pkgs.python3Packages.pwntools;

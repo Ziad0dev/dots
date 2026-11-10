@@ -125,7 +125,7 @@ PanelWindow {
         if (e.kind === "action") { e.action.run(); return }
 
         // Each app gets its own app-*.scope; a plain execute() leaves it in
-        // quickshell.service's cgroup, where e.g. Spotify's ~100 processes were
+        // quickshell.service's cgroup, where e.g. ~100 processes of a single app were
         // billed to the bar (a 6.7 GB "peak") and outlived bar restarts there.
         // Flatpaks keep the DesktopEntry's own execute(): systemd-run --scope
         // breaks them (Tauon, etc.) on NixOS, and `flatpak run` moves itself

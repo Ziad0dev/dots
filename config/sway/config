@@ -193,7 +193,6 @@ for_window [window_role="pop-up"] floating enable
 for_window [window_type="dialog"] floating enable
 assign [app_id="^dev.dots.sysmon$"] workspace number 9
 assign [app_id="^discord$"] workspace number 10
-assign [app_id="^spotify$"] workspace number 10
 
 bar {
     id main

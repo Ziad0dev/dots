@@ -34,15 +34,6 @@ hl.window_rule({
     workspace = "10 silent",
 })
 
--- Spotify can't draw its own translucency, so the whole window goes
--- see-through for Hyprland's blur (artwork included)
-hl.window_rule({
-    name      = "spotify",
-    match     = { class = "^(spotify)$" },
-    opacity   = "0.92",
-    workspace = "10 silent",
-})
-
 hl.window_rule({
     name         = "zathura",
     match        = { class = "^(org\\.pwmt\\.zathura)$" },

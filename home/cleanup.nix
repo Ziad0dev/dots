@@ -24,11 +24,4 @@ lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
     };
     Install.WantedBy = [ "timers.target" ];
   };
-
-  home.activation.spotifyCacheCap = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    prefs="$HOME/.config/spotify/prefs"
-    if [ -f "$prefs" ] && ! ${pkgs.gnugrep}/bin/grep -qx 'storage.size=4096' "$prefs"; then
-      run ${pkgs.gnused}/bin/sed -i -e '/^storage\.size=/d' -e '$a storage.size=4096' "$prefs"
-    fi
-  '';
 }
