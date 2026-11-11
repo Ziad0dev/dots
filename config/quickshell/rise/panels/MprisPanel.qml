@@ -414,6 +414,14 @@ PanelWindow {
                         MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (mprisPanel.player) mprisPanel.player.next() }
                     }
                 }
+
+                // ── similar artists (ListenBrainz via music-scout; only while open) ──
+                SimilarArtists {
+                    width: parent.width
+                    root: mprisPanel.root
+                    active: root.mprisVisible && mprisPanel.active
+                    artist: mprisPanel.player ? (mprisPanel.player.trackArtist || "") : ""
+                }
             }
         }
     }

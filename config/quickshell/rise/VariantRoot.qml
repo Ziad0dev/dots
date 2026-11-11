@@ -33,6 +33,8 @@ Item {
 
     function toggleUtilities() { if (!theme.utilitiesVisible) theme.activateFocusedPopupScreen(); theme.utilitiesVisible = !theme.utilitiesVisible }
 
+    function toggleDiscover() { if (!theme.discoverVisible) theme.activateFocusedPopupScreen(); theme.discoverVisible = !theme.discoverVisible }
+
     function toggleAppLauncher() { if (!theme.appLauncherVisible) theme.activateFocusedPopupScreen(); theme.appLauncherVisible = !theme.appLauncherVisible }
 
     required property var variantHost
@@ -364,6 +366,7 @@ Item {
     MprisPanel { root: theme }
     WeatherPanel { root: theme }
     KeybindsPanel { root: theme }
+    DiscoverPanel { root: theme }
     WorkspacePanel { root: theme }
     LazyLoader { active: true; OverviewPanel { root: theme } }
     ControlPanel { root: theme }

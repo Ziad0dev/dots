@@ -16,6 +16,53 @@ let
     text = ''exec ${python}/bin/python3 ${../scripts/album-doctor.py} "$@"'';
   };
 
+  # new releases from library artists, and similar artists (the bar's media
+  # panel calls `music-scout similar --json`)
+  music-scout = pkgs.writeShellApplication {
+    name = "music-scout";
+    text = ''exec ${python}/bin/python3 ${../scripts/music-scout.py} "$@"'';
+  };
+
+  # Open a search tab in Nicotine+, starting it if need be. The Discover panel
+  # calls this; scripts/nicotine-bridge is the plugin on the other end.
+  slsk-search = pkgs.writeShellApplication {
+    name = "slsk-search";
+    runtimeInputs = [
+      pkgs.nicotine-plus
+      pkgs.coreutils
+      pkgs.gnugrep
+      pkgs.gnused
+      pkgs.procps
+      pkgs.util-linux
+      pkgs.libnotify
+    ];
+    text = ''
+      query="$*"
+      [ -n "$query" ] || { echo "usage: slsk-search QUERY" >&2; exit 2; }
+
+      queue="$XDG_RUNTIME_DIR/slsk-search"
+      mkdir -p "$queue"
+      tmp="$(mktemp "$queue/.XXXXXX")"
+      printf '%s' "$query" > "$tmp"
+      mv "$tmp" "$queue/$(date +%s%N)"
+
+      # Nicotine+ owns its config file, so the plugin can't be enabled from
+      # nix; switch it on here, while the client isn't running to overwrite it.
+      cfg="${config.xdg.configHome}/nicotine/config"
+      if [ -f "$cfg" ] && ! grep -q dots_bridge "$cfg"; then
+        if pgrep -f 'bin/\.?nicotine' >/dev/null; then
+          notify-send -a Nicotine+ "Search queued: $query" \
+            "Restart Nicotine+ once (or enable Dots Bridge under Preferences › Plugins) to run it." || true
+        else
+          sed -i "/^\[plugins\]/,/^\[/ s/^enabled = \[/enabled = ['dots_bridge', /" "$cfg"
+        fi
+      fi
+
+      # a second launch only raises the window of the one already running
+      setsid -f nicotine >/dev/null 2>&1
+    '';
+  };
+
   music-fill = pkgs.writeShellApplication {
     name = "music-fill";
     runtimeInputs = [
@@ -72,6 +119,7 @@ let
     text = ''
       src="$1"
       [ -d "$src" ] || exit 0
+      app="''${IMPORT_APP:-Nicotine+}"
       log="${config.xdg.stateHome}/slsk-import.log"
       mkdir -p ${staging} "$(dirname "$log")"
       exec >>"$log" 2>&1
@@ -87,10 +135,52 @@ let
       find "$dest" -depth -type d -empty -delete 2>/dev/null || true
 
       if [ -d "$dest" ]; then
-        notify-send -a Nicotine+ "beets skipped: $name" "left in ${staging}, run: beet import ${staging}" || true
+        notify-send -a "$app" "beets skipped: $name" "left in ${staging}, run: beet import ${staging}" || true
       else
-        notify-send -a Nicotine+ "Imported: $name" || true
+        notify-send -a "$app" "Imported: $name" || true
       fi
+    '';
+  };
+
+  # Bought albums: every zip of audio that lands in ~/Downloads (a Bandcamp or
+  # Qobuz purchase) is unpacked and handed to beets, then filed under
+  # ~/Downloads/imported-music so it is kept but not picked up twice. The
+  # music-buy-import path unit below runs this whenever the folder changes.
+  music-buy-import = pkgs.writeShellApplication {
+    name = "music-buy-import";
+    runtimeInputs = [
+      slsk-import
+      pkgs.unzip
+      pkgs.coreutils
+      pkgs.findutils
+      pkgs.gnugrep
+      pkgs.util-linux
+      pkgs.libnotify
+    ];
+    text = ''
+      downloads="''${1:-$HOME/Downloads}"
+      exec 9>"''${XDG_RUNTIME_DIR:-/tmp}/music-buy-import.lock"
+      flock -n 9 || exit 0
+
+      sleep 3   # let the browser finish renaming its partial file
+      find "$downloads" -maxdepth 1 -type f -iname '*.zip' -print0 | while IFS= read -r -d "" zip; do
+        # only archives that hold music; anything else in Downloads is left alone
+        unzip -Z1 "$zip" 2>/dev/null | grep -qiE '\.(flac|mp3|m4a|wav|aiff?|ogg|opus)$' || continue
+        # still being written (or damaged): the next change to the folder retries
+        unzip -tqq "$zip" >/dev/null 2>&1 || continue
+
+        name="$(basename "$zip")"
+        name="''${name%.[zZ][iI][pP]}"
+        work="$(mktemp -d ${staging}/.buy.XXXXXX)"
+        if unzip -qq "$zip" -d "$work/$name"; then
+          mkdir -p "$downloads/imported-music"
+          mv -n -- "$zip" "$downloads/imported-music/"
+          IMPORT_APP="Music purchases" slsk-import "$work/$name"
+        else
+          notify-send -a "Music purchases" "Couldn't unpack $name" "left in $downloads" || true
+        fi
+        rm -rf -- "$work"
+      done
     '';
   };
 in
@@ -101,8 +191,29 @@ in
     pkgs.mp3val
     album-doctor
     music-fill
+    music-scout
     slsk-import
+    slsk-search
+    music-buy-import
   ];
+
+  systemd.user.paths.music-buy-import = {
+    Unit.Description = "Watch Downloads for bought albums";
+    Path.PathChanged = "%h/Downloads";
+    Install.WantedBy = [ "default.target" ];
+  };
+  systemd.user.services.music-buy-import = {
+    Unit = {
+      Description = "Import bought albums from Downloads into beets";
+      RequiresMountsFor = [ "/mnt/media" ];
+    };
+    Service = {
+      Type = "oneshot";
+      ExecStart = "${music-buy-import}/bin/music-buy-import";
+    };
+  };
+
+  xdg.dataFile."nicotine/plugins/dots_bridge".source = ../scripts/nicotine-bridge;
 
   programs.beets = {
     enable = true;

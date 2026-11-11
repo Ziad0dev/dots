@@ -40,6 +40,10 @@
     "subtext": "Toggle Desktop Theme"
   },
   {
+    "text": "qs -c rise ipc call discover toggle",
+    "subtext": "Toggle Discover · SUPER+SHIFT+D"
+  },
+  {
     "text": "qs -c rise ipc call dots.system-update refresh",
     "subtext": "Refresh Dots.System-Update"
   },
@@ -126,6 +130,22 @@
   {
     "text": "qs -c rise ipc call openrouter toggle",
     "subtext": "Toggle Openrouter · SUPER+SHIFT+O"
+  },
+  {
+    "text": "qs -c rise ipc call oracle last",
+    "subtext": "Last Oracle"
+  },
+  {
+    "text": "qs -c rise ipc call oracle sleep",
+    "subtext": "Sleep Oracle"
+  },
+  {
+    "text": "qs -c rise ipc call oracle state",
+    "subtext": "State Oracle"
+  },
+  {
+    "text": "qs -c rise ipc call oracle toggle",
+    "subtext": "Toggle Oracle · SUPER+ALT+O"
   },
   {
     "text": "qs -c rise ipc call overview toggle",
@@ -222,6 +242,10 @@
   {
     "text": "qs -c rise ipc call themes lockscreen",
     "subtext": "Lockscreen Themes"
+  },
+  {
+    "text": "qs -c rise ipc call themes look",
+    "subtext": "Look Themes"
   },
   {
     "text": "qs -c rise ipc call themes toggle",

@@ -83,6 +83,7 @@ HDR: the profile runs DP-1 in 10-bit HDR permanently. That costs compositor CPU 
 | `SUPER + A` | Overview |
 | `SUPER + U` | Utilities corner (quick toggles, recent captures) |
 | `SUPER + I` | Dashboard (dashboard · media · performance · weather tabs) |
+| `SUPER + SHIFT + D` | Discover: artists similar to the one playing, artists to try picked from the whole library, new releases from library artists, and (after `music-scout spotify my_spotify_data.zip`) the most-played Spotify albums the library lacks with Bandcamp / Qobuz links (`buy list` opens them all as a page; bought zips dropped in `~/Downloads` import themselves, `music-buy-import`), and ListenBrainz's weekly exploration playlist once a user token is in `~/.config/music-scout/listenbrainz-token` (`music-scout`). The `slsk` buttons, `other versions`, and a right click on a similar artist open that search in Nicotine+ (`slsk-search`) |
 | `SUPER + ,` | Settings: every bar setting by page (bar, widgets, style, general), links to the network / Bluetooth / audio / theme panels, versions |
 | `SUPER + SHIFT + I` | Window info: preview, details, float / pin / fullscreen / center / move / close / kill (`1`–`9`, `F`, `P`, `Q`) |
 | `SUPER + W` | Theme / wallpaper drawer |
@@ -202,6 +203,7 @@ qs -c rise ipc call <target> <function>
 | `overview` | `toggle` |
 | `notifications` | `toggle`, `clear` |
 | `utilities` | `toggle` |
+| `discover` | `toggle` |
 | `session` | `toggle` |
 | `dashboard` | `toggle` |
 | `windowinfo` | `toggle` |

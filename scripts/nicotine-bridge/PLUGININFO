@@ -1,0 +1,4 @@
+Version = "1.0"
+Authors = ["dots"]
+Name = "Dots Bridge"
+Description = "Runs the searches other programs queue with `slsk-search` (the bar's Discover panel, the terminal). Each file dropped in $XDG_RUNTIME_DIR/slsk-search becomes a global search tab."

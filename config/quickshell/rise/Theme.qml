@@ -277,7 +277,7 @@ ThemeAiUsage {
     readonly property bool anyPopupVisible: calendarVisible || cpuVisible || aiUsageVisible
         || memVisible || volVisible || langVisible || controlVisible || networkVisible || bluetoothVisible
         || batteryVisible || brightnessVisible || mprisVisible || weatherVisible || keybindsVisible
-        || workspaceVisible || imagePickerVisible || mediaBrowserVisible || notifVisible
+        || discoverVisible || workspaceVisible || imagePickerVisible || mediaBrowserVisible || notifVisible
         || powerProfileVisible || trayVisible || trayMenuVisible || utilitiesVisible
         || dashboardVisible || drawerVisible || sessionVisible || windowInfoVisible || settingsVisible
     readonly property bool keyboardPopupVisible: imagePickerVisible || mediaBrowserVisible
@@ -557,6 +557,7 @@ ThemeAiUsage {
         if (except !== "mprisVisible") mprisVisible = false
         if (except !== "weatherVisible") weatherVisible = false
         if (except !== "keybindsVisible") keybindsVisible = false
+        if (except !== "discoverVisible") discoverVisible = false
         if (except !== "workspaceVisible") workspaceVisible = false
         if (except !== "imagePickerVisible") imagePickerVisible = false
         if (except !== "mediaBrowserVisible") mediaBrowserVisible = false
@@ -2017,6 +2018,8 @@ ThemeAiUsage {
     onWeatherVisibleChanged: popupOpened("weatherVisible")
     property bool keybindsVisible:  false
     onKeybindsVisibleChanged: popupOpened("keybindsVisible")
+    property bool discoverVisible:  false
+    onDiscoverVisibleChanged: popupOpened("discoverVisible")
     property bool workspaceVisible: false
     onWorkspaceVisibleChanged: popupOpened("workspaceVisible")
 

@@ -171,6 +171,11 @@ Item {
     }
 
     IpcHandler {
+        target: "discover"
+        function toggle(): void { router.invoke("toggleDiscover") }
+    }
+
+    IpcHandler {
         target: "session"
         function toggle(): void { router.invoke("toggleSession") }
     }

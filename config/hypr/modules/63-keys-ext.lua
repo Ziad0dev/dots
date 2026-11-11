@@ -5,6 +5,7 @@ local mod = util.mod
 hl.bind("ALT + TAB",                 hl.dsp.exec_cmd("qs -c rise ipc call switcher toggle"))
 hl.bind(mod .. " + ALT + TAB",       hl.dsp.exec_cmd("qs -c rise ipc call expose toggle"))
 hl.bind(mod .. " + slash",           hl.dsp.exec_cmd("qs -c rise ipc call keybinds toggle"))
+hl.bind(mod .. " + SHIFT + D",       hl.dsp.exec_cmd("qs -c rise ipc call discover toggle"))
 hl.bind(mod .. " + SHIFT + W",       hl.dsp.exec_cmd("qs -c rise ipc call wallpaper toggle"))
 hl.bind(mod .. " + ALT + W",         hl.dsp.exec_cmd("qs -c rise ipc call themes desktop"))
 hl.bind(mod .. " + SHIFT + N",       hl.dsp.exec_cmd("qs -c rise ipc call notes toggle"))
