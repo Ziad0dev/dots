@@ -1,4 +1,4 @@
-{ ... }:
+{ pkgs, ... }:
 
 {
   security.rtkit.enable = true;
@@ -30,13 +30,17 @@
     KERNEL=="cpu_dma_latency", GROUP="audio", MODE="0660"
   '';
 
+  # JACK programs reach PipeWire through `pw-jack <program>`; the old
+  # services.pipewire.jack.enable put its libjack on every program's
+  # LD_LIBRARY_PATH and is deprecated.
+  environment.systemPackages = [ pkgs.pipewire.jack ];
+
   services.pipewire = {
 
     enable = true;
     alsa.enable = true;
     alsa.support32Bit = true;
     pulse.enable = true;
-    jack.enable = true;
     wireplumber.enable = true;
 
     extraConfig.pipewire."92-hifi-rates" = {
