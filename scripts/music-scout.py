@@ -68,14 +68,25 @@ def plays():
     return json.loads(PLAYS.read_text())
 
 
+def save(f, text):
+    """Whole or not at all: the panel runs several of these at once, and one
+    may be reading the file another is replacing."""
+    f.parent.mkdir(parents=True, exist_ok=True)
+    tmp = f.with_name(f"{f.name}.{os.getpid()}.tmp")
+    tmp.write_text(text)
+    os.replace(tmp, f)
+
+
 def cached(key, ttl, fn):
     """fn()'s JSON-able result, reused for ttl seconds. Failures aren't stored."""
-    CACHE.mkdir(parents=True, exist_ok=True)
     f = CACHE / (hashlib.md5(key.encode()).hexdigest() + ".json")
     if f.exists() and time.time() - f.stat().st_mtime < ttl:
-        return json.loads(f.read_text())
+        try:
+            return json.loads(f.read_text())
+        except ValueError:          # cut short by a crash: fetch it again
+            pass
     out = fn()
-    f.write_text(json.dumps(out))
+    save(f, json.dumps(out))
     return out
 
 
@@ -114,9 +125,11 @@ def departed(mbids):
     """The mbids of people who have died. Their "new releases" are other
     performers' recordings (every new Bach album is credited to Bach), so
     `new` leaves them out. Disbanded groups stay: reunions happen."""
-    CACHE.mkdir(parents=True, exist_ok=True)
     f = CACHE / "artist-meta.json"
-    meta = json.loads(f.read_text()) if f.exists() else {}
+    try:
+        meta = json.loads(f.read_text())
+    except (OSError, ValueError):
+        meta = {}
     now = time.time()
     todo = [m for m in mbids if now - meta.get(m, {}).get("at", 0) > 90 * 86400]
     for i in range(0, len(todo), 40):
@@ -127,10 +140,12 @@ def departed(mbids):
         except musicbrainzngs.MusicBrainzError as e:
             print(f"artist lookup: {e}", file=sys.stderr)
             continue
+        for m in batch:             # an id MusicBrainz no longer knows: don't re-ask daily
+            meta[m] = {"at": now, "dead": False}
         for a in hits:
             meta[a["id"]] = {"at": now, "dead": a.get("type") == "Person"
                              and a.get("life-span", {}).get("ended") == "true"}
-        f.write_text(json.dumps(meta))
+        save(f, json.dumps(meta))
     return {m for m in mbids if meta.get(m, {}).get("dead")}
 
 
@@ -169,8 +184,7 @@ def cmd_new(args):
     if sys.stderr.isatty():
         print("\r\033[K", end="", file=sys.stderr)
     found.sort(key=lambda g: g["date"], reverse=True)
-    CACHE.mkdir(parents=True, exist_ok=True)
-    last.write_text(json.dumps(found, ensure_ascii=False))
+    save(last, json.dumps(found, ensure_ascii=False))
     if args.json:
         print(json.dumps(found, ensure_ascii=False))
         return
@@ -198,12 +212,23 @@ def cmd_weekly(args):
     token = TOKEN.read_text().strip() if TOKEN.exists() else ""
     user = args.user
     if not user and token:
-        user = cached("lbuser:" + token, 30 * 86400,
-                      lambda: get_json(LB + "validate-token", token).get("user_name", ""))
+        def whoami():
+            name = get_json(LB + "validate-token", token).get("user_name")
+            if not name:            # raise, so a rejected token isn't remembered for a month
+                raise ValueError(f"ListenBrainz rejected the token in {TOKEN}")
+            return name
+        try:
+            user = cached("lbuser:" + token, 30 * 86400, whoami)
+        except (OSError, ValueError) as e:
+            print(e, file=sys.stderr)
     out = {"title": "", "tracks": []}
     if user:
-        made = cached(f"createdfor:{user}", 6 * 3600, lambda: get_json(
-            LB + f"user/{urllib.parse.quote(user)}/playlists/createdfor", token))
+        try:
+            made = cached(f"createdfor:{user}", 6 * 3600, lambda: get_json(
+                LB + f"user/{urllib.parse.quote(user)}/playlists/createdfor", token))
+        except OSError as e:        # offline: an empty section, not a traceback
+            print(e, file=sys.stderr)
+            made = {}
 
         def kind(p):
             ext = p.get("extension", {}).get("https://musicbrainz.org/doc/jspf#playlist", {})
@@ -214,8 +239,12 @@ def cmd_weekly(args):
                       key=lambda p: p.get("date", ""), reverse=True)
         if mine:
             mbid = mine[0]["identifier"].rstrip("/").rsplit("/", 1)[-1]
-            full = cached("playlist:" + mbid, 7 * 86400,
-                          lambda: get_json(LB + "playlist/" + mbid, token))["playlist"]
+            try:
+                full = cached("playlist:" + mbid, 7 * 86400,
+                              lambda: get_json(LB + "playlist/" + mbid, token))["playlist"]
+            except OSError as e:
+                print(e, file=sys.stderr)
+                full = {}
             db = sqlite3.connect(f"file:{LIBRARY}?mode=ro", uri=True)
             have = {(norm(a), norm(t)) for a, t in db.execute("select artist, title from items")}
             out["title"] = full.get("title", "")
@@ -311,8 +340,7 @@ def cmd_spotify(args):
             b[3] += 1
             if len(album) < len(b[1]):      # show the plainest edition's title
                 b[1] = album
-    PLAYS.parent.mkdir(parents=True, exist_ok=True)
-    PLAYS.write_text(json.dumps({
+    save(PLAYS, json.dumps({
         "through": newest,
         "artists": {k: v for k, v in artists.items() if v[2] >= 3},
         "albums": sorted((b for b in albums.values() if b[3] >= 5),
@@ -384,8 +412,7 @@ def cmd_buylist(args):
         f'<td class="l"><a href="{e(g["bandcamp"])}">Bandcamp</a><a href="{e(g["qobuz"])}">Qobuz</a></td></tr>'
         for g in missing(100000, args.min_plays))
     out = Path(args.out) if args.out else CACHE / "buylist.html"
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(PAGE.replace("__COUNT__", str(rows.count("<tr>")))
+    save(out, PAGE.replace("__COUNT__", str(rows.count("<tr>")))
                    .replace("__MIN__", str(args.min_plays)).replace("__ROWS__", rows))
     print(out)
     if not args.no_open:
@@ -441,7 +468,7 @@ def cmd_foryou(args):
             print(f"\n{name}: {e}", file=sys.stderr)
             continue
         sim = sim[:15]              # the tail is where the famous names pile up
-        top = max((a["score"] for a in sim), default=0)
+        top = max((a["score"] for a in sim), default=0) or 1
         for a in sim:
             m = a["artist_mbid"]
             if m in seeds or norm(a["name"]) in names:
@@ -465,8 +492,7 @@ def cmd_foryou(args):
     ranked = ranked[:args.limit]
     out = [{"name": label[m], "mbid": m, "score": round(score[m], 4),
             "because": [n for _, n in sorted(why[m], reverse=True)[:3]]} for m in ranked]
-    CACHE.mkdir(parents=True, exist_ok=True)
-    last.write_text(json.dumps(out, ensure_ascii=False))
+    save(last, json.dumps(out, ensure_ascii=False))
     if args.json:
         print(json.dumps(out, ensure_ascii=False))
         return

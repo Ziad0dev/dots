@@ -164,18 +164,26 @@ let
 
       sleep 3   # let the browser finish renaming its partial file
       find "$downloads" -maxdepth 1 -type f -iname '*.zip' -print0 | while IFS= read -r -d "" zip; do
-        # only archives that hold music; anything else in Downloads is left alone
-        unzip -Z1 "$zip" 2>/dev/null | grep -qiE '\.(flac|mp3|m4a|wav|aiff?|ogg|opus)$' || continue
+        # only archives that are mostly music; a game mod with a few sound
+        # files, or anything else in Downloads, is left alone
+        files="$(unzip -Z1 "$zip" 2>/dev/null | grep -v '/$' || true)"
+        audio="$(grep -ciE '\.(flac|mp3|m4a|wav|aiff?|ogg|opus)$' <<<"$files" || true)"
+        total="$(grep -c . <<<"$files" || true)"
+        [ "$audio" -gt 0 ] && [ $((audio * 2)) -ge "$total" ] || continue
         # still being written (or damaged): the next change to the folder retries
         unzip -tqq "$zip" >/dev/null 2>&1 || continue
 
         name="$(basename "$zip")"
         name="''${name%.[zZ][iI][pP]}"
         work="$(mktemp -d ${staging}/.buy.XXXXXX)"
-        if unzip -qq "$zip" -d "$work/$name"; then
+        # </dev/null: beets must not read the rest of this loop's file list
+        if unzip -qq "$zip" -d "$work/$name" </dev/null; then
           mkdir -p "$downloads/imported-music"
-          mv -n -- "$zip" "$downloads/imported-music/"
-          IMPORT_APP="Music purchases" slsk-import "$work/$name"
+          kept="$downloads/imported-music/$(basename "$zip")"
+          # bought twice, or re-downloaded: keep both, or it would import forever
+          [ -e "$kept" ] && kept="$kept.$(date +%s)"
+          mv -- "$zip" "$kept"
+          IMPORT_APP="Music purchases" slsk-import "$work/$name" </dev/null
         else
           notify-send -a "Music purchases" "Couldn't unpack $name" "left in $downloads" || true
         fi
