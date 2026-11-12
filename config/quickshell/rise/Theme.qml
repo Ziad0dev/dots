@@ -127,6 +127,20 @@ ThemeAiUsage {
 
     // the desktop's monospace choice (dots-appearance set mono …), live;
     // keep the fallback a Nerd Font: the bar's icons are its glyphs
+    // `dots-look glass on`: Hyprland rounds windows to 14 (hypr/modules/
+    // 46-look.lua), so the frame's inner corners, panels and pills round to
+    // match. dots-look writes "on" / "off" to this file and it is watched.
+    property bool glassMode: false
+    FileView {
+        id: glassFile
+        path: Quickshell.env("HOME") + "/.local/state/dots/hypr/glass"
+        watchChanges: true
+        printErrors: false
+        onFileChanged: glassFile.reload()
+        onLoaded: theme.glassMode = glassFile.text().trim() === "on"
+        onLoadFailed: theme.glassMode = false
+    }
+
     readonly property string mono: _appearanceMono !== "" ? _appearanceMono : "JetBrainsMono Nerd Font"
     property string _appearanceMono: ""
     FileView {
@@ -153,10 +167,15 @@ ThemeAiUsage {
     readonly property string gothic: gothicFont.status === FontLoader.Ready ? gothicFont.name : "serif"
 
     // ── transparency knobs (0.0 = fully transparent, 1.0 = opaque) ──
-    property real barOpacity:  0.94   // große Insel / Split-Sektionen
+    // große Insel / Split-Sektionen; with glass on, about half, so bar,
+    // panels and frame show Hyprland's blur like the windows do
+    property real barOpacity:  glassMode ? 0.5 : 0.94
     property real pillOpacity: 0.18   // einzelne Widget-Pillen (workspace, mem, cpu, …)
 
     readonly property color bg:     Qt.rgba(paper.r, paper.g, paper.b, barOpacity)
+    // the backing of standalone cards (launcher, clipboard, polkit): solid,
+    // or see-through with glass on (layer rule "rise-panels" blurs them)
+    readonly property color cardFill: glassMode ? Qt.rgba(paper.r, paper.g, paper.b, 0.5) : paper
     // bar island/section bg ONLY (NOT the shared bg -> panels keep their opacity): Frost
     // lowers the island alpha; compositor blur appears automatically when the theme
     // already blurs Quickshell layer surfaces.
@@ -197,7 +216,8 @@ ThemeAiUsage {
     property bool dashboardHoverOpened: false
     property bool drawerHoverOpened: false
     readonly property int frameThickness: 10
-    readonly property int frameRounding: 0     // square inner corners
+    // square inner corners; rounded like the windows with glass on
+    readonly property int frameRounding: glassMode ? 14 : 0
     // the edge rim matches the window borders: Hyprland's active border runs
     // color0 → color1 (themes/_templates/hyprland.lua.in); color1 is its bright end.
     // A theme's optional `border` key replaces it, toned well down toward paper
@@ -214,7 +234,7 @@ ThemeAiUsage {
     readonly property color windowBorder: _pb
     // the frame layer's alpha: with Frost, low enough that Hyprland's layer blur
     // (71-layers.lua) reads through the bar band and the panels
-    readonly property real frameOpacity: styleFrost ? 0.55 : barOpacity
+    readonly property real frameOpacity: glassMode ? 0.42 : styleFrost ? 0.55 : barOpacity
     readonly property color frameColor: styleDepth ? surfaceTone(0.03, 1) : Qt.rgba(paper.r, paper.g, paper.b, 1)
     // a split bar's sections in frame mode: a tone above the band, same alpha
     readonly property color frameRunFill:   surfaceTone(styleDepth ? 0.09 : 0.06, frameOpacity)
@@ -634,10 +654,10 @@ ThemeAiUsage {
     property bool styleRadiusSmall: false   // radius 12 ⇄ 6
     property bool styleHeightMin:   false   // inner pill 24 ⇄ 20 (slot stays 28)
     property bool styleIconLabels:  false   // CPU/MEM/VOL/… text labels ⇄ Material Symbols glyphs
-    readonly property int   pillRadius:   styleRadiusSmall ? 6 : 12
+    readonly property int   pillRadius:   glassMode ? 12 : styleRadiusSmall ? 6 : 12
     readonly property int   pillH:        styleHeightMin ? 20 : 24
     readonly property int   pillBorderW:  styleBorder && !frameOn ? 1 : 0
-    readonly property int   islandRadius: styleRadiusSmall ? 8 : 16
+    readonly property int   islandRadius: glassMode ? 16 : styleRadiusSmall ? 8 : 16
     readonly property int   tileRadius:   pillRadius - 2   // inner panel buttons: 2 less than global (10 ⇄ 4)
     readonly property int v2ActionIconCellWidth: 22
     readonly property int v2IconGroupPadding: 5
@@ -657,8 +677,8 @@ ThemeAiUsage {
     readonly property int v2BarHeight: 33
     readonly property int v2NotchFrameThickness: 6
     readonly property int v2NotchFrameRadius: 14
-    readonly property int   panelRadius:       6
-    readonly property int   panelButtonRadius: 6
+    readonly property int   panelRadius:       glassMode ? 14 : 6
+    readonly property int   panelButtonRadius: glassMode ? 8 : 6
     readonly property color panelBorder:       v2BarBorder
     readonly property int   panelBorderW:      1
     readonly property color panelOuterBorderColor: panelTooltipBorderEnabled

@@ -26,7 +26,7 @@ PanelWindow {
     readonly property color island: Qt.rgba(
         root.paper.r + (root.ink.r - root.paper.r) * 0.07,
         root.paper.g + (root.ink.g - root.paper.g) * 0.07,
-        root.paper.b + (root.ink.b - root.paper.b) * 0.07, 1.0)
+        root.paper.b + (root.ink.b - root.paper.b) * 0.07, root.glassMode ? 0.55 : 1.0)
 
     readonly property var apps: {
         var all = []
@@ -162,7 +162,7 @@ PanelWindow {
         width: Math.min(720, win.width - 80)
         height: Math.min(560, win.height - 120)
         radius: 12
-        color: root.paper
+        color: root.cardFill
         border.width: 1
         border.color: root.sep
 

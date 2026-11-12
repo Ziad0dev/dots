@@ -47,6 +47,18 @@
 
 /* the one translucent fill is --zen-main-browser-background behind all of
    these; filling them too would stack into an opaque frame */
+/* Zen's own wash under every web page (zen-browser-container.css): solid
+   rgb(32,32,32) behind a page, and white at 10% behind one marked
+   transparent. Either one greys the window blur out, so pages that leave
+   their background see-through (dots site styles with glass on, Zen
+   Internet) show it clean; pages with a background still paint their own. */
+#tabbrowser-tabpanels .browserSidebarContainer {
+  --zen-transparent-browser-background: transparent !important;
+}
+#tabbrowser-tabpanels browser[type="content"] {
+  background: transparent !important;
+}
+
 #navigator-toolbox,
 #titlebar,
 #zen-sidebar-box,
@@ -55,7 +67,9 @@
 .browserSidebarContainer,
 .browserContainer,
 .browserStack {
-  background-color: transparent !important;
+  /* `background`, not just the colour: the Better Letterboxing mod paints
+     .browserContainer with a gradient image */
+  background: transparent !important;
 }
 
 .tabbrowser-tab[selected] .tab-background {
@@ -88,7 +102,7 @@ menupopup, panel {
      theme's Menu/MenuText */
   /* translucent so Hyprland's popup blur (decoration.blur.popups, alpha
      above popups_ignorealpha 0.2) shows through, like rise's Frost panels */
-  --panel-background-color: color-mix(in srgb, var(--oxo-base01) 62%, transparent) !important;
+  --panel-background-color: color-mix(in srgb, var(--oxo-base01) var(--dots-glass-menu, 62%), transparent) !important;
   --panel-text-color: var(--oxo-base05) !important;
   --panel-separator-color: var(--oxo-base02) !important;
   /* the shadow margin would get blurred too: a fuzzy halo around the menu */

@@ -477,11 +477,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1792659872,
-        "narHash": "sha256-0yn7YG18SC6+h3vkJNDUda/esmBl6U1tu1LHIIXSknc=",
+        "lastModified": 1794481722,
+        "narHash": "sha256-0uGEqmQJsB4qjL4XqCXCZhV7uMhrV9roSG4J6LlTtlU=",
         "ref": "refs/heads/master",
-        "rev": "07602efe7a65dcef5399e22c162edf9fc331c46d",
-        "revCount": 70,
+        "rev": "0a3119bce10a9b7f389e9d99f9230430ae60c1de",
+        "revCount": 71,
         "submodules": true,
         "type": "git",
         "url": "https://github.com/WhySoBad/hyprland-preview-share-picker"

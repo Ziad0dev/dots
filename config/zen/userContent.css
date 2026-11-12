@@ -31,8 +31,10 @@
   color-scheme: light dark !important;
 }
 
+/* --dots-background: solid, or clear with glass on (zen-glass.css.in), so a
+   new tab is the bare window blur like Zen Internet's transparent sites */
 @-moz-document url("about:blank"), url("about:newtab"), url("about:home") {
-  :root, body { background: var(--dots-page, var(--dots-background)) !important; }
+  :root, body { background: var(--dots-background) !important; }
 }
 
 @-moz-document url-prefix("about:reader") {

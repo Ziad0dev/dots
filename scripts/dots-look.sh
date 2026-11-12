@@ -104,8 +104,10 @@ cmd_glass() {
         if [ "$(get glass)" = on ]; then want=off; else want=on; fi
     fi
     case "$want" in
-        on) put glass on ;;
-        off) put glass "" ;;
+        # glass without blur is just clear windows, so bring blur back with it
+        on) put glass on; put blur "" ;;
+        # "off", not removed: the shell watches this file for its corners
+        off) put glass off ;;
         status) if [ "$(get glass)" = on ]; then echo on; else echo off; fi; return ;;
         *) die "usage: dots-look glass [on|off|toggle|status]" ;;
     esac

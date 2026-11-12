@@ -214,7 +214,7 @@ PanelWindow {
         width: Math.min(720, win.width - 80)
         height: Math.min(560, win.height - 120)
         radius: 12
-        color: root.paper
+        color: root.cardFill
         border.width: 1
         border.color: root.sep
 

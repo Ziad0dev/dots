@@ -59,27 +59,29 @@
 @define-color error_fg_color ${background};
 
 /* translucent menus so Hyprland's popup blur shows through (GTK4 popovers
-   like Ghostty's right-click menu, GTK3 menus); keep above blur
-   popups_ignorealpha 0.2 */
-popover.menu > contents,
+   like Ghostty's right-click menu); keep above blur popups_ignorealpha 0.2.
+   Only the contents box: in GTK4 the popover itself carries .menu (and
+   .context-menu), so the GTK3 selectors below would paint it a second time
+   under the contents and stack the alpha (0.4 came out ~0.85 solid) */
 popover > contents,
-menu,
-.menu,
-.context-menu {
-  background-color: alpha(@popover_bg_color, 0.62);
+popover > arrow {
+  background-color: alpha(@popover_bg_color, ${glass_menu});
 }
 /* the shadow sits in a transparent margin that is part of the popup
    surface, so Hyprland blurred it as a box around the menu */
-popover > contents,
-menu,
-.menu,
-.context-menu {
+popover > contents {
   box-shadow: none;
   margin: 0;
 }
-popover > arrow {
-  background-color: alpha(@popover_bg_color, 0.62);
+/* gtk3-only:begin (GTK3 menus are their own menu nodes, no popover) */
+menu,
+.menu,
+.context-menu {
+  background-color: alpha(@popover_bg_color, ${glass_menu});
+  box-shadow: none;
+  margin: 0;
 }
+/* gtk3-only:end */
 
 /* Every GTK window translucent like the libadwaita ones, whatever the GTK
    theme: GTK 3 apps and plain GTK 4 apps (file choosers, pavucontrol, …) get

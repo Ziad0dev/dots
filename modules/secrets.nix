@@ -47,10 +47,12 @@ in
         pinentryPackage = pkgs.pinentry-qt;
         settings = {
           # the login password unlocks the key (pam-gnupg below) and every
-          # lock-screen unlock hands it over again, so 12h covers a working day
-          # without leaving pass open to any process for days on end
-          default-cache-ttl = 43200;
-          max-cache-ttl = 43200;
+          # lock-screen unlock hands it over again. 7 days: at 12h the key
+          # locked overnight and background readers of pass (gh in the bar's
+          # GitHub widget, via pass-secret-service) found no token and looked
+          # signed out
+          default-cache-ttl = 604800;
+          max-cache-ttl = 604800;
           no-allow-external-cache = "";
         };
       };

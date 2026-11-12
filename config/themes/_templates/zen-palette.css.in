@@ -1,6 +1,7 @@
 :root {
     --dots-color-scheme: ${scheme};
     --dots-glass: ${glass_chrome};
+    --dots-glass-menu: ${glass_menu_pct};
     /* the page background the site styles and blank tabs paint: solid, or
        see-through with `dots-look glass on` so the window blur shows */
     --dots-page: color-mix(in srgb, ${background} ${glass_page}, transparent);

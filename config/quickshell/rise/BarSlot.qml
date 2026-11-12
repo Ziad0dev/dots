@@ -88,14 +88,16 @@ PanelWindow {
     readonly property bool barOnTop: barSlot.root.barPosition !== "bottom"
     property bool pointerOnBar: false
     readonly property bool barShown: !autoHide || pointerOnBar
+                                     || barSlot.root.anyPopupVisible || barSlot.root.anchoredPanelVisible
+                                     || barSlot.root.openRouterVisible || barSlot.root.barUnlocked
     // a fullscreen window hides the Top layer this bar lives on, so anything
     // that only animates the strip (the particle layer) can stop meanwhile
     readonly property var hyprMonitor: Hyprland.monitorFor(barSlot.screen)
     readonly property bool underFullscreen: !!hyprMonitor && !!hyprMonitor.activeWorkspace
                                             && hyprMonitor.activeWorkspace.hasFullscreen
         || barSlot.root.anyPopupVisible || barSlot.root.barUnlocked
-    property real shownAmount: barShown ? 1 : 0
-    Behavior on shownAmount { Anim { kind: barSlot.barShown ? "spatial" : "exit" } }
+    // instant: no slide or fade, the bar is just there or not
+    readonly property real shownAmount: barShown ? 1 : 0
     readonly property int hiddenBand: barSlot.root.frameOn ? barSlot.root.frameThickness : 3
     readonly property real bandHeight: hiddenBand + (35 - hiddenBand) * Math.min(1, shownAmount)
     readonly property int inputBand: barShown ? 35 : hiddenBand + 2
@@ -112,7 +114,8 @@ PanelWindow {
             }
         }
     }
-    Timer { id: barHideDelay; interval: 450; onTriggered: barSlot.pointerOnBar = false }
+    // long enough to overshoot the strip or cross a gap between pills
+    Timer { id: barHideDelay; interval: 1500; onTriggered: barSlot.pointerOnBar = false }
 
     // ── the screen frame + melting panel backgrounds, and the frame-edge hover
     // triggers: their own fullscreen window under this one (FrameWindow.qml) ──

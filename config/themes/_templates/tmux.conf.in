@@ -7,3 +7,11 @@ set -g pane-active-border-style "fg=${accent}"
 set -g message-style "bg=${base01},fg=${foreground}"
 set -g message-command-style "bg=${base01},fg=${accent}"
 set -g mode-style "bg=${accent_container},fg=${foreground}"
+# menus (prefix right-click, display-menu) and popups: tmux 3.8 fills them
+# with its own grey; the terminal's own background, translucent in ghostty,
+# instead
+set -g menu-style "bg=default,fg=${foreground}"
+set -g menu-selected-style "bg=${accent},fg=${background}"
+set -g menu-border-style "fg=${base02}"
+set -g popup-style "bg=default,fg=${foreground}"
+set -g popup-border-style "fg=${base02}"

@@ -17,7 +17,7 @@ DERIVED_KEYS="dim muted surface accent_dim accent_container"
 
 # substituted verbatim (no _hex/_rgb variants)
 # glass_*: how see-through windows are; `dots-look glass` switches the set
-RAW_KEYS="border_colors scheme glass_window glass_view glass_bar glass_dialog glass_chrome glass_term glass_page"
+RAW_KEYS="border_colors scheme glass_window glass_view glass_bar glass_dialog glass_chrome glass_term glass_page glass_fill glass_raise glass_menu glass_menu_pct glass_hex"
 
 # dark or light, from the background's perceived brightness
 scheme_of() {
@@ -145,9 +145,11 @@ render_all() {
             scheme=$(scheme_of "$background")
             # shellcheck disable=SC2034
             if [ "$(head -n1 "${XDG_STATE_HOME:-$HOME/.local/state}/dots/hypr/glass" 2>/dev/null)" = on ]; then
-                glass_window=0.55 glass_view=0.15 glass_bar=0.3 glass_dialog=0.7 glass_chrome=55% glass_term=0.55 glass_page=60%
+                glass_window=0.55 glass_view=0.15 glass_bar=0.3 glass_dialog=0.7 glass_chrome=55% glass_term=0.55 glass_page=40%
+                glass_fill=transparent glass_raise=45% glass_menu=0.4 glass_menu_pct=40% glass_hex=80
             else
                 glass_window=0.85 glass_view=0.35 glass_bar=0.6 glass_dialog=0.85 glass_chrome=85% glass_term=0.85 glass_page=100%
+                glass_fill=$background glass_raise=100% glass_menu=0.62 glass_menu_pct=62% glass_hex=d9
             fi
             set +a
             envsubst "$varlist" <"$t"
@@ -196,7 +198,9 @@ shell_compat() {
         fi
     done
 
-    if wp=$(theme_wallpaper "$current"); then
+    # a re-render of the same theme (restyle, render: KEEP_WALLPAPER=1)
+    # keeps the wallpaper picked since; only `set` brings the theme's own back
+    if [ -z "${KEEP_WALLPAPER:-}" ] && wp=$(theme_wallpaper "$current"); then
         relink "$wp" "$root/background"
     elif wp=$(dots-current-wallpaper 2>/dev/null) && [ -n "$wp" ]; then
         relink "$wp" "$root/background"
@@ -286,6 +290,8 @@ zen_compat() {
         grep -o -E 'domain\("[^"]+"\)|url-prefix\("https?://[^"]+"\)' |
         sort -u | paste -sd, - | sed 's/,/, /g') || docs=""
     {
+        # first: the page colours for glass (zen-glass.css.in)
+        [ -f "$STATE/zen-glass.css" ] && cat "$STATE/zen-glass.css"
         if [ -n "$docs" ]; then
             # --dots-page: the theme background, see-through with glass on
             printf '@-moz-document %s {\n  html { background-color: var(--dots-page, var(--dots-background)) !important; }\n}\n\n' "$docs"
@@ -577,9 +583,9 @@ case "${1:-}" in
     next) cmd_step 1 ;;
     prev) cmd_step -1 ;;
     reload) cmd_set "$(cmd_current)" ;;
-    render) write_theme "$(cmd_current)" ;;
+    render) KEEP_WALLPAPER=1 write_theme "$(cmd_current)" ;;
     # re-render the current theme and reload apps, without the wallpaper step
-    restyle) write_theme "$(cmd_current)"; reload_apps ;;
+    restyle) KEEP_WALLPAPER=1 write_theme "$(cmd_current)"; reload_apps ;;
     bg) shift; cmd_bg "$@" ;;
     *) die "usage: themectl {set <name>|set auto [image]|current|list|next|prev|reload|render|bg [set <path>|next|prev]}" ;;
 esac

@@ -16,6 +16,7 @@ let
         coreutils
         dconf
         findutils
+        gawk # kvantum_compat merges the Kvantum config
         gettext
         gnugrep
         gnused

@@ -82,7 +82,7 @@ PanelWindow {
         width: 400
         height: col.implicitHeight + 40
         radius: root.pillRadius
-        color: root.paper
+        color: root.cardFill
         border.color: win.failed ? root.sealRaw : root.sep
         border.width: 1
         PillShadow { theme: root }

@@ -14,7 +14,7 @@ if util.state("glass") == "on" then
         general = { gaps_in = 5, gaps_out = 10, border_size = 0 },
         decoration = {
             rounding       = 14,
-            rounding_power = 3,
+            rounding_power = 2,   -- 2: round like the shell frame; Orbit's 3 reads almost square
             dim_inactive   = true,
             dim_strength   = 0.05,
             shadow = { enabled = true, range = 24, render_power = 3, color = "rgba(00000066)" },
@@ -22,10 +22,13 @@ if util.state("glass") == "on" then
                 size       = 10,
                 passes     = 3,
                 xray       = false,
-                brightness = 0.8,
+                -- Orbit darkens to 0.8; over a dark wallpaper and a 55% fill
+                -- that reads as plain black, not glass, so keep full brightness
+                -- and lift the wallpaper's colour a little instead
+                brightness = 1.0,
                 contrast   = 1.0,
-                noise      = 0.05,
-                vibrancy   = 0.1,
+                noise      = 0.04,
+                vibrancy   = 0.25,
             },
         },
     })
