@@ -19,3 +19,5 @@ palette = 12=${color12}
 palette = 13=${color13}
 palette = 14=${color14}
 palette = 15=${color15}
+# config/ghostty/config sets 0.85; `dots-look glass` lowers it
+background-opacity = ${glass_term}

@@ -111,6 +111,7 @@ HDR: the profile runs DP-1 in 10-bit HDR permanently. That costs compositor CPU 
 | `SUPER + ALT + A` | Animation preset picker |
 | `SUPER + ALT + S` | Screen shader picker |
 | `SUPER + ALT + B` | Blur on / off |
+| `SUPER + ALT + V` | Glass on / off: rounder borderless windows, heavier frosted blur, more see-through GTK / ghostty / Zen (`dots-look glass`) |
 
 ### Capture
 

@@ -48,6 +48,7 @@
   };
   sops.secrets = lib.mkIf config.dots.secrets.enable {
     restic-password.path = "/etc/restic/password";
+    soulseek-password.owner = username;
   };
 
   dots.recording.monitor = "DP-1";

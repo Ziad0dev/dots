@@ -11,8 +11,6 @@
 
   programs.steam = {
     enable = true;
-    # Steam with Millennium, for client themes (home/gaming-home.nix)
-    package = pkgs.millennium-steam;
     gamescopeSession.enable = true;
 
     extraCompatPackages = [

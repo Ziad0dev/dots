@@ -16,7 +16,8 @@ red green yellow blue magenta cyan pink"
 DERIVED_KEYS="dim muted surface accent_dim accent_container"
 
 # substituted verbatim (no _hex/_rgb variants)
-RAW_KEYS="border_colors scheme"
+# glass_*: how see-through windows are; `dots-look glass` switches the set
+RAW_KEYS="border_colors scheme glass_window glass_view glass_bar glass_dialog glass_chrome glass_term glass_page"
 
 # dark or light, from the background's perceived brightness
 scheme_of() {
@@ -142,6 +143,12 @@ render_all() {
             done
             # shellcheck disable=SC2034
             scheme=$(scheme_of "$background")
+            # shellcheck disable=SC2034
+            if [ "$(head -n1 "${XDG_STATE_HOME:-$HOME/.local/state}/dots/hypr/glass" 2>/dev/null)" = on ]; then
+                glass_window=0.55 glass_view=0.15 glass_bar=0.3 glass_dialog=0.7 glass_chrome=55% glass_term=0.55 glass_page=60%
+            else
+                glass_window=0.85 glass_view=0.35 glass_bar=0.6 glass_dialog=0.85 glass_chrome=85% glass_term=0.85 glass_page=100%
+            fi
             set +a
             envsubst "$varlist" <"$t"
         ) >"$out.tmp" || {
@@ -280,7 +287,8 @@ zen_compat() {
         sort -u | paste -sd, - | sed 's/,/, /g') || docs=""
     {
         if [ -n "$docs" ]; then
-            printf '@-moz-document %s {\n  html { background-color: var(--dots-background) !important; }\n}\n\n' "$docs"
+            # --dots-page: the theme background, see-through with glass on
+            printf '@-moz-document %s {\n  html { background-color: var(--dots-page, var(--dots-background)) !important; }\n}\n\n' "$docs"
         fi
         for f in "$sites"/*.css; do
             [ -f "$f" ] && cat "$f"
@@ -570,6 +578,8 @@ case "${1:-}" in
     prev) cmd_step -1 ;;
     reload) cmd_set "$(cmd_current)" ;;
     render) write_theme "$(cmd_current)" ;;
+    # re-render the current theme and reload apps, without the wallpaper step
+    restyle) write_theme "$(cmd_current)"; reload_apps ;;
     bg) shift; cmd_bg "$@" ;;
     *) die "usage: themectl {set <name>|set auto [image]|current|list|next|prev|reload|render|bg [set <path>|next|prev]}" ;;
 esac

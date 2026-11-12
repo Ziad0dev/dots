@@ -98,9 +98,27 @@ cmd_blur() {
     notify "Blur" "$want"
 }
 
+cmd_glass() {
+    local want="${1:-toggle}"
+    if [ "$want" = toggle ]; then
+        if [ "$(get glass)" = on ]; then want=off; else want=on; fi
+    fi
+    case "$want" in
+        on) put glass on ;;
+        off) put glass "" ;;
+        status) if [ "$(get glass)" = on ]; then echo on; else echo off; fi; return ;;
+        *) die "usage: dots-look glass [on|off|toggle|status]" ;;
+    esac
+    hyprctl reload >/dev/null
+    # GTK, ghostty and Zen take their see-through amounts from the theme files
+    command -v themectl >/dev/null && themectl restyle >/dev/null 2>&1 || true
+    notify "Glass $want" "Zen picks it up when restarted"
+}
+
 case "${1:-}" in
     anim) shift; cmd_anim "$@" ;;
     shader) shift; cmd_shader "$@" ;;
     blur) shift; cmd_blur "$@" ;;
-    *) die "usage: dots-look {anim [pick|list|<name>] | shader [pick|list|off|<name>] | blur [on|off|toggle|status]}" ;;
+    glass) shift; cmd_glass "$@" ;;
+    *) die "usage: dots-look {anim [pick|list|<name>] | shader [pick|list|off|<name>] | blur [on|off|toggle|status] | glass [on|off|toggle|status]}" ;;
 esac

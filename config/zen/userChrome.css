@@ -24,9 +24,16 @@
   --zen-colors-border: var(--oxo-base02) !important;
 
   /* translucent chrome (zen.widget.linux.transparency, set by
-     zen-theme-link.sh) so Hyprland's blur shows through, 85% like ghostty */
-  --zen-main-browser-background: color-mix(in srgb, var(--oxo-base00) 85%, transparent) !important;
-  --toolbar-bgcolor: color-mix(in srgb, var(--oxo-base00) 85%, transparent) !important;
+     zen-theme-link.sh) so Hyprland's blur shows through: --dots-glass from
+     the palette, 85% like ghostty, 55% with `dots-look glass on` */
+  --dots-glass-fill: color-mix(in srgb, var(--oxo-base00) var(--dots-glass, 85%), transparent);
+  --dots-glass-raised: color-mix(in srgb, var(--oxo-base01) 60%, transparent);
+  --zen-main-browser-background: var(--dots-glass-fill) !important;
+  --zen-main-browser-background-toolbar: var(--dots-glass-fill) !important;
+  --toolbar-bgcolor: transparent !important;
+  /* under the page itself: a see-through page (blank tab, site styles with
+     glass on) shows the window blur, not a grey panel */
+  --tabpanel-background-color: transparent !important;
   --toolbar-color: var(--oxo-base05) !important;
   --lwt-accent-color: var(--oxo-base00) !important;
   --lwt-text-color: var(--oxo-base05) !important;
@@ -34,29 +41,35 @@
   --arrowpanel-color: var(--oxo-base05) !important;
   --arrowpanel-border-color: var(--oxo-base02) !important;
   --toolbarbutton-icon-fill: var(--oxo-base04) !important;
-  --urlbar-box-bgcolor: var(--oxo-base01) !important;
+  --urlbar-box-bgcolor: var(--dots-glass-raised) !important;
   --urlbar-box-text-color: var(--oxo-base05) !important;
 }
 
+/* the one translucent fill is --zen-main-browser-background behind all of
+   these; filling them too would stack into an opaque frame */
 #navigator-toolbox,
 #titlebar,
 #zen-sidebar-box,
-#zen-tabbox-wrapper {
-  background-color: var(--oxo-base00) !important;
+#zen-tabbox-wrapper,
+#tabbrowser-tabpanels,
+.browserSidebarContainer,
+.browserContainer,
+.browserStack {
+  background-color: transparent !important;
 }
 
 .tabbrowser-tab[selected] .tab-background {
-  background: var(--oxo-base01) !important;
+  background: var(--dots-glass-raised) !important;
   border-bottom: 2px solid var(--oxo-pink) !important;
 }
 .tabbrowser-tab:not([selected]):hover .tab-background {
-  background: var(--oxo-base01) !important;
+  background: color-mix(in srgb, var(--oxo-base01) 40%, transparent) !important;
 }
 .tabbrowser-tab .tab-label { color: var(--oxo-base04) !important; }
 .tabbrowser-tab[selected] .tab-label { color: var(--oxo-base05) !important; }
 
 #urlbar-background {
-  background-color: var(--oxo-base01) !important;
+  background-color: var(--dots-glass-raised) !important;
   border: 1px solid var(--oxo-base02) !important;
 }
 #urlbar[focused] #urlbar-background {

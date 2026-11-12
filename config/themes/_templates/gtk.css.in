@@ -22,16 +22,17 @@
 @define-color visited_link_color ${magenta};
 
 /* libadwaita/adw-gtk3 surfaces are translucent so Hyprland's blur shows
-   through (window 0.85 like ghostty's background-opacity; inner layers stack
-   on it). theme_* above stay opaque: GTK3 legacy apps and Zen read those. */
-@define-color window_bg_color alpha(${background}, 0.85);
+   through (window like ghostty's background-opacity; inner layers stack on
+   it; the glass_* amounts come from themectl, `dots-look glass` raises them).
+   theme_* above stay opaque: GTK3 legacy apps and Zen read those. */
+@define-color window_bg_color alpha(${background}, ${glass_window});
 @define-color window_fg_color ${foreground};
-@define-color view_bg_color alpha(${background}, 0.35);
+@define-color view_bg_color alpha(${background}, ${glass_view});
 @define-color view_fg_color ${foreground};
-@define-color headerbar_bg_color alpha(${surface}, 0.6);
+@define-color headerbar_bg_color alpha(${surface}, ${glass_bar});
 @define-color headerbar_fg_color ${foreground};
 @define-color headerbar_border_color ${dim};
-@define-color headerbar_backdrop_color alpha(${background}, 0.6);
+@define-color headerbar_backdrop_color alpha(${background}, ${glass_bar});
 @define-color sidebar_bg_color alpha(${surface}, 0.5);
 @define-color sidebar_fg_color ${foreground};
 @define-color sidebar_backdrop_color alpha(${background}, 0.5);
@@ -40,7 +41,7 @@
 @define-color secondary_sidebar_fg_color ${foreground};
 @define-color card_bg_color alpha(${surface}, 0.5);
 @define-color card_fg_color ${foreground};
-@define-color dialog_bg_color alpha(${surface}, 0.85);
+@define-color dialog_bg_color alpha(${surface}, ${glass_dialog});
 @define-color dialog_fg_color ${foreground};
 @define-color popover_bg_color ${surface};
 @define-color popover_fg_color ${foreground};

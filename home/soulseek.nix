@@ -1,4 +1,9 @@
-{ pkgs, config, ... }:
+{
+  pkgs,
+  config,
+  username,
+  ...
+}:
 let
   staging = "/mnt/media/slsk";
 
@@ -222,7 +227,10 @@ in
   };
 
   xdg.dataFile."nicotine/plugins/dots_bridge".source = ../scripts/nicotine-bridge;
-
+  xdg.configFile."soulseek-rs/config.toml".text = ''
+    username = "${username}"
+    password_cmd = "cat /run/secrets/soulseek-password"
+  '';
   programs.beets = {
     enable = true;
     settings = {

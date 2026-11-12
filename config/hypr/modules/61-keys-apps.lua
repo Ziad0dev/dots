@@ -28,6 +28,7 @@ hl.bind(mod .. " + SHIFT + V", hl.dsp.exec_cmd("qs -c rise ipc call clipboard to
 hl.bind(mod .. " + ALT + A", hl.dsp.exec_cmd("dots-look anim pick"))
 hl.bind(mod .. " + ALT + S", hl.dsp.exec_cmd("dots-look shader pick"))
 hl.bind(mod .. " + ALT + B", hl.dsp.exec_cmd("dots-look blur toggle"))
+hl.bind(mod .. " + ALT + V", hl.dsp.exec_cmd("dots-look glass toggle"))
 hl.bind(mod .. " + ALT + M", hl.dsp.exec_cmd("dots-songrec"))
 hl.bind(mod .. " + ALT + G", hl.dsp.exec_cmd("dots-lens"))
 -- dots-say is only installed with dots.tts.enable (home/desktop-tools.nix)
