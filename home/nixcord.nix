@@ -47,7 +47,9 @@ in
       openASAR.enable = false;
       commandLineArgs = [
         "--disable-features=WaylandWpColorManagerV1,EnableDrDc"
-
+        # NVIDIA + Wayland: GPU compositing hands Hyprland empty frames, so the
+        # window flashes see-through then black every few seconds
+        "--disable-gpu-compositing"
       ];
     };
 
