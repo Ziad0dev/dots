@@ -73,7 +73,10 @@ in
       ExecStart = pkgs.writeShellScript "hello-page-serve" ''
         i=0
         while [ $i -lt 60 ]; do
-          if ${pkgs.tailscale}/bin/tailscale status --json >/dev/null 2>&1; then
+          # `status --json` exits 0 even while the backend is still NoState/Starting,
+          # and `serve` refuses to run until it's Running, so wait for that
+          state=$(${pkgs.tailscale}/bin/tailscale status --json 2>/dev/null | ${pkgs.jq}/bin/jq -r .BackendState)
+          if [ "$state" = Running ]; then
             exec ${pkgs.tailscale}/bin/tailscale serve --bg --https 443 http://127.0.0.1:${toString port}
           fi
           ${pkgs.coreutils}/bin/sleep 2
