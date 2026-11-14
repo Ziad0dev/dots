@@ -6,6 +6,8 @@
 }:
 let
   staging = "/mnt/media/slsk";
+  # `music-scout playlists` writes here; Tauon reads it (home/flatpak.nix)
+  playlists = "/mnt/media/playlists";
 
   python = pkgs.python3.withPackages (ps: [
     ps.mutagen
@@ -22,10 +24,13 @@ let
   };
 
   # new releases from library artists, and similar artists (the bar's media
-  # panel calls `music-scout similar --json`)
+  # panel calls `music-scout similar --json`); the Spotify export's playlists
   music-scout = pkgs.writeShellApplication {
     name = "music-scout";
-    text = ''exec ${python}/bin/python3 ${../scripts/music-scout.py} "$@"'';
+    text = ''
+      export MUSIC_SCOUT_PLAYLISTS="''${MUSIC_SCOUT_PLAYLISTS:-${playlists}}"
+      exec ${python}/bin/python3 ${../scripts/music-scout.py} "$@"
+    '';
   };
 
   # Open a search tab in Nicotine+, starting it if need be. The Discover panel
@@ -72,6 +77,7 @@ let
     name = "music-fill";
     runtimeInputs = [
       album-doctor
+      music-scout
       config.programs.beets.package
       pkgs.findutils
       pkgs.gnugrep
@@ -102,6 +108,8 @@ let
       clean
       beet import -q -g ${staging} || true
 
+      music-scout playlists --quiet || true
+
       echo "== report"
       album-doctor "$@" > "$report" 2>/dev/null || true
       tail -n 1 "$report"
@@ -116,6 +124,7 @@ let
     name = "slsk-import";
     runtimeInputs = [
       config.programs.beets.package
+      pkgs.systemd
       pkgs.coreutils
       pkgs.findutils
       pkgs.util-linux
@@ -138,6 +147,10 @@ let
       # one beets run at a time; the library is a single sqlite db
       flock "''${XDG_RUNTIME_DIR:-/tmp}/slsk-import.lock" beet import -q "$dest" || true
       find "$dest" -depth -type d -empty -delete 2>/dev/null || true
+      # the Spotify playlists (Tauon, Jellyfin) fill in with what just arrived.
+      # Queued, not run here: a batch of folders merges into one refresh, and
+      # the beets lock isn't held through a full Jellyfin sync
+      systemctl --user start --no-block music-playlists.service || true
 
       if [ -d "$dest" ]; then
         notify-send -a "$app" "beets skipped: $name" "left in ${staging}, run: beet import ${staging}" || true
@@ -224,6 +237,28 @@ in
       Type = "oneshot";
       ExecStart = "${music-buy-import}/bin/music-buy-import";
     };
+  };
+
+  # On Repeat follows ListenBrainz (Tauon scrobbles there), so it is remade
+  # daily even when nothing was imported
+  systemd.user.services.music-playlists = {
+    Unit = {
+      Description = "Refresh the playlists made from the Spotify export";
+      RequiresMountsFor = [ "/mnt/media" ];
+    };
+    Service = {
+      Type = "oneshot";
+      ExecStart = "${music-scout}/bin/music-scout playlists --quiet";
+    };
+  };
+  systemd.user.timers.music-playlists = {
+    Unit.Description = "Refresh the Spotify-export playlists daily";
+    Timer = {
+      OnCalendar = "daily";
+      Persistent = true;
+      RandomizedDelaySec = "1h";
+    };
+    Install.WantedBy = [ "timers.target" ];
   };
 
   xdg.dataFile."nicotine/plugins/dots_bridge".source = ../scripts/nicotine-bridge;

@@ -5,10 +5,15 @@
   music-scout similar ARTIST     artists like ARTIST (ListenBrainz), owned ones marked
   music-scout foryou             artists the library lacks, ranked by how many
                                  library artists they resemble
-  music-scout spotify ZIP        read a Spotify "extended streaming history" export;
-                                 foryou then weighs artists by how much they were
-                                 played, and `missing` has something to list
-  music-scout missing            most-played Spotify albums the library lacks
+  music-scout spotify ZIP...     read Spotify exports: the "extended streaming
+                                 history" (plays; foryou then weighs artists by them)
+                                 and/or the account data (playlists, liked songs,
+                                 saved albums)
+  music-scout playlists          the Spotify playlists, liked songs and mixes made
+                                 from the plays, as .m3u8 files of the tracks the
+                                 library has; rerun after an import and they grow
+  music-scout missing            the Spotify albums the library lacks, the most
+                                 played / liked / saved first
   music-scout buylist            the same as a page of Bandcamp / Qobuz store links
   music-scout weekly             this week's ListenBrainz playlist made for you
                                  (needs the user token, one line, in
@@ -16,6 +21,7 @@
 """
 import argparse
 import datetime
+import fcntl
 import hashlib
 import html
 import json
@@ -27,6 +33,7 @@ import subprocess
 import sys
 import time
 import unicodedata
+import urllib.error
 import urllib.parse
 import urllib.request
 import zipfile
@@ -41,7 +48,16 @@ TOKEN = Path(os.environ.get("XDG_CONFIG_HOME", HOME / ".config")) / "music-scout
 LB = "https://api.listenbrainz.org/1/"
 # listening history is personal and not re-derivable: kept out of the cache
 PLAYS = Path(os.environ.get("XDG_DATA_HOME", HOME / ".local/share")) / "music-scout/plays.json"
-UA = "music-scout/1.0 (https://github.com/Ziad0dev/dots)"
+# playlists, liked songs and saved albums from the account data export
+SAVED = PLAYS.with_name("spotify-library.json")
+PLAYLISTS = Path(os.environ.get("MUSIC_SCOUT_PLAYLISTS", HOME / "Music/Playlists"))
+# the same playlists on Jellyfin, for the phone: an API key (Dashboard > API
+# Keys), one line; without it `playlists` only writes the files
+JF_TOKEN = TOKEN.with_name("jellyfin-token")
+JELLYFIN = os.environ.get("MUSIC_SCOUT_JELLYFIN", "http://127.0.0.1:8096").rstrip("/")
+# which Jellyfin playlist is which of ours, so ours are updated, never anyone else's
+JF_STATE = PLAYS.with_name("jellyfin-playlists.json")
+UA ="music-scout/1.0 (https://github.com/Ziad0dev/dots)"
 VARIOUS = "89ad4ac3-39f7-470e-963a-56509c546377"
 # the session-based model ListenBrainz's own artist pages use
 ALGO = ("session_based_days_7500_session_300_contribution_5_"
@@ -60,12 +76,59 @@ def edition(album):
     return norm(re.sub(r"\s*[\(\[].*?[\)\]]", "", album or "")) or norm(album)
 
 
+# Spotify credits the first artist only; beets has "A feat. B". A guest credit
+# never belongs to the name; "&", "," and " x " are often part of it ("Simon &
+# Garfunkel", "Earth, Wind & Fire"), so those only count when the album agrees
+GUEST = re.compile(r"\s+(?:feat\.?|ft\.|featuring|with|vs\.?)\s+", re.I)
+JOINT = re.compile(r"\s+(?:x|&)\s+|\s*[,;/]\s+", re.I)
+# a bracket or " - " tail naming a release of the same recording...
+SAME = re.compile(r"remaster|\bfeat\b|ft\.|featuring|\bwith\b|single version|album version"
+                  r"|original version|\bmono\b|\bstereo\b|bonus track|explicit|radio edit", re.I)
+# ...unless it is another performance or another mix ("Live with the LSO")
+OTHER = re.compile(r"\blive\b|remix|\bmix\b|rework|\bdemo\b|acoustic|instrumental|unplugged"
+                   r"|session|\bcover\b|extended|\bdub\b|reprise|orchestral|a ?cappella", re.I)
+TAIL = re.compile(r"\s*(?:\(([^()]*)\)|\[([^\[\]]*)\]|\s-\s+([^-]+))\s*$")
+
+
+def primary(artist):
+    """'A feat. B': A."""
+    return norm(GUEST.split(artist or "", maxsplit=1)[0]) or norm(artist)
+
+
+def lead(artist):
+    """'A & B', 'A, B', 'A x B': A. Wrong for some band names; see JOINT."""
+    return norm(JOINT.split(GUEST.split(artist or "", maxsplit=1)[0], maxsplit=1)[0]) or norm(artist)
+
+
+def song(title):
+    """'Song - 2011 Remaster', 'Song (feat. X)' and 'Song' are one recording;
+    'Song - Live' and 'Song (Remix) [feat. X]' are not."""
+    t = title or ""
+    while m := TAIL.search(t):
+        part = next(g for g in m.groups() if g is not None)
+        if not SAME.search(part) or OTHER.search(part):
+            break
+        t = t[:m.start()]
+    return norm(t) or norm(title)
+
+
 def plays():
     """What `spotify` stored: {"artists": {norm name: [name, score, plays]},
-    "albums": [[artist, album, score, plays], ...]}; empty before an import."""
+    "albums": [[artist, album, score, plays], ...],
+    "tracks": [[artist, title, album, plays, last ts, plays in its last 90
+    days, {year: plays}], ...]}; empty before an import."""
     if not PLAYS.exists():
-        return {"artists": {}, "albums": []}
+        return {"artists": {}, "albums": [], "tracks": []}
     return json.loads(PLAYS.read_text())
+
+
+def saved():
+    """What `spotify` stored from the account data: {"tracks": [[artist, title,
+    album], ...], "liked": [track index, ...], "albums": [[artist, album], ...],
+    "playlists": [{"name", "modified", "tracks": [track index, ...]}, ...]}."""
+    if not SAVED.exists():
+        return {"tracks": [], "liked": [], "albums": [], "playlists": []}
+    return json.loads(SAVED.read_text())
 
 
 def save(f, text):
@@ -73,7 +136,7 @@ def save(f, text):
     may be reading the file another is replacing."""
     f.parent.mkdir(parents=True, exist_ok=True)
     tmp = f.with_name(f"{f.name}.{os.getpid()}.tmp")
-    tmp.write_text(text)
+    tmp.write_text(text, encoding="utf-8")
     os.replace(tmp, f)
 
 
@@ -205,12 +268,10 @@ def get_json(url, token=""):
         return json.load(r)
 
 
-def cmd_weekly(args):
-    """ListenBrainz builds these every Monday from the account's listens:
-    weekly-exploration is music it thinks you'd like and haven't played,
-    weekly-jams is your own favourites."""
+def lb_account(user=""):
+    """(user name, token) for ListenBrainz; the name is "" without a token
+    that works, unless one was given."""
     token = TOKEN.read_text().strip() if TOKEN.exists() else ""
-    user = args.user
     if not user and token:
         def whoami():
             name = get_json(LB + "validate-token", token).get("user_name")
@@ -221,6 +282,48 @@ def cmd_weekly(args):
             user = cached("lbuser:" + token, 30 * 86400, whoami)
         except (OSError, ValueError) as e:
             print(e, file=sys.stderr)
+    return user, token
+
+
+def recent_listens(days):
+    """[[artist, title, album, listens], ...] from ListenBrainz over the last
+    `days` days: Tauon's scrobbles, and the Spotify years imported there.
+    None without an account or a connection."""
+    user, token = lb_account()
+    if not user:
+        return None
+
+    def fetch():
+        since = int(time.time()) - days * 86400
+        upto, counts = int(time.time()) + 1, {}
+        while True:                 # newest first, a page at a time
+            got = get_json(LB + f"user/{urllib.parse.quote(user)}/listens?"
+                           + urllib.parse.urlencode({"max_ts": upto, "count": 1000}),
+                           token)["payload"]["listens"]
+            for listen in got:
+                if listen["listened_at"] < since:
+                    return list(counts.values())
+                m = listen.get("track_metadata", {})
+                a, t = m.get("artist_name") or "", m.get("track_name") or ""
+                c = counts.setdefault((primary(a), song(t)),
+                                      [a, t, m.get("release_name") or "", 0])
+                c[3] += 1
+            if not got:
+                return list(counts.values())
+            upto = got[-1]["listened_at"]
+            time.sleep(0.2)
+    try:
+        return cached(f"recent:{user}:{days}", 6 * 3600, fetch)
+    except (OSError, ValueError, KeyError) as e:
+        print(f"ListenBrainz listens: {e}", file=sys.stderr)
+        return None
+
+
+def cmd_weekly(args):
+    """ListenBrainz builds these every Monday from the account's listens:
+    weekly-exploration is music it thinks you'd like and haven't played,
+    weekly-jams is your own favourites."""
+    user, token = lb_account(args.user)
     out = {"title": "", "tracks": []}
     if user:
         try:
@@ -306,26 +409,31 @@ def listeners(mbids):
         return {}
 
 
-def cmd_spotify(args):
-    src = Path(args.export)
-    rows = []
+def export_json(src, pattern):
+    """The files of a Spotify export (the zip, or the folder unpacked from
+    it) whose path matches pattern, parsed."""
+    src = Path(src)
     if src.is_dir():
-        for f in sorted(src.rglob("Streaming_History_Audio_*.json")):
-            rows += json.loads(f.read_text())
-    else:
-        with zipfile.ZipFile(src) as z:
-            for n in sorted(z.namelist()):
-                if re.search(r"Streaming_History_Audio_[^/]*\.json$", n):
-                    rows += json.loads(z.read(n))
+        return [json.loads(f.read_bytes()) for f in sorted(src.rglob("*.json"))
+                if re.search(pattern, f.as_posix())]
+    with zipfile.ZipFile(src) as z:
+        return [json.loads(z.read(n)) for n in sorted(z.namelist()) if re.search(pattern, n)]
+
+
+def read_history(rows, src):
     # under 30 seconds is a skip, not a listen
     rows = [r for r in rows if r.get("master_metadata_track_name")
             and r.get("master_metadata_album_artist_name")
             and (r.get("ms_played") or 0) >= 30000]
     if not rows:
-        sys.exit(f"no Streaming_History_Audio_*.json plays in {src}")
+        print(f"no plays of 30 seconds or more in the streaming history in {src}",
+              file=sys.stderr)
+        return
     newest = max(r["ts"] for r in rows)
     year_ago = str(int(newest[:4]) - 1) + newest[4:]
-    artists, albums = {}, {}
+    recent = (datetime.datetime.fromisoformat(newest) - datetime.timedelta(days=90)
+              ).strftime("%Y-%m-%dT%H:%M:%SZ")
+    artists, albums, tracks = {}, {}, {}
     for r in rows:
         # the last year counts four times over: taste now, not in 2019
         gain = 4 if r["ts"] >= year_ago else 1
@@ -340,13 +448,97 @@ def cmd_spotify(args):
             b[3] += 1
             if len(album) < len(b[1]):      # show the plainest edition's title
                 b[1] = album
+        title = r["master_metadata_track_name"]
+        t = tracks.setdefault((primary(name), song(title)), [name, title, album, 0, "", 0, {}])
+        t[3] += 1
+        t[4] = max(t[4], r["ts"])
+        t[5] += r["ts"] >= recent
+        t[6][r["ts"][:4]] = t[6].get(r["ts"][:4], 0) + 1
     save(PLAYS, json.dumps({
         "through": newest,
         "artists": {k: v for k, v in artists.items() if v[2] >= 3},
         "albums": sorted((b for b in albums.values() if b[3] >= 5),
-                         key=lambda b: b[2], reverse=True)}, ensure_ascii=False))
+                         key=lambda b: b[2], reverse=True),
+        "tracks": sorted((t for t in tracks.values() if t[3] >= 2),
+                         key=lambda t: t[3], reverse=True)}, ensure_ascii=False))
     print(f"{len(rows)} plays of {len(artists)} artists through {newest[:10]} -> {PLAYS}",
           file=sys.stderr)
+
+
+# saved copies of Spotify's own mixes: its taste, not yours
+NOT_MINE = re.compile(r"(?:\sRadio|^Daily Mix \d+|^Discover Weekly|^Release Radar)$", re.I)
+
+
+def read_account(lists, library):
+    table, index = [], {}
+
+    def ref(artist, title, album):
+        key = (primary(artist), song(title), edition(album))
+        if key not in index:
+            index[key] = len(table)
+            table.append([artist, title, album])
+        return index[key]
+
+    def item(i):
+        if t := i.get("track"):
+            return ref(t.get("artistName", ""), t.get("trackName", ""), t.get("albumName", ""))
+        # a file played from the computer: spotify:local:artist:album:title:seconds
+        parts = (i.get("localTrack") or {}).get("uri", "").split(":")
+        if len(parts) >= 5 and parts[4]:
+            a, b, t = (urllib.parse.unquote_plus(p) for p in parts[2:5])
+            return ref(a, t, b)
+        return None
+
+    # "Name (2)" is a second copy of Name, and the export lists some playlists
+    # more than once: one playlist per name, newest version's order first
+    groups = {}
+    for p in lists:
+        name = re.sub(r"\s*\(\d+\)$", "", (p.get("name") or "").strip()) or "Untitled"
+        if not NOT_MINE.search(name):
+            groups.setdefault(name, []).append(p)
+    out = []
+    for name, versions in groups.items():
+        versions.sort(key=lambda p: p.get("lastModifiedDate") or "", reverse=True)
+        seen, refs = set(), []
+        for p in versions:
+            for i in p.get("items", []):
+                r = item(i)
+                if r is not None and r not in seen:
+                    seen.add(r)
+                    refs.append(r)
+        if refs:
+            out.append({"name": name, "modified": versions[0].get("lastModifiedDate") or "",
+                        "tracks": refs})
+    out.sort(key=lambda p: p["modified"], reverse=True)
+    liked = [ref(t.get("artist", ""), t.get("track", ""), t.get("album", ""))
+             for t in library.get("tracks", [])]
+    albums = [[a.get("artist", ""), a.get("album", "")] for a in library.get("albums", [])]
+    save(SAVED, json.dumps({"tracks": table, "liked": liked, "albums": albums,
+                            "playlists": out}, ensure_ascii=False))
+    print(f"{len(out)} playlists, {len(liked)} liked songs, {len(albums)} saved albums "
+          f"-> {SAVED}", file=sys.stderr)
+
+
+def cmd_spotify(args):
+    # several exports are read as one: history from two requests adds up (a
+    # play in both counts once), and each kind of file is written once
+    history, lists, library = {}, [], {}
+    for src in args.export:
+        for part in export_json(src, r"Streaming_History_Audio_[^/]*\.json$"):
+            for r in part:
+                history[(r.get("ts"), r.get("spotify_track_uri")
+                       or r.get("master_metadata_track_name"), r.get("ms_played"))] = r
+        lists += [p for part in export_json(src, r"/Playlist\d+\.json$")
+                  for p in part.get("playlists", [])]
+        for lib in export_json(src, r"/YourLibrary\.json$"):
+            library = lib
+    if not (history or lists or library):
+        sys.exit("no Streaming_History_Audio_*.json, Playlist*.json or YourLibrary.json in "
+                 + ", ".join(args.export))
+    if history:
+        read_history(list(history.values()), ", ".join(args.export))
+    if lists or library:
+        read_account(lists, library)
 
 
 def stores(artist, album):
@@ -357,12 +549,51 @@ def stores(artist, album):
 
 
 def missing(limit, min_plays=0):
+    """The albums the library lacks that were played at least min_plays
+    times, saved, or have three liked songs; the ones that mattered most first."""
     db = sqlite3.connect(f"file:{LIBRARY}?mode=ro", uri=True)
     owned = {(norm(a), edition(b)) for a, b in db.execute(
         "select albumartist, album from albums union select artist, album from items")}
-    return [{"artist": a, "album": b, "plays": n, **stores(a, b)}
-            for a, b, _, n in plays()["albums"]
-            if n >= min_plays and (norm(a), edition(b)) not in owned][:limit]
+    want = {}
+
+    def entry(artist, album, score=0, n=0):
+        return want.setdefault((norm(artist), edition(album)), {
+            "artist": artist, "album": album, "plays": n, "liked": 0, "saved": False,
+            "listed": 0, "score": score})
+    for a, b, score, n in plays()["albums"]:
+        entry(a, b, score, n)
+    lib = saved()
+    for i in lib["liked"]:
+        a, _, b = lib["tracks"][i]
+        if b:
+            entry(a, b)["liked"] += 1
+    for a, b in lib["albums"]:
+        if b:
+            entry(a, b)["saved"] = True
+    for i in {i for p in lib["playlists"] for i in p["tracks"]}:
+        a, _, b = lib["tracks"][i]
+        if b:
+            entry(a, b)["listed"] += 1
+    out = []
+    for key, w in want.items():
+        # only in a playlist or two isn't enough on its own
+        played = w["plays"] > 0 and w["plays"] >= min_plays
+        if key in owned or not (played or w["saved"] or w["liked"] >= 3):
+            continue
+        # the plays score already counts the last year four times over; a box
+        # set's two hundred liked tracks shouldn't outweigh years of plays
+        w["score"] += 25 * min(w["liked"], 12) + 80 * w["saved"] + 3 * min(w["listed"], 20)
+        out.append({**w, "why": why(w), **stores(w["artist"], w["album"])})
+    out.sort(key=lambda w: w["score"], reverse=True)
+    return out[:limit]
+
+
+def why(w):
+    """'420 plays · 6 liked · saved'"""
+    return " · ".join(s for s in (
+        f"{w['plays']} plays" if w["plays"] else "",
+        f"{w['liked']} liked" if w["liked"] else "",
+        "saved" if w["saved"] else "") if s)
 
 
 PAGE = """<!doctype html><html lang="en"><meta charset="utf-8">
@@ -385,7 +616,7 @@ tr.done td { opacity: .35; } tr.done b { text-decoration: line-through; }
 input { accent-color: var(--link); }
 </style><main>
 <h1>Albums to buy</h1>
-<p>__COUNT__ albums you played on Spotify at least __MIN__ times and don't have in the library, most played first. Tick one off once it's bought; ticks are remembered in this browser.</p>
+<p>__COUNT__ albums from Spotify that aren't in the library: played at least __MIN__ times, saved, or with three or more liked songs. The ones you played, liked and saved most come first. Tick one off once it's bought; ticks are remembered in this browser.</p>
 <table>__ROWS__</table></main>
 <script>
 for (const box of document.querySelectorAll("input")) {
@@ -402,12 +633,12 @@ for (const box of document.querySelectorAll("input")) {
 
 
 def cmd_buylist(args):
-    if not PLAYS.exists():
-        sys.exit("no listening history yet: music-scout spotify my_spotify_data.zip")
+    if not (PLAYS.exists() or SAVED.exists()):
+        sys.exit("no Spotify data yet: music-scout spotify my_spotify_data.zip")
     e = html.escape
     rows = "".join(
         f'<tr><td><input type="checkbox" data-k="{e(norm(g["artist"]) + "/" + edition(g["album"]))}"></td>'
-        f'<td class="n">{g["plays"]}</td>'
+        f'<td class="n">{e(g["why"])}</td>'
         f'<td><b>{e(g["album"])}</b><small>{e(g["artist"])}</small></td>'
         f'<td class="l"><a href="{e(g["bandcamp"])}">Bandcamp</a><a href="{e(g["qobuz"])}">Qobuz</a></td></tr>'
         for g in missing(100000, args.min_plays))
@@ -420,15 +651,319 @@ def cmd_buylist(args):
                          stderr=subprocess.DEVNULL, start_new_session=True)
 
 
+def music_dir():
+    """beets' `directory`: its paths are relative to it."""
+    try:
+        conf = (Path(os.environ.get("XDG_CONFIG_HOME", HOME / ".config"))
+                / "beets/config.yaml").read_text()
+        if m := re.search(r"^directory:\s*['\"]?(.+?)['\"]?\s*$", conf, re.M):
+            return Path(m.group(1)).expanduser()
+    except OSError:
+        pass
+    return HOME / "Music"
+
+
+# lossless first, when the library has a recording more than once
+FORMATS = {"FLAC": 0, "ALAC": 0, "AIFF": 1, "WAVE": 1, "Opus": 2, "OGG": 2, "AAC": 3, "MP3": 3}
+
+
+class Shelf:
+    """The library's files by (artist, recording)."""
+
+    def __init__(self):
+        if not LIBRARY.exists():
+            sys.exit(f"no beets library at {LIBRARY}")
+        root = music_dir()
+        db = sqlite3.connect(f"file:{LIBRARY}?mode=ro", uri=True)
+        self.by, self.joint = {}, {}
+        for path, artist, albumartist, title, album, length, fmt in db.execute(
+                "select path, artist, albumartist, title, album, length, format from items"):
+            p = Path(os.fsdecode(path))
+            row = (edition(album), FORMATS.get(fmt, 4), str(p if p.is_absolute() else root / p),
+                   artist, title, round(length or 0))
+            names = {norm(artist), primary(artist), norm(albumartist), primary(albumartist)}
+            for a in names - {""}:
+                self.by.setdefault((a, song(title)), []).append(row)
+            for a in {lead(artist), lead(albumartist)} - names - {""}:
+                self.joint.setdefault((a, song(title)), []).append(row)
+
+    def find(self, artist, title, album=""):
+        """The file for a track, the same album's if there's a choice; None if missing."""
+        ed = edition(album)
+        rows = (self.by.get((norm(artist), song(title)))
+                or self.by.get((primary(artist), song(title)))
+                or [r for r in self.joint.get((lead(artist), song(title)), []) if r[0] == ed])
+        if not rows:
+            return None
+        return min(rows, key=lambda r: (r[0] != ed, r[1]))
+
+    def pick(self, tracks, limit=None):
+        """The files for (artist, title, album, ...) in order, once each."""
+        out, seen = [], set()
+        for t in tracks:
+            r = self.find(*t[:3])
+            if r and r[2] not in seen:
+                seen.add(r[2])
+                out.append(r)
+                if limit and len(out) >= limit:
+                    break
+        return out
+
+
+def m3u_name(name, taken):
+    """A file name, on exFAT too, that no other playlist this run has."""
+    base = re.sub(r'[\x00-\x1f"*/:<>?\\|]', "_", name).strip(" .")[:120] or "Untitled"
+    name, n = base, 1
+    while name.casefold() in taken:
+        n += 1
+        name = f"{base} {n}"
+    taken.add(name.casefold())
+    return name + ".m3u8"
+
+
+def write_m3u(f, title, rows):
+    """True if it changed. Tauon reloads a playlist whose file changed size;
+    an unchanged one is left alone, mtime and all."""
+    text = "\n".join(["#EXTM3U", f"#PLAYLIST:{title}"] + [
+        f"#EXTINF:{r[5] or -1},{r[3]} - {r[4]}\n{r[2]}" for r in rows]) + "\n"
+    try:
+        if f.read_text(encoding="utf-8") == text:
+            return False
+    except OSError:
+        pass
+    save(f, text)
+    return True
+
+
+def mixes(shelf, history, lib):
+    """{title: files} made from the plays and the liked songs."""
+    out = {}
+    if lib["liked"]:
+        out["Liked Songs"] = shelf.pick(lib["tracks"][i] for i in lib["liked"])
+    tracks = history.get("tracks", [])
+    if tracks:
+        out["Top 100"] = shelf.pick(tracks, 100)       # already most played first
+        for year in sorted({y for t in tracks for y in t[6]}, reverse=True):
+            ranked = sorted((t for t in tracks if t[6].get(year, 0) >= 2),
+                            key=lambda t: t[6][year], reverse=True)
+            out[f"Top 50 · {year}"] = shelf.pick(ranked, 50)
+    # ListenBrainz has the Spotify years and every Tauon play since; the export
+    # only stands in for it offline
+    recent = recent_listens(90)
+    if recent is None:
+        recent = [t[:3] + [t[5]] for t in tracks if t[5]]
+    out["On Repeat"] = shelf.pick(sorted((t for t in recent if t[3] >= 2),
+                                         key=lambda t: t[3], reverse=True), 50)
+    if tracks:
+        # played even once lately: not forgotten
+        lately = {(primary(t[0]), song(t[1])) for t in recent}
+        year_ago = (datetime.datetime.now(datetime.timezone.utc)
+                    - datetime.timedelta(days=365)).strftime("%Y-%m-%dT%H:%M:%SZ")
+        out["Forgotten Favourites"] = shelf.pick(
+            (t for t in tracks if t[3] >= 10 and t[4] < year_ago
+             and (primary(t[0]), song(t[1])) not in lately), 100)
+    return out
+
+
+def tail(path):
+    """artist/album/file: the same file whatever folder Jellyfin mounts the library at."""
+    return "/".join(Path(path).parts[-3:]).casefold()
+
+
+class Jellyfin:
+    def __init__(self, token):
+        self.auth = (f'MediaBrowser Client="music-scout", Device="{os.uname().nodename}", '
+                     f'DeviceId="music-scout", Version="1.0", Token="{token}"')
+
+    def __call__(self, method, path, body=None, **query):
+        url = JELLYFIN + path + ("?" + urllib.parse.urlencode(query) if query else "")
+        req = urllib.request.Request(
+            url, method=method, data=None if body is None else json.dumps(body).encode(),
+            headers={"Authorization": self.auth, "Content-Type": "application/json",
+                     "User-Agent": UA})
+        try:
+            with urllib.request.urlopen(req, timeout=60) as r:
+                text = r.read()
+        except urllib.error.HTTPError as e:     # say which call, and Jellyfin's reason
+            raise ValueError(f"{method} {path}: HTTP {e.code} "
+                             f"{e.read()[:300].decode(errors='replace')}") from None
+        return json.loads(text) if text else None
+
+    def user(self, name):
+        users = [u for u in self("GET", "/Users") if not u.get("Policy", {}).get("IsDisabled")]
+        if name:
+            match = [u for u in users if u["Name"].casefold() == name.casefold()]
+            if not match:
+                raise ValueError(f"no Jellyfin user {name!r} (there are: "
+                                 + ", ".join(u["Name"] for u in users) + ")")
+            return match[0]["Id"]
+        admins = [u for u in users if u.get("Policy", {}).get("IsAdministrator")]
+        if len(users) == 1 or len(admins) == 1:
+            return (users if len(users) == 1 else admins)[0]["Id"]
+        raise ValueError("several Jellyfin users: say whose playlists these are with "
+                         "--jellyfin-user (" + ", ".join(u["Name"] for u in users) + ")")
+
+    def entries(self, pid, user):
+        """[(item id, entry id), ...] in the playlist's order."""
+        out, start = [], 0
+        while True:
+            page = self("GET", f"/Playlists/{pid}/Items", userId=user, startIndex=start,
+                        limit=2000)
+            out += [(i["Id"], i["PlaylistItemId"]) for i in page["Items"]]
+            start += len(page["Items"])
+            if not page["Items"] or start >= page.get("TotalRecordCount", 0):
+                return out
+
+    def set_items(self, pid, user, ids):
+        """Make the playlist hold ids, in order, keeping its id (and with it a
+        phone's downloads of it). An API key may add and remove entries, but
+        replacing or moving them asks for a signed-in user: so the gone ones
+        go, the new ones are inserted where they belong, and only an order
+        that no longer fits is cleared and refilled."""
+        for attempt in range(3):
+            now = self.entries(pid, user)
+            if [i for i, _ in now] == ids:
+                return
+            if attempt == 2:
+                raise ValueError(f"playlist {pid} won't take its new order")
+            want, seen, keep, drop = set(ids), set(), [], []
+            for i, entry in now:
+                if i in want and i not in seen:
+                    seen.add(i)
+                    keep.append(i)
+                else:
+                    drop.append(entry)
+            # an order that no longer fits, or a first try that didn't take
+            # (Jellyfin drops every copy of a duplicate at once): start over
+            if attempt or keep != [i for i in ids if i in seen]:
+                drop, seen = [e for _, e in now], set()
+            # a hundred ids a call keeps the URL inside the server's limit
+            for n in range(0, len(drop), 100):
+                self("DELETE", f"/Playlists/{pid}/Items", entryIds=",".join(drop[n:n + 100]))
+            pos, n = 0, 0
+            while n < len(ids):
+                if ids[n] in seen:
+                    pos, n = pos + 1, n + 1
+                    continue
+                run = []
+                while n < len(ids) and ids[n] not in seen and len(run) < 100:
+                    run.append(ids[n])
+                    n += 1
+                self("POST", f"/Playlists/{pid}/Items", ids=",".join(run), userId=user,
+                     position=pos)
+                pos += len(run)
+
+    def items(self, user, kind, fields=""):
+        out, start = [], 0
+        while True:
+            page = self("GET", "/Items", userId=user, Recursive="true", IncludeItemTypes=kind,
+                        Fields=fields, StartIndex=start, Limit=2000)
+            out += page["Items"]
+            start += len(page["Items"])
+            if not page["Items"] or start >= page.get("TotalRecordCount", 0):
+                return out
+
+
+def jellyfin_sync(lists, user_name, quiet):
+    """lists: [(key, title, files)]. Creates the missing playlists, rewrites the
+    changed ones and deletes the ones that went away; only those it made."""
+    jf = Jellyfin(JF_TOKEN.read_text().strip())
+    user = jf.user(user_name)
+    have = {tail(i["Path"]): i["Id"] for i in jf.items(user, "Audio", "Path") if i.get("Path")}
+    if not have:        # rescanning, remounted, or the user can't see the library
+        raise ValueError("Jellyfin lists no music for this user; left the playlists alone")
+    alive = {i["Id"] for i in jf.items(user, "Playlist")}
+    try:
+        state = json.loads(JF_STATE.read_text())
+    except (OSError, ValueError):
+        state = {}
+    made, changed, gone, new = 0, 0, 0, {}
+    for key, title, rows in lists:
+        # a file Jellyfin hasn't scanned yet joins on a later run
+        ids = [have[t] for t in (tail(r[2]) for r in rows) if t in have]
+        if not ids:
+            if key in state:    # kept as it is, not deleted
+                new[key] = state[key]
+            continue
+        digest = hashlib.md5(",".join(ids).encode()).hexdigest()
+        known = state.get(key)
+        if known and known["id"] in alive:
+            if known["hash"] != digest:
+                jf.set_items(known["id"], user, ids)
+                changed += 1
+            new[key] = {"id": known["id"], "hash": digest}
+        else:
+            r = jf("POST", "/Playlists", {"Name": title, "Ids": ids, "UserId": user,
+                                          "MediaType": "Audio"})
+            new[key] = {"id": r["Id"], "hash": digest}
+            made += 1
+        # written as it goes: a crash halfway mustn't make it create them all again
+        save(JF_STATE, json.dumps({**state, **new}))
+    # only a playlist whose file is gone goes; nothing that merely matched nothing
+    wanted = {key for key, _, _ in lists}
+    for key, known in state.items():
+        if key not in wanted and known["id"] in alive:
+            jf("DELETE", f"/Items/{known['id']}")
+            gone += 1
+    save(JF_STATE, json.dumps(new))
+    if not quiet or made or changed or gone:
+        print(f"Jellyfin: {len(new)} playlists ({made} new, {changed} changed, "
+              f"{gone} removed)", file=sys.stderr)
+
+
+def cmd_playlists(args):
+    history, lib = plays(), saved()
+    if not (history.get("tracks") or lib["playlists"] or lib["liked"]):
+        if args.quiet:      # the import hook and the timer, before any import
+            return 0
+        sys.exit("no Spotify data yet: music-scout spotify my_spotify_data.zip "
+                 "(the streaming history and/or the account data)")
+    # the import hook and the daily timer can meet; two runs would make every
+    # Jellyfin playlist twice
+    lock = open(Path(os.environ.get("XDG_RUNTIME_DIR", "/tmp")) / "music-scout-playlists.lock", "w")
+    fcntl.flock(lock, fcntl.LOCK_EX)
+    shelf = Shelf()
+    out = Path(args.out) if args.out else PLAYLISTS
+    written, changed, waiting, tracks, synced = {}, 0, 0, 0, []
+    for folder, lists in (("Mixes", mixes(shelf, history, lib).items()),
+                          ("Spotify", ((p["name"], shelf.pick(lib["tracks"][i] for i in p["tracks"]))
+                                       for p in lib["playlists"]))):
+        taken = written.setdefault(out / folder, set())
+        for title, rows in lists:
+            if len(rows) < args.min:
+                waiting += folder == "Spotify"
+                continue
+            f = out / folder / m3u_name(title, taken)
+            changed += write_m3u(f, title, rows)
+            tracks += len(rows)
+            synced.append((f"{folder}/{f.stem}", title, rows))
+    # a playlist that no longer qualifies (the library shrank, it was renamed)
+    for d, names in written.items():
+        for f in (d.glob("*.m3u8") if d.is_dir() else ()):
+            if f.stem.casefold() not in names:
+                f.unlink()
+    count = sum(len(n) for n in written.values())
+    if not args.quiet or changed:
+        print(f"{count} playlists ({changed} changed, {tracks} tracks) in {out}; "
+              f"{waiting} Spotify playlists have fewer than {args.min} tracks in the "
+              f"library yet", file=sys.stderr)
+    if JF_TOKEN.exists() and not args.no_jellyfin:
+        try:
+            jellyfin_sync(synced, args.jellyfin_user, args.quiet)
+        except (OSError, ValueError, KeyError) as e:   # down, or the key revoked
+            print(f"Jellyfin: {e}", file=sys.stderr)
+            return 1
+
+
 def cmd_missing(args):
     out = missing(args.limit, args.min_plays)
     if args.json:
         print(json.dumps(out, ensure_ascii=False))
         return
-    if not PLAYS.exists():
-        sys.exit("no listening history yet: music-scout spotify my_spotify_data.zip")
+    if not (PLAYS.exists() or SAVED.exists()):
+        sys.exit("no Spotify data yet: music-scout spotify my_spotify_data.zip")
     for g in out:
-        print(f"{g['plays']:>5}  {g['artist']} - {g['album']}")
+        print(f"{g['artist']} - {g['album']}  ({g['why']})")
 
 
 def cmd_foryou(args):
@@ -548,9 +1083,22 @@ def main():
     f.add_argument("--last", action="store_true",
                    help="print the previous run's JSON result and exit")
     f.set_defaults(fn=cmd_foryou)
-    sp = sub.add_parser("spotify", help="read a Spotify extended streaming history export")
-    sp.add_argument("export", help="my_spotify_data.zip, or the folder unpacked from it")
+    sp = sub.add_parser("spotify", help="read Spotify data exports (history, account data)")
+    sp.add_argument("export", nargs="+",
+                    help="my_spotify_data.zip, or the folder unpacked from it; both kinds "
+                         "of export can be given at once")
     sp.set_defaults(fn=cmd_spotify)
+    pl = sub.add_parser("playlists", help="write the Spotify playlists and mixes as .m3u8")
+    pl.add_argument("--out", default="",
+                    help=f"write under here (default $MUSIC_SCOUT_PLAYLISTS, {PLAYLISTS})")
+    pl.add_argument("--min", type=int, default=5, metavar="N",
+                    help="leave out Spotify playlists with fewer tracks in the library (default 5)")
+    pl.add_argument("--quiet", action="store_true", help="say nothing unless something changed")
+    pl.add_argument("--no-jellyfin", action="store_true",
+                    help=f"only the files, even with a key in {JF_TOKEN}")
+    pl.add_argument("--jellyfin-user", default="", metavar="NAME",
+                    help="whose playlists they are, when Jellyfin has several users")
+    pl.set_defaults(fn=cmd_playlists)
     m = sub.add_parser("missing", help="most-played Spotify albums the library lacks")
     m.add_argument("--limit", type=int, default=30)
     m.add_argument("--min-plays", type=int, default=0, metavar="N")
@@ -575,7 +1123,7 @@ def main():
     s.add_argument("--json", action="store_true")
     s.set_defaults(fn=cmd_similar)
     args = ap.parse_args()
-    args.fn(args)
+    sys.exit(args.fn(args))
 
 
 if __name__ == "__main__":

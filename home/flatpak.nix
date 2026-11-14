@@ -64,6 +64,8 @@ in
     ];
     overrides.settings."com.github.taiko2k.tauonmb".Context.filesystems = [
       "/mnt/media/music:ro"
+      # the .m3u8 playlists `music-scout playlists` makes (home/soulseek.nix)
+      "/mnt/media/playlists:ro"
     ];
   };
 }

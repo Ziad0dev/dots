@@ -6,8 +6,8 @@ import Quickshell.Wayland
 
 // Music discovery (SUPER+SHIFT+D): artists similar to the one playing, artists to try
 // picked from the whole library, and releases by library artists that the beets
-// library lacks, plus the most-played albums of an imported Spotify history that
-// the library lacks. All come from `music-scout` (scripts/music-scout.py). The
+// library lacks, plus the albums of an imported Spotify export (most played, liked
+// or saved) that the library lacks. All come from `music-scout` (scripts/music-scout.py). The
 // two lists paint at once from the previous run's result, then refresh in the
 // background — a full check walks every library artist on MusicBrainz at
 // 1 request/s, so it can take minutes.
@@ -41,7 +41,7 @@ PanelWindow {
     }
 
     property var weekly: ({ title: "", tracks: [] })   // ListenBrainz's playlist for the week
-    // [{ artist, album, plays, bandcamp, qobuz }]; empty without a Spotify import
+    // [{ artist, album, why, plays, liked, saved, bandcamp, qobuz }]; empty without a Spotify import
     property var missing: []
     property var picks: []           // [{ name, mbid, score, because: [names] }]
     readonly property bool picking: picksRefresh.running
@@ -402,7 +402,7 @@ PanelWindow {
                     }
                 }
 
-                // ── played a lot on Spotify, not in the library ──
+                // ── played, liked or saved on Spotify, not in the library ──
                 Rectangle { visible: dp.missing.length > 0; width: parent.width; height: 1; color: root.sep }
                 Item {
                     visible: dp.missing.length > 0
@@ -411,7 +411,7 @@ PanelWindow {
                     UiText {
                         anchors.left: parent.left
                         anchors.verticalCenter: parent.verticalCenter
-                        text: "PLAYED ON SPOTIFY, NOT IN YOUR LIBRARY"
+                        text: "FROM SPOTIFY, NOT IN YOUR LIBRARY"
                         color: root.sumiHi
                         font.family: root.mono
                         font.pixelSize: 9
@@ -456,7 +456,8 @@ PanelWindow {
                             UiText {
                                 width: parent.width
                                 elide: Text.ElideRight
-                                text: miss.modelData.artist + " · " + miss.modelData.plays + " plays"
+                                // "Deftones · 2285 plays · 10 liked · saved"
+                                text: miss.modelData.artist + " · " + miss.modelData.why
                                 color: root.sumiHi
                                 font.family: root.mono
                                 font.pixelSize: 10
