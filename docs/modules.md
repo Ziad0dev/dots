@@ -52,6 +52,7 @@ The package test for the system list: root needs it, a system service needs it, 
 
 | Module | Owns |
 |---|---|
+| `bootvine.nix` | [bootvine](https://codeberg.org/wvhulle/bootvine) on the boot and shutdown console: a live tree of pending systemd jobs (initrd included, so the LUKS passphrase prompt too) instead of scrolling log lines; gives the VT back when SDDM starts |
 | `sddm.nix` | The SDDM greeter, built from `config/sddm/dots` + a theme palette. See [Desktop → login](desktop.md#login-sddm) |
 | `lockscreen.nix` | `security.pam.services.quickshell-lock` — the PAM stack the Quickshell lock screen authenticates against |
 | `osd.nix` | swayosd's libinput backend (system unit + dbus), started with `graphical.target` |

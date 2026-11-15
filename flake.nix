@@ -79,6 +79,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # boot console: live tree of systemd jobs (modules/bootvine.nix)
+    bootvine = {
+      url = "git+https://codeberg.org/wvhulle/bootvine";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     nixcord = {
       url = "github:FlameFlag/nixcord";
       inputs.nixpkgs.follows = "nixpkgs";

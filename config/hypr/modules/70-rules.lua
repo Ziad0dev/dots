@@ -28,10 +28,17 @@ hl.window_rule({
     float = true,
 })
 
+-- Discord flickers under blur/opacity effects: keep it fully opaque and
+-- exempt from blur, inactive dim and shadow (incl. `dots-look glass on`)
 hl.window_rule({
     name      = "discord",
     match     = { class = "^(discord)$" },
     workspace = "10 silent",
+    opacity   = "1.0 override 1.0 override 1.0 override",
+    opaque    = true,
+    no_blur   = true,
+    no_dim    = true,
+    no_shadow = true,
 })
 
 hl.window_rule({
