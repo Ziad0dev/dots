@@ -1,0 +1,71 @@
+{ inputs, ... }:
+
+let
+  # Most apps are pinned to a commit, so a switch installs exactly that build.
+  # To bump one: `flatpak remote-info --user --log <origin> <appId>`, pick a
+  # commit, paste it here. Runtimes follow whatever the pinned app requires.
+  pinned = origin: appId: commit: { inherit origin appId commit; };
+in
+{
+  imports = [ inputs.nix-flatpak.homeManagerModules.nix-flatpak ];
+
+  services.flatpak = {
+    remotes = [
+      {
+        name = "flathub";
+        location = "https://dl.flathub.org/repo/flathub.flatpakrepo";
+      }
+    ];
+
+    packages = [
+      (pinned "flathub" "com.github.johnfactotum.Foliate"
+        "4ca532b545422340d60651e8d4a912192dade5dc6f0af264f051215c5e6f489c"
+      )
+      (pinned "flathub" "com.github.tchx84.Flatseal"
+        "ef9fe38e9cb96c170ea579fe1bbf8c76011255d4962d7fc4b3aa4e0a6063f8ae"
+      )
+      (pinned "flathub" "com.usebottles.bottles"
+        "b63354d6e95377f11796244da517df58866c708aeab2b13cf81082ba5a14c1dd"
+      )
+      (pinned "flathub" "io.github.f3d_app.f3d"
+        "4cb78c2d63744ccb2b0e2fee311271bea6deb6ef1cc8df50088500ee5cdc44cd"
+      )
+      (pinned "flathub" "net.meshlab.MeshLab"
+        "7dad24785bc8010251e8cb86d1c94818da5172549de272fad2fa34f89918e987"
+      )
+      (pinned "flathub" "org.blender.Blender"
+        "f97247d9e87dca0bc28c6a01e51cd6425cf8b21c636d28514898b7315b21d521"
+      )
+      (pinned "flathub" "org.gnome.SimpleScan"
+        "03a3320a68af5423ec6e18967906f8e7942057e159f554ced7e5d065c18b0d75"
+      )
+      (pinned "flathub" "org.kde.kdenlive"
+        "32a1f8dceb188a93aa42e58d55cf4cd100ddcfa14a0e11ce0db6eb9dd61b9a2a"
+      )
+      (pinned "flathub" "org.texstudio.TeXstudio"
+        "e93228a667a4f56e53718e4794073b62dac1268206c6830d95a91af62644a078"
+      )
+      # Follow the latest Flathub build; the Nix package is intentionally omitted.
+      {
+        appId = "com.github.taiko2k.tauonmb";
+        origin = "flathub";
+      }
+    ];
+
+    # anything installed by hand is removed on the next switch, as before
+    uninstallUnmanaged = true;
+
+    # every app reads the themed gtk.css (theme colours, translucency for
+    # Hyprland's blur) that themectl writes as a real file; GTK/icon themes
+    # live in the Nix store, which sandboxes can't see
+    overrides.settings.global.Context.filesystems = [
+      "xdg-config/gtk-3.0:ro"
+      "xdg-config/gtk-4.0:ro"
+    ];
+    overrides.settings."com.github.taiko2k.tauonmb".Context.filesystems = [
+      "/mnt/media/music:ro"
+      # the .m3u8 playlists `music-scout playlists` makes (home/soulseek.nix)
+      "/mnt/media/playlists:ro"
+    ];
+  };
+}

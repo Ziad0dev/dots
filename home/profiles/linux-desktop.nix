@@ -1,0 +1,413 @@
+{
+  config,
+  lib,
+  pkgs,
+  inputs,
+  username,
+  system,
+  dotsLink,
+  ...
+}:
+
+let
+  link = dotsLink;
+in
+{
+  # English only: drop translated man page trees from the user profile
+  home.extraProfileCommands = ''
+    find $out/share/man -mindepth 1 -maxdepth 1 ! -name 'man[0-9n]*' -exec rm -rf {} + 2>/dev/null || true
+  '';
+
+  imports = [
+    inputs.nixcord.homeModules.nixcord
+    ../nixcord.nix
+    ../emacs.nix
+    ../virt-home.nix
+    ../gaming-home.nix
+    ../documents.nix
+    ../quickshell-rise.nix
+    ../easyeffects.nix
+    ../theming.nix
+    ../sway.nix
+    ../ai-usage.nix
+    ../github-inbox.nix
+    ../kvantum.nix
+    ../theme-kits.nix
+    ../obsidian.nix
+    ../cleanup.nix
+    ../soulseek.nix
+    ../reversing.nix
+    ../upstream-watch.nix
+    ../desktop-tools.nix
+    ../flatpak.nix
+  ];
+
+  dots.upstreamWatch.enable = true;
+
+  home.sessionVariables = {
+    BROWSER = "zen-beta";
+    SDL_VIDEODRIVER = "wayland";
+    DOCKER_HOST = "unix://$XDG_RUNTIME_DIR/docker.sock";
+  };
+
+  programs.fish.shellAliases = {
+    omp-local = "omp --model ollama/qwen3.5:9b";
+    claude-local = "env CLAUDE_CODE_MAX_CONTEXT_TOKENS=32768 ollama launch claude --model qwen3.5:9b";
+  };
+
+  programs.fish.functions.docker = {
+    description = "Start the rootless daemon on first use, then run docker";
+    body = ''
+      if not test -S $XDG_RUNTIME_DIR/docker.sock
+          systemctl --user start docker.service; or return
+      end
+      command docker $argv
+    '';
+  };
+
+  home.pointerCursor = {
+    enable = true;
+    gtk.enable = true;
+    x11.enable = true;
+    package = pkgs.bibata-cursors;
+    name = "Bibata-Modern-Classic";
+    size = 24;
+  };
+
+  # the GTK theme, icons and cursor in effect are dots-appearance's (the
+  # theme's look.conf, then your choices); these are the fallbacks
+  gtk = {
+    enable = true;
+    theme = {
+      package = pkgs.adw-gtk3;
+      name = "adw-gtk3-dark";
+    };
+    iconTheme = {
+      package = pkgs.candy-icons.overrideAttrs (prev: {
+        postInstall = (prev.postInstall or "") + ''
+          for f in "$out"/share/icons/*/index.theme; do
+            if grep -q '^Inherits=' "$f"; then
+              sed -i 's|^Inherits=.*|Inherits=Papirus-Dark,Adwaita,hicolor|' "$f"
+            else
+              sed -i '/^\[Icon Theme\]/a Inherits=Papirus-Dark,Adwaita,hicolor' "$f"
+            fi
+          done
+        '';
+      });
+      name = "candy-icons";
+    };
+    gtk3.extraConfig.gtk-application-prefer-dark-theme = 1;
+    gtk4.theme = null;
+    gtk4.extraConfig.gtk-application-prefer-dark-theme = 1;
+  };
+
+  # settings.ini is dots-appearance's too: it follows the theme (light/dark,
+  # GTK theme, icons, cursor, font) where home-manager's is fixed
+  xdg.configFile."gtk-3.0/settings.ini".enable = lib.mkForce false;
+  xdg.configFile."gtk-4.0/settings.ini".enable = lib.mkForce false;
+
+  # org/gnome/desktop/interface/color-scheme (light/dark) is themectl's: it
+  # follows the theme, and a value here would reset it on every switch
+
+  xdg.desktopEntries.discord = {
+    name = "Discord";
+    genericName = "Internet Messenger";
+    exec = "discord --enable-features=WaylandWindowDecorations %U";
+    icon = "discord";
+    terminal = false;
+    categories = [
+      "Network"
+      "InstantMessaging"
+    ];
+    mimeType = [ "x-scheme-handler/discord" ];
+  };
+
+  services.ssh-agent.enable = true;
+
+  # Calibre keeps its library path in a file it rewrites itself, so seed it
+  # only when unset instead of managing the file.
+  # a new Zen profile starts without the dots chrome CSS; link it on every
+  # switch (idempotent, and a missing profile is not an error here)
+  home.activation.zenTheme = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+    if [[ ! -v DRY_RUN ]]; then
+      ${pkgs.bash}/bin/bash ${config.home.homeDirectory}/.config/zen-theme/zen-theme-link.sh >/dev/null 2>&1 || true
+    fi
+  '';
+
+  home.activation.calibreLibrary = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    if [[ ! -v DRY_RUN ]]; then
+      f="$HOME/.config/calibre/global.py.json"
+      mkdir -p "$(dirname "$f")"
+      [ -s "$f" ] || echo '{}' > "$f"
+      if ${lib.getExe pkgs.jq} '.library_path //= "/mnt/media/books"' "$f" > "$f.tmp"; then
+        mv "$f.tmp" "$f"
+      else
+        rm -f "$f.tmp"
+      fi
+    fi
+  '';
+
+  home.file = {
+    ".config/hypr".source = link "hypr";
+    ".config/flameshot".source = link "flameshot";
+    ".config/Kvantum/KvGlass".source = link "kvantum/KvGlass";
+    ".config/Kvantum/Glass-Kv".source = link "kvantum/Glass-Kv";
+    ".config/quickshell".source = link "quickshell";
+    ".config/gammastep".source = link "gammastep";
+    ".config/rmpc".source = link "rmpc";
+    ".config/mpv".source = link "mpv";
+    ".config/zen-theme".source = link "zen";
+    ".config/nyxt/config.lisp".source = link "nyxt/config.lisp";
+    ".config/hyprland-preview-share-picker".source = link "hyprland-preview-share-picker";
+    ".omp/agent/models.yml".source =
+      config.lib.file.mkOutOfStoreSymlink "${config.dots.repoPath}/config/omp/models.yml";
+    ".omp/agent/config.yml".source =
+      config.lib.file.mkOutOfStoreSymlink "${config.dots.repoPath}/config/omp/config.yml";
+
+    # Helium ships no Widevine; point its component loader at nixpkgs' CDM so DRM
+    # sites (Netflix-style players, Tidal, ...) can play. Verify at helium://components.
+    ".config/net.imput.helium/WidevineCdm/latest-component-updated-widevine-cdm" = {
+      force = true;
+      text = builtins.toJSON { Path = "${pkgs.widevine-cdm}/share/google/chrome/WidevineCdm"; };
+    };
+  };
+
+  # mic processing for the EPZ G30 boom mic (presets in ../easyeffects.nix); output stays untouched
+  services.easyeffects.enable = true;
+
+  home.packages =
+    let
+      beamPkgs = pkgs.beam.packages.erlang_27;
+    in
+    (with pkgs; [
+      adwaita-icon-theme
+      hicolor-icon-theme
+      papirus-icon-theme
+      ghostty
+      hypridle
+      hyprpicker
+      awww
+      cliphist
+      bemoji
+      fuzzel
+      wl-clipboard
+      wtype
+      grim
+      slurp
+      satty
+      xdg-utils
+      zenity
+      (flameshot.override { enableWlrSupport = true; })
+      (tesseract.override {
+        enableLanguages = [
+          "eng"
+          "swe"
+          "ara"
+          "fra"
+          "deu"
+        ];
+      })
+      zbar
+      gammastep
+      brightnessctl
+      libnotify
+      impala
+      bluetui
+      wiremix
+      networkmanager
+      playerctl
+      glow
+
+      pamixer
+      pavucontrol
+      mpc
+      rmpc
+      qpwgraph
+
+      imv
+      nemo
+      vscodium
+      lnav
+      (mpv.override {
+        scripts = [
+          mpvScripts.uosc
+          mpvScripts.thumbfast
+        ];
+      })
+      qt6.qtwayland
+      (obs-studio.override { browserSupport = false; })
+      cliamp
+      wlopm
+
+      tor
+      tor-browser
+      feather
+      sparrow
+      slack
+      signal-desktop
+      teamspeak6-client
+      (element-desktop.override { commandLineArgs = "--password-store=gnome-libsecret"; })
+      weechat
+
+      nicotine-plus
+      calibre
+      gallery-dl
+
+      gcc
+      xdotool
+      foot
+      trashy
+      psmisc
+    ])
+    ++ [
+      beamPkgs.erlang
+      beamPkgs.elixir
+      beamPkgs.elixir-ls
+      inputs.zen-browser.packages.${system}.default
+      (pkgs.symlinkJoin {
+        name = "helium-srgb";
+        paths = [ inputs.helium.packages.${system}.default ];
+        nativeBuildInputs = [ pkgs.makeWrapper ];
+        postBuild = ''
+          # NVIDIA VA-API video decode (nvidia-vaapi-driver) so Twitch offers all qualities.
+          # Chromium honours only ONE --enable-features / --disable-features switch, so keep each merged.
+          wrapProgram $out/bin/helium \
+            --set LIBVA_DRIVER_NAME nvidia \
+            --set NVD_BACKEND direct \
+            --add-flags "--ozone-platform-hint=auto --force-color-profile=srgb" \
+            --add-flags "--enable-features=AcceleratedVideoDecodeLinuxGL,AcceleratedVideoDecodeLinuxZeroCopyGL,VaapiVideoDecoder,VaapiIgnoreDriverChecks,VaapiOnNvidiaGPUs,WaylandWindowDecorations" \
+            --add-flags "--disable-features=WaylandWpColorManagerV1"
+        '';
+      })
+      (pkgs.callPackage ../../pkgs/nyxt { })
+      inputs.vm-curator.packages.${system}.default
+      inputs.hyprland-preview-share-picker.packages.${system}.default
+    ];
+
+  services.cliphist.enable = true;
+
+  systemd.user.targets.hyprland-session = {
+    Unit = {
+      Description = "Hyprland session";
+      Documentation = [ "man:systemd.special(7)" ];
+      BindsTo = [ "graphical-session.target" ];
+      Wants = [ "graphical-session-pre.target" ];
+      After = [ "graphical-session-pre.target" ];
+      PropagatesStopTo = [ "graphical-session.target" ];
+    };
+  };
+
+  systemd.user.services.hypridle = {
+    Unit = {
+      Description = "hypridle";
+      PartOf = [ "graphical-session.target" ];
+      After = [ "graphical-session.target" ];
+    };
+    Service = {
+      ExecStart = "${pkgs.hypridle}/bin/hypridle";
+      ExecStartPost = "${pkgs.bash}/bin/sh -c 'rm -f %S/dots/indicators/stay-awake'";
+      ExecStopPost = "${pkgs.bash}/bin/sh -c 'mkdir -p %S/dots/indicators && touch %S/dots/indicators/stay-awake'";
+      Restart = "on-failure";
+      RestartSec = 3;
+    };
+    Install.WantedBy = [ "graphical-session.target" ];
+  };
+
+  services.pass-secret-service = {
+    enable = true;
+    storePath = "${config.home.homeDirectory}/.password-store";
+  };
+  # keygrips pam-gnupg unlocks at login (modules/secrets.nix): the key behind
+  # ~/.password-store, signing + encryption subkey (gpg -K --with-keygrip)
+  xdg.configFile."pam-gnupg".text = ''
+    7BFB01517BE646B32D48809CF89185090C0758FF
+    48756139F39069A57E5F22BA9B1B35A89B46B7B9
+  '';
+  services.udiskie = {
+    enable = true;
+    automount = true;
+    notify = true;
+    tray = "auto";
+    settings = {
+      device_config = [
+        {
+          id_uuid = "6087-5FAB";
+          ignore = true;
+        }
+        {
+          id_uuid = "2A0B-58D1";
+          ignore = true;
+        }
+        {
+          id_uuid = "323cb5ac-cf65-4c5a-8276-f7eebe12cda9";
+          ignore = true;
+        }
+      ];
+    };
+  };
+
+  services.mpd = {
+    enable = true;
+
+    musicDirectory = "/mnt/media/music";
+    network = {
+      listenAddress = "127.0.0.1";
+      port = 6600;
+      startWhenNeeded = true;
+    };
+    extraConfig = ''
+      restore_paused "yes"
+
+      audio_output {
+        type "pipewire"
+        name "PipeWire"
+      }
+
+      audio_output {
+        type "alsa"
+        name "DAC bit-perfect"
+        device "hw:CARD=G30"
+        auto_resample "no"
+        auto_format "no"
+        auto_channels "no"
+        mixer_type "none"
+        enabled "no"
+      }
+    '';
+  };
+
+  systemd.user.services.mpd.Unit.RequiresMountsFor = [ "/mnt/media" ];
+
+  services.mpdris2 = {
+    enable = true;
+    settings.Connection.host = "127.0.0.1";
+    settings.Bling.notify = true;
+    settings.Bling.mmkeys = true;
+  };
+
+  systemd.user.services."app-com.mitchellh.ghostty" = {
+    Unit = {
+      Description = "Ghostty";
+      After = [
+        "hyprland-session.target"
+        "dbus.socket"
+      ];
+      Requires = [ "dbus.socket" ];
+      PartOf = [ "hyprland-session.target" ];
+      X-SwitchMethod = "keep-old";
+    };
+    Service = {
+      Type = "notify-reload";
+      ReloadSignal = "SIGUSR2";
+      BusName = "com.mitchellh.ghostty";
+      Environment = [
+        "PATH=/run/wrappers/bin:/etc/profiles/per-user/${username}/bin:${config.home.homeDirectory}/.nix-profile/bin:/run/current-system/sw/bin"
+      ];
+      ExecStart = "${pkgs.ghostty}/bin/ghostty --gtk-single-instance=true --initial-window=false --quit-after-last-window-closed=false";
+      Slice = "app-graphical.slice";
+      Restart = "on-failure";
+    };
+    Install.WantedBy = [ "hyprland-session.target" ];
+  };
+
+}

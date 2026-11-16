@@ -1,0 +1,179 @@
+{
+  core = [
+    "nmap"
+    "tcpdump"
+    "wireshark"
+    "socat"
+    "netcat-gnu"
+    "openssl"
+    "jq"
+    "hexyl"
+    "proxychains-ng"
+    "python2"
+    "python3"
+    "uv"
+    "dig"
+  ];
+
+  recon = [
+    "masscan"
+    "rustscan"
+    "naabu"
+    "dnsx"
+    "subfinder"
+    "amass"
+    "httpx"
+    "katana"
+    "gau"
+    "waybackurls"
+    "whatweb"
+    "dnsrecon"
+    "theharvester"
+    "asnmap"
+    "fierce"
+    "nuclei"
+  ];
+
+  web = [
+    "burpsuite"
+    "zap"
+    "sqlmap"
+    "ffuf"
+    "feroxbuster"
+    "gobuster"
+    "nuclei"
+    "nikto"
+    "wpscan"
+    "dalfox"
+    "arjun"
+    "testssl"
+    "sslscan"
+    "mitmproxy"
+    "wafw00f"
+  ];
+
+  binary = [
+    "ghidra-bin"
+    "ida-free"
+    "rizin"
+    "radare2"
+    "iaito"
+    "gdb"
+    "gef"
+    "imhex"
+    "binwalk"
+    "yara"
+    "upx"
+    "patchelf"
+    "elfutils"
+    "rr"
+    "ltrace"
+    "strace"
+    "lldb"
+    "detect-it-easy"
+    "file"
+  ];
+
+  pwn = [
+    "python3Packages.pwntools"
+    # "python3Packages.angr": 9.2.193 fails on python3.14 (its Rust extension
+    # needs setuptools-rust, which the nixpkgs package lacks), 2026-10-14
+    "python3Packages.ropgadget"
+    "one_gadget"
+    "checksec"
+    "aflplusplus"
+    "honggfuzz"
+    "radamsa"
+    "qemu"
+    "gdb"
+  ];
+
+  ad = [
+    "netexec"
+    "python3Packages.impacket"
+    "bloodhound"
+    "bloodhound-py"
+    "kerbrute"
+    "evil-winrm"
+    "responder"
+    "certipy"
+    "smbmap"
+    "enum4linux-ng"
+    "python3Packages.ldapdomaindump"
+    "freerdp"
+    "krb5"
+    "samba"
+  ];
+
+  crack = [
+    "hashcat"
+    "hashcat-utils"
+    "john"
+    "thc-hydra"
+    "medusa"
+    "haiti"
+    "hash-identifier"
+    "cyberchef"
+  ];
+
+  postex = [
+    "metasploit"
+    "chisel"
+    "ligolo-ng"
+    "sshuttle"
+    "exploitdb"
+  ];
+
+  wireless = [
+    "aircrack-ng"
+    "kismet"
+    "hcxtools"
+    "hcxdumptool"
+    "reaverwps-t6x"
+    "bully"
+    "wifite2"
+    "bettercap"
+    "mdk4"
+    "macchanger"
+    "iw"
+  ];
+
+  forensics = [
+    "volatility3"
+    "sleuthkit"
+    "autopsy"
+    "testdisk"
+    "ddrescue"
+    "foremost"
+    "exiftool"
+    "chainsaw"
+    "capa"
+    "yara"
+  ];
+
+  cloud = [
+    "trivy"
+    "grype"
+    "syft"
+    "prowler"
+    "pacu"
+    "kubescape"
+    "kube-bench"
+    "awscli2"
+    "kubectl"
+  ];
+
+  mobile = [
+    "jadx"
+    "apktool"
+    "dex2jar"
+    "frida-tools"
+    "android-tools"
+    "scrcpy"
+  ];
+
+  wordlists = [
+    "wordlists"
+    "seclists"
+  ];
+}

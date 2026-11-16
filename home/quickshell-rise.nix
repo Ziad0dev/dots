@@ -1,0 +1,374 @@
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
+let
+  nightlight = pkgs.writeShellApplication {
+    name = "dots-nightlight";
+    runtimeInputs = [
+      pkgs.systemd
+      pkgs.libnotify
+    ];
+    text = ''
+      unit="dots-gammastep.service"
+      case "''${1:-toggle}" in
+        status) systemctl --user is-active --quiet "$unit" && echo on || echo off ;;
+        on)     systemctl --user start "$unit" ;;
+        off)    systemctl --user stop "$unit" ;;
+        *)      if systemctl --user is-active --quiet "$unit"; then
+                  systemctl --user stop "$unit"
+                else
+                  systemctl --user start "$unit"
+                fi ;;
+      esac
+    '';
+  };
+  vpn = pkgs.writeShellApplication {
+    name = "dots-vpn";
+    runtimeInputs = [ pkgs.mullvad ];
+    text = ''
+      case "''${1:-toggle}" in
+        status) mullvad status | grep -qi "^Connected" && echo on || echo off ;;
+        on)  mullvad connect ;;
+        off) mullvad disconnect ;;
+        *)   if mullvad status | grep -qi "^Connected"; then mullvad disconnect; else mullvad connect; fi ;;
+      esac
+    '';
+  };
+
+  # KillMode=process keeps apps launched from the bar alive across a restart
+  # (they detach into their own sessions), so the bar's own helpers are reaped
+  # here: whatever is still in its cgroup in the session of the instance that
+  # just stopped. Path matching failed both ways — `pkill -f …/rise/scripts/`
+  # killed the dots-github-inbox timer's run (another unit, same path) and
+  # missed the helpers started as ~/.config/quickshell/…, so every restart
+  # leaked the bar's helper pipelines. A kill that finds its process already
+  # gone (killing one end of a pipe ends the other) must not abort the loop
+  # under errexit, which left the rest of the session behind.
+  reapHelpers = pkgs.writeShellApplication {
+    name = "dots-quickshell-reap-helpers";
+    runtimeInputs = [
+      pkgs.systemd
+      pkgs.procps
+    ];
+    text = ''
+      main=$(systemctl --user show -p ExecMainPID --value quickshell.service)
+      cg="/sys/fs/cgroup$(systemctl --user show -p ControlGroup --value quickshell.service)"
+      [ -n "$main" ] && [ "$main" != 0 ] && [ -r "$cg/cgroup.procs" ] || exit 0
+      while read -r pid; do
+        sid=$(ps -o sid= -p "$pid" 2>/dev/null | tr -d ' ') || continue
+        if [ "$sid" = "$main" ]; then kill "$pid" 2>/dev/null || true; fi
+      done < "$cg/cgroup.procs"
+      exit 0
+    '';
+  };
+
+  thumbPrune = pkgs.writeShellApplication {
+    name = "dots-thumb-prune";
+    runtimeInputs = [
+      pkgs.coreutils
+      pkgs.findutils
+    ];
+    text = ''
+      D="$HOME/.cache/quickshell-img-thumbs"
+      H="$HOME/.cache/quickshell-img-thumb-hashes.tsv"
+      [ -d "$D" ] && find "$D" -type f -name '*-512.jpg' -atime +30 -delete || true
+      if [ -f "$H" ]; then
+        awk -F '\t' '{ i = index($0, "\t"); k = substr($0, 1, i-1); if (!(k in seen)) o[++n] = k; seen[k] = substr($0, i+1) } END { for (j = 1; j <= n; j++) print o[j] "\t" seen[o[j]] }' "$H" > "$H.t" && mv -f "$H.t" "$H"
+      fi
+      rm -f "$HOME/.cache/quickshell-theme-picker"/*.tmp 2>/dev/null || true
+    '';
+  };
+
+  homeDir = config.home.homeDirectory;
+
+  # Runs a command with transparent huge pages off for it and its children
+  # (inherited across exec). With THP "always", Qt's per-thread malloc arenas
+  # got backed by mostly-empty 2 MB pages: ~160 MB of quickshell's RSS.
+  thpOff = pkgs.writeCBin "thp-off" ''
+    #include <stdio.h>
+    #include <sys/prctl.h>
+    #include <unistd.h>
+    int main(int argc, char **argv) {
+      if (argc < 2) { fputs("usage: thp-off command [args...]\n", stderr); return 2; }
+      prctl(PR_SET_THP_DISABLE, 1, 0, 0, 0);
+      execvp(argv[1], argv + 1);
+      perror(argv[1]);
+      return 127;
+    }
+  '';
+
+  shimNames = [
+    "dots-audio-input-mute"
+    "dots-brightness-display"
+    "dots-capture-screenrecording"
+    "dots-hw-display"
+    "dots-launch-audio"
+    "dots-launch-bluetooth"
+    "dots-launch-floating-terminal-with-presentation"
+    "dots-launch-or-focus-tui"
+    "dots-launch-wifi"
+    "dots-screenrecord-filename"
+    "dots-shell"
+    "dots-swayosd-brightness"
+    "dots-swayosd-client"
+    "dots-theme-bg-set"
+    "dots-theme-set"
+    "dots-toggle-idle"
+    "dots-toggle-notification-silencing"
+    "dots-tz-select"
+    "dots-update"
+    "dots-update-available"
+    "dots-voxtype-config"
+    "dots-voxtype-model"
+    "dots-updates"
+    "dots-weather"
+    "dots-weather-status"
+    "dots-llm"
+    "dots-mounts"
+    "dots-qbt"
+  ];
+
+  setWallpaper = pkgs.writeShellApplication {
+    name = "dots-set-wallpaper";
+    runtimeInputs = with pkgs; [
+      coreutils
+      gnugrep
+      imagemagick
+      jq
+    ];
+    text = builtins.readFile ../scripts/dots-set-wallpaper.sh;
+  };
+
+  currentWallpaper = pkgs.writeShellApplication {
+    name = "dots-current-wallpaper";
+    runtimeInputs = with pkgs; [
+      coreutils
+      gnused
+    ];
+    text = builtins.readFile ../scripts/dots-current-wallpaper.sh;
+  };
+
+  voxtype = pkgs.writeShellApplication {
+    name = "voxtype";
+    runtimeInputs = with pkgs; [
+      coreutils
+      findutils
+      gnugrep
+      gnused
+      libnotify
+      pipewire
+      wl-clipboard
+      wtype
+    ];
+    text = builtins.readFile ../scripts/voxtype.sh;
+  };
+
+  helpers = [
+    setWallpaper
+    currentWallpaper
+  ];
+
+  compatBase = pkgs.writeShellApplication {
+    name = "dots-compat";
+    runtimeInputs = with pkgs; [
+      coreutils
+      curl
+      fzf
+      gnugrep
+      ghostty
+      procps
+      systemd
+      wireplumber
+      git
+      nix
+      jq
+    ];
+    # the checkout dots-update rebuilds from and dots-updates reads flake.lock of
+    text = ''
+      DOTS_REPO="''${DOTS_REPO:-${config.dots.repoPath}}"
+    ''
+    + builtins.readFile ../scripts/dots-compat.sh;
+  };
+
+  # every shim is the same script; $0 selects the branch
+  dotsShims = pkgs.runCommandLocal "dots-shims" { } ''
+    mkdir -p $out/bin
+    for n in ${lib.escapeShellArgs shimNames}; do
+      ln -s ${compatBase}/bin/dots-compat $out/bin/$n
+    done
+  '';
+
+  risePath = lib.makeBinPath (
+    helpers
+    ++ (with pkgs; [
+      bash
+      coreutils
+      curl # SyncedLyrics (lrclib.net)
+      ffmpegthumbnailer
+      findutils
+      gawk
+      gnugrep
+      gnused
+      imagemagick
+      jq
+      libnotify
+      pamixer
+      procps
+      pulseaudio
+      socat
+      systemd
+      util-linux
+      vips # qs-thumb: picker thumbnails without ImageMagick's multi-GB peaks
+      wireplumber
+      xdg-user-dirs
+      # rise/ext (ported from dhrruvsharma/shell):
+      ffmpeg # wallpaper-still: a still frame of a video wallpaper
+      lua5_5 # keybinds editor: reads/validates hyprland.lua like Hyprland's Lua 5.5
+      matugen # wallpaper picker: each card's scheme (dry run, as themectl auto)
+      (python3.withPackages (p: [ p.pygobject3 ])) # keybinds.py, palettes, BlueZ pairing agent
+    ])
+  );
+in
+{
+  home.packages = helpers ++ [
+    nightlight
+    vpn
+    voxtype
+    pkgs.wtype
+    dotsShims
+    pkgs.cava
+    pkgs.pulseaudio
+    pkgs.wireplumber
+    pkgs.nvtopPackages.nvidia
+    pkgs.material-symbols
+    pkgs.google-sans-flex # dashboard text (Caelestia-style)
+    pkgs.rubik # dashboard clock
+    pkgs.nerd-fonts.jetbrains-mono
+    # rise/ext: icon fonts and the desktop/lock themes' type
+    pkgs.material-design-icons
+    pkgs.material-icons
+    pkgs.nerd-fonts.iosevka
+    pkgs.nerd-fonts.symbols-only
+    pkgs.adwaita-fonts
+    pkgs.noto-fonts
+    pkgs.rise-theme-fonts
+  ];
+
+  programs.quickshell = {
+    enable = true;
+    package = pkgs.quickshell;
+    activeConfig = "rise";
+    systemd = {
+      enable = true;
+      target = "hyprland-session.target";
+    };
+  };
+
+  systemd.user.services.quickshell = {
+    Unit = {
+      PartOf = [ "hyprland-session.target" ];
+      # quickshell is the tray's StatusNotifierWatcher: a restart on every
+      # switch drops apps that only register at startup (Discord/Electron).
+      # The QML live-reloads from ~/dots; after a package/env change run
+      # `systemctl --user restart quickshell` by hand.
+      X-RestartIfChanged = false;
+    };
+    Service = {
+      Environment = [
+        "PATH=${risePath}:${dotsShims}/bin:/etc/profiles/per-user/${config.home.username}/bin:${homeDir}/.nix-profile/bin:/run/wrappers/bin:/run/current-system/sw/bin"
+        "DOTS_SHELL_PATH=${config.xdg.configHome}/quickshell/rise"
+        # theme pickers list ''${DOTS_DIR}/config/themes
+        "DOTS_DIR=${config.dots.src}"
+        # Caelestia.Blobs: the SDF frame + melting panel backgrounds
+        # rise/ext: Qt5Compat.GraphicalEffects (window switcher) and
+        # QtMultimedia (video wallpapers; its ffmpeg backend is a plugin)
+        "QML_IMPORT_PATH=${
+          lib.concatMapStringsSep ":" (p: "${p}/${pkgs.qt6.qtbase.qtQmlPrefix}") [
+            pkgs.caelestia-blobs
+            pkgs.qt6.qt5compat
+            pkgs.qt6.qtmultimedia
+          ]
+        }"
+        # qtimageformats: the WebP decoder (many wallpapers are WebP saved as .png)
+        "QT_PLUGIN_PATH=${
+          lib.concatMapStringsSep ":" (p: "${p}/${pkgs.qt6.qtbase.qtPluginPrefix}") [
+            pkgs.qt6.qtmultimedia
+            pkgs.qt6.qtimageformats
+          ]
+        }"
+        # video wallpapers: VA-API frames can't be exported as textures on the
+        # NVIDIA driver (a warning per frame); copy them over instead
+        "QT_DISABLE_HW_TEXTURES_CONVERSION=1"
+      ];
+      Slice = "app-graphical.slice";
+      # rise/ext keeps its settings here and its caches (palettes, favourites,
+      # lock stats) under ~/.cache/quickshell; FileView won't create folders
+      ExecStartPre = "${pkgs.coreutils}/bin/mkdir -p %S/dots/shell/ext %C/quickshell";
+      ExecStart = lib.mkForce "${thpOff}/bin/thp-off ${config.programs.quickshell.package}/bin/quickshell --config rise";
+      # soft backstop: the bar idles at ~300–450 MB; past this the kernel
+      # reclaims/throttles the cgroup instead of letting a runaway helper (a
+      # thumbnail batch, a leak) push the whole session into swap
+      MemoryHigh = "2G";
+      KillMode = "process";
+      ExecStopPost = [
+        "-${reapHelpers}/bin/dots-quickshell-reap-helpers"
+      ];
+      RestartSec = 2;
+    };
+  };
+
+  systemd.user.services.dots-thumb-prune = {
+    Unit.Description = "Prune quickshell picker thumbnail caches";
+    Service = {
+      Type = "oneshot";
+      ExecStart = "${thumbPrune}/bin/dots-thumb-prune";
+    };
+  };
+
+  systemd.user.timers.dots-thumb-prune = {
+    Unit.Description = "Weekly quickshell thumbnail cache prune";
+    Timer = {
+      OnCalendar = "weekly";
+      Persistent = true;
+      RandomizedDelaySec = "1h";
+    };
+    Install.WantedBy = [ "timers.target" ];
+  };
+
+  xdg.configFile."swayosd/style.css".source =
+    config.lib.file.mkOutOfStoreSymlink "${config.xdg.stateHome}/dots/theme/swayosd.css";
+
+  systemd.user.services.swayosd = {
+    Unit = {
+      Description = "swayosd-server";
+      PartOf = [ "hyprland-session.target" ];
+      After = [ "hyprland-session.target" ];
+    };
+    Service = {
+      Environment = [ "GSK_RENDERER=ngl" ];
+      ExecStart = "${pkgs.swayosd}/bin/swayosd-server";
+      Restart = "on-failure";
+      RestartSec = 2;
+    };
+    Install.WantedBy = [ "hyprland-session.target" ];
+  };
+
+  systemd.user.services.dots-gammastep = {
+    Unit = {
+      Description = "gammastep night light";
+      PartOf = [ "hyprland-session.target" ];
+      After = [ "hyprland-session.target" ];
+    };
+    Service = {
+      ExecStartPre = "${pkgs.coreutils}/bin/mkdir -p %S/dots/indicators";
+      ExecStart = "${pkgs.gammastep}/bin/gammastep -c %h/.config/gammastep/config -t 2700:2700";
+      ExecStartPost = "${pkgs.coreutils}/bin/touch %S/dots/indicators/nightlight";
+      ExecStopPost = "-${pkgs.coreutils}/bin/rm -f %S/dots/indicators/nightlight";
+      Restart = "on-failure";
+      RestartSec = 2;
+    };
+  };
+}

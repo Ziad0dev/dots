@@ -1,0 +1,665 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kernel &amp; Nix Tracker</title>
+<style>
+:root {
+  --bg: #f5f6f8; --card: #fff; --fg: #1b2130; --muted: #687387; --line: #e2e5eb; --soft: #eef1f5;
+  --accent: #3466d6; --ok: #1d8a4b; --warn: #b4690e; --bad: #c43b2f; --info: #3466d6;
+  --ok-bg: #e7f5ec; --warn-bg: #fdf1e1; --bad-bg: #fbe9e7; --info-bg: #e8eefb;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11141a; --card: #191d25; --fg: #e3e6ec; --muted: #949eb0; --line: #2a303b; --soft: #222833;
+    --accent: #7ba3f7; --ok: #4cc38a; --warn: #e5ac4e; --bad: #f2776c; --info: #7ba3f7;
+    --ok-bg: #16291f; --warn-bg: #2d2416; --bad-bg: #2f1a18; --info-bg: #1a2338;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11141a; --card: #191d25; --fg: #e3e6ec; --muted: #949eb0; --line: #2a303b; --soft: #222833;
+  --accent: #7ba3f7; --ok: #4cc38a; --warn: #e5ac4e; --bad: #f2776c; --info: #7ba3f7;
+  --ok-bg: #16291f; --warn-bg: #2d2416; --bad-bg: #2f1a18; --info-bg: #1a2338;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+button, input, select { font: inherit; color: var(--fg); }
+button { background: var(--soft); border: 1px solid var(--line); border-radius: 6px; padding: 4px 10px; cursor: pointer; }
+button:hover { border-color: var(--accent); }
+input, select { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; }
+abbr[title] { text-decoration: underline dotted var(--muted); text-underline-offset: 3px; cursor: help; }
+code { font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+/* top bar */
+header { position: sticky; top: 0; z-index: 2; background: var(--card); border-bottom: 1px solid var(--line); }
+.bar { max-width: 1240px; margin: 0 auto; display: flex; align-items: center; gap: 16px; padding: 10px 16px; flex-wrap: wrap; }
+.brand { font-weight: 650; font-size: 15px; }
+nav { display: flex; gap: 4px; flex: 1; }
+nav a { padding: 6px 12px; border-radius: 6px; color: var(--muted); font-weight: 500; }
+nav a:hover { text-decoration: none; background: var(--soft); color: var(--fg); }
+nav a.on { background: var(--soft); color: var(--fg); }
+.tools { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; }
+
+main { max-width: 1240px; margin: 0 auto; padding: 20px 16px 48px; }
+.hello { margin: 0 0 16px; }
+.hello h1 { font-size: 20px; margin: 0; }
+.hello p { margin: 2px 0 0; color: var(--muted); }
+
+/* layout */
+.grid { display: grid; gap: 16px; }
+.tiles { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); margin-bottom: 16px; }
+.two { grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); margin-bottom: 16px; }
+.side { grid-template-columns: minmax(0, 3fr) minmax(260px, 1fr); }
+.kgrid { grid-template-columns: minmax(250px, 1fr) minmax(0, 2.4fr); margin-bottom: 16px; }
+@media (max-width: 860px) { .side, .kgrid { grid-template-columns: 1fr; } }
+@media (max-width: 420px) { .two { grid-template-columns: 1fr; } }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; min-width: 0; }
+.card + .card { margin-top: 0; }
+.card h2 { font-size: 14px; margin: 0 0 2px; }
+.card .lead { color: var(--muted); font-size: 13px; margin: 0 0 12px; }
+.stack > * + * { margin-top: 16px; }
+
+/* status tiles */
+.tile { border-left: 4px solid var(--line); }
+.tile.ok { border-left-color: var(--ok); } .tile.warn { border-left-color: var(--warn); }
+.tile.bad { border-left-color: var(--bad); } .tile.info { border-left-color: var(--info); }
+.tile .label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.tile .big { font-size: 22px; font-weight: 650; margin: 2px 0 4px; overflow-wrap: anywhere; }
+.tile .say { font-size: 13px; }
+.progress { position: relative; height: 6px; background: var(--soft); border-radius: 3px; margin: 10px 0 4px; overflow: hidden; }
+.progress i { position: absolute; inset: 0 auto 0 0; background: var(--accent); border-radius: 3px; }
+.progress b { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--card); }
+.ticks { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); }
+
+/* attention list */
+.alerts { list-style: none; margin: 0; padding: 0; }
+.alerts li { display: flex; gap: 10px; align-items: flex-start; padding: 9px 10px; border-radius: 8px; }
+.alerts li + li { margin-top: 6px; }
+.alerts li.bad { background: var(--bad-bg); } .alerts li.warn { background: var(--warn-bg); }
+.alerts li.info { background: var(--info-bg); } .alerts li.ok { background: var(--ok-bg); }
+.dot { flex: none; width: 8px; height: 8px; border-radius: 50%; margin-top: 7px; background: var(--muted); }
+.bad .dot { background: var(--bad); } .warn .dot { background: var(--warn); } .info .dot { background: var(--info); } .ok .dot { background: var(--ok); }
+.alerts .why { color: var(--muted); font-size: 12px; }
+
+/* lists */
+.list { list-style: none; margin: 0; padding: 0; }
+.list li { padding: 7px 0; border-top: 1px solid var(--line); }
+.list li:first-child { border-top: 0; padding-top: 0; }
+.list .t { display: block; overflow-wrap: anywhere; }
+.list .m { color: var(--muted); font-size: 12px; }
+.chip { display: inline-block; background: var(--soft); border-radius: 4px; padding: 0 6px; font-size: 12px; margin-right: 4px; white-space: nowrap; }
+.chip.k-PATCH { background: var(--info-bg); } .chip.k-REGRESSION { background: var(--bad-bg); }
+.chip.k-GIT { background: var(--ok-bg); } .chip.k-RFC { background: var(--warn-bg); }
+.chip.rev { background: var(--ok-bg); color: var(--ok); }
+.ok-t { color: var(--ok); } .warn-t { color: var(--warn); } .bad-t { color: var(--bad); } .muted { color: var(--muted); }
+
+/* bars */
+.bars { list-style: none; margin: 0; padding: 0; }
+.bars li { display: grid; grid-template-columns: 110px 1fr 40px 22px; gap: 8px; align-items: center; padding: 2px 0; }
+.bars .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bars .track { height: 8px; background: var(--soft); border-radius: 4px; overflow: hidden; }
+.bars .track i { display: block; height: 100%; background: var(--accent); border-radius: 4px; }
+.bars .n { text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); font-size: 12px; }
+.star { background: none; border: 0; padding: 0; color: var(--muted); font-size: 15px; line-height: 1; }
+.star.on { color: var(--warn); }
+
+.stats { display: flex; gap: 22px; flex-wrap: wrap; margin-bottom: 12px; }
+.stats b { display: block; font-size: 20px; font-variant-numeric: tabular-nums; }
+.stats span { color: var(--muted); font-size: 12px; }
+
+.follow { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+.follow button { border-radius: 14px; padding: 2px 10px; font-size: 12px; }
+.follow button.on { background: var(--info-bg); border-color: var(--accent); }
+.sub h3 { font-size: 13px; margin: 12px 0 4px; display: flex; gap: 6px; align-items: baseline; }
+
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--muted); font-weight: 500; font-size: 12px; }
+td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
+.filters input[type=search] { flex: 1; min-width: 180px; }
+.err { color: var(--bad); font-size: 13px; }
+.empty { color: var(--muted); font-size: 13px; }
+.scroll { overflow-x: auto; }
+.more { margin-top: 10px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <span class="brand">Kernel &amp; Nix</span>
+    <nav>
+      <a href="#home" data-view="home">Home</a>
+      <a href="#kernel" data-view="kernel">Kernel</a>
+      <a href="#nix" data-view="nix">Nix</a>
+      <a href="#zig" data-view="zig">Zig</a>
+      <a href="#tinygrad" data-view="tinygrad">tinygrad</a>
+    </nav>
+    <div class="tools">
+      <span id="status"></span>
+      <button id="refresh" title="Fetch everything again">Refresh</button>
+      <button id="theme" title="Toggle light / dark">◐</button>
+    </div>
+  </div>
+</header>
+<main id="view"></main>
+
+<script>
+/* ---------- helpers ---------- */
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const link = (url, text) => `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(text)}</a>`;
+const num = n => Number(n).toLocaleString();
+const ago = iso => {
+  if (!iso) return "";
+  const m = (Date.now() - new Date(iso)) / 60000;
+  return m < 1 ? "just now" : m < 60 ? `${Math.round(m)}m ago` : m < 2880 ? `${Math.round(m / 60)}h ago` : `${Math.round(m / 1440)}d ago`;
+};
+// kernel.org dates releases in UTC, so a Sunday tag often reads as Monday: give the date, not the weekday
+const day = iso => new Date(iso + "T12:00:00").toLocaleDateString(undefined, {month: "short", day: "numeric"});
+const plural = (n, word, many = word + "s") => `${num(n)} ${n === 1 ? word : many}`;
+const verParts = v => (String(v).match(/\d+/g) || []).map(Number);
+const cmpVer = (a, b) => {
+  const x = verParts(a), y = verParts(b);
+  for (let i = 0; i < Math.max(x.length, y.length); i++) if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) - (y[i] || 0);
+  return 0;
+};
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+};
+
+/* plain-language definitions for the jargon on the page */
+const GLOSSARY = {
+  "mainline": "Linus Torvalds' tree. Every new kernel version is released from here.",
+  "stable": "The newest released version, getting weekly bug-fix point releases from Greg Kroah-Hartman.",
+  "longterm": "An LTS branch maintained for years with backported fixes. Distros and nixpkgs ship several.",
+  "merge window": "The ~2 weeks after a release when maintainers send their trees full of new features to Linus. Ends with rc1.",
+  "rc": "Release candidate. After the merge window Linus tags one every Sunday; only fixes go in. Usually rc7 or rc8 is the last.",
+  "tree": "The maintainer git tree a patch is aimed at, e.g. net-next (new networking features) vs net (fixes).",
+  "series": "Related patches sent together as [PATCH vN i/N]. 0/N is the cover letter explaining the whole thing; vN counts how many times it was reworked after review.",
+  "trailers": "Tags reviewers add in replies — Reviewed-by, Acked-by, Tested-by — that the maintainer copies into the commit.",
+  "channel": "A nixpkgs branch that only advances after Hydra has built and tested it. nixos-unstable is what flakes usually follow.",
+  "master": "Zig's development branch. Nightly builds come from here; code written against it may break before the next release.",
+  "proposal": "A suggested language or std change. 'accepted' means the core team agreed to it, not that it has landed yet.",
+  "breaking": "A change that makes existing Zig code stop compiling or behave differently — what you'll have to fix when you upgrade.",
+  "bounty": "tinygrad pays cash for specific improvements, listed in a spreadsheet. Claiming one locks it to your PR.",
+  "subsystem": "The prefix of a patch subject (\"mm:\", \"net: phy:\") naming the area of the kernel it touches; each has its own maintainers.",
+};
+const g = (term, text = term) => `<abbr title="${esc(GLOSSARY[term])}">${esc(text)}</abbr>`;
+
+/* ---------- data ---------- */
+// the home page's sources load up front; the Zig and tinygrad tabs fetch theirs the first time they're opened
+const SOURCES = ["system", "kernel", "channels", "lkml", "kernel-prs", "discourse", "nix"];
+const S = Object.fromEntries(SOURCES.map(s => [s, {loading: true}]));
+const loaded = () => Object.keys(S);
+
+async function load(src, refresh = false) {
+  S[src] = {...S[src], loading: true};
+  try {
+    const res = await fetch(`/api/${src}${refresh ? "?refresh=1" : ""}`);
+    const json = await res.json();
+    S[src] = json.error ? {error: json.error} : {data: json.data, fetched: json.fetched};
+  } catch (e) {
+    S[src] = {error: e.message};
+  }
+  render();
+}
+const loadAll = refresh => loaded().forEach(s => load(s, refresh));
+const D = src => S[src]?.data;
+// render a block from one source, or say why it's missing
+const from = (src, fn, label = "") => !S[src] ? (load(src), `<p class="empty">Loading…</p>`) : S[src].error ? `<p class="err">Couldn't load ${esc(label || src)}: ${esc(S[src].error)}</p>`
+  : S[src].data === undefined ? `<p class="empty">Loading…</p>` : fn(S[src].data);
+
+/* ---------- derived facts the home page is built from ---------- */
+function myKernel() {
+  const sys = D("system"), k = D("kernel");
+  if (!sys || !k) return null;
+  const base = (sys.kernel.match(/^\d+\.\d+(?:\.\d+)?(?:-rc\d+)?/) || [sys.kernel])[0];
+  const branch = (base.match(/^\d+\.\d+/) || [""])[0];
+  const row = /-rc/.test(base) ? k.branches.find(b => b.moniker === "mainline") : k.branches.find(b => b.branch === branch && b.moniker !== "mainline");
+  if (!row) return {running: sys.kernel, base, branch, level: "warn", say: `${branch} isn't a maintained branch any more — no more fixes upstream.`};
+  if (row.eol) return {running: sys.kernel, base, branch, row, level: "bad", say: `The ${branch} branch is end-of-life.`};
+  const behind = cmpVer(row.version, base) > 0;
+  return {running: sys.kernel, base, branch, row, behind,
+    level: behind ? "warn" : "ok",
+    say: behind ? `${row.version} is out upstream (${ago(row.released + "T12:00:00")}).` : `Up to date with ${row.moniker} ${row.version}.`};
+}
+
+function myNixos() {
+  const sys = D("system"), ch = D("channels");
+  if (!sys || !ch || !sys.nixos_rev) return null;
+  const on = ch.find(c => c.revision.startsWith(sys.nixos_rev));
+  const unstable = ch.find(c => c.channel === "nixos-unstable");
+  if (on) return {sys, on, level: "ok", say: `Running ${on.channel}'s current revision.`};
+  return {sys, unstable, level: "warn",
+    say: unstable ? `nixos-unstable has moved on (advanced ${ago(unstable.updated)}). Run nix flake update to catch up.` : "Not on any channel's current revision."};
+}
+
+const series = v => verParts(v).slice(0, 2).join(".");
+
+// Nix keeps several release series patched at once (nixpkgs' default is often
+// not the newest), so "up to date" means the newest release of *your* series
+function myNix() {
+  const sys = D("system"), tags = D("nix");
+  if (!sys || !tags || !sys.nix) return null;
+  const releases = tags.map(t => t.tag).filter(t => /^\d+\.\d+\.\d+$/.test(t)).sort(cmpVer);
+  const latest = releases.at(-1);
+  const seriesLatest = releases.filter(t => series(t) === series(sys.nix)).at(-1);
+  const behind = seriesLatest && cmpVer(seriesLatest, sys.nix) > 0;
+  const newer = latest && series(latest) !== series(sys.nix) && cmpVer(latest, sys.nix) > 0 ? ` ${latest} is the newest series (nixVersions.latest).` : "";
+  return {mine: sys.nix, latest, seriesLatest, behind, level: behind ? "warn" : "ok",
+    say: behind ? `${seriesLatest} is out in your ${series(sys.nix)} series.` : `Latest ${series(sys.nix)} release.${newer}`};
+}
+
+// does an advisory's fixed-version list cover this version? null when the post couldn't be read
+function patched(version, fixed) {
+  if (!fixed?.length) return null;
+  const f = fixed.find(v => series(v) === series(version));
+  return f ? cmpVer(version, f) >= 0 : fixed.some(v => cmpVer(version, v) >= 0 && cmpVer(version, fixed.at(-1)) > 0);
+}
+
+const isRecent = (iso, days) => iso && Date.now() - new Date(iso) < days * 864e5;
+const advisories = () => (D("discourse") || []).filter(t => /security|advisory|\bcve\b/i.test(t.title) && isRecent(t.created || t.last_posted, 30));
+
+function attention() {
+  const items = [];
+  const k = myKernel(), n = myNixos(), x = myNix();
+  for (const t of advisories()) {
+    const ok = x && patched(x.mine, t.fixed?.nix);
+    if (ok === true) items.push({level: "ok", html: `Security advisory: ${link(t.url, t.title)}`,
+      why: `You're patched: Nix ${esc(x.mine)} is one of the fixed versions (${esc(t.fixed.nix.join(", "))}). Nothing to do.`});
+    else if (ok === false) items.push({level: "bad", html: `Security advisory: ${link(t.url, t.title)}`,
+      why: `Your Nix ${esc(x.mine)} is affected. Fixed in ${esc(t.fixed.nix.join(", "))}; update nixpkgs and switch.`});
+    else items.push({level: "bad", html: `Security advisory: ${link(t.url, t.title)}`,
+      why: x ? `Couldn't read its fixed versions; compare them with your Nix ${esc(x.mine)}.` : "Read it and check your Nix version."});
+  }
+  if (k?.behind) {
+    const pr = (D("kernel-prs") || []).find(p => p.state === "open" && p.title.includes(k.row.version));
+    items.push({level: "warn", html: `Kernel ${link(k.row.gitweb, k.row.version)} is out; you're on ${esc(k.running)}.`,
+      why: pr ? `nixpkgs update in review: ${link(pr.url, "#" + pr.number)}. Custom kernels (CachyOS, zen) follow their own schedule.` : "Your kernel package will pick it up when its maintainers update."});
+  }
+  if (k && !k.row) items.push({level: "warn", html: `Your kernel branch ${esc(k.branch)} is no longer maintained upstream.`, why: "Consider moving to a longterm or the stable branch."});
+  if (n?.level === "warn") items.push({level: "info", html: esc(n.say), why: `You're on ${esc(n.sys.nixos)}.`});
+  for (const c of D("channels") || [])
+    if (c.age_hours > 72 && ["rolling", "stable"].includes(c.status) && c.variant === "primary")
+      items.push({level: "warn", html: `${esc(c.channel)} hasn't advanced in ${Math.round(c.age_hours / 24)} days.`, why: "Hydra is probably blocked on a failing job; updates will wait."});
+  if (x?.behind) items.push({level: "info", html: `Nix ${esc(x.seriesLatest)} is out; you have ${esc(x.mine)}.`, why: "It reaches you when nixpkgs bumps nixVersions.stable."});
+  const breaking = (D("discourse") || []).find(t => /breaking changes/i.test(t.title) && isRecent(t.last_posted, 3));
+  if (breaking) items.push({level: "info", html: `New post in ${link(breaking.url, breaking.title)}`, why: "Skim it before your next flake update."});
+  const regs = D("lkml")?.threads.filter(t => t.kind === "REGRESSION") || [];
+  if (regs.length) items.push({level: "info", html: `${regs.length} regression report${regs.length > 1 ? "s" : ""} on LKML today — <a href="#kernel?kind=REGRESSION">see them</a>.`, why: "Good reading: how bugs get reported, bisected and fixed."});
+  const rank = {bad: 0, warn: 1, info: 2, ok: 3};
+  return items.sort((a, b) => rank[a.level] - rank[b.level]);
+}
+
+/* ---------- following subsystems ---------- */
+let follows = store.get("follows", []);
+const matches = (sub, f) => sub === f || sub.startsWith(f + "/");
+function toggleFollow(sub) {
+  follows = follows.includes(sub) ? follows.filter(f => f !== sub) : [...follows, sub].sort();
+  store.set("follows", follows);
+  render();
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-follow]");
+  if (b) { e.preventDefault(); toggleFollow(b.dataset.follow); }
+});
+
+/* ---------- shared pieces ---------- */
+const kindChip = k => `<span class="chip k-${esc(k.split(" ")[0])}">${esc(k)}</span>`;
+const threadItem = t => `<li><span class="t">${link(t.url, t.title)}</span>
+  <span class="m">${t.subsystem ? `<a href="#kernel?sub=${encodeURIComponent(t.subsystem)}">${esc(t.subsystem)}</a> · ` : ""}${plural(t.messages, "message")} · ${t.participants === 1 ? "1 person" : `${t.participants} people`} · ${esc(ago(t.latest))}${t.reviewed.length ? ` · <span class="ok-t">${esc(t.reviewed.join(", "))}</span>` : ""}</span></li>`;
+const coverage = r => {
+  const h = (new Date(r.window[1]) - new Date(r.window[0])) / 36e5;
+  return isFinite(h) ? (h >= 23 ? "the last 24 hours" : `the last ${Math.max(1, Math.round(h))} hours`) : "recent mail";
+};
+
+function cycleTile() {
+  return from("kernel", k => {
+    const c = k.cycle;
+    if (!c) return `<p class="empty">No mainline release found.</p>`;
+    const ticks = c.phase === "rc"
+      ? `<span>merge window</span><span>rc1</span><span>rc${c.rc}</span><span>${esc(c.next)}</span>`
+      : `<span>${esc(c.version)} out</span><span>${g("merge window")}</span><span>rc1</span>`;
+    const say = c.phase === "rc"
+      ? (c.rc >= 7 ? `${g("rc", "Release candidate")} ${c.rc}: fixes only. ${esc(c.next)} final expected around <b>${day(c.final_date)}</b>, or rc${c.rc + 1} if Linus wants another week.`
+                   : `${g("rc", "Release candidate")} ${c.rc}: fixes only. rc${c.rc + 1} expected ${day(c.next_date)}; ${esc(c.next)} around ${day(c.final_date)}.`)
+      : `${g("merge window", "Merge window")} open: new features for ${esc(c.next)} are landing. rc1 expected ${day(c.next_date)}.`;
+    return `<div class="label">${g("mainline", "Mainline")} cycle</div><div class="big">${esc(c.version)}</div>
+      <div class="say">${say}</div>
+      <div class="progress"><i style="width:${(c.progress * 100).toFixed(1)}%"></i><b style="left:22%"></b></div>
+      <div class="ticks">${ticks}</div>`;
+  });
+}
+
+function tile(level, body) { return `<section class="card tile ${level || ""}">${body}</section>`; }
+
+function statusTiles() {
+  const k = myKernel(), n = myNixos(), x = myNix();
+  const waiting = src => S[src].error ? `<p class="err">${esc(S[src].error)}</p>` : `<p class="empty">Loading…</p>`;
+  return `<div class="grid tiles">
+    ${tile("info", cycleTile())}
+    ${tile(k?.level, k ? `<div class="label">Your kernel</div><div class="big">${esc(k.running)}</div><div class="say">${esc(k.say)}</div>`
+                       : `<div class="label">Your kernel</div>${waiting(D("system") ? "kernel" : "system")}`)}
+    ${tile(n?.level, n ? `<div class="label">Your NixOS</div><div class="big">${esc(n.sys.nixos.split(".").slice(0, 2).join("."))} <code class="muted" style="font-size:14px">${esc(n.sys.nixos_rev)}</code></div><div class="say">${esc(n.say)}</div>`
+                       : `<div class="label">Your NixOS</div>${waiting(D("system") ? "channels" : "system")}`)}
+    ${tile(x?.level, x ? `<div class="label">Your Nix</div><div class="big">${esc(x.mine)}</div><div class="say">${esc(x.say)}</div>`
+                       : `<div class="label">Your Nix</div>${waiting(D("system") ? "nix" : "system")}`)}
+  </div>`;
+}
+
+/* ---------- views ---------- */
+function home() {
+  const items = attention();
+  const ready = ["system", "kernel", "channels", "discourse", "lkml"].every(s => !S[s].loading);
+  const alertList = items.length
+    ? `<ul class="alerts">${items.map(i => `<li class="${i.level}"><span class="dot"></span><div>${i.html}<div class="why">${i.why}</div></div></li>`).join("")}</ul>`
+    : ready ? `<ul class="alerts"><li class="ok"><span class="dot"></span><div>Nothing needs you right now.<div class="why">Your system is current and there are no advisories.</div></div></li></ul>`
+    : `<p class="empty">Checking…</p>`;
+
+  const today = from("lkml", r => {
+    const subs = r.subsystems.slice(0, 8), max = subs[0]?.[1] || 1;
+    return `<div class="stats">
+        <div><b>${num(r.messages)}</b><span>messages</span></div>
+        <div><b>${num(r.new_threads)}</b><span>new threads</span></div>
+        <div><b>${num(r.replies)}</b><span>replies</span></div>
+        <div><b>${num(r.with_diff)}</b><span>with patches</span></div>
+      </div>
+      <h3 class="muted" style="font-size:12px;margin:0 0 6px">Busiest ${g("subsystem", "subsystems")} — ☆ to follow</h3>
+      <ul class="bars">${subs.map(([s, n]) => `<li><a class="name" href="#kernel?sub=${encodeURIComponent(s)}">${esc(s)}</a>
+        <span class="track"><i style="width:${(n / max * 100).toFixed(0)}%"></i></span><span class="n">${n}</span>
+        <button class="star ${follows.includes(s) ? "on" : ""}" data-follow="${esc(s)}" title="${follows.includes(s) ? "Unfollow" : "Follow"}">${follows.includes(s) ? "★" : "☆"}</button></li>`).join("")}</ul>
+      <h3 class="muted" style="font-size:12px;margin:14px 0 6px">Most discussed</h3>
+      <ul class="list">${r.threads.slice(0, 5).map(threadItem).join("")}</ul>
+      <p class="more"><a href="#kernel">Browse all ${num(r.threads.length)} threads →</a></p>`;
+  });
+
+  const mine = from("lkml", r => {
+    if (!follows.length) {
+      const sugg = r.subsystems.slice(0, 14).map(([s]) => s);
+      return `<p class="lead">Pick the parts of the kernel you're learning and their new threads show up here.</p>
+        <div class="follow">${sugg.map(s => `<button data-follow="${esc(s)}">+ ${esc(s)}</button>`).join("")}</div>
+        <p class="empty">Tip: <b>mm</b> (memory), <b>sched</b> (scheduler), <b>rust</b> and <b>docs</b> are good places to start reading.</p>`;
+    }
+    return `<div class="follow">${follows.map(f => `<button class="on" data-follow="${esc(f)}" title="Unfollow">${esc(f)} ×</button>`).join("")}</div>
+      <div class="sub">${follows.map(f => {
+        const ts = r.threads.filter(t => matches(t.subsystem, f)).sort((a, b) => b.latest.localeCompare(a.latest));
+        return `<h3>${esc(f)} <span class="muted">${ts.length} thread${ts.length === 1 ? "" : "s"}</span></h3>
+          ${ts.length ? `<ul class="list">${ts.slice(0, 4).map(threadItem).join("")}</ul>${ts.length > 4 ? `<a href="#kernel?sub=${encodeURIComponent(f)}">all ${ts.length} →</a>` : ""}` : `<p class="empty">Quiet in ${coverage(r)}.</p>`}`;
+      }).join("")}</div>
+      <p class="more"><input id="addfollow" placeholder="follow another, e.g. bpf" size="22"></p>`;
+  });
+
+  const learn = from("lkml", r => {
+    const series = r.series.filter(s => s.version >= 2).slice(0, 6);
+    const reviewed = r.threads.filter(t => t.reviewed.length && t.participants >= 2).slice(0, 4);
+    return `<p class="lead">Patch ${g("series")} that were reworked several times. Open the cover letter, read the changelog under "Changes in vN", then the replies to see what reviewers pushed back on.</p>
+      <ul class="list">${series.map(s => `<li><span class="t">${link(s.url, s.title)}</span><span class="m">${esc(s.author)} · <b>v${s.version}</b> · ${s.patches} patch${s.patches > 1 ? "es" : ""}</span></li>`).join("") || `<li class="empty">No multi-revision series yet in ${coverage(r)}.</li>`}</ul>
+      ${reviewed.length ? `<h3 class="muted" style="font-size:12px;margin:14px 0 6px">Got ${g("trailers", "review tags")} today</h3><ul class="list">${reviewed.map(threadItem).join("")}</ul>` : ""}`;
+  });
+
+  const community = `${from("discourse", ts => `<ul class="list">${ts.filter(t => !t.pinned).slice(0, 6).map(t =>
+      `<li><span class="t">${link(t.url, t.title)}</span><span class="m">${plural(t.posts, "post")} · active ${esc(ago(t.last_posted))}</span></li>`).join("")}</ul>`, "Discourse")}
+    <h3 class="muted" style="font-size:12px;margin:14px 0 6px">Kernel work in nixpkgs</h3>
+    ${from("kernel-prs", ps => `<ul class="list">${ps.slice(0, 3).map(p =>
+      `<li><span class="t">${link(p.url, `#${p.number} ${p.title}`)}</span><span class="m"><span class="${p.state === "merged" ? "ok-t" : p.state === "open" ? "warn-t" : "muted"}">${esc(p.state)}</span> · ${esc(p.author)} · ${esc(ago(p.updated))}</span></li>`).join("")}</ul>`, "nixpkgs PRs")}
+    <p class="more"><a href="#nix">More Nix →</a></p>`;
+
+  const lkmlLead = D("lkml") ? `Covering ${coverage(D("lkml"))} of ${esc(D("lkml").list)}.` : "";
+  return `
+    <div class="hello"><h1>${new Date().toLocaleDateString(undefined, {weekday: "long", month: "long", day: "numeric"})}</h1>
+      <p>Your system, where the kernel is in its cycle, and what's worth reading today.</p></div>
+    ${statusTiles()}
+    <section class="card" style="margin-bottom:16px"><h2>Needs your attention</h2><p class="lead">Things that affect your machine or are worth a look before your next update.</p>${alertList}</section>
+    <div class="grid two">
+      <section class="card"><h2>Today on LKML</h2><p class="lead">${lkmlLead}</p>${today}</section>
+      <section class="card"><h2>Your subsystems</h2><p class="lead">New threads in the areas you follow.</p>${mine}</section>
+    </div>
+    <div class="grid two">
+      <section class="card"><h2>Learn from review</h2>${learn}</section>
+      <section class="card"><h2>Nix community</h2><p class="lead">Recently active on discourse.nixos.org.</p>${community}</section>
+    </div>`;
+}
+
+let threadLimit = 100;
+function kernel(params) {
+  const releases = from("kernel", k => `<div class="scroll"><table>
+      <tr><th>Branch</th><th>Upstream</th><th>Released</th><th>In nixpkgs</th></tr>
+      ${k.branches.map(b => `<tr><td>${GLOSSARY[b.moniker] ? g(b.moniker) : esc(b.moniker)} <span class="muted">${esc(b.branch === "testing" ? "" : b.branch)}${b.eol ? " · EOL" : ""}</span></td>
+        <td>${b.gitweb ? link(b.gitweb, b.version) : esc(b.version)}</td><td class="muted">${esc(b.released)}</td>
+        <td class="${{current: "ok-t", behind: "warn-t", missing: "muted"}[b.status]}">${esc(b.nixpkgs || "not packaged")}${b.status === "behind" ? " (behind)" : ""}</td></tr>`).join("")}
+    </table></div>`);
+
+  const explorer = from("lkml", r => {
+    const q = (params.get("q") || "").toLowerCase(), sub = params.get("sub") || "", kind = params.get("kind") || "", rev = params.has("reviewed");
+    const kinds = [...new Set(r.threads.map(t => t.kind))].sort();
+    const subs = r.subsystems.map(([s]) => s);
+    if (sub && !subs.includes(sub)) subs.unshift(sub);
+    const rows = r.threads.filter(t => (!q || t.title.toLowerCase().includes(q) || t.author.toLowerCase().includes(q))
+      && (!sub || matches(t.subsystem, sub)) && (!kind || t.kind === kind) && (!rev || t.reviewed.length));
+    return `<div class="filters">
+        <input type="search" id="f-q" placeholder="Search subjects or authors" value="${esc(params.get("q") || "")}">
+        <select id="f-sub"><option value="">All subsystems</option>${subs.map(s => `<option ${s === sub ? "selected" : ""}>${esc(s)}</option>`).join("")}</select>
+        <select id="f-kind"><option value="">All kinds</option>${kinds.map(k => `<option ${k === kind ? "selected" : ""}>${esc(k)}</option>`).join("")}</select>
+        <label><input type="checkbox" id="f-rev" ${rev ? "checked" : ""}> reviewed</label>
+        ${sub ? `<button data-follow="${esc(sub)}">${follows.includes(sub) ? "★ Following" : "☆ Follow"} ${esc(sub)}</button>` : ""}
+      </div>
+      <p class="lead">${num(rows.length)} of ${num(r.threads.length)} threads from ${coverage(r)}.</p>
+      <div class="scroll"><table>
+        <tr><th>Thread</th><th>Kind</th><th class="n">Msgs</th><th class="n">People</th><th class="n">Last</th></tr>
+        ${rows.slice(0, threadLimit).map(t => `<tr><td>${link(t.url, t.title)}<div class="muted" style="font-size:12px">${esc(t.author)}${t.subsystem ? ` · <a href="#kernel?sub=${encodeURIComponent(t.subsystem)}">${esc(t.subsystem)}</a>` : ""}${t.tree ? ` · ${g("tree", t.tree)}` : ""}${t.reviewed.length ? ` · <span class="ok-t">${esc(t.reviewed.join(", "))}</span>` : ""}</div></td>
+          <td>${kindChip(t.kind)}${t.version > 1 ? `<span class="chip">v${t.version}</span>` : ""}</td>
+          <td class="n">${t.messages}</td><td class="n">${t.participants}</td><td class="n muted">${esc(ago(t.latest))}</td></tr>`).join("")}
+      </table></div>
+      ${rows.length > threadLimit ? `<p class="more"><button id="more">Show more</button></p>` : ""}`;
+  });
+
+  const people = from("lkml", r => {
+    const block = (title, rows) => rows?.length ? `<h3 class="muted" style="font-size:12px;margin:12px 0 4px">${title}</h3><ul class="list">${rows.slice(0, 8).map(([n, c]) => `<li style="display:flex;justify-content:space-between;gap:8px"><a href="#kernel?q=${encodeURIComponent(n)}">${esc(n)}</a><span class="muted">${c}</span></li>`).join("")}</ul>` : "";
+    return block("Most active", r.top_posters) + block("Sending patches", r.top_patch_authors)
+      + Object.entries(r.reviews).map(([tag, rows]) => block(`${esc(tag)} given`, rows)).join("")
+      + block(`Target ${g("tree", "trees")}`, r.trees);
+  });
+
+  return `<div class="hello"><h1>Kernel</h1><p>Releases, and every LKML thread from ${D("lkml") ? coverage(D("lkml")) : "the last day"}.</p></div>
+    <div class="grid kgrid">
+      ${tile("info", cycleTile())}
+      <section class="card"><h2>Releases</h2><p class="lead">kernel.org next to what nixpkgs master packages.</p>${releases}</section>
+    </div>
+    <div class="grid side">
+      <section class="card"><h2>LKML threads</h2>${explorer}</section>
+      <section class="card"><h2>People</h2><p class="lead">Who's posting and reviewing.</p>${people}</section>
+    </div>`;
+}
+
+function nix() {
+  const channels = from("channels", ch => `<div class="scroll"><table>
+      <tr><th>${g("channel", "Channel")}</th><th>Revision</th><th class="n">Advanced</th></tr>
+      ${ch.map(c => {
+        const mine = D("system")?.nixos_rev && c.revision.startsWith(D("system").nixos_rev);
+        const cls = c.age_hours == null ? "" : c.age_hours > 72 ? "bad-t" : c.age_hours > 24 ? "warn-t" : "ok-t";
+        return `<tr><td>${esc(c.channel)} <span class="muted">${esc(c.status)}</span>${mine ? ` <span class="chip rev">you</span>` : ""}</td>
+          <td><code>${link(`https://github.com/NixOS/nixpkgs/commit/${c.revision}`, c.revision.slice(0, 10))}</code></td>
+          <td class="n ${cls}">${esc(ago(c.updated))}</td></tr>`;
+      }).join("")}</table></div>`);
+  const prs = from("kernel-prs", ps => `<ul class="list">${ps.map(p => `<li><span class="t">${link(p.url, `#${p.number} ${p.title}`)}</span>
+      <span class="m"><span class="${p.state === "merged" ? "ok-t" : p.state === "open" ? "warn-t" : "muted"}">${esc(p.state)}</span> · ${esc(p.author)} · ${esc(ago(p.updated))}
+      ${p.labels.filter(l => l !== "6.topic: kernel").slice(0, 3).map(l => `<span class="chip">${esc(l)}</span>`).join("")}</span></li>`).join("")}</ul>`);
+  const disc = from("discourse", ts => `<ul class="list">${ts.map(t => `<li><span class="t">${t.pinned ? "📌 " : ""}${link(t.url, t.title)}</span>
+      <span class="m">${plural(t.posts, "post")} · ${plural(t.views, "view")} · active ${esc(ago(t.last_posted))}</span></li>`).join("")}</ul>`);
+  const rel = from("nix", tags => `<ul class="list">${tags.map(t => `<li>${link(t.url, t.tag)}${t.tag === D("system")?.nix ? ` <span class="chip rev">you</span>` : ""}</li>`).join("")}</ul>`);
+
+  return `<div class="hello"><h1>Nix</h1><p>Channels, kernel packaging in nixpkgs, and the community.</p></div>
+    <div class="grid two">
+      <div class="stack">
+        <section class="card"><h2>Channels</h2><p class="lead">Green advanced within a day; red is stuck for 3+ days.</p>${channels}</section>
+        <section class="card"><h2>Nix releases</h2>${rel}</section>
+      </div>
+      <section class="card"><h2>Kernel PRs in nixpkgs</h2><p class="lead">Labelled 6.topic: kernel, most recently updated first.</p>${prs}</section>
+    </div>
+    <section class="card"><h2>Discourse</h2><p class="lead">Latest on discourse.nixos.org.</p>${disc}</section>`;
+}
+
+const labelChips = (labels, skip = []) => labels.filter(l => !skip.includes(l) && !/^(arch|os|abi)\//.test(l)).slice(0, 3).map(l => `<span class="chip">${esc(l)}</span>`).join("");
+const prItem = (p, when = p.merged_at || p.updated, skip = []) => `<li><span class="t">${link(p.url, `#${p.number} ${p.title}`)}</span>
+  <span class="m">${esc(p.author)} · ${esc(ago(when))}${p.comments ? ` · ${plural(p.comments, "comment")}` : ""}${p.draft ? ` · <span class="muted">draft</span>` : ""} ${labelChips(p.labels || [], skip)}</span></li>`;
+const links = items => `<p class="lead" style="margin:0">${items.map(([u, t]) => link(u, t)).join(" · ")}</p>`;
+const thisWeek = list => list.filter(p => isRecent(p.merged_at, 7)).length;
+
+function zig() {
+  const tiles = from("zig", z => {
+    const rel = z.releases[0], packaged = z.nixpkgs;
+    const nixLevel = !packaged ? "" : cmpVer(packaged, rel.version) >= 0 ? "ok" : "warn";
+    return `<div class="grid tiles">
+      ${tile("info", `<div class="label">Latest release</div><div class="big">${esc(rel.version)}</div>
+        <div class="say">Released ${esc(day(rel.date))}. ${rel.notes ? link(rel.notes, "Release notes") + " · " : ""}${link(rel.docs, "Language reference")}</div>`)}
+      ${tile("", `<div class="label">${g("master", "Master")}</div><div class="big" style="font-size:17px">${esc(z.master.version)}</div>
+        <div class="say">Nightly from ${esc(day(z.master.date))}. ${link(z.master.docs, "Docs")} · ${link(z.master.std_docs, "std")}</div>`)}
+      ${tile(nixLevel, `<div class="label">In nixpkgs</div><div class="big">${esc(packaged || "unknown")}</div>
+        <div class="say">${!packaged ? "Couldn't ask repology." : nixLevel === "ok" ? "pkgs.zig is on the latest release." : `${esc(rel.version)} isn't packaged yet.`} Nightlies: the zig-overlay flake.</div>`)}
+      ${tile("", `<div class="label">On Codeberg</div><div class="big">${num(z.repo.open_prs)} <span class="muted" style="font-size:14px">open PRs</span></div>
+        <div class="say">${num(z.repo.open_issues)} open issues · ${thisWeek(z.merged)}${z.merged.length && thisWeek(z.merged) === z.merged.length ? "+" : ""} merged this week. ${link(z.repo.url, "Repository")}</div>`)}
+    </div>`;
+  }, "Zig");
+
+  const breaking = from("zig", z => `<ul class="list">${z.breaking.map(p => prItem(p, p.merged_at, ["breaking"])).join("") || `<li class="empty">None recently.</li>`}</ul>`);
+  const proposals = from("zig", z => `<ul class="list">${z.proposals.map(p => prItem(p, p.updated, ["accepted", "proposal"])).join("") || `<li class="empty">None open.</li>`}</ul>`);
+  const merged = from("zig", z => `<ul class="list">${z.merged.slice(0, 12).map(p => prItem(p)).join("")}</ul>`);
+  const forum = from("ziggit", ts => {
+    const cats = ["Help", "Explain", "Docs", "Showcase", "Brainstorming", "News"];
+    const pick = route().params.get("cat") || "";
+    const shown = ts.filter(t => !t.pinned && (!pick || t.category === pick)).slice(0, 12);
+    return `<div class="follow">${["", ...cats].map(c => `<a class="chip${c === pick ? " rev" : ""}" href="#zig${c ? "?cat=" + encodeURIComponent(c) : ""}">${esc(c || "All")}</a>`).join("")}</div>
+      <ul class="list">${shown.map(t => `<li><span class="t">${link(t.url, t.title)}</span><span class="m">${t.category ? `<span class="chip">${esc(t.category)}</span>` : ""}${plural(t.posts - 1, "reply", "replies")} · active ${esc(ago(t.last_posted))}</span></li>`).join("") || `<li class="empty">Nothing recent in ${esc(pick)}.</li>`}</ul>`;
+  }, "Ziggit");
+
+  return `<div class="hello"><h1>Zig</h1><p>The language and compiler, developed on Codeberg.</p>
+      ${links([["https://ziglang.org/learn/", "Learn"], ["https://codeberg.org/ziglings/exercises", "Ziglings"], ["https://ziglang.org/documentation/master/", "Language reference"], ["https://ziggit.dev", "Ziggit"]])}</div>
+    ${tiles}
+    <div class="grid two">
+      <section class="card"><h2>${g("breaking", "Breaking changes")} in master</h2><p class="lead">Merged PRs labelled breaking — what you'll need to change when you move to the next release.</p>${breaking}</section>
+      <section class="card"><h2>Accepted ${g("proposal", "proposals")}</h2><p class="lead">Changes the core team agreed on that haven't landed yet. The discussions show how the language is designed.</p>${proposals}</section>
+    </div>
+    <div class="grid two">
+      <section class="card"><h2>Recently merged</h2><p class="lead">What landed in master lately.</p>${merged}</section>
+      <section class="card"><h2>Ziggit</h2><p class="lead">The community forum. Explain and Docs are the best for learning; Help shows what trips people up.</p>${forum}</section>
+    </div>`;
+}
+
+function tinygrad() {
+  const tiles = from("tinygrad", t => {
+    const rel = t.releases[0], packaged = t.nixpkgs;
+    const nixLevel = !packaged || !rel ? "" : cmpVer(packaged, rel.tag) >= 0 ? "ok" : "warn";
+    const week = thisWeek(t.merged);
+    return `<div class="grid tiles">
+      ${tile("info", rel ? `<div class="label">Latest release</div><div class="big">${esc(rel.tag)}</div>
+        <div class="say">Released ${esc(ago(rel.date))}. ${link(rel.url, "Release notes")}. Releases are infrequent; development happens on master.</div>` : `<div class="label">Latest release</div><p class="empty">None found.</p>`)}
+      ${tile(nixLevel, `<div class="label">In nixpkgs</div><div class="big">${esc(packaged || "unknown")}</div>
+        <div class="say">python3Packages.tinygrad${nixLevel === "ok" ? " is on the latest release." : nixLevel === "warn" ? " is behind the latest release." : "."}</div>`)}
+      ${tile("", `<div class="label">Merged this week</div><div class="big">${week}${week === t.merged.length ? "+" : ""}</div>
+        <div class="say">${num(t.open.length)}${t.open.length >= 20 ? "+" : ""} PRs in review. ${link("https://github.com/tinygrad/tinygrad/pulls", "All PRs")}</div>`)}
+    </div>`;
+  }, "tinygrad");
+
+  const merged = from("tinygrad", t => `<ul class="list">${t.merged.slice(0, 15).map(p => prItem(p)).join("")}</ul>`);
+  const open = from("tinygrad", t => `<ul class="list">${t.open.filter(p => !p.draft).slice(0, 10).map(p => prItem(p, p.updated)).join("") || `<li class="empty">Nothing open.</li>`}</ul>`);
+  const bounties = from("tinygrad", t => `<p class="lead">${link(t.bounty_sheet, "The bounty sheet")} lists what's on offer. These open PRs have one locked:</p>
+    <ul class="list">${t.bounties_claimed.map(i => prItem({...i, labels: []}, i.updated)).join("") || `<li class="empty">No bounties locked right now.</li>`}</ul>`);
+  const people = from("tinygrad", t => {
+    const counts = Object.entries(t.merged.reduce((c, p) => (c[p.author] = (c[p.author] || 0) + 1, c), {})).sort((a, b) => b[1] - a[1]).slice(0, 8);
+    return `<ul class="list">${counts.map(([n, c]) => `<li style="display:flex;justify-content:space-between">${link(`https://github.com/tinygrad/tinygrad/pulls?q=is%3Apr+author%3A${encodeURIComponent(n)}`, n)}<span class="muted">${c}</span></li>`).join("")}</ul>`;
+  });
+
+  return `<div class="hello"><h1>tinygrad</h1><p>A small deep-learning framework that's easy to read end to end.</p>
+      ${links([["https://docs.tinygrad.org", "Docs"], ["https://github.com/tinygrad/tinygrad", "GitHub"], ["https://github.com/tinygrad/tinygrad#contributing", "Contributing guide"]])}</div>
+    ${tiles}
+    <div class="grid two">
+      <section class="card"><h2>Recently merged</h2><p class="lead">Small, focused PRs are the house style; reading them is a good way to learn the codebase.</p>${merged}</section>
+      <section class="card"><h2>In review</h2><p class="lead">Open PRs, most recently updated first (drafts hidden).</p>${open}</section>
+    </div>
+    <div class="grid two">
+      <section class="card"><h2>${g("bounty", "Bounties")}</h2>${bounties}</section>
+      <div class="stack">
+        <section class="card"><h2>Before you contribute</h2><p class="lead">From the project's README; PRs that ignore these get closed.</p>
+          <ul class="list">
+            <li>Anything that looks AI-written from a new contributor is closed and can get you banned. Disclose any AI use.</li>
+            <li>No docs or whitespace changes unless you're a known contributor.</li>
+            <li>Speedups must be benchmarked; big or complex diffs won't be reviewed. Split them into clear small wins.</li>
+            <li>Welcome: bounties, well-tested features, refactors that are clear wins, and tests or fuzzers that find bugs.</li>
+          </ul></section>
+        <section class="card"><h2>Merging most</h2><p class="lead">Authors of the recent merges above.</p>${people}</section>
+      </div>
+    </div>`;
+}
+
+const VIEWS = {home, kernel, nix, zig, tinygrad};
+
+/* ---------- routing & render ---------- */
+function route() {
+  const [view, qs] = (location.hash.slice(1) || "home").split("?");
+  return {view: Object.hasOwn(VIEWS, view) ? view : "home", params: new URLSearchParams(qs || "")};
+}
+
+function render() {
+  const {view, params} = route();
+  // keep focus and caret in the search box across re-renders
+  const active = document.activeElement?.id, caret = document.activeElement?.selectionStart;
+  const y = window.scrollY;
+  document.getElementById("view").innerHTML = VIEWS[view](params);
+  document.querySelectorAll("nav a").forEach(a => a.classList.toggle("on", a.dataset.view === view));
+  window.scrollTo(0, y);
+  if (active) {
+    const el = document.getElementById(active);
+    if (el) { el.focus(); if (caret != null && el.setSelectionRange) el.setSelectionRange(caret, caret); }
+  }
+  bind(params);
+
+  const loading = loaded().filter(s => S[s].loading).length, failed = loaded().filter(s => S[s].error).length;
+  const newest = loaded().map(s => S[s].fetched).filter(Boolean).sort().pop();
+  document.getElementById("status").textContent = loading ? `loading ${loading}…` : `${failed ? `${failed} failed · ` : ""}updated ${ago(newest)}`;
+}
+
+function bind(params) {
+  const set = (k, v) => {
+    v ? params.set(k, v) : params.delete(k);
+    threadLimit = 100;
+    history.replaceState(null, "", `#kernel${params.toString() ? "?" + params : ""}`);
+    render();
+  };
+  const q = document.getElementById("f-q");
+  if (q) {
+    q.oninput = () => set("q", q.value);
+    document.getElementById("f-sub").onchange = e => set("sub", e.target.value);
+    document.getElementById("f-kind").onchange = e => set("kind", e.target.value);
+    document.getElementById("f-rev").onchange = e => set("reviewed", e.target.checked ? "1" : "");
+  }
+  const more = document.getElementById("more");
+  if (more) more.onclick = () => { threadLimit += 200; render(); };
+  const add = document.getElementById("addfollow");
+  if (add) add.onkeydown = e => {
+    const v = add.value.trim().toLowerCase().replace(/:$/, "");
+    if (e.key === "Enter" && v && !follows.includes(v)) toggleFollow(v);
+  };
+}
+
+window.addEventListener("hashchange", () => { threadLimit = 100; window.scrollTo(0, 0); render(); });
+document.getElementById("refresh").onclick = () => loadAll(true);
+setInterval(() => loadAll(false), 10 * 60 * 1000);  // the server's cache decides what actually refetches
+setInterval(render, 60 * 1000);                     // keep "x minutes ago" honest
+
+const root = document.documentElement;
+try { const t = localStorage.getItem("theme"); if (t) root.dataset.theme = t; } catch {}
+document.getElementById("theme").onclick = () => {
+  const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  root.dataset.theme = dark ? "light" : "dark";
+  try { localStorage.setItem("theme", root.dataset.theme); } catch {}
+};
+
+render();
+loadAll(false);
+</script>
+</body>
+</html>
