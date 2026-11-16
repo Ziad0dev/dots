@@ -218,11 +218,7 @@
   };
 
   programs.agents.enable = true;
-  programs.agents = {
-    codex.enable = true;
-    opencode.enable = true;
-    pi.enable = true;
-  };
+  programs.agents.pi.enable = true;
 
   nixpkgs.overlays = import ../../lib/overlays.nix { inherit inputs; };
   nixpkgs.config.allowUnfree = true;

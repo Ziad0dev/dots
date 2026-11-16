@@ -724,7 +724,7 @@ Item {
 
     // ── warning engine: warnings are STATES, not events — they re-announce
     //    themselves while the state lasts, and stop the moment it ends ──
-    property var warnNext: ({ offline: 0, batt: 0, aicl: 0, aicx: 0, aioc: 0, urgent: 0 })
+    property var warnNext: ({ offline: 0, batt: 0, aicl: 0, urgent: 0 })
     property var warnQueue7: []
     property string urgentAddr: ""
     property string urgentCls: ""
@@ -794,12 +794,6 @@ Item {
         if (aiClHot) {
             if (tnow >= wn.aicl && queueWarn7("CLAUDE " + aiCl7, "AI QUOTA!")) wn.aicl = tnow + 300000
         } else wn.aicl = 0
-        if (aiCxHot) {
-            if (tnow >= wn.aicx && queueWarn7("CODEX " + aiCx7, aiCxQuotaName7)) wn.aicx = tnow + 300000
-        } else wn.aicx = 0
-        if (aiOcHot) {
-            if (tnow >= wn.aioc && queueWarn7("OPENCODE " + aiOc7, "AI QUOTA!")) wn.aioc = tnow + 300000
-        } else wn.aioc = 0
         if (urgentAddr !== "" && urgentCls !== "") {
             if (tnow >= wn.urgent && urgentNags < 3
                     && queueWarn7(urgentCls, "WANTS YOU!")) {
@@ -897,20 +891,12 @@ Item {
         else pushText("VOLUME", "UNMUTED", 1, "short")
     }
 
-    // AI quota crossing 80% of the highest available provider window
-    // (hysteresis: rearms below 75%).
-    readonly property int aiCl7: theme.aiClPct5h !== undefined ? theme.aiClPct5h : 0
-    readonly property int aiCx7: theme.aiCxQuotaPct !== undefined ? theme.aiCxQuotaPct : (theme.aiCxPct5h !== undefined ? theme.aiCxPct5h : 0)
-    readonly property string aiCxQuotaName7: theme.aiCxQuotaLabel !== undefined && theme.aiCxQuotaLabel !== "" ? theme.aiCxQuotaLabel.toUpperCase() : "AI QUOTA!"
-    readonly property int aiOc7: theme.aiOcPct5h !== undefined ? theme.aiOcPct5h : 0
+    // Claude 5h quota crossing 80% (hysteresis: rearms below 75%).
+    readonly property int aiCl7: theme.aiClPct5h
     readonly property int aiQuotaWarn7: 80
     readonly property int aiQuotaReset7: 75
     property bool aiClHot: false
-    property bool aiCxHot: false
-    property bool aiOcHot: false
     property bool aiClQuotaPrimed7: false
-    property bool aiCxQuotaPrimed7: false
-    property bool aiOcQuotaPrimed7: false
     readonly property string helperOwnerMonitor7: Quickshell.screens.length > 0 ? Quickshell.screens[0].name : ""
     readonly property bool ownsGlobalHelpers7: root.monitor === "" || root.monitor === helperOwnerMonitor7
     onAiCl7Changed: {
@@ -921,24 +907,6 @@ Item {
         }
         if (aiCl7 >= aiQuotaWarn7 && !aiClHot) { aiClHot = true; warnCheck() }
         else if (aiCl7 < aiQuotaReset7) aiClHot = false
-    }
-    onAiCx7Changed: {
-        if (!aiCxQuotaPrimed7) {
-            aiCxQuotaPrimed7 = true
-            aiCxHot = aiCx7 >= aiQuotaWarn7
-            return
-        }
-        if (aiCx7 >= aiQuotaWarn7 && !aiCxHot) { aiCxHot = true; warnCheck() }
-        else if (aiCx7 < aiQuotaReset7) aiCxHot = false
-    }
-    onAiOc7Changed: {
-        if (!aiOcQuotaPrimed7) {
-            aiOcQuotaPrimed7 = true
-            aiOcHot = aiOc7 >= aiQuotaWarn7
-            return
-        }
-        if (aiOc7 >= aiQuotaWarn7 && !aiOcHot) { aiOcHot = true; warnCheck() }
-        else if (aiOc7 < aiQuotaReset7) aiOcHot = false
     }
 
     Timer {

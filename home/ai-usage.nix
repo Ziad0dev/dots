@@ -8,16 +8,14 @@ let
   scripts = "${config.xdg.configHome}/quickshell/rise/scripts";
 
   refresh = pkgs.writeShellScript "dots-ai-usage" ''
-    for s in claude-usage codex-usage opencode-usage; do
-      f="${scripts}/$s"
-      [ -f "$f" ] || continue
-      ${pkgs.python3}/bin/python3 "$f" >/dev/null 2>&1 || true
-    done
+    f="${scripts}/claude-usage"
+    # stderr (HTTP/fetch errors) goes to journalctl --user -u dots-ai-usage
+    [ -f "$f" ] && ${pkgs.python3}/bin/python3 "$f" >/dev/null || true
   '';
 in
 {
   systemd.user.services.dots-ai-usage = {
-    Unit.Description = "Refresh AI quota caches read by the Quickshell bar";
+    Unit.Description = "Refresh the Claude Code quota cache read by the Quickshell bar";
     Service = {
       Type = "oneshot";
       ExecStart = "${refresh}";
@@ -36,7 +34,7 @@ in
   };
 
   systemd.user.timers.dots-ai-usage = {
-    Unit.Description = "Refresh AI quota caches every 10 minutes";
+    Unit.Description = "Refresh the Claude Code quota cache every 10 minutes";
     Timer = {
       OnStartupSec = "2min";
       OnUnitActiveSec = "10min";

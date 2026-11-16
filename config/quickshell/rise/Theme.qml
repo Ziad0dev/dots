@@ -1828,10 +1828,7 @@ ThemeAiUsage {
                     if (parts.length > wsField + 13) theme.modCpu    = parts[wsField + 13] !== "0"
                     if (parts.length > wsField + 14) theme.modVolume = parts[wsField + 14] !== "0"
                     if (parts.length > wsField + 15) theme.modMpris  = parts[wsField + 15] !== "0"
-                    if (parts.length > wsField + 16) {
-                        var at = parts[wsField + 16]
-                        if (at === "claude" || at === "codex" || at === "opencode") theme.aiTool = at
-                    }
+                    // +16 was the removed AI-tool selector
                     if (parts.length > wsField + 17) theme.styleFrost = parts[wsField + 17] === "1"
                     if (parts.length > wsField + 18) {
                         var lm = parts[wsField + 18]
@@ -1915,7 +1912,6 @@ ThemeAiUsage {
         pickerStyle: ["hearthstone", "carousel", "tanzaku"],
         barPosition: ["top", "bottom"],
         barMonitor: function (v) { return typeof v === "string" && v !== "" },
-        aiTool: ["claude", "codex", "opencode"],
         launcherLogoMode: ["text", "icon"],
         launcherLogoText: function (v) { return theme.launcherLogoTextValid(v) },
         launcherLogoIcon: function (v) { return theme.launcherLogoIconValid(v) },

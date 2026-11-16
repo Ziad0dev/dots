@@ -20,18 +20,14 @@ in
       defaultText = lib.literalExpression "inputs.llm-agents.packages.\${system}.herdr";
       description = "The herdr package to use.";
     };
-    codex.enable = lib.mkEnableOption "Codex CLI";
     pi.enable = lib.mkEnableOption "Pi coding agent (pi.dev)";
-    opencode.enable = lib.mkEnableOption "OpenCode";
   };
 
   config = lib.mkIf cfg.enable {
     environment.systemPackages = [
       cfg.herdr.package
     ]
-    ++ lib.optional cfg.codex.enable agentPkgs.codex
-    ++ lib.optional cfg.pi.enable agentPkgs.pi
-    ++ lib.optional cfg.opencode.enable agentPkgs.opencode;
+    ++ lib.optional cfg.pi.enable agentPkgs.pi;
 
     nix.settings = {
       extra-substituters = [ "https://cache.numtide.com" ];

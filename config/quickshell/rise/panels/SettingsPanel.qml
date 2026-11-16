@@ -114,9 +114,6 @@ PanelWindow {
                 b("clock12h", "12-hour clock"),
                 b("weatherImperial", "Fahrenheit")
             ] },
-            { title: "Tools", rows: [
-                e("aiTool", "AI usage source", "", o(["codex", "opencode"], ["Codex", "OpenCode"]))
-            ] },
             { title: "Other", rows: st.otherRows }
         ] },
         { id: "connections", label: "Connections", icon: "hub", sections: [
@@ -145,7 +142,7 @@ PanelWindow {
             "trayBackground", "trayCompact", "trayRecolour", "trayIconSubs", "trayHiddenIcons",
             "styleFrame", "popoutHover", "styleFrameEdge", "styleAutoHide", "styleFrost", "styleShadow", "styleBorder", "styleDepth",
             "styleRadiusSmall", "styleIconLabels", "styleDeskClock", "styleDeskVisualiser", "motionHover", "motionSweep", "motionDigits",
-            "pickerStyle", "clock12h", "weatherImperial", "aiTool", "widgetColorStyles"]
+            "pickerStyle", "clock12h", "weatherImperial", "widgetColorStyles"]
         for (var i = 0; i < described.length; i++) known[described[i]] = true
         var out = [], schema = root._settingsSchema
         for (var k in schema) {

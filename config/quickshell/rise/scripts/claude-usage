@@ -137,13 +137,15 @@ def main():
         "7d-utilization": f"{util7d:.4f}",
         "7d-reset":       str(reset7d),
         "updated_at":     datetime.now().strftime("%H:%M:%S"),
+        "_written_at":    int(datetime.now().timestamp()),
         "_source":        "oauth",
         "_tokens_used":   tokens,
         "_window_limit":  limit,
         "_rate_per_hour": recent,
         "_today_tokens":  today_tokens,
-        "status": "rejected" if util5h >= 1.0
-                  else "allowed_warning" if util5h >= 0.9
+        # either window running out blocks Claude Code, so judge by the worse one
+        "status": "rejected" if max(util5h, util7d) >= 1.0
+                  else "allowed_warning" if max(util5h, util7d) >= 0.9
                   else "allowed",
     }
     write_cache(out)
