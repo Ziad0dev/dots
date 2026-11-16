@@ -1,0 +1,257 @@
+import QtQuick
+import "../modules"
+import Quickshell
+import Quickshell.Io
+import Quickshell.Wayland
+import "../DotsPower.js" as DotsPower
+
+PanelWindow {
+    id: briPanel
+    required property var root
+
+    screen: root.activePopupScreen
+
+    color: "transparent"
+    anchors { top: true; bottom: true; left: true; right: true }
+    exclusionMode: ExclusionMode.Ignore
+    WlrLayershell.layer: WlrLayer.Overlay
+    WlrLayershell.namespace: "dots-brightness"
+
+    readonly property int barBottom: 35
+    readonly property int gap: 8
+
+    property int percent: 0
+    property int queuedSetPercent: -1
+    property bool brightnessErrorNotified: false
+
+    property real reveal: root.brightnessVisible ? 1 : 0
+    Behavior on reveal {
+        Anim { kind: "effects" }
+    }
+    visible: reveal > 0.001
+        || (root.popout.last === "brightnessVisible" && root.popout.shown)
+    WlrLayershell.keyboardFocus: root.brightnessVisible && !root.popout.hoverMode
+        ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+    mask: Region {
+        readonly property bool hover: briPanel.root.popout.hoverMode
+        readonly property int gap: briPanel.root.popout.gap
+        x: hover ? popClip.x : 0
+        y: hover ? popClip.y - (briPanel.root.popout.barOnTop ? gap : 0) : 0
+        width: hover ? popClip.width : briPanel.width
+        height: hover ? popClip.height + gap : briPanel.height
+    }
+
+    MouseArea { anchors.fill: parent; onClicked: root.brightnessVisible = false }
+
+    function refresh() { briData.running = false; briData.running = true }
+
+    function requestSetPercent(p) {
+        queuedSetPercent = Math.max(1, Math.min(100, p))
+        percent = queuedSetPercent
+        setDebounce.restart()
+    }
+
+    function drainSetQueue() {
+        if (setRunner.running || queuedSetPercent < 0) return
+        var p = queuedSetPercent
+        queuedSetPercent = -1
+        setRunner.command = ["bash", "-c", DotsPower.brightnessSetCmd(p + "%")]
+        setRunner.running = true
+    }
+
+    function notifyBrightnessError(action, exitCode) {
+        if (exitCode === 0 || brightnessErrorNotified) return
+        brightnessErrorNotified = true
+        brightnessErrNotify.command = ["bash", "-c",
+            "notify-send -a QS-Shell 'Brightness command failed' \"$1 failed; brightness backend unavailable.\" 2>/dev/null || true", "_", action]
+        brightnessErrNotify.running = false
+        brightnessErrNotify.running = true
+    }
+
+    function runStep(up) {
+        var runner = up ? upRunner : downRunner
+        if (runner.running) return
+        runner.running = true
+    }
+
+    PopoutClip {
+        id: popClip
+        root: briPanel.root
+        flag: "brightnessVisible"
+        card: card
+        Rectangle {
+            id: card
+            width: 280
+            height: col.implicitHeight + 24
+            radius: reveal > 0.001 ? root.pillRadius : 0
+            color: "transparent"
+            border.color: root.pillBorder
+            border.width: 0
+
+            x: popClip.cardX
+            y: popClip.cardY
+            opacity: briPanel.reveal
+            focus: root.brightnessVisible
+
+            Keys.onPressed: function(event) {
+                if (event.key === Qt.Key_Escape) { root.brightnessVisible = false; event.accepted = true }
+            }
+
+            MouseArea { anchors.fill: parent; onClicked: {} }
+
+            Column {
+                id: col
+                anchors.fill: parent
+                anchors.margins: 12
+                spacing: 8
+
+                Item {
+                    width: parent.width
+                    height: 24
+                    UiText {
+                        anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
+                        text: "Brightness"
+                        color: root.ink; font.family: root.gothic; font.pixelSize: 20
+                        font.letterSpacing: 0.5; font.weight: Font.Medium
+                    }
+                    UiText {
+                        anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
+                        text: "✕"; color: closeMa.containsMouse ? root.seal : root.sumi; font.pixelSize: 12
+                        Behavior on color { CAnim { ms: 120 } }
+                        MouseArea { id: closeMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: root.brightnessVisible = false }
+                    }
+                }
+
+                GrimRule { root: briPanel.root; width: parent.width }
+
+                // ── interactive bar ──
+                Item {
+                    width: parent.width
+                    height: 30
+                    UiText {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        anchors.top: parent.top
+                        text: briPanel.percent + "%"
+                        color: root.seal
+                        font.family: root.mono; font.pixelSize: 11; font.weight: Font.Medium
+                    }
+                    Rectangle {
+                        id: track
+                        anchors.bottom: parent.bottom
+                        width: parent.width; height: 8; radius: 4
+                        color: root.fillActive
+                        Rectangle {
+                            width: parent.width * briPanel.percent / 100
+                            height: parent.height; radius: 4; color: root.seal
+                            Behavior on width { Anim { kind: "size"; ms: 250 } }
+                        }
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onPressed: (e) => setFromX(e.x)
+                            onPositionChanged: (e) => { if (pressed) setFromX(e.x) }
+                            function setFromX(px) {
+                                var p = Math.max(1, Math.min(100, Math.round(px / track.width * 100)))
+                                briPanel.requestSetPercent(p)
+                            }
+                        }
+                    }
+                }
+
+                Rectangle { width: parent.width; height: 1; color: root.sep }
+
+                // ── +/- buttons ──
+                Row {
+                    width: parent.width
+                    spacing: 8
+                    Rectangle {
+                        id: btnDown
+                        width: root.evenW((parent.width - 8) / 2); height: 28; radius: root.tileRadius
+                        color: _dn.containsMouse ? root.fillHover : root.fillIdle
+                        border.color: _dn.containsMouse ? root.seal : root.sep
+                        border.width: 1
+                        Behavior on color { CAnim { ms: 120 } }
+                        UiText {
+                            anchors.centerIn: parent
+                            text: "− 5%"; color: _dn.containsMouse ? root.seal : root.sumi
+                            font.family: root.mono; font.pixelSize: 11
+                        }
+                        MouseArea {
+                            id: _dn
+                            anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                            hoverEnabled: true
+                            onClicked: briPanel.runStep(false)
+                        }
+                    }
+                    Rectangle {
+                        id: btnUp
+                        width: root.evenW((parent.width - 8) / 2); height: 28; radius: root.tileRadius
+                        color: _up.containsMouse ? root.fillHover : root.fillIdle
+                        border.color: _up.containsMouse ? root.seal : root.sep
+                        border.width: 1
+                        Behavior on color { CAnim { ms: 120 } }
+                        UiText {
+                            anchors.centerIn: parent
+                            text: "+ 5%"; color: _up.containsMouse ? root.seal : root.sumi
+                            font.family: root.mono; font.pixelSize: 11
+                        }
+                        MouseArea {
+                            id: _up
+                            anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                            hoverEnabled: true
+                            onClicked: briPanel.runStep(true)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    Timer {
+        id: setDebounce
+        interval: 90
+        repeat: false
+        onTriggered: briPanel.drainSetQueue()
+    }
+
+    Process {
+        id: briData
+        command: ["bash", "-c", DotsPower.brightnessPercentCmd]
+        running: false
+        stdout: StdioCollector {
+            onStreamFinished: {
+                var v = parseInt(this.text.trim())
+                if (!isNaN(v)) briPanel.percent = Math.max(0, Math.min(100, v))
+            }
+        }
+    }
+
+    Process { id: brightnessErrNotify }
+    Process {
+        id: setRunner
+        command: ["bash", "-c", "true"]
+        onExited: (code) => {
+            briPanel.notifyBrightnessError("Set brightness", code)
+            if (briPanel.queuedSetPercent >= 0) briPanel.drainSetQueue()
+            else briPanel.refresh()
+        }
+    }
+    Process {
+        id: upRunner
+        command: ["bash", "-c", DotsPower.brightnessSetCmd("+5%")]
+        onExited: (code) => {
+            briPanel.notifyBrightnessError("Brightness up", code)
+            briPanel.refresh()
+        }
+    }
+    Process {
+        id: downRunner
+        command: ["bash", "-c", DotsPower.brightnessSetCmd("5%-")]
+        onExited: (code) => {
+            briPanel.notifyBrightnessError("Brightness down", code)
+            briPanel.refresh()
+        }
+    }
+
+    onVisibleChanged: { if (visible) refresh() }
+}

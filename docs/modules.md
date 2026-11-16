@@ -1,0 +1,104 @@
+# System modules
+
+Every `.nix` file under `modules/` is imported automatically by `desktopModules` in `flake.nix`, together with chaotic's `nyx-cache`, `nyx-overlay` and `nyx-registry`. Order doesn't matter except where noted. Anything with more moving parts is covered in [Services](services.md) or [Desktop](desktop.md).
+
+## Host: `hosts/nixos/configuration.nix`
+
+What stays in the host rather than a module is what's specific to this hardware or has nowhere better to go.
+
+| Area | Settings |
+|---|---|
+| Boot | systemd-boot, `configurationLimit = 3`, `nct6775` (board sensors) |
+| Sleep | Suspend, hibernate, hybrid-sleep all disabled at the systemd level — the box never sleeps |
+| GPU | `hardware.nvidia`: open kernel module, modesetting, `nvidiaPersistenced`, `package = fixZstdRefs pkgs.nvidia_cachyos-bore`; LACT; CoolerControl |
+| Session | `programs.hyprland` from the flake input (package + portal), XWayland; portals hyprland → gtk, ScreenCast/Screenshot pinned to hyprland |
+| Desktop plumbing | dbus, polkit (+ rule letting the active local session mount/eject via udisks), printing, gvfs, udisks2, usbmuxd (iPhone) |
+| Off | Bluetooth, blueman |
+| Containers | Docker **rootless** (`enableOnBoot = false`), Podman |
+| User | fish, uid 1000, groups `wheel networkmanager audio video` (+ `kvm` from `virt.nix`); root locked (`!`), see [Secure Boot → TPM unlock](secure-boot.md#tpm-unlock) |
+| Nix | flakes, `cache.nixos.org` + `hyprland.cachix.org`, `allowUnfree`, overlays from `lib/overlays.nix`, auto-optimise |
+| Env | `NIXOS_OZONE_WL`, `MOZ_ENABLE_WAYLAND`, `QT_QPA_PLATFORM=wayland;xcb` |
+| Packages | Rescue and system-level set only: git, curl, wget, jq, tree, zip, neovim, htop, btop, lm_sensors, usbutils, gparted, exfatprogs, libimobiledevice, ifuse, hyprpolkitagent, coolercontrol-gui, ark, qt6ct. The share picker lives in `home/profiles/linux-desktop.nix` |
+| Fonts | Fira Code / JetBrains Mono Nerd, Noto (+CJK, emoji), Font Awesome, plus document fonts (New Computer Modern, Libertinus, STIX Two, Latin Modern, DejaVu, Liberation) |
+
+The package test for the system list: root needs it, a system service needs it, it has to work before login or with a broken home-manager generation, or NixOS has to discover a unit file from it. Everything else goes to `home.packages`.
+
+## Modules
+
+### Base system
+
+| Module | Owns |
+|---|---|
+| `quality.nix` | The NixOS `dots.repoPath` option; nix-daemon at idle CPU/IO priority; `sudo` exec restricted to wheel; `allowed-users = @wheel` (no extra `trusted-users`); `keep-outputs` / `keep-derivations`; nix-community cache; `/tmp` wiped on boot; `vm.max_map_count` (games), `split_lock_mitigate = 0`; weekly fstrim; plocate (pruned of `/nix/store`, `/mnt`, …); gamemode settings; smartd; fwupd; Avahi mDNS |
+| `performance.nix` | 8 GiB swapfile + zram at priority 100, `swappiness 180` / `page-cluster 0` (zram tuning), dirty-bytes caps, inotify limits, systemd-oomd on user slices, nix-daemon `MemoryMax 75%` + OOM score 500, `max-jobs 3` / `cores 4`, journald caps, CPU profile (below), RAPL limits, cpupower + turbostat |
+| `dev.nix` | `programs.nh` (flake = `dots.repoPath`), nh's GC timer `--keep 3 --keep-since 4d`, `warn-dirty = false` |
+| `cleanup.nix` | Coredump storage capped at 1 GiB |
+| `secrets.nix` | secretspec, pass, gnupg agent with pinentry-qt, bitwarden-cli, sops + age; sops-nix behind `dots.secrets.enable` (enabled on the desktop). See [Secrets](secrets.md) |
+| `impermanence.nix` | `dots.impermanence.enable` (off on the desktop): root on tmpfs, baseline state plus enabled Tailscale, SOPS-key and Secure Boot-key state kept in `/persist`; immutable users require declarative password hashes unless passwordless login is explicit. Needs the matching disk layout (`lib/disko.nix`) |
+
+#### CPU profile (`performance.nix`)
+
+`cpuProfile` is a `let` binding at the top of the file:
+
+| Value | Effect |
+|---|---|
+| `"responsive"` (default) | `intel_pstate` active mode with power-profiles-daemon owning the energy-performance preference: the bar's power-profile button switches performance / balanced / power-saver (EPP `performance` / `balance_performance` / `power`), and the choice persists across reboots. In active mode EPP is the lever that matters, not the governor name |
+| `"max"` | `performance` governor |
+| `"passive"` | `intel_pstate=passive` + schedutil — the only mode where a sched_ext scheduler's frequency hints reach a governor |
+
+`cpu-power-limit` sets RAPL PL1/PL2 from `pl1Watts` / `pl2Watts` (65 / 117 W) at boot.
+
+### Desktop
+
+| Module | Owns |
+|---|---|
+| `bootvine.nix` | [bootvine](https://codeberg.org/wvhulle/bootvine) on the boot and shutdown console: a live tree of pending systemd jobs (initrd included, so the LUKS passphrase prompt too) instead of scrolling log lines; gives the VT back when SDDM starts |
+| `sddm.nix` | The SDDM greeter, built from `config/sddm/dots` + a theme palette. See [Desktop → login](desktop.md#login-sddm) |
+| `lockscreen.nix` | `security.pam.services.quickshell-lock` — the PAM stack the Quickshell lock screen authenticates against |
+| `osd.nix` | swayosd's libinput backend (system unit + dbus), started with `graphical.target` |
+| `audio.nix` | PipeWire (ALSA incl. 32-bit, Pulse, JACK, WirePlumber), rtkit; clock allowed at 44.1/48/88.2/96/176.4/192 kHz so bit-perfect playback doesn't resample; resample quality 10 |
+| `hdr.nix` | libplacebo; `DXVK_HDR=1`, `PROTON_ENABLE_WAYLAND=1`, `PROTON_ENABLE_HDR=1` |
+| `recording.nix` | gpu-screen-recorder (with the capability wrapper), GTK front-end, the `gsr-replay` user unit, `~/Videos/Replays`. See [Desktop → recording](desktop.md#recording) |
+| `flatpak.nix` | Flatpak itself + `flatpak-nvidia-gl`; apps are in `home/flatpak.nix`. See [Services → flatpak](services.md#flatpak) |
+| `foreign.nix` | Running non-Nix binaries: nix-ld, AppImage binfmt, an `fhs` shell, distrobox, steam-run. See [Development → foreign binaries](development.md#foreign-binaries) |
+
+### Gaming
+
+| Module | Owns |
+|---|---|
+| `gaming.nix` | **The kernel** (`linuxPackages_cachyos`); sched_ext (`scx_lavd`, currently **disabled**); Steam + gamescope session + `proton-cachyos`, remote-play/dedicated ports closed; gamemode; ananicy-cpp with CachyOS rules; ProtonUp-Qt, Heroic |
+| `gaming-extras.nix` | protontricks, winetricks, Lutris |
+
+Per-user: MangoHud in `home/gaming-home.nix` (hidden by default, `Right Shift + F12`).
+
+### Dev
+
+| Module | Owns |
+|---|---|
+| `dev-langs.nix` | System-wide tools: Zig and ZLS deferred until a compatible pair builds; nixd, lua-language-server, clang_multi / clang-tools / lldb / gdb / mold / ccache / bear / meson / ninja / valgrind / cppcheck, python313 + uv / ruff / pyright, SBCL (swank, alexandria) + rlwrap; ccache at `/var/cache/ccache` |
+| `virt.nix` | libvirtd (unprivileged QEMU, swtpm, virtiofsd), virt-manager, SPICE USB redirection, OVMF, virtio-win; `/var/lib/libvirt/images` and `/var/lib/libvirt/isos`; DNS/DHCP open on `virbr0` |
+
+### Services and network
+
+| Module | Owns | Details |
+|---|---|---|
+| `media.nix` | Jellyfin (NVENC), Radarr, Sonarr, Tailscale, the 10 TB `/mnt/media` mount, `media` group (gid 3000) | [Services](services.md#media) |
+| `media-extras.nix` | Audiobookshelf, calibre-web, whisper-cpp | [Services](services.md#media) |
+| `vpn.nix` | WireGuard namespace `wg`; qBittorrent, Prowlarr, FlareSolverr confined to it | [Services](services.md#vpn-namespace) |
+| `mullvad.nix` | Mullvad daemon + GUI for the host; systemd-resolved with LLMNR off | |
+| `lan.nix` | Jellyfin ports on the LAN interface only | |
+| `llm.nix` | Eight llama.cpp units (CUDA, sm_120), mutually exclusive, user-startable without sudo | [Services](services.md#local-llms) |
+| `ollama.nix` | Ollama (Vulkan) on `127.0.0.1:11434`, Qwen3.5 9B, Qwen2.5-Coder 14B + 7B, Devstral Small 2 24B, starts at boot, loads models on demand | [Services](services.md#local-llms) |
+| `backup.nix` | Daily restic of `$HOME`, quiesced media/download application state and the Secure Boot keys to `/mnt/backup/restic-new` | [Services](services.md#backups) |
+| `arr-automation.nix` | Clears stale *arr indexer backoff at boot and once the VPN path works again, a daily backlog search, and the `arr-status` command | [Services](services.md#vpn-namespace) |
+| `storage.nix` | Independent `/mnt/backup` exFAT drive (root-only, hidden from file managers) | [Services](services.md#storage) |
+| `hello-page.nix` | Store-owned Python site from `pkgs/hello-page`, state in `~/the-page`, published on the tailnet with `tailscale serve` | [Services](services.md#hello-page) |
+| `lkml-tracker.nix` | Store-owned kernel/Nix tracker from `pkgs/lkml-tracker` on loopback port 8138 | |
+
+## Adding a module
+
+1. Create `modules/<thing>.nix`. Module arguments available: `config lib pkgs inputs username hostname system profile`.
+2. `git add -A` — `desktopModules` imports every file under `modules/`, but the flake only sees tracked files (and the pre-commit hook fails on a flake reference to an untracked file).
+3. `update`.
+
+Service modules follow a common shape: `openFirewall = false`, `unitConfig.RequiresMountsFor` on any external mount the service reads, and `serviceConfig = import ../lib/hardening.nix // { … }` with the exceptions it needs.

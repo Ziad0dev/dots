@@ -1,0 +1,15 @@
+@-moz-document domain("chatgpt.com") {
+
+    .MainContentSurface-EnuIYE { background-color: var(--dots-surface_container_lowest) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    .size-token-button-composer { background-color: var(--dots-on_primary) !important; }
+    .bg-user-message { background-color: var(--dots-primary_container) !important; color: var(--dots-on_primary_container) !important; border-color: var(--dots-outline_variant) !important; }
+    aside { background-color: var(--dots-surface_container_low) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    div.relative.isolate.flex.max-h-full { background-color: var(--dots-surface_container_lowest) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    div.flex.flex-col.rounded-2xl.overflow-hidden { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    .scrollbar-stable { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    div.absolute.inset-0.flex.bg-surface { background-color: var(--dots-surface_dim) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    .group\/sidebar-rail { background-color: var(--dots-surface_container_low) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    .z-20 { background-color: var(--dots-surface_container_lowest) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    article { background-color: var(--dots-surface_dim) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+
+}

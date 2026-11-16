@@ -1,0 +1,8 @@
+set $dots_bg ${background}
+set $dots_fg ${foreground}
+set $dots_accent ${accent}
+set $dots_surface ${surface}
+set $dots_muted ${muted}
+set $dots_inactive ${base02}
+set $dots_urgent ${red}
+set $dots_menu fuzzel --border-radius=0 --border-width=1 --background=${background_hex}f2 --text-color=${foreground_hex}ff --match-color=${accent_hex}ff --selection-color=${surface_hex}ff --selection-text-color=${foreground_hex}ff --selection-match-color=${accent_hex}ff --border-color=${accent_hex}ff

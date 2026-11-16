@@ -1,0 +1,39 @@
+@-moz-document domain("wiki.factorio.com") {
+
+    body { background-color: var(--dots-background) !important; color: var(--dots-on_background) !important; border-color: var(--dots-outline_variant) !important; }
+    #content { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    nav { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    #mw-panel { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    #mw-head { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    div.mw-content-ltr.mw-parser-output > div.navbox > table.navbox-inner { background-color: var(--dots-primary_container) !important; color: var(--dots-on_primary_container) !important; border-color: var(--dots-outline_variant) !important; }
+    div.hlist { background-color: var(--dots-surface_container_high) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    div { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    tbody > tr:nth-of-type(2) > td.group-data { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    tbody > tr:nth-of-type(3) > td.group-data { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    tbody > tr:nth-of-type(1) > th.navbox-header { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    tbody > tr:nth-of-type(2) > td:nth-of-type(2) { background-color: var(--dots-surface_container_high) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    tbody > tr:nth-of-type(3) > td:nth-of-type(2) { background-color: var(--dots-surface_container_high) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    tbody > tr:nth-of-type(12) > td.group-data { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    tbody > tr:nth-of-type(4) > td.group-data { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    tbody > tr:nth-of-type(5) > td.group-data { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    tbody > tr:nth-of-type(6) > td.group-data { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    tbody > tr:nth-of-type(7) > td.group-data { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    tbody > tr:nth-of-type(8) > td.group-data { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    tbody > tr:nth-of-type(9) > td.group-data { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    tbody > tr:nth-of-type(10) > td.group-data { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    tbody > tr:nth-of-type(11) > td.group-data { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    tbody > tr:nth-of-type(4) > td:nth-of-type(2) { background-color: var(--dots-surface_container_high) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    tbody > tr:nth-of-type(5) > td:nth-of-type(2) { background-color: var(--dots-surface_container_high) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    tbody > tr:nth-of-type(6) > td:nth-of-type(2) { background-color: var(--dots-surface_container_high) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    tbody > tr:nth-of-type(7) > td:nth-of-type(2) { background-color: var(--dots-surface_container_high) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    tbody > tr:nth-of-type(8) > td:nth-of-type(2) { background-color: var(--dots-surface_container_high) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    tbody > tr:nth-of-type(9) > td:nth-of-type(2) { background-color: var(--dots-surface_container_high) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    tbody > tr:nth-of-type(10) > td:nth-of-type(2) { background-color: var(--dots-surface_container_high) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    tbody > tr:nth-of-type(11) > td:nth-of-type(2) { background-color: var(--dots-surface_container_high) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    tbody > tr:nth-of-type(12) > td:nth-of-type(2) { background-color: var(--dots-surface_container_high) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    a { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    td.notice.metadata.plainlinks { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    #wpTextbox1 { background-color: var(--dots-surface_container_lowest) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    pre { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+
+}

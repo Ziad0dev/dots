@@ -1,0 +1,121 @@
+
+/* the rendered themectl palette (~/.local/state/dots/theme/zen-palette.css);
+   the --oxo-* names are kept from the original oxocarbon-only version */
+@import url("dots-palette.css");
+/* the desktop theme's chrome (rise's ext ZenTheme; empty with none on) */
+@import url("dots-desktop-theme.css");
+
+:root {
+  --oxo-base00: var(--dots-background);
+  --oxo-base01: var(--dots-surface_container_low);
+  --oxo-base02: var(--dots-outline_variant);
+  --oxo-base03: var(--dots-outline);
+  --oxo-base04: var(--dots-on_surface_variant);
+  --oxo-base05: var(--dots-on_background);
+  --oxo-pink:   var(--dots-primary);
+  --oxo-blue:   var(--dots-secondary);
+  --oxo-cyan:   var(--dots-secondary);
+  --oxo-purple: var(--dots-tertiary);
+
+  --zen-primary-color: var(--oxo-pink) !important;
+  --zen-colors-primary: var(--oxo-base00) !important;
+  --zen-colors-secondary: var(--oxo-base01) !important;
+  --zen-colors-tertiary: var(--oxo-base02) !important;
+  --zen-colors-border: var(--oxo-base02) !important;
+
+  /* translucent chrome (zen.widget.linux.transparency, set by
+     zen-theme-link.sh) so Hyprland's blur shows through: --dots-glass from
+     the palette, 85% like ghostty, 55% with `dots-look glass on` */
+  --dots-glass-fill: color-mix(in srgb, var(--oxo-base00) var(--dots-glass, 85%), transparent);
+  --dots-glass-raised: color-mix(in srgb, var(--oxo-base01) 60%, transparent);
+  --zen-main-browser-background: var(--dots-glass-fill) !important;
+  --zen-main-browser-background-toolbar: var(--dots-glass-fill) !important;
+  --toolbar-bgcolor: transparent !important;
+  /* under the page itself: a see-through page (blank tab, site styles with
+     glass on) shows the window blur, not a grey panel */
+  --tabpanel-background-color: transparent !important;
+  --toolbar-color: var(--oxo-base05) !important;
+  --lwt-accent-color: var(--oxo-base00) !important;
+  --lwt-text-color: var(--oxo-base05) !important;
+  --arrowpanel-background: var(--oxo-base01) !important;
+  --arrowpanel-color: var(--oxo-base05) !important;
+  --arrowpanel-border-color: var(--oxo-base02) !important;
+  --toolbarbutton-icon-fill: var(--oxo-base04) !important;
+  --urlbar-box-bgcolor: var(--dots-glass-raised) !important;
+  --urlbar-box-text-color: var(--oxo-base05) !important;
+}
+
+/* the one translucent fill is --zen-main-browser-background behind all of
+   these; filling them too would stack into an opaque frame */
+/* Zen's own wash under every web page (zen-browser-container.css): solid
+   rgb(32,32,32) behind a page, and white at 10% behind one marked
+   transparent. Either one greys the window blur out, so pages that leave
+   their background see-through (dots site styles with glass on, Zen
+   Internet) show it clean; pages with a background still paint their own. */
+#tabbrowser-tabpanels .browserSidebarContainer {
+  --zen-transparent-browser-background: transparent !important;
+}
+#tabbrowser-tabpanels browser[type="content"] {
+  background: transparent !important;
+}
+
+#navigator-toolbox,
+#titlebar,
+#zen-sidebar-box,
+#zen-tabbox-wrapper,
+#tabbrowser-tabpanels,
+.browserSidebarContainer,
+.browserContainer,
+.browserStack {
+  /* `background`, not just the colour: the Better Letterboxing mod paints
+     .browserContainer with a gradient image */
+  background: transparent !important;
+}
+
+.tabbrowser-tab[selected] .tab-background {
+  background: var(--dots-glass-raised) !important;
+  border-bottom: 2px solid var(--oxo-pink) !important;
+}
+.tabbrowser-tab:not([selected]):hover .tab-background {
+  background: color-mix(in srgb, var(--oxo-base01) 40%, transparent) !important;
+}
+.tabbrowser-tab .tab-label { color: var(--oxo-base04) !important; }
+.tabbrowser-tab[selected] .tab-label { color: var(--oxo-base05) !important; }
+
+#urlbar-background {
+  background-color: var(--dots-glass-raised) !important;
+  border: 1px solid var(--oxo-base02) !important;
+}
+#urlbar[focused] #urlbar-background {
+  border-color: var(--oxo-pink) !important;
+}
+.urlbarView-row[selected] .urlbarView-row-inner,
+.urlbarView-row:hover .urlbarView-row-inner {
+  background-color: var(--oxo-base02) !important;
+}
+
+menupopup, panel {
+  --panel-background: var(--oxo-base01) !important;
+  --panel-color: var(--oxo-base05) !important;
+  --panel-border-color: var(--oxo-base02) !important;
+  /* what context menus actually read; unset they fall back to the GTK
+     theme's Menu/MenuText */
+  /* translucent so Hyprland's popup blur (decoration.blur.popups, alpha
+     above popups_ignorealpha 0.2) shows through, like rise's Frost panels */
+  --panel-background-color: color-mix(in srgb, var(--oxo-base01) var(--dots-glass-menu, 62%), transparent) !important;
+  --panel-text-color: var(--oxo-base05) !important;
+  --panel-separator-color: var(--oxo-base02) !important;
+  /* the shadow margin would get blurred too: a fuzzy halo around the menu */
+  --panel-box-shadow: none !important;
+  --panel-box-shadow-margin: 0px !important;
+}
+menuitem:hover, menu:hover,
+menuitem[_moz-menuactive]:not([disabled]),
+menu[_moz-menuactive]:not([disabled]) {
+  background-color: var(--oxo-base02) !important;
+  color: var(--oxo-base05) !important;
+}
+menuitem[disabled], menu[disabled] { color: var(--oxo-base03) !important; }
+
+findbar { background-color: var(--oxo-base01) !important;
+          color: var(--oxo-base05) !important; }

@@ -1,0 +1,33 @@
+img="${1:-}"
+[ -n "$img" ] || exit 1
+[ -f "$img" ] || exit 1
+# absolute: it ends up behind a symlink in the state dir
+img=$(realpath -- "$img")
+
+# rise draws the wallpaper itself (with the desktop theme's layer and its own
+# transition) when it's running and no wallpaper command is set in its picker;
+# it answers "true" then. Otherwise awww draws it.
+if ! qs -c rise ipc call wallpaper display "$img" 2>/dev/null | grep -qx true; then
+    awww img "$img" --transition-type random --transition-fps 60 --transition-duration 1
+fi
+
+state="${XDG_STATE_HOME:-$HOME/.local/state}/dots/theme"
+mkdir -p "$state"
+ln -sfn "$img" "$state/wallpaper"
+
+# Login greeter: a blurred, dimmed copy it loads at the next login (see
+# modules/sddm.nix, dots.sddm.live). Rendered in the background; the swap
+# above shouldn't wait on the blur.
+greeter=/var/lib/dots-theme
+if [ -w "$greeter" ]; then
+    (
+        # a video wallpaper: blur a grabbed frame of it
+        still=$("${DOTS_SHELL_PATH:-$HOME/.config/quickshell/rise}/ext/scripts/wallpaper-still" "$img") || still=$img
+        magick "${still}[0]" -resize 2560x -blur 0x18 -modulate 45 -quality 90 "$greeter/wallpaper.jpg.tmp" &&
+            mv -f "$greeter/wallpaper.jpg.tmp" "$greeter/wallpaper.jpg" &&
+            if [ -f "$greeter/sddm.json" ]; then
+                jq '.wallpaper = "file:///var/lib/dots-theme/wallpaper.jpg"' "$greeter/sddm.json" >"$greeter/sddm.json.tmp" &&
+                    mv -f "$greeter/sddm.json.tmp" "$greeter/sddm.json"
+            fi
+    ) >/dev/null 2>&1 &
+fi

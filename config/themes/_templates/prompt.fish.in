@@ -1,0 +1,145 @@
+set -g __fl_hot ${base06_hex}
+set -g __fl_core ${yellow_hex}
+set -g __fl_mid ${accent_hex}
+set -g __fl_low ${red_hex}
+set -g __fl_ash ${muted_hex}
+set -g __fl_dim ${dim_hex}
+set -g __fl_path ${blue_hex}
+set -g __fl_vis ${magenta_hex}
+set -g __fl_git ${green_hex}
+set -g __fl_warn ${yellow_hex}
+set -g __fl_err ${red_hex}
+
+set -g __fl_root 0
+test (id -u) -eq 0; and set -g __fl_root 1
+
+set -g __fl_remote 0
+if test -n "$SSH_CONNECTION$SSH_TTY"
+    set -g __fl_remote 1
+    set -g __fl_hostname (prompt_hostname)
+    set -l __fl_pal $__fl_core $__fl_mid $__fl_low $__fl_vis $__fl_git $__fl_path
+    set -l __fl_h (echo -n $__fl_hostname | cksum | string split -f1 ' ')
+    set -g __fl_hostcolor $__fl_pal[(math "$__fl_h % 6 + 1")]
+end
+
+set -g __fish_git_prompt_show_informative_status 1
+set -g __fish_git_prompt_showcolorhints 1
+set -g __fish_git_prompt_showstashstate 1
+set -g __fish_git_prompt_showuntrackedfiles 1
+set -g __fish_git_prompt_shorten_branch_len 24
+set -g __fish_git_prompt_char_stateseparator ' '
+set -g __fish_git_prompt_char_cleanstate ''
+set -g __fish_git_prompt_char_dirtystate '~'
+set -g __fish_git_prompt_char_stagedstate '+'
+set -g __fish_git_prompt_char_untrackedfiles '?'
+set -g __fish_git_prompt_char_invalidstate '!'
+set -g __fish_git_prompt_char_stashstate '*'
+set -g __fish_git_prompt_char_upstream_ahead '^'
+set -g __fish_git_prompt_char_upstream_behind 'v'
+set -g __fish_git_prompt_char_upstream_diverged 'y'
+set -g __fish_git_prompt_char_upstream_equal ''
+set -g __fish_git_prompt_char_upstream_prefix ' '
+set -g __fish_git_prompt_color_branch $__fl_git
+set -g __fish_git_prompt_color_branch_dirty $__fl_warn
+set -g __fish_git_prompt_color_branch_detached $__fl_err
+set -g __fish_git_prompt_color_dirtystate $__fl_warn
+set -g __fish_git_prompt_color_stagedstate $__fl_git
+set -g __fish_git_prompt_color_invalidstate $__fl_err
+set -g __fish_git_prompt_color_untrackedfiles $__fl_dim
+set -g __fish_git_prompt_color_stashstate $__fl_dim
+set -g __fish_git_prompt_color_upstream $__fl_dim
+set -g __fish_git_prompt_color_flags $__fl_dim
+
+function __fl_tint --description 'flame colour for the current vi mode'
+    switch $fish_bind_mode
+        case default
+            echo $__fl_low
+        case visual
+            echo $__fl_vis
+        case replace replace_one
+            echo $__fl_hot
+        case '*'
+            set -l r (random 1 100)
+            if test $r -le 7
+                echo $__fl_hot
+            else if test $r -le 32
+                echo $__fl_mid
+            else if test $r -le 48
+                echo $__fl_low
+            else
+                echo $__fl_core
+            end
+    end
+end
+
+function __fl_duration --description 'human command duration from milliseconds'
+    set -l ms $argv[1]
+    if test $ms -lt 60000
+        printf '%.1fs' (math "$ms / 1000")
+    else
+        printf '%dm%02ds' (math -s0 "floor($ms / 60000)") (math -s0 "floor($ms % 60000 / 1000)")
+    end
+end
+
+function fish_mode_prompt --description 'promethean flame: identity, vi mode, last exit'
+    set -g __fl_last $status
+
+    if test $__fl_root -eq 1
+        set_color -o -b $__fl_err $__fl_hot
+        echo -n ' λ '
+    else if test $__fl_last -ne 0
+        set_color -o $__fl_ash
+        echo -n 'λ'
+    else
+        set_color -o (__fl_tint)
+        echo -n 'λ'
+    end
+    set_color normal
+
+    if test $__fl_remote -eq 1
+        set_color $__fl_hostcolor
+        echo -n "@$__fl_hostname"
+        set_color normal
+    end
+
+    echo -n ' '
+end
+
+function fish_prompt --description 'path and git state'
+    set -l parts (string split -r -m1 / -- (prompt_pwd))
+    if test (count $parts) -gt 1
+        set_color $__fl_dim
+        echo -n "$parts[1]/"
+        set_color -o $__fl_path
+        echo -n "$parts[2]"
+    else
+        set_color -o $__fl_path
+        echo -n "$parts[1]"
+    end
+    set_color normal
+
+    set -l git (fish_git_prompt '%s')
+    if test -n "$git"
+        set_color $__fl_dim
+        echo -n '  '
+        set_color normal
+        echo -n $git
+    end
+
+    set_color normal
+    echo -n ' '
+end
+
+function fish_right_prompt --description 'exit code and command duration'
+    if test $__fl_last -ne 0
+        set_color -o $__fl_err
+        echo -n "x$__fl_last "
+        set_color normal
+    end
+
+    if set -q CMD_DURATION; and test $CMD_DURATION -gt 1500
+        set_color $__fl_dim
+        echo -n (__fl_duration $CMD_DURATION)
+        set_color normal
+    end
+end

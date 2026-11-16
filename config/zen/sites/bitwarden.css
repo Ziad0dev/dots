@@ -1,0 +1,29 @@
+@-moz-document domain("vault.bitwarden.com") {
+    :root {
+
+        --color-gray-900: var(--dots-background) !important;
+        --color-gray-800: var(--dots-surface_container_low) !important;
+        --color-background: var(--dots-surface_container_high_rgb) !important;
+
+        --color-gray-950: var(--dots-background) !important;
+        --color-illustration-bg-primary: var(--dots-primary_rgb) !important;
+        --color-illustration-bg-secondary: var(--dots-secondary_rgb) !important;
+        --color-illustration-bg-tertiary: var(--dots-surface_container_rgb) !important;
+        --color-illustration-outline: var(--dots-outline_rgb) !important;
+        --color-illustration-tertiary: var(--dots-on_surface_rgb) !important;
+
+        --color-primary-600: var(--dots-primary_rgb) !important;
+        --color-primary-100: var(--dots-primary_container_rgb) !important;
+
+        --color-secondary-300: var(--dots-surface_container_low_rgb) !important;
+        --color-text-muted: var(--dots-on_surface_rgb) !important;
+
+        --color-secondary-100: var(--dots-surface_container_low_rgb) !important;
+        --color-secondary-700: var(--dots-on_surface_rgb) !important;
+
+        --color-primary-700: var(--dots-primary_rgb) !important;
+        --color-text-contrast: var(--dots-on_primary_rgb) !important;
+
+        --color-brand-400: var(--dots-primary) !important;
+    }
+}

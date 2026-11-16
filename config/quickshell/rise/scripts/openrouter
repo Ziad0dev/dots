@@ -1,0 +1,154 @@
+#!/usr/bin/env python3
+"""OpenRouter helper for the Quickshell bar.
+
+  openrouter key      -> ~/.cache/openrouter-key.json    (credit + usage)
+  openrouter models   -> ~/.cache/openrouter-models.json (id, name, context, price)
+  openrouter chat MODEL  (prompt on stdin) -> reply on stdout
+
+The API key comes from `secretspec get OPENROUTER_API_KEY`, so it is never
+written to disk or passed on a command line.
+"""
+import json
+import os
+import subprocess
+import sys
+import urllib.error
+import urllib.request
+from pathlib import Path
+
+BASE = "https://openrouter.ai/api/v1"
+CACHE = Path.home() / ".cache"
+DOTS = Path.home() / "dots"
+
+
+def api_key() -> str:
+    env = os.environ.get("OPENROUTER_API_KEY")
+    if env:
+        return env
+    try:
+        out = subprocess.run(
+            ["secretspec", "get", "OPENROUTER_API_KEY"],
+            capture_output=True, text=True, timeout=30, cwd=str(DOTS),
+        )
+        key = out.stdout.strip()
+        if key:
+            return key
+    except Exception:
+        pass
+    raise SystemExit("no OPENROUTER_API_KEY (pass insert dots/default/OPENROUTER_API_KEY)")
+
+
+def request(path: str, payload=None, timeout=60):
+    data = json.dumps(payload).encode() if payload is not None else None
+    req = urllib.request.Request(
+        BASE + path,
+        data=data,
+        headers={
+            "Authorization": "Bearer " + api_key(),
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://github.com/Ziad0dev/dots",
+            "X-Title": "dots",
+        },
+    )
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return json.loads(r.read().decode())
+
+
+def write(name: str, obj) -> None:
+    CACHE.mkdir(parents=True, exist_ok=True)
+    tmp = CACHE / (name + ".tmp")
+    tmp.write_text(json.dumps(obj))
+    tmp.replace(CACHE / name)
+
+
+def cmd_key() -> None:
+    try:
+        d = request("/key").get("data", {})
+    except Exception as e:
+        write("openrouter-key.json", {"ok": False, "error": str(e)})
+        return
+    limit = d.get("limit")
+    usage = d.get("usage") or 0.0
+    write("openrouter-key.json", {
+        "ok": True,
+        "label": d.get("label") or "",
+        "usage": round(float(usage), 4),
+        "limit": limit,
+        "remaining": (round(float(limit) - float(usage), 4)
+                      if limit is not None else None),
+        "free_tier": bool(d.get("is_free_tier")),
+    })
+
+
+def cmd_models() -> None:
+    try:
+        raw = request("/models").get("data", [])
+    except Exception as e:
+        write("openrouter-models.json", {"ok": False, "error": str(e), "models": []})
+        return
+    out = []
+    for m in raw:
+        p = m.get("pricing") or {}
+        try:
+            prompt_price = float(p.get("prompt") or 0) * 1_000_000
+            completion_price = float(p.get("completion") or 0) * 1_000_000
+        except (TypeError, ValueError):
+            prompt_price = completion_price = 0.0
+        out.append({
+            "id": m.get("id", ""),
+            "name": m.get("name", m.get("id", "")),
+            "context": m.get("context_length") or 0,
+            "in": round(prompt_price, 3),
+            "out": round(completion_price, 3),
+            "free": prompt_price == 0 and completion_price == 0,
+        })
+    out.sort(key=lambda x: x["id"])
+    write("openrouter-models.json", {"ok": True, "count": len(out), "models": out})
+
+
+def cmd_chat(model: str) -> None:
+    prompt = sys.stdin.read().strip()
+    if not prompt:
+        print("(empty prompt)")
+        return
+    try:
+        r = request("/chat/completions", {
+            "model": model,
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": 1200,
+        }, timeout=180)
+    except urllib.error.HTTPError as e:
+        print("HTTP %s: %s" % (e.code, e.read().decode()[:400]))
+        return
+    except Exception as e:
+        print("error: %s" % e)
+        return
+
+    choices = r.get("choices") or []
+    if not choices:
+        print("no response: " + json.dumps(r)[:400])
+        return
+    print(choices[0].get("message", {}).get("content", "").strip())
+
+    u = r.get("usage") or {}
+    if u:
+        sys.stderr.write("tokens in=%s out=%s\n"
+                         % (u.get("prompt_tokens"), u.get("completion_tokens")))
+
+
+def main() -> None:
+    cmd = sys.argv[1] if len(sys.argv) > 1 else "key"
+    if cmd == "key":
+        cmd_key()
+    elif cmd == "models":
+        cmd_models()
+    elif cmd == "chat":
+        if len(sys.argv) < 3:
+            raise SystemExit("usage: openrouter chat MODEL  (prompt on stdin)")
+        cmd_chat(sys.argv[2])
+    else:
+        raise SystemExit("unknown command: " + cmd)
+
+
+if __name__ == "__main__":
+    main()

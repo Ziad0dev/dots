@@ -1,0 +1,20 @@
+@-moz-document domain("instagram.com") {
+    :root {
+        --ig-primary-background: var(--dots-surface_rgb) !important;
+        --ig-primary-text: var(--dots-on_surface_rgb) !important;
+        --ig-primary-icon: var(--dots-on_surface_rgb) !important;
+        --ig-elevated-background: var(--dots-surface_container_low_rgb) !important;
+    }
+
+    .x1q2y9iw, ._at8n, .x82u2s1, .xgf5ljw, .x7r02ix {
+        background-color: var(--dots-surface_container_low) !important;
+    }
+
+    .xnz67gz {
+        background-color: var(--dots-surface_container_high) !important;
+    }
+
+    .x5qyhuo {
+        background-color: var(--dots-surface) !important;
+    }
+}

@@ -1,0 +1,49 @@
+providers:
+  lc-big:
+    baseUrl: http://127.0.0.1:8080/v1
+    api: openai-completions
+    apiKey: dummy
+    models:
+      - id: gpt-oss-20b
+        name: gpt-oss-20b
+        reasoning: true
+        thinking:
+          mode: effort
+          efforts: [low, medium, high]
+          defaultLevel: medium
+        input: [text]
+        supportsTools: true
+        compat:
+          thinkingFormat: openai
+          supportsReasoningEffort: true
+        contextWindow: 65536
+        maxTokens: 16384
+  lc-small:
+    baseUrl: http://127.0.0.1:8081/v1
+    api: openai-completions
+    apiKey: dummy
+    models:
+      - id: qwen3-4b
+        name: Qwen3 4B
+        reasoning: true
+        thinking:
+          mode: effort
+          efforts: [minimal, low, medium, high]
+          defaultLevel: low
+        input: [text]
+        supportsTools: true
+        tokenizer: qwen3
+        contextWindow: 32768
+        maxTokens: 4096
+  lc-vision:
+    baseUrl: http://127.0.0.1:8082/v1
+    api: openai-completions
+    apiKey: dummy
+    models:
+      - id: qwen3-vl-8b
+        name: Qwen3 VL 8B
+        input: [text, image]
+        supportsTools: true
+        tokenizer: qwen3
+        contextWindow: 32768
+        maxTokens: 4096
