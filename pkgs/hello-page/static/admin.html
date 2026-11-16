@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>drawer</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 1.5rem 1.25rem 4rem;
+    background: #16151f; color: #e7e4ef;
+    font: 400 1rem/1.5 ui-rounded, "Segoe UI", system-ui, sans-serif;
+  }
+  .wrap { max-width: 34rem; margin: 0 auto; }
+  h1 { font-size: 1rem; font-weight: 700; color: #8f88a8; margin: 0 0 1.5rem; }
+  label { display: block; font-size: .8125rem; color: #8f88a8; margin: 1rem 0 .35rem; }
+  input, textarea, button {
+    width: 100%; padding: .8rem .9rem; font: inherit;
+    background: #211f2d; color: #e7e4ef;
+    border: 1px solid #35314a; border-radius: .75rem;
+  }
+  textarea { min-height: 9rem; resize: vertical; line-height: 1.55; }
+  button {
+    margin-top: 1rem; background: #ff9dae; color: #1b1a24;
+    font-weight: 700; border: 0; cursor: pointer;
+  }
+  button.ghost { background: none; color: #8f88a8; border: 1px solid #35314a; }
+  .row { display: flex; gap: .6rem; }
+  .status { min-height: 1.4rem; margin-top: .9rem; font-size: .875rem; color: #ff9dae; }
+  .meta { margin-top: 2.5rem; font-size: .8125rem; color: #8f88a8; line-height: 1.8; }
+  .past { margin-top: 1.5rem; }
+  .past div { padding: .7rem 0; border-top: 1px solid #2a2739; }
+  .past b { display: block; font-size: .75rem; color: #6f6889; font-weight: 600; }
+  .past p { margin: .2rem 0 0; white-space: pre-wrap; }
+  .thread { margin-bottom: 1rem; }
+  .thread div { padding: .6rem .8rem; margin-bottom: .5rem; border-left: 2px solid #35314a; }
+  .thread div.her { border-left-color: #ffc46b; background: rgba(255,196,107,.05); }
+  .thread div.him { border-left-color: #ff9dae; }
+  .thread b { display: block; font-size: .7rem; letter-spacing: .1em; color: #6f6889; font-weight: 600; }
+  .thread p { margin: .2rem 0 0; white-space: pre-wrap; }
+  .thread .unread { color: #ffc46b; }
+  #unread { color: #ffc46b; font-weight: 700; }
+  :focus-visible { outline: 2px solid #ff9dae; outline-offset: 2px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>note for the day</h1>
+
+  <label for="pw">password</label>
+  <input id="pw" type="password" autocomplete="current-password">
+
+  <label for="day">date</label>
+  <input id="day" type="date">
+
+  <label for="body">note</label>
+  <textarea id="body" placeholder="whatever you want on the page today"></textarea>
+
+  <button id="save" type="button">Post note</button>
+  <div class="row">
+    <button id="load" class="ghost" type="button">Load recent</button>
+    <button id="clear" class="ghost" type="button">Delete this day</button>
+  </div>
+
+  <p class="status" id="status"></p>
+
+  <h1 style="margin-top:2.5rem">between us <span id="unread"></span></h1>
+  <div class="thread" id="thread"></div>
+  <textarea id="reply" placeholder="reply to her"></textarea>
+  <button id="send" type="button">Send reply</button>
+  <p class="status" id="replyStatus"></p>
+  <div class="meta" id="meta"></div>
+  <div class="past" id="past"></div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const pw = $("pw");
+pw.value = localStorage.getItem("pw") || "";
+
+async function call(path, extra = {}) {
+  const res = await fetch(path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(Object.assign({ password: pw.value }, extra)),
+  });
+  return res.json();
+}
+
+async function refresh() {
+  const r = await call("/api/admin/state");
+  if (!r.ok) { $("status").textContent = r.error; return; }
+  localStorage.setItem("pw", pw.value);
+  if (!$("day").value) $("day").value = r.today;
+  renderThread(r.messages || [], (r.seen || {}).her);
+  $("meta").innerHTML =
+    `poem is on line ${r.verse.day} of ${r.verse.total}` +
+    ((r.seen || {}).her ? `<br>she last opened it ${when(r.seen.her)}` : "<br>she hasn't opened it yet") +
+    (r.hearts.length ? `<br>hearts: ${r.hearts.slice(0, 4).join(", ")}` : "<br>no hearts yet");
+  $("past").innerHTML = "";
+  r.notes.forEach((n) => {
+    const d = document.createElement("div");
+    const b = document.createElement("b");
+    b.textContent = n.day;
+    const p = document.createElement("p");
+    p.textContent = n.body;
+    d.append(b, p);
+    d.onclick = () => { $("day").value = n.day; $("body").value = n.body; window.scrollTo(0, 0); };
+    $("past").appendChild(d);
+  });
+}
+
+function when(iso) {
+  if (!iso) return "";
+  const d = new Date(iso.endsWith("Z") || iso.includes("+") ? iso : iso + "Z");
+  return d.toLocaleString(undefined, {
+    weekday: "short", day: "numeric", month: "short",
+    hour: "2-digit", minute: "2-digit", hour12: false,
+  });
+}
+
+function renderThread(messages, herSeen) {
+  const box = $("thread");
+  box.innerHTML = "";
+  if (!messages.length) {
+    box.innerHTML = '<div><p style="color:#6f6889">nothing yet</p></div>';
+  }
+  const waiting = messages.filter((m) => m.who === "her" && !m.read_at).length;
+  $("unread").textContent = waiting ? `· ${waiting} waiting` : "";
+  messages.slice(-40).forEach((m) => {
+    const d = document.createElement("div");
+    d.className = m.who;
+    const b = document.createElement("b");
+    b.textContent = (m.who === "her" ? "her · " : "you · ") + when(m.at);
+    if (m.who === "her" && !m.read_at) {
+      const tag = document.createElement("span");
+      tag.className = "unread";
+      tag.textContent = "  unread";
+      b.appendChild(tag);
+    }
+    const p = document.createElement("p");
+    p.textContent = m.body;
+    d.append(b, p);
+    box.appendChild(d);
+  });
+  if (herSeen) {
+    const foot = document.createElement("p");
+    foot.style.cssText = "font-size:.75rem;color:#6f6889;margin-top:.6rem";
+    foot.textContent = "she last opened it " + when(herSeen);
+    box.appendChild(foot);
+  }
+  box.scrollTop = box.scrollHeight;
+}
+
+$("send").onclick = async () => {
+  const body = $("reply").value.trim();
+  if (!body) return;
+  const r = await call("/api/admin/reply", { body });
+  $("replyStatus").textContent = r.ok ? "Sent." : r.error;
+  if (r.ok) { $("reply").value = ""; renderThread(r.messages || []); }
+};
+
+$("save").onclick = async () => {
+  const r = await call("/api/admin/note", { day: $("day").value, body: $("body").value });
+  $("status").textContent = r.ok ? "Posted." : r.error;
+  if (r.ok) { $("body").value = ""; refresh(); }
+};
+
+$("clear").onclick = async () => {
+  const r = await call("/api/admin/note", { day: $("day").value, body: "" });
+  $("status").textContent = r.ok ? "Deleted." : r.error;
+  if (r.ok) refresh();
+};
+
+$("load").onclick = refresh;
+if (pw.value) refresh();
+</script>
+</body>
+</html>

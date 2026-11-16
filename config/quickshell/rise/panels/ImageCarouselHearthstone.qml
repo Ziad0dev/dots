@@ -1,0 +1,739 @@
+import QtQuick
+import QtQuick.Shapes
+import Quickshell
+import Quickshell.Wayland
+import Quickshell.Io
+import "../modules"
+import "ImagePickerModel.js" as Model
+
+// Hearthstone (card-deck) variant — original felt look (dark table, dark card
+// frame, fanned cards dealt via GPU transforms) on top of the SAME fast data
+// layer as the Tanzaku picker: fast glob scan, cached 512px thumbnails, niced
+// pre-warm, lazy author/palette meta. Active only while pickerStyle=="hearthstone".
+PanelWindow {
+    id: panel
+    required property var root
+
+    screen: root.activePopupScreen
+
+    color: "transparent"
+    anchors { top: true; bottom: true; left: true; right: true }
+    exclusionMode: ExclusionMode.Ignore
+    WlrLayershell.layer: WlrLayer.Overlay
+    WlrLayershell.namespace: "dots-image-carousel-hs"
+    WlrLayershell.keyboardFocus: panel.visible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+
+    readonly property bool active: root.pickerStyle === "hearthstone"
+    readonly property bool isThemeMode: root.imagePickerMode === "theme"
+    readonly property bool ready: root.imagePickerVisible && active && imagesLoaded && layoutSettled
+
+    property bool imagesLoaded:  false
+    property bool layoutSettled: false
+    property bool scanDone:      false   // a scan finished (distinguishes "loading" from "nothing found")
+    property var  imageArray:    []
+    property int  selFilt:       0
+    property string filterText:  ""
+    property string currentImage: ""
+    property int thumbEpoch:      0
+    property string readyThumbUrl: ""
+
+    visible: root.imagePickerVisible && active
+
+    // ── reveal + deal ──
+    property real reveal: 0
+    Behavior on reveal { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
+    property real dealT: 0
+    readonly property int dealDuration: isThemeMode ? 260 : 180
+    readonly property int cardMotionDuration: isThemeMode ? 220 : 180
+    readonly property bool dealSettled: dealT >= 0.999
+    Behavior on dealT { NumberAnimation { duration: panel.dealDuration; easing.type: Easing.OutCubic } }
+    onReadyChanged: { reveal = ready ? 1 : 0; if (ready) dealT = 1 }
+
+    // ── filtered list ──
+    readonly property var filtered: {
+        var out = [], arr = imageArray, ids = Model.matchList(arr, filterText)
+        for (var k = 0; k < ids.length; k++) {
+            var img = arr[ids[k]]
+            out.push({
+                idx:      ids[k],
+                filePath: img.filePath,
+                thumb:    panel.thumbUrlFor(img),
+                label:    img.label,
+                dir:      img.dir || "",
+                current:  img.filePath === panel.currentImage
+            })
+        }
+        return out
+    }
+    onFilteredChanged: if (selFilt >= filtered.length) selFilt = Math.max(0, filtered.length - 1)
+
+    // ── windowed view ──
+    readonly property int winRadius: maxVisible + 8
+    readonly property int winCount:  Math.min(filtered.length, 2 * winRadius + 1)
+    readonly property int winStart:  Math.max(0, Math.min(selFilt - winRadius, filtered.length - winCount))
+    function absForSlot(slot) {
+        var n = panel.winCount; if (n <= 0) return -1
+        var s = panel.winStart
+        return s + ((slot - s) % n + n) % n
+    }
+
+
+    readonly property string currentLabel:
+        (filtered.length > 0 && selFilt >= 0 && selFilt < filtered.length)
+            ? filtered[selFilt].label
+            : (filterText ? "No matches" : "")
+    function thumbUrlFor(img) {
+        if (!img || !img.thumbnailPath || img.thumbnailPath === img.filePath) return ""
+        return "file://" + img.thumbnailPath
+    }
+
+    // ── open / style gating ──
+    function syncOpen() {
+        if (root.imagePickerVisible && active) {
+            if (!imagesLoaded) {
+                panel.layoutSettled = false
+                panel.filterText    = ""
+                panel.imageArray    = []
+                panel.selFilt       = 0
+                panel.reveal        = 0
+                panel.dealT         = 0
+                currentProc.running = false; currentProc.running = true
+            }
+        } else {
+            panel.imagesLoaded  = false; panel.scanDone = false
+            panel.layoutSettled = false
+            panel.reveal        = 0
+            panel.dealT         = 0
+        }
+    }
+    Connections {
+        target: root
+        function onImagePickerVisibleChanged() { panel.syncOpen() }
+        function onPickerStyleChanged()         { panel.syncOpen() }
+    }
+    Component.onCompleted: panel.syncOpen()
+
+    // step 1: current image
+    Process {
+        id: currentProc
+        command: panel.isThemeMode
+            ? ["bash", "-c",
+               "CACHE=$HOME/.cache/quickshell-theme-picker; " +
+               "name=$(cat " + panel.shq(root.themeNamePath) + " 2>/dev/null || true); " +
+               "for ext in png jpg jpeg webp; do f=\"$CACHE/$name.$ext\"; [ -L \"$f\" ] && echo \"$f\" && exit 0; done; echo ''"]
+            : ["bash", "-c", "readlink -f " + panel.shq(root.currentBackgroundPath) + " 2>/dev/null || true"]
+        running: false
+        stdout: StdioCollector {
+            onStreamFinished: {
+                panel.currentImage = this.text.trim()
+                cacheProc.running = false; cacheProc.running = true   // instant from cache
+                var cmd = panel.buildScanCmd()
+                cmd[2] = cmd[2] + " | tee " + panel.shq(panel.scanCachePath)
+                scanProc.command = cmd
+                scanProc.running = false; scanProc.running = true
+            }
+        }
+    }
+
+    // step 2: scan images (live refresh; writes the cache via tee)
+    Process {
+        id: scanProc
+        command: []
+        stdout: StdioCollector {
+            waitForEnd: true
+            onStreamFinished: panel.applyScan(text, false)
+        }
+    }
+
+    // scan-result cache → instant (re)open (shared cache file with the other theme styles)
+    readonly property string scanCachePath: Quickshell.env("HOME") + "/.cache/quickshell-scan-" + (isThemeMode ? "theme" : "wallpaper")
+    property string _lastScan: ""
+    function scanHasOriginalThumbs(text) {
+        var rows = String(text || "").split("\n")
+        for (var i = 0; i < rows.length; i++) {
+            var row = rows[i]
+            if (!row) continue
+            var cols = row.split("\t")
+            if (cols.length < 2 || !cols[1] || cols[0] === cols[1]) return true
+        }
+        return false
+    }
+    Process {
+        id: cacheProc
+        command: ["cat", panel.scanCachePath]
+        stdout: StdioCollector { onStreamFinished: panel.applyScan(this.text, true) }
+    }
+    function applyScan(text, fromCache) {
+        var t = String(text || "")
+        if (fromCache && !t.trim()) return   // cache empty → wait for live scan; live empty → fall through to empty-state
+        if (fromCache && scanHasOriginalThumbs(t)) return
+        if (fromCache && imagesLoaded) return
+        if (!fromCache && t.trim() === _lastScan.trim() && imagesLoaded) { panel.warmVisible(); warmTimer.restart(); return }
+        _lastScan = t
+        var images = Model.loadRows(t)
+        panel.imageArray   = images
+        panel.selFilt      = Model.indexForSelectedImage(images, panel.currentImage)
+        panel.imagesLoaded = images.length > 0; panel.scanDone = true
+        Qt.callLater(function() {
+            if (root.imagePickerVisible && panel.active) {
+                panel.layoutSettled = true
+                if (panel.imageArray.length > 0) hand.forceActiveFocus()   // keep Esc-catcher focused when empty
+                panel.fetchMeta()
+                if (!fromCache) { panel.warmMeta(); panel.warmVisible(); warmTimer.restart() }
+            }
+        })
+    }
+
+    function buildScanCmd() {
+        if (isThemeMode) {
+            return ["bash", "-c", "D=$HOME/.cache/quickshell-img-thumbs; mkdir -p \"$D\"; HASHCACHE=$HOME/.cache/quickshell-img-thumb-hashes.tsv; touch \"$HASHCACHE\"; TL=$(mktemp); TK=$(mktemp); TM=$(mktemp); TD=$(mktemp); TW=$(mktemp); trap 'rm -f \"$TL\" \"$TK\" \"$TM\" \"$TD\" \"$TW\" \"$TK.hit\" \"$TM.sha\"' EXIT; thumbs_for_list() { : > \"$TK.hit\"; [ -s \"$TL\" ] || return 0; paste \"$TL\" <(xargs -r -d '\\n' -a \"$TL\" readlink -f --) <(xargs -r -d '\\n' -a \"$TL\" stat -Lc '%s:%Y:%Z' --) > \"$TK\"; : > \"$TM\"; awk -F '\\t' -v HC=\"$HASHCACHE\" -v MISS=\"$TM\" 'BEGIN { while ((getline l < HC) > 0) { i = index(l, \"\\t\"); if (i) { v = substr(l, i+1); if (v ~ /^[0-9a-f]{64}$/) h[substr(l, 1, i-1)] = v } } close(HC) } { k = $2 \"|\" $3; if (k in h) print $1 \"\\t\" h[k]; else print $1 \"\\t\" k > MISS }' \"$TK\" > \"$TK.hit\"; [ -s \"$TM\" ] || return 0; cut -f1 \"$TM\" | xargs -r -d '\\n' sha256sum -- 2>/dev/null | sed 's/^\\([0-9a-f]*\\)  /\\1\\t/' | awk -F '\\t' '{ s[$2] = $1 } END { for (p in s) print p \"\\t\" s[p] }' > \"$TM.sha\"; awk -F '\\t' 'NR == FNR { s[$1] = $2; next } ($1 in s) { print $2 \"\\t\" s[$1] }' \"$TM.sha\" \"$TM\" | flock \"$HASHCACHE\" tee -a \"$HASHCACHE\" >/dev/null; awk -F '\\t' 'NR == FNR { s[$1] = $2; next } ($1 in s) { print $1 \"\\t\" s[$1] }' \"$TM.sha\" \"$TM\" >> \"$TK.hit\"; }; CACHE=$HOME/.cache/quickshell-theme-picker; mkdir -p \"$CACHE\"; shopt -s nullglob nocaseglob; : > \"$TL\"; : > \"$TD\"; for d in \"${DOTS_DIR:-$HOME/dots}\"/config/themes/*; do [ -d \"$d\" ] || continue; name=$(basename \"$d\"); prev=\"\"; for c in \"$d\"/wallpaper.jpg \"$d\"/wallpaper.jpeg \"$d\"/wallpaper.png \"$d\"/wallpaper.webp \"$d\"/preview.png \"$d\"/preview.jpg \"$d\"/preview.jpeg; do [ -f \"$c\" ] && { prev=\"$c\"; break; }; done; if [ -z \"$prev\" ]; then bgs=(\"$d\"/backgrounds/*.jpg \"$d\"/backgrounds/*.jpeg \"$d\"/backgrounds/*.png \"$d\"/backgrounds/*.webp); prev=\"${bgs[0]}\"; fi; [ -z \"$prev\" ] && continue; ext=\"${prev##*.}\"; link=\"$CACHE/$name.$ext\"; for o in \"$CACHE/$name\".*; do [ \"$o\" = \"$link\" ] || rm -f -- \"$o\"; done; [ \"$(readlink -- \"$link\")\" = \"$prev\" ] || ln -sfn -- \"$prev\" \"$link\"; printf '%s\\n' \"$link\" >> \"$TL\"; printf '%s\\t%s\\n' \"$link\" \"$d\" >> \"$TD\"; done; thumbs_for_list; awk -F '\\t' -v D=\"$D\" 'NR == FNR { dir[$1] = $2; next } $2 != \"\" { print $1 \"\\t\" D \"/\" $2 \"-512.jpg\" \"\\t\" dir[$1] }' \"$TD\" \"$TK.hit\" | sort -u"]
+        } else {
+            return ["bash", "-c", "D=$HOME/.cache/quickshell-img-thumbs; mkdir -p \"$D\"; HASHCACHE=$HOME/.cache/quickshell-img-thumb-hashes.tsv; touch \"$HASHCACHE\"; TL=$(mktemp); TK=$(mktemp); TM=$(mktemp); TD=$(mktemp); TW=$(mktemp); trap 'rm -f \"$TL\" \"$TK\" \"$TM\" \"$TD\" \"$TW\" \"$TK.hit\" \"$TM.sha\"' EXIT; thumbs_for_list() { : > \"$TK.hit\"; [ -s \"$TL\" ] || return 0; paste \"$TL\" <(xargs -r -d '\\n' -a \"$TL\" readlink -f --) <(xargs -r -d '\\n' -a \"$TL\" stat -Lc '%s:%Y:%Z' --) > \"$TK\"; : > \"$TM\"; awk -F '\\t' -v HC=\"$HASHCACHE\" -v MISS=\"$TM\" 'BEGIN { while ((getline l < HC) > 0) { i = index(l, \"\\t\"); if (i) { v = substr(l, i+1); if (v ~ /^[0-9a-f]{64}$/) h[substr(l, 1, i-1)] = v } } close(HC) } { k = $2 \"|\" $3; if (k in h) print $1 \"\\t\" h[k]; else print $1 \"\\t\" k > MISS }' \"$TK\" > \"$TK.hit\"; [ -s \"$TM\" ] || return 0; cut -f1 \"$TM\" | xargs -r -d '\\n' sha256sum -- 2>/dev/null | sed 's/^\\([0-9a-f]*\\)  /\\1\\t/' | awk -F '\\t' '{ s[$2] = $1 } END { for (p in s) print p \"\\t\" s[p] }' > \"$TM.sha\"; awk -F '\\t' 'NR == FNR { s[$1] = $2; next } ($1 in s) { print $2 \"\\t\" s[$1] }' \"$TM.sha\" \"$TM\" | flock \"$HASHCACHE\" tee -a \"$HASHCACHE\" >/dev/null; awk -F '\\t' 'NR == FNR { s[$1] = $2; next } ($1 in s) { print $1 \"\\t\" s[$1] }' \"$TM.sha\" \"$TM\" >> \"$TK.hit\"; }; find -L " + wallpaperFindRoots() + " -maxdepth 4 -type f \\( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' -o -iname '*.bmp' -o -iname '*.gif' -o -iname '*.mp4' -o -iname '*.webm' -o -iname '*.mkv' -o -iname '*.mov' -o -iname '*.m4v' \\) 2>/dev/null | sort > \"$TL\"; thumbs_for_list; sort \"$TK.hit\" | awk -F '\\t' -v D=\"$D\" '$2 != \"\" { print $1 \"\\t\" D \"/\" $2 \"-512.jpg\" }'"]
+        }
+    }
+
+    Process { id: applyThemeProc; command: [] }
+    Process { id: applyBgProc;    command: [] }
+
+    function applySelected() {
+        if (!imagesLoaded || filtered.length === 0) return
+        if (selFilt < 0 || selFilt >= filtered.length) return
+        var path = filtered[selFilt].filePath; if (!path) return
+        if (isThemeMode) {
+            var name = Model.nameForPath(path)
+            applyThemeProc.command = ["env", "DOTS_SHELL_PATH=" + root.dotsShellRoot, "dots-theme-set", name]
+            applyThemeProc.running = false; applyThemeProc.running = true
+        } else {
+            // rise draws the wallpaper (ext WallpaperLayer): show it at once,
+            // then let themectl record it (and re-colour an auto theme)
+            applyBgProc.command = ["bash", "-c", "qs -c rise ipc call wallpaper display \"$1\" >/dev/null 2>&1; exec dots-theme-bg-set \"$1\"", "_", path]
+            applyBgProc.running = false; applyBgProc.running = true
+        }
+        root.imagePickerVisible = false
+    }
+
+    function moveSel(delta) {
+        if (filtered.length === 0) return
+        selFilt = Math.max(0, Math.min(filtered.length - 1, selFilt + delta))
+    }
+
+    readonly property var sel: (filtered.length > 0 && selFilt >= 0 && selFilt < filtered.length)
+                               ? filtered[selFilt] : null
+
+    function shq(s) { return "'" + String(s).replace(/'/g, "'\\''") + "'" }
+    function wallpaperFindRoots() {
+        var paths = root.wallpaperSourcePaths || []
+        var args = []
+        for (var i = 0; i < paths.length; i++)
+            if (paths[i]) args.push(panel.shq(paths[i]))
+        return args.join(" ")
+    }
+    // look.conf's GTK/Qt theme, icons and cursor, for a theme that ships a
+    // full kit (names its own GTK or Qt theme); empty otherwise
+    function kitReadCmd(pathExpr) {
+        return "awk '{ i = index($0, \"=\"); if (i) v[substr($0, 1, i - 1)] = substr($0, i + 1) } END { if (v[\"gtk\"] == \"\" && v[\"kvantum\"] == \"\") exit; n = split(\"gtk GTK kvantum Qt icons icons cursor cursor\", a, \" \"); for (i = 1; i < n; i += 2) if (v[a[i]] != \"\") { if (out != \"\") out = out \" · \"; out = out a[i + 1] \" \" v[a[i]] } print out }' " + pathExpr + " 2>/dev/null"
+    }
+    function paletteReadCmd(pathExpr) {
+        return "awk -F'\"' 'function valid(v){ return v ~ /^#[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?$/ } { k=$1; gsub(/[[:space:]=]/,\"\",k); if (valid($2)) c[k]=$2 } END { split(\"color1 red color2 green color3 yellow color4 blue color5 magenta color6 cyan\", a, \" \"); for (i=1; i<=6; i++) { p=a[i*2-1]; q=a[i*2]; v=c[p]; if (v == \"\") v=c[q]; if (v != \"\") { if (out != \"\") out=out \",\"; out=out v } } print out }' " + pathExpr + " 2>/dev/null"
+    }
+
+    // ── pre-warm: visible entries first, the rest after the open settles ──
+    Process {
+        id: priorityWarmProc
+        command: []
+        stdout: SplitParser {
+            onRead: function(line) { panel.noteThumbReady(line) }
+        }
+    }
+    Process {
+        id: warmProc
+        command: []
+        stdout: SplitParser {
+            onRead: function(line) { panel.noteThumbReady(line) }
+        }
+    }
+    Timer { id: warmTimer; interval: 450; onTriggered: panel.warmAll() }
+    function noteThumbReady(line) {
+        var path = String(line || "").trim()
+        if (!path) return
+        panel.readyThumbUrl = "file://" + path
+        panel.thumbEpoch++
+    }
+    function warmCommand(srcs, niceLevel) {
+        var nice = niceLevel === 10 ? 10 : 19
+        return ["bash", "-c",
+            "export QS_THUMB=" + shq(Qt.resolvedUrl("../scripts/qs-thumb").toString().replace(/^file:\/\//, "")) + "; D=$HOME/.cache/quickshell-img-thumbs; mkdir -p \"$D\"; HASHCACHE=$HOME/.cache/quickshell-img-thumb-hashes.tsv; touch \"$HASHCACHE\"; TL=$(mktemp); TK=$(mktemp); TM=$(mktemp); TD=$(mktemp); TW=$(mktemp); trap 'rm -f \"$TL\" \"$TK\" \"$TM\" \"$TD\" \"$TW\" \"$TK.hit\" \"$TM.sha\"' EXIT; thumbs_for_list() { : > \"$TK.hit\"; [ -s \"$TL\" ] || return 0; paste \"$TL\" <(xargs -r -d '\\n' -a \"$TL\" readlink -f --) <(xargs -r -d '\\n' -a \"$TL\" stat -Lc '%s:%Y:%Z' --) > \"$TK\"; : > \"$TM\"; awk -F '\\t' -v HC=\"$HASHCACHE\" -v MISS=\"$TM\" 'BEGIN { while ((getline l < HC) > 0) { i = index(l, \"\\t\"); if (i) { v = substr(l, i+1); if (v ~ /^[0-9a-f]{64}$/) h[substr(l, 1, i-1)] = v } } close(HC) } { k = $2 \"|\" $3; if (k in h) print $1 \"\\t\" h[k]; else print $1 \"\\t\" k > MISS }' \"$TK\" > \"$TK.hit\"; [ -s \"$TM\" ] || return 0; cut -f1 \"$TM\" | xargs -r -d '\\n' sha256sum -- 2>/dev/null | sed 's/^\\([0-9a-f]*\\)  /\\1\\t/' | awk -F '\\t' '{ s[$2] = $1 } END { for (p in s) print p \"\\t\" s[p] }' > \"$TM.sha\"; awk -F '\\t' 'NR == FNR { s[$1] = $2; next } ($1 in s) { print $2 \"\\t\" s[$1] }' \"$TM.sha\" \"$TM\" | flock \"$HASHCACHE\" tee -a \"$HASHCACHE\" >/dev/null; awk -F '\\t' 'NR == FNR { s[$1] = $2; next } ($1 in s) { print $1 \"\\t\" s[$1] }' \"$TM.sha\" \"$TM\" >> \"$TK.hit\"; }; printf '%s\\n' \"$@\" > \"$TL\"; thumbs_for_list; while IFS=$'\\t' read -r s k; do [ -n \"$k\" ] || continue; o=\"$D/$k-512.jpg\"; [ -s \"$o\" ] || printf '%s\\n%s\\n' \"$s\" \"$o\" >> \"$TW\"; done < \"$TK.hit\"; if [ -s \"$TW\" ]; then nice -n " + nice + " ionice -c3 xargs -d '\\n' -P 3 -n 2 sh -c '\"$QS_THUMB\" \"$0\" \"$1\" >/dev/null 2>&1 || true; [ -s \"$1\" ] && printf \"%s\\n\" \"$1\"; exit 0' < \"$TW\"; fi",
+            "warm"].concat(srcs)
+    }
+    function startWarm(proc, srcs, niceLevel) {
+        if (srcs.length === 0) return
+        proc.command = panel.warmCommand(srcs, niceLevel)
+        proc.running = false; proc.running = true
+    }
+    function visibleSourcePaths() {
+        var srcs = [], seen = {}
+        for (var distance = 0; distance <= maxVisible; distance++) {
+            var indices = distance === 0 ? [selFilt] : [selFilt - distance, selFilt + distance]
+            for (var j = 0; j < indices.length; j++) {
+                var i = indices[j]
+                if (i < 0 || i >= filtered.length) continue
+                var p = filtered[i].filePath
+                if (p && !seen[p]) { seen[p] = true; srcs.push(p) }
+            }
+        }
+        return srcs
+    }
+    function backgroundSourcePaths() {
+        var visible = {}, priority = visibleSourcePaths(), srcs = [], seen = {}
+        for (var i = 0; i < priority.length; i++) visible[priority[i]] = true
+        for (var j = 0; j < imageArray.length; j++) {
+            var p = imageArray[j].filePath
+            if (p && !visible[p] && !seen[p]) { seen[p] = true; srcs.push(p) }
+        }
+        return srcs
+    }
+    function warmVisible() { panel.startWarm(priorityWarmProc, panel.visibleSourcePaths(), 10) }
+    function warmAll() { panel.startWarm(warmProc, panel.backgroundSourcePaths(), 19) }
+
+    // ── lazy meta (author/repo/palette) for the focused theme, cached by dir ──
+    property var metaCache: ({})
+    property string _metaDir: ""
+    readonly property var selMeta: (sel && sel.dir && metaCache[sel.dir]) ? metaCache[sel.dir] : null
+
+    Timer { id: metaTimer; interval: 60; onTriggered: panel.fetchMeta() }
+    onSelChanged: if (isThemeMode && sel && sel.dir && !metaCache[sel.dir]) metaTimer.restart()
+
+    function fetchMeta() {
+        if (!isThemeMode || !sel || !sel.dir || metaCache[sel.dir]) return
+        panel._metaDir = sel.dir
+        metaProc.command = ["bash", "-c",
+            "d=" + shq(sel.dir) + "; repo=''; author='';" +
+            "if [ -f \"$d/.git/config\" ]; then " +
+            "  repo=$(sed -nE 's#^[[:space:]]*url = (.*)$#\\1#p' \"$d/.git/config\" | head -1);" +
+            "  author=$(printf '%s' \"$repo\" | sed -nE 's#.*github\\.com[:/]+([^/]+)/.*#\\1#p');" +
+            "fi;" +
+            "pal=$(" + paletteReadCmd("\"$d/colors.sh\"") + ");" +
+            "kit=$(" + kitReadCmd("\"$d/look.conf\"") + ");" +
+            "printf '%s\\t%s\\t%s\\t%s\\n' \"$author\" \"$repo\" \"$pal\" \"$kit\""]
+        metaProc.running = false; metaProc.running = true
+    }
+    Process {
+        id: metaProc
+        command: []
+        stdout: StdioCollector {
+            onStreamFinished: {
+                var parts = String(this.text || "").replace(/\n+$/, "").split("\t")
+                var m = panel.metaCache
+                m[panel._metaDir] = { author: parts[0] || "", repo: parts[1] || "", palette: parts[2] || "", kit: parts[3] || "" }
+                panel.metaCache = m
+            }
+        }
+    }
+
+    function openRepo() {
+        if (!selMeta || !selMeta.repo) return
+        var url = String(selMeta.repo)
+            .replace(/^git@github\.com:/, "https://github.com/")
+            .replace(/\.git$/, "")
+        Quickshell.execDetached(["systemd-run", "--user", "--scope", "--quiet", "--collect", "--", "xdg-open", url])
+    }
+
+    // ── bulk meta pre-warm: read author/repo/palette for ALL themes in one
+    // background pass so the info is instant for every card (no lazy timing) ──
+    Process {
+        id: metaWarmProc
+        command: []
+        stdout: StdioCollector {
+            onStreamFinished: {
+                var lines = String(this.text || "").split("\n")
+                var m = panel.metaCache
+                for (var i = 0; i < lines.length; i++) {
+                    if (!lines[i]) continue
+                    var p = lines[i].split("\t")
+                    if (p[0] && !m[p[0]]) m[p[0]] = { author: p[1] || "", repo: p[2] || "", palette: p[3] || "", kit: p[4] || "" }
+                }
+                panel.metaCache = m
+            }
+        }
+    }
+    function warmMeta() {
+        if (!isThemeMode) return
+        var dirs = []
+        for (var i = 0; i < imageArray.length; i++)
+            if (imageArray[i].dir) dirs.push(imageArray[i].dir)
+        if (dirs.length === 0) return
+        metaWarmProc.command = ["bash", "-c",
+            "for d in \"$@\"; do repo=''; author='';" +
+            "if [ -f \"$d/.git/config\" ]; then repo=$(sed -nE 's#^[[:space:]]*url = (.*)$#\\1#p' \"$d/.git/config\" | head -1);" +
+            "author=$(printf '%s' \"$repo\" | sed -nE 's#.*github\\.com[:/]+([^/]+)/.*#\\1#p'); fi;" +
+            "pal=$(" + paletteReadCmd("\"$d/colors.sh\"") + ");" +
+            "kit=$(" + kitReadCmd("\"$d/look.conf\"") + ");" +
+            "printf '%s\\t%s\\t%s\\t%s\\t%s\\n' \"$d\" \"$author\" \"$repo\" \"$pal\" \"$kit\"; done",
+            "warm"].concat(dirs)
+        metaWarmProc.running = false; metaWarmProc.running = true
+    }
+
+    // ── card-hand geometry ──
+    readonly property int  cardW:      232
+    readonly property int  cardH:      330
+    readonly property real focusScale: 1.24
+    readonly property real spreadDeg:  6.0
+    readonly property real stepX:      128
+    readonly property real focusLift:  54
+    readonly property int  maxVisible: 5
+
+    // ── felt look (original) ──
+    readonly property color feltColor: Qt.rgba(0.035, 0.035, 0.05, 0.975)
+    readonly property color frameDark: "#16161c"
+    readonly property color textLight: "#ECECEE"
+    readonly property color textDim:   Qt.rgba(0.92, 0.92, 0.94, 0.55)
+
+    // ── felt scrim ──
+    Rectangle {
+        anchors.fill: parent
+        color: panel.feltColor
+        opacity: panel.reveal
+    }
+    MouseArea {
+        anchors.fill: parent
+        enabled: panel.visible
+        onClicked: root.imagePickerVisible = false
+        property real wheelAcc: 0
+        onWheel: function(wheel) {
+            if (!panel.ready) return
+            var d = wheel.angleDelta.y
+            if (d === 0) return
+            if ((d > 0) !== (wheelAcc >= 0)) wheelAcc = 0
+            wheelAcc += d
+            while (wheelAcc >=  120) { wheelAcc -= 120; panel.moveSel(-1) }
+            while (wheelAcc <= -120) { wheelAcc += 120; panel.moveSel(1) }
+        }
+    }
+
+    // ── loading ──
+    Item {
+        anchors.fill: parent
+        focus: panel.visible && !(panel.ready && panel.filtered.length > 0)
+        Keys.onPressed: function(event) {
+            if (event.key === Qt.Key_Escape) {
+                if (panel.filterText) panel.filterText = ""
+                else root.imagePickerVisible = false
+                event.accepted = true
+            } else if (event.key === Qt.Key_Backspace) {
+                if (panel.filterText.length > 0) panel.filterText = panel.filterText.slice(0, -1)
+                event.accepted = true
+            } else if (event.text && event.text.length === 1 && event.text.charCodeAt(0) >= 32
+                       && event.text.charCodeAt(0) !== 127
+                       && (event.modifiers === Qt.NoModifier || event.modifiers === Qt.ShiftModifier)) {
+                if (event.text !== " " || (panel.filterText.length > 0 && !panel.filterText.endsWith(" "))) panel.filterText += event.text;
+                event.accepted = true
+            }
+        }
+    }
+    Text {
+        visible: root.imagePickerVisible && panel.active && panel.ready && panel.filtered.length === 0
+        anchors.centerIn: parent
+        horizontalAlignment: Text.AlignHCenter
+        text: "No matches: " + panel.filterText + "\n\nBackspace to edit, or Esc to clear"
+        color: root.ink
+        font.family: root.mono; font.pixelSize: 16; font.letterSpacing: 1
+    }
+    Text {
+        visible: root.imagePickerVisible && panel.active && !panel.ready
+        anchors.centerIn: parent
+        horizontalAlignment: Text.AlignHCenter
+        text: panel.scanDone
+              ? (panel.isThemeMode ? "No themes found" : "No wallpapers found") + "\n\nEsc or click to close"
+              : "Loading…"
+        color: panel.textLight
+        font.family: root.mono; font.pixelSize: 16; font.letterSpacing: 1
+    }
+
+    // ── position indicator (top) ──
+    Text {
+        visible: panel.ready && panel.filtered.length > 0
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.top: parent.top; anchors.topMargin: 40
+        opacity: panel.reveal
+        text: (panel.isThemeMode ? "THEME" : "WALLPAPER") + "      " + (panel.selFilt + 1) + " / " + panel.filtered.length
+        color: panel.textDim
+        font.family: root.mono; font.pixelSize: 12; font.letterSpacing: 2
+    }
+
+    // ── the hand ──
+    Item {
+        id: hand
+        visible: panel.ready && panel.filtered.length > 0
+        focus: panel.ready && panel.filtered.length > 0
+        anchors.centerIn: parent
+        anchors.verticalCenterOffset: -16
+        width: parent.width
+        height: panel.cardH + panel.focusLift + 40
+
+        Keys.priority: Keys.BeforeItem
+        Keys.onPressed: function(event) {
+            if (event.key === Qt.Key_Escape) {
+                if (panel.filterText) panel.filterText = ""
+                else root.imagePickerVisible = false
+                event.accepted = true
+            } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                panel.applySelected(); event.accepted = true
+            } else if (event.key === Qt.Key_Backspace) {
+                if (panel.filterText.length > 0) panel.filterText = panel.filterText.slice(0, -1)
+                event.accepted = true
+            } else if (event.key === Qt.Key_Left || event.key === Qt.Key_Backtab
+                       || (event.key === Qt.Key_Tab && (event.modifiers & Qt.ShiftModifier))) {
+                panel.moveSel(-1); event.accepted = true
+            } else if (event.key === Qt.Key_Right || event.key === Qt.Key_Tab) {
+                panel.moveSel(1); event.accepted = true
+            } else if (event.text && event.text.length === 1 && event.text.charCodeAt(0) >= 32
+                       && event.text.charCodeAt(0) !== 127
+                       && (event.modifiers === Qt.NoModifier || event.modifiers === Qt.ShiftModifier)) {
+                if (event.text !== " " || (panel.filterText.length > 0 && !panel.filterText.endsWith(" "))) panel.filterText += event.text; event.accepted = true
+            }
+        }
+
+        Repeater {
+            model: panel.winCount
+
+            delegate: Item {
+                id: card
+                required property int index
+                readonly property int  absIdx:  panel.absForSlot(index)
+                readonly property var  entry:   panel.filtered[absIdx] || null
+                readonly property int  relIdx:  absIdx - panel.selFilt
+                readonly property bool focused: relIdx === 0
+                readonly property bool nearby:  Math.abs(relIdx) <= panel.maxVisible
+                readonly property real dim: focused ? 0.0 : Math.min(0.62, 0.30 + Math.abs(relIdx) * 0.05)
+
+                // Cached thumbnails are resolved by the scan/warm worker, so
+                // visible delegates don't start shell processes or briefly
+                // switch from an empty source to a generated path.
+                readonly property string thumbPath: entry ? entry.thumb : ""
+
+                width: panel.cardW; height: panel.cardH
+                visible: nearby
+                transformOrigin: Item.Bottom
+
+                x: (hand.width  - panel.cardW) / 2 + relIdx * panel.stepX * panel.dealT
+                y: (hand.height - panel.cardH)     - (focused ? panel.focusLift * panel.dealT : 0)
+                rotation: relIdx * panel.spreadDeg * panel.dealT
+                scale: focused ? 1 + (panel.focusScale - 1) * panel.dealT : 1
+                z: focused ? 1000 : 500 - Math.min(Math.abs(relIdx), 40)
+                opacity: panel.dealT
+
+                Behavior on x        { enabled: panel.dealSettled && card.nearby; NumberAnimation { duration: panel.cardMotionDuration; easing.type: Easing.OutCubic } }
+                Behavior on y        { enabled: panel.dealSettled && card.nearby; NumberAnimation { duration: panel.cardMotionDuration; easing.type: Easing.OutCubic } }
+                Behavior on rotation { enabled: panel.dealSettled && card.nearby; NumberAnimation { duration: panel.cardMotionDuration; easing.type: Easing.OutCubic } }
+                Behavior on scale    { enabled: panel.dealSettled && card.nearby; NumberAnimation { duration: panel.cardMotionDuration; easing.type: Easing.OutCubic } }
+
+                // photo (raster) — its edges are hidden behind the passepartout's
+                // crisp Shape inner edge, so no rotated raster edge ever shows
+                Item {
+                    anchors.fill: parent
+                    anchors.margins: 6
+                    Image {
+                        id: thumbImage
+                        anchors.fill: parent
+                        readonly property string wantedSource: (panel.ready && card.nearby && card.thumbPath) ? card.thumbPath : ""
+                        source: wantedSource
+                        onWantedSourceChanged: source = wantedSource
+                        Connections {
+                            target: panel
+                            function onThumbEpochChanged() {
+                                if (thumbImage.wantedSource === panel.readyThumbUrl
+                                        && thumbImage.status !== Image.Ready) {
+                                    var s = thumbImage.wantedSource
+                                    thumbImage.source = ""
+                                    thumbImage.source = s
+                                }
+                            }
+                        }
+                        fillMode: Image.PreserveAspectCrop; asynchronous: true; cache: true; smooth: true
+                        sourceSize.width:  panel.cardW * 2
+                        sourceSize.height: panel.cardH * 2
+                    }
+                    Rectangle {
+                        anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
+                        height: 70
+                        gradient: Gradient {
+                            GradientStop { position: 0.0; color: "transparent" }
+                            GradientStop { position: 1.0; color: Qt.rgba(0, 0, 0, 0.72) }
+                        }
+                    }
+                    Text {
+                        anchors { left: parent.left; right: parent.right; bottom: parent.bottom; margins: 12 }
+                        text: card.entry ? card.entry.label : ""
+                        color: panel.textLight
+                        font.family: root.mono; font.pixelSize: 13; font.weight: Font.DemiBold
+                        horizontalAlignment: Text.AlignHCenter; elide: Text.ElideRight
+                    }
+                    Rectangle {
+                        anchors.fill: parent; color: "black"
+                        opacity: card.dim
+                        Behavior on opacity { Anim { kind: "effects"; ms: 180 } }
+                    }
+                }
+                // passepartout — rounded outer + rounded inner hole (OddEven), drawn
+                // OVER the photo; only its CurveRenderer edges are visible → crisp
+                // rounded card AND crisp rounded photo cut-out, even when rotated
+                Shape {
+                    id: frameShape
+                    anchors.fill: parent
+                    preferredRendererType: Shape.CurveRenderer
+                    readonly property real w:  panel.cardW
+                    readonly property real h:  panel.cardH
+                    readonly property real ro: 18    // outer radius
+                    readonly property real m:  8     // mat width
+                    readonly property real ri: 10    // inner (photo) radius
+                    ShapePath {
+                        fillRule: ShapePath.OddEvenFill
+                        fillColor: panel.frameDark
+                        strokeColor: "transparent"
+                        strokeWidth: 0
+                        // outer rounded rect
+                        startX: frameShape.ro; startY: 0
+                        PathLine { x: frameShape.w - frameShape.ro; y: 0 }
+                        PathArc  { x: frameShape.w; y: frameShape.ro; radiusX: frameShape.ro; radiusY: frameShape.ro }
+                        PathLine { x: frameShape.w; y: frameShape.h - frameShape.ro }
+                        PathArc  { x: frameShape.w - frameShape.ro; y: frameShape.h; radiusX: frameShape.ro; radiusY: frameShape.ro }
+                        PathLine { x: frameShape.ro; y: frameShape.h }
+                        PathArc  { x: 0; y: frameShape.h - frameShape.ro; radiusX: frameShape.ro; radiusY: frameShape.ro }
+                        PathLine { x: 0; y: frameShape.ro }
+                        PathArc  { x: frameShape.ro; y: 0; radiusX: frameShape.ro; radiusY: frameShape.ro }
+                        // inner rounded hole (photo cut-out)
+                        PathMove { x: frameShape.m + frameShape.ri; y: frameShape.m }
+                        PathLine { x: frameShape.w - frameShape.m - frameShape.ri; y: frameShape.m }
+                        PathArc  { x: frameShape.w - frameShape.m; y: frameShape.m + frameShape.ri; radiusX: frameShape.ri; radiusY: frameShape.ri }
+                        PathLine { x: frameShape.w - frameShape.m; y: frameShape.h - frameShape.m - frameShape.ri }
+                        PathArc  { x: frameShape.w - frameShape.m - frameShape.ri; y: frameShape.h - frameShape.m; radiusX: frameShape.ri; radiusY: frameShape.ri }
+                        PathLine { x: frameShape.m + frameShape.ri; y: frameShape.h - frameShape.m }
+                        PathArc  { x: frameShape.m; y: frameShape.h - frameShape.m - frameShape.ri; radiusX: frameShape.ri; radiusY: frameShape.ri }
+                        PathLine { x: frameShape.m; y: frameShape.m + frameShape.ri }
+                        PathArc  { x: frameShape.m + frameShape.ri; y: frameShape.m; radiusX: frameShape.ri; radiusY: frameShape.ri }
+                    }
+                    // focus accent — OUTER outline only (one border, not two)
+                    ShapePath {
+                        fillColor: "transparent"
+                        strokeColor: card.focused ? root.seal : "transparent"
+                        strokeWidth: card.focused ? 2 : 0
+                        Behavior on strokeColor { CAnim { ms: 160 } }
+                        startX: frameShape.ro; startY: 0
+                        PathLine { x: frameShape.w - frameShape.ro; y: 0 }
+                        PathArc  { x: frameShape.w; y: frameShape.ro; radiusX: frameShape.ro; radiusY: frameShape.ro }
+                        PathLine { x: frameShape.w; y: frameShape.h - frameShape.ro }
+                        PathArc  { x: frameShape.w - frameShape.ro; y: frameShape.h; radiusX: frameShape.ro; radiusY: frameShape.ro }
+                        PathLine { x: frameShape.ro; y: frameShape.h }
+                        PathArc  { x: 0; y: frameShape.h - frameShape.ro; radiusX: frameShape.ro; radiusY: frameShape.ro }
+                        PathLine { x: 0; y: frameShape.ro }
+                        PathArc  { x: frameShape.ro; y: 0; radiusX: frameShape.ro; radiusY: frameShape.ro }
+                    }
+                }
+                // "current" marker
+                Rectangle {
+                    visible: card.entry && card.entry.current === true
+                    width: 9; height: 9; radius: 4.5
+                    x: 14; y: 14; z: 5
+                    color: root.seal
+                    border.color: Qt.rgba(0, 0, 0, 0.35); border.width: 1
+                }
+
+                MouseArea {
+                    anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                    onClicked: card.focused ? panel.applySelected() : (panel.selFilt = card.absIdx)
+                }
+            }
+        }
+    }
+
+    // ── label + palette + meta + hint (bottom) ──
+    Column {
+        visible: panel.ready && panel.filtered.length > 0
+        opacity: panel.reveal
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.bottom: parent.bottom; anchors.bottomMargin: 28
+        spacing: 8
+
+        Text {
+            anchors.horizontalCenter: parent.horizontalCenter
+            width: 820; text: panel.currentLabel
+            color: panel.textLight
+            font.family: root.mono; font.pixelSize: 26; font.weight: Font.DemiBold
+            horizontalAlignment: Text.AlignHCenter; elide: Text.ElideRight
+        }
+
+        // palette swatch (lazy, theme mode)
+        Row {
+            visible: panel.isThemeMode && panel.selMeta && panel.selMeta.palette.length > 0
+            anchors.horizontalCenter: parent.horizontalCenter
+            spacing: 6
+            Repeater {
+                model: (panel.selMeta && panel.selMeta.palette.length > 0)
+                       ? panel.selMeta.palette.split(",") : []
+                delegate: Rectangle {
+                    required property var modelData
+                    width: 13; height: 13; radius: 6.5
+                    color: modelData
+                    border.color: Qt.rgba(1, 1, 1, 0.18); border.width: 1
+                }
+            }
+        }
+
+        // full kit — the theme's own GTK/Qt theme, icons and cursor
+        Text {
+            visible: panel.isThemeMode && panel.selMeta && (panel.selMeta.kit || "").length > 0
+            anchors.horizontalCenter: parent.horizontalCenter
+            width: panel.focusedW + 120
+            text: "◆ full kit  " + (panel.selMeta ? panel.selMeta.kit || "" : "")
+            color: panel.textDim
+            font.family: root.mono; font.pixelSize: 11
+            horizontalAlignment: Text.AlignHCenter; elide: Text.ElideRight
+        }
+
+        // current badge · author
+        Row {
+            visible: (panel.sel && panel.sel.current)
+                     || (panel.isThemeMode && panel.selMeta && panel.selMeta.author.length > 0)
+            anchors.horizontalCenter: parent.horizontalCenter
+            spacing: 12
+            Text {
+                visible: panel.sel && panel.sel.current
+                anchors.verticalCenter: parent.verticalCenter
+                text: "● current"
+                color: root.seal
+                font.family: root.mono; font.pixelSize: 11
+            }
+            Text {
+                visible: panel.isThemeMode && panel.selMeta && panel.selMeta.author.length > 0
+                anchors.verticalCenter: parent.verticalCenter
+                text: "by " + (panel.selMeta ? panel.selMeta.author : "") + "  ↗"
+                color: authorMa.containsMouse ? root.seal : panel.textDim
+                font.family: root.mono; font.pixelSize: 11
+                Behavior on color { CAnim { ms: 120 } }
+                MouseArea {
+                    id: authorMa
+                    anchors.fill: parent; hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: panel.openRepo()
+                }
+            }
+        }
+
+        Text {
+            visible: panel.filterText.length > 0
+            anchors.horizontalCenter: parent.horizontalCenter
+            text: panel.filterText
+            color: root.seal; opacity: 0.95
+            font.family: root.mono; font.pixelSize: 14
+            horizontalAlignment: Text.AlignHCenter
+        }
+
+        Text {
+            anchors.horizontalCenter: parent.horizontalCenter
+            text: "← →  scroll navigate     Enter apply     Esc cancel     type to filter"
+            color: panel.textDim
+            font.family: root.mono; font.pixelSize: 11
+            horizontalAlignment: Text.AlignHCenter
+        }
+    }
+}

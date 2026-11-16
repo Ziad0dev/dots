@@ -1,0 +1,12 @@
+@-moz-document domain("pubmed.ncbi.nlm.nih.gov") {
+
+    html > body { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    form { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    header { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    input { background-color: var(--dots-surface_container_lowest) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    div { background-color: var(--dots-surface_container_low) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    button { background-color: var(--dots-surface_container_high) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    #article-page > aside { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    section { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+
+}

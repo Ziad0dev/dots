@@ -1,0 +1,7 @@
+[General]
+background=${background}
+foreground=${foreground}
+accent=${accent}
+error=${red}
+warn=${yellow}
+font=JetBrainsMono Nerd Font

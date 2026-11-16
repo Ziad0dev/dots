@@ -1,0 +1,19 @@
+@-moz-document domain("web.whatsapp.com") {
+    * {
+        --WDS-neutral-gray-50: var(--dots-on_surface) !important;
+        --WDS-neutral-gray-900: var(--dots-surface) !important;
+        --WDS-background-wash-inset: var(--dots-surface) !important;
+        --WDS-background-elevated-wash-inset: var(--dots-surface) !important;
+        --WDS-content-default: var(--dots-on_surface) !important;
+        --WDS-surface-emphasized: var(--dots-surface_container_low) !important;
+        --WDS-surface-default: var(--dots-surface) !important;
+        --WDS-systems-chat-surface-composer: var(--dots-surface_container_high) !important;
+        --WDS-persistent-always-branded: var(--dots-primary_fixed_dim) !important;
+        --WDS-accent-deemphasized: var(--dots-primary_container) !important;
+        --WDS-systems-bubble-surface-outgoing: var(--dots-surface_container) !important;
+        --WDS-systems-bubble-surface-incoming: var(--dots-surface_container_highest) !important;
+        --WDS-surface-elevated-default: var(--dots-surface_container_low) !important;
+        --WDS-accent: var(--dots-primary_fixed_dim) !important;
+        --WDS-surface-elevated-emphasized: var(--dots-surface_container_low) !important;
+    }
+}

@@ -1,0 +1,332 @@
+import Quickshell
+import "../modules"
+import Quickshell.Services.SystemTray
+import Quickshell.Wayland
+import QtQuick
+
+PanelWindow {
+    id: trayPanel
+    required property var root
+
+    screen: root.activePopupScreen
+
+    color: "transparent"
+    anchors { top: true; bottom: true; left: true; right: true }
+    exclusionMode: ExclusionMode.Ignore
+    WlrLayershell.layer: WlrLayer.Overlay
+    WlrLayershell.namespace: "dots-tray"
+    // no mask → whole overlay is interactive (modal): click-outside + ESC work
+
+    readonly property int barBottom: 35
+    readonly property int gap: 8
+    readonly property int popupW: 328
+    readonly property int maxListH: 320
+
+    property real reveal: root.trayVisible ? 1 : 0
+    Behavior on reveal {
+        Anim { kind: "effects" }
+    }
+
+    visible: reveal > 0.001
+        || (root.popout.last === "trayVisible" && root.popout.shown)
+    WlrLayershell.keyboardFocus: root.trayVisible && !root.popout.hoverMode
+        ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+    mask: Region {
+        readonly property bool hover: trayPanel.root.popout.hoverMode
+        readonly property int gap: trayPanel.root.popout.gap
+        x: hover ? popClip.x : 0
+        y: hover ? popClip.y - (trayPanel.root.popout.barOnTop ? gap : 0) : 0
+        width: hover ? popClip.width : trayPanel.width
+        height: hover ? popClip.height + gap : trayPanel.height
+    }
+
+    // the overflow: apps hidden from the bar (trayHiddenIcons); auto-closes
+    // once the last one is unhidden
+    readonly property int hiddenCount: {
+        var n = 0, vals = SystemTray.items.values
+        for (var i = 0; i < vals.length; i++)
+            if (root.trayIsSuppressed(vals[i])) n++
+        return n
+    }
+    readonly property int attentionCount: {
+        var n = 0, vals = SystemTray.items.values
+        for (var i = 0; i < vals.length; i++)
+            if (root.trayIsSuppressed(vals[i]) && vals[i].status === Status.NeedsAttention) n++
+        return n
+    }
+    onHiddenCountChanged: if (root.trayVisible && hiddenCount === 0) root.trayVisible = false
+
+    // click-outside-to-close: full-overlay dismiss area behind the card
+    MouseArea { anchors.fill: parent; onClicked: root.trayVisible = false }
+
+    PopoutClip {
+        id: popClip
+        root: trayPanel.root
+        flag: "trayVisible"
+        card: card
+        Rectangle {
+            id: card
+            width: popupW
+            height: col.implicitHeight + 24
+            radius: reveal > 0.001 ? root.pillRadius : 0
+            color: "transparent"
+            border.color: root.pillBorder
+            border.width: 0
+
+            x: popClip.cardX
+            y: popClip.cardY
+            opacity: trayPanel.reveal
+            focus: root.trayVisible
+
+            Keys.onPressed: function(event) {
+                if (event.key === Qt.Key_Escape) {
+                    root.trayVisible = false
+                    event.accepted = true
+                }
+            }
+
+            MouseArea { anchors.fill: parent; onClicked: {} }
+
+            Column {
+                id: col
+                anchors.fill: parent
+                anchors.margins: 12
+                spacing: 8
+
+                // Match the updater's restrained title/count/close hierarchy.
+                Item {
+                    width: parent.width
+                    height: 24
+
+                    UiText {
+                        anchors.left: parent.left
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: "Tray Apps"
+                        color: root.ink
+                        font.family: root.gothic
+                        font.pixelSize: 20
+                        font.letterSpacing: 0.5
+                        font.weight: Font.Medium
+                    }
+
+                    UiText {
+                        anchors.right: closeX.left
+                        anchors.rightMargin: 12
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: trayPanel.hiddenCount + (trayPanel.hiddenCount === 1 ? " APP" : " APPS")
+                            + (trayPanel.attentionCount > 0 ? "  ·  " + trayPanel.attentionCount + " ATTENTION" : "")
+                        color: trayPanel.attentionCount > 0 ? root.seal : root.sumiHi
+                        font.family: root.mono
+                        font.pixelSize: 10
+                    }
+
+                    UiText {
+                        id: closeX
+                        anchors.right: parent.right
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: "\u2715"
+                        color: closeMa.containsMouse ? root.seal : root.sumi
+                        font.pixelSize: 12
+                        Behavior on color { CAnim { ms: 120 } }
+
+                        MouseArea {
+                            id: closeMa
+                            anchors.fill: parent
+                            anchors.margins: -6
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: root.trayVisible = false
+                        }
+                    }
+                }
+
+                Rectangle { width: parent.width; height: 1; color: root.sep }
+
+                Item {
+                    width: parent.width
+                    height: Math.min(trayRows.implicitHeight, trayPanel.maxListH)
+
+                    Flickable {
+                        id: appsFlick
+                        anchors.fill: parent
+                        contentHeight: trayRows.implicitHeight
+                        clip: true
+                        interactive: contentHeight > height
+                        boundsBehavior: Flickable.StopAtBounds
+
+                        Column {
+                            id: trayRows
+                            width: appsFlick.width
+                            spacing: 6
+
+                            Repeater {
+                                model: SystemTray.items
+
+                                delegate: Item {
+                                    id: appRow
+                                    required property SystemTrayItem modelData
+                                    required property int index
+
+                                    readonly property string appName: root.trayDisplayName(modelData)
+                                    readonly property string appDescription: root.trayDescription(modelData, appName)
+                                    readonly property bool needsAttention: modelData.status === Status.NeedsAttention
+                                    readonly property string statusDescription: needsAttention
+                                        ? "\u26a0 " + (appDescription !== "" ? appDescription : "Needs attention")
+                                        : appDescription
+                                    readonly property int cellWidth: 140
+                    readonly property int btnWidth: 64
+
+                                    width: trayRows.width
+                                    height: visible ? 28 : 0
+                                    visible: root.trayIsSuppressed(modelData)
+
+                                    // by click: the menu replaces this panel in the shared popout
+                                    function openAppMenu() {
+                                        if (!modelData.hasMenu) return
+                                        root.openTrayMenu(modelData.menu, appName, modelData, appButton, true)
+                                    }
+
+                                    function activateApp() {
+                                        var item = modelData
+                                        root.trayVisible = false
+                                        // Release the layer-shell keyboard focus before asking
+                                        // the application to surface/focus its primary window.
+                                        Qt.callLater(function() {
+                                            if (item) item.activate()
+                                        })
+                                    }
+
+                                    Rectangle {
+                                        id: appButton
+                                        anchors.left: parent.left
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        width: appRow.cellWidth
+                                        height: 28
+                                        radius: root.tileRadius
+                                        color: activateMa.containsMouse ? root.fillHover : root.fillIdle
+                                        border.color: activateMa.containsMouse ? root.seal : root.sep
+                                        border.width: 1
+                                        Behavior on color { CAnim { ms: 120 } }
+
+                                        TrayAppIcon {
+                                            id: appIcon
+                                            anchors.left: parent.left
+                                            anchors.leftMargin: 8
+                                            anchors.verticalCenter: parent.verticalCenter
+                                            root: trayPanel.root
+                                            item: appRow.modelData
+                                            size: 16
+                                        }
+
+                                        UiText {
+                                            anchors.left: appIcon.right
+                                            anchors.leftMargin: 6
+                                            anchors.right: parent.right
+                                            anchors.rightMargin: 6
+                                            anchors.verticalCenter: parent.verticalCenter
+                                            text: (appRow.needsAttention ? "\u26a0 " : "") + appRow.appName
+                                            color: appRow.needsAttention ? root.seal
+                                                : (activateMa.containsMouse ? root.seal : root.ink)
+                                            font.family: root.mono
+                                            font.pixelSize: 11
+                                            font.weight: Font.Medium
+                                            elide: Text.ElideRight
+                                        }
+
+                                        TooltipMixin {
+                                            id: appTip
+                                            root: trayPanel.root
+                                            owner: appButton
+                                            text: appRow.appName
+                                                + (appRow.statusDescription !== "" ? "\n" + appRow.statusDescription : "")
+                                                + "\nID: " + appRow.modelData.id
+                                        }
+
+                                        MouseArea {
+                                            id: activateMa
+                                            anchors.fill: parent
+                                            hoverEnabled: true
+                                            cursorShape: Qt.PointingHandCursor
+                                            onEntered: appTip.show()
+                                            onExited: appTip.hide()
+                                            onClicked: {
+                                                appTip.hide()
+                                                if (appRow.modelData.onlyMenu && appRow.modelData.hasMenu)
+                                                    appRow.openAppMenu()
+                                                else
+                                                    appRow.activateApp()
+                                            }
+                                        }
+                                    }
+
+                                    Rectangle {
+                                        id: menuButton
+                                        anchors.left: appButton.right
+                                        anchors.leftMargin: 8
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        width: appRow.btnWidth
+                                        height: 28
+                                        radius: root.tileRadius
+                                        visible: appRow.modelData.hasMenu
+                                        color: menuMa.containsMouse ? root.fillHover : root.fillIdle
+                                        border.color: menuMa.containsMouse ? root.seal : root.sep
+                                        border.width: 1
+                                        Behavior on color { CAnim { ms: 120 } }
+
+                                        UiText {
+                                            anchors.centerIn: parent
+                                            text: "Menu"
+                                            color: menuMa.containsMouse ? root.seal : root.ink
+                                            font.family: root.mono
+                                            font.pixelSize: 11
+                                        }
+
+                                        MouseArea {
+                                            id: menuMa
+                                            anchors.fill: parent
+                                            hoverEnabled: true
+                                            cursorShape: Qt.PointingHandCursor
+                                            onClicked: appRow.openAppMenu()
+                                        }
+                                    }
+
+                                    Rectangle {
+                                        id: unhideButton
+                                        anchors.left: (menuButton.visible ? menuButton : appButton).right
+                                        anchors.leftMargin: 8
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        width: appRow.btnWidth
+                                        height: 28
+                                        radius: root.tileRadius
+                                        visible: true
+                                        color: unhideMa.containsMouse ? root.fillHover : root.fillIdle
+                                        border.color: unhideMa.containsMouse ? root.seal : root.sep
+                                        border.width: 1
+                                        Behavior on color { CAnim { ms: 120 } }
+
+                                        UiText {
+                                            anchors.centerIn: parent
+                                            text: "Unhide"
+                                            color: unhideMa.containsMouse ? root.seal : root.ink
+                                            font.family: root.mono
+                                            font.pixelSize: 11
+                                        }
+
+                                        MouseArea {
+                                            id: unhideMa
+                                            anchors.fill: parent
+                                            hoverEnabled: true
+                                            cursorShape: Qt.PointingHandCursor
+                                            onClicked: root.trayToggleHidden(appRow.modelData)
+                                        }
+                                    }
+
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

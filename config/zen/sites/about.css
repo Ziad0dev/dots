@@ -1,0 +1,207 @@
+@-moz-document regexp("about:(?!blank(?:[?#]|$)|srcdoc(?:[?#]|$)).*"), url("chrome://global/content/print.html"), url("chrome://global/content/commonDialog.xhtml"), url("chrome://browser/content/places/places.xhtml"), url-prefix("chrome://devtools/content/") {
+  :root {
+    --text-color: var(--dots-on_surface) !important;
+    --text-color-deemphasized: var(--dots-on_surface_variant) !important;
+    --text-color-disabled: color-mix(in srgb, var(--dots-on_surface) 40%, transparent) !important;
+    --text-color-error: var(--dots-error) !important;
+    --background-color-canvas: var(--dots-background) !important;
+    --background-color-box: var(--dots-surface_container) !important;
+    --background-color-box-info: var(--dots-surface_container_high) !important;
+    --background-color-information: var(--dots-primary_container) !important;
+    --background-color-success: var(--dots-secondary_container) !important;
+    --background-color-warning: var(--dots-tertiary_container) !important;
+    --background-color-critical: var(--dots-error_container) !important;
+    --icon-color-information: var(--dots-on_primary_container) !important;
+    --icon-color-success: var(--dots-on_secondary_container) !important;
+    --icon-color-warning: var(--dots-on_tertiary_container) !important;
+    --icon-color-critical: var(--dots-on_error_container) !important;
+    --border-color: var(--dots-outline_variant) !important;
+    --border-color-deemphasized: var(--dots-outline_variant) !important;
+    --border-color-interactive: var(--dots-outline) !important;
+    --border-color-interactive-hover: var(--dots-on_surface_variant) !important;
+    --border-color-interactive-active: var(--dots-primary) !important;
+    --border-color-error: var(--dots-error) !important;
+    --card-background-color: var(--dots-surface_container) !important;
+    --card-border-color: var(--dots-outline_variant) !important;
+    --card-box-shadow: 0 1px 2px color-mix(in srgb, var(--dots-surface_container_lowest) 70%, transparent) !important;
+    --color-accent-primary: var(--dots-primary) !important;
+    --color-accent-primary-selected: var(--dots-primary) !important;
+    --text-color-accent-primary-selected: var(--dots-on_primary) !important;
+    --color-accent-primary-hover: color-mix(in srgb, var(--dots-primary) 90%, var(--dots-on_primary_container)) !important;
+    --color-accent-primary-active: color-mix(in srgb, var(--dots-primary) 80%, var(--dots-on_primary_container)) !important;
+    --button-background-color: var(--dots-surface_container_high) !important;
+    --button-background-color-hover: var(--dots-surface_container_highest) !important;
+    --button-background-color-active: var(--dots-surface_bright) !important;
+    --button-background-color-disabled: var(--dots-surface_container) !important;
+    --button-text-color: var(--dots-on_surface) !important;
+    --button-text-color-primary: var(--dots-on_primary) !important;
+    --button-background-color-primary: var(--dots-primary) !important;
+    --button-background-color-primary-hover: var(--color-accent-primary-hover) !important;
+    --button-background-color-primary-active: var(--color-accent-primary-active) !important;
+    --button-background-color-destructive: var(--dots-error) !important;
+    --button-text-color-destructive: var(--dots-on_error) !important;
+    --button-background-color-ghost-hover: var(--dots-surface_container_high) !important;
+    --button-background-color-ghost-active: var(--dots-surface_container_highest) !important;
+    --link-color: var(--dots-primary) !important;
+    --link-color-hover: var(--color-accent-primary-hover) !important;
+    --link-color-active: var(--color-accent-primary-active) !important;
+    --link-color-visited: var(--dots-tertiary) !important;
+    --focus-outline-color: var(--dots-primary) !important;
+    --input-text-background-color: var(--dots-surface_container_low) !important;
+    --input-text-background-color-disabled: var(--dots-surface_container) !important;
+    --input-text-color: var(--dots-on_surface) !important;
+    --input-text-border-color: var(--dots-outline) !important;
+    --input-border-color: var(--dots-outline) !important;
+    --toggle-background-color: var(--dots-surface_variant) !important;
+    --toggle-background-color-hover: var(--dots-surface_container_high) !important;
+    --toggle-background-color-pressed: var(--dots-primary) !important;
+    --toggle-dot-background-color: var(--dots-on_surface_variant) !important;
+    --toggle-dot-background-color-on-pressed: var(--dots-on_primary) !important;
+    --panel-background-color: var(--dots-surface_container_high) !important;
+    --panel-text-color: var(--dots-on_surface) !important;
+    --panel-border-color: var(--dots-outline_variant) !important;
+    --table-header-background-color: var(--dots-surface_container_high) !important;
+    --table-row-background-color-alternate: var(--dots-surface_container_low) !important;
+    accent-color: var(--dots-primary);
+    scrollbar-color: var(--dots-outline) var(--dots-background);
+  }
+
+  :root, body {
+    background-color: var(--background-color-canvas) !important;
+    color: var(--text-color) !important;
+  }
+  ::selection {
+    background-color: var(--dots-primary_container) !important;
+    color: var(--dots-on_primary_container) !important;
+  }
+}
+
+@-moz-document url("chrome://browser/content/places/places.xhtml") {
+  #placesToolbar, #detailsPane, treecol, .tree-columnpicker-button {
+    background-color: var(--dots-surface_container) !important;
+    color: var(--dots-on_surface) !important;
+    border-color: var(--dots-outline_variant) !important;
+  }
+  #placesView, tree, #downloadsListBox {
+    background-color: var(--dots-background) !important;
+    color: var(--dots-on_surface) !important;
+    border-color: var(--dots-outline_variant) !important;
+  }
+  treecol, .tree-columnpicker-button {
+    box-shadow: inset 0 -1px var(--dots-outline_variant) !important;
+  }
+  treecol:hover, .tree-columnpicker-button:hover {
+    background-color: var(--dots-surface_container_high) !important;
+  }
+  treecol:hover:active, .tree-columnpicker-button:hover:active {
+    background-color: var(--dots-surface_container_highest) !important;
+  }
+  #placesMenu > menu {
+    appearance: none !important;
+    color: var(--dots-on_surface) !important;
+  }
+  #placesMenu > menu:is(:hover, [open]) {
+    background-color: var(--dots-surface_container_high) !important;
+  }
+  treechildren::-moz-tree-row(hover) {
+    background-color: var(--dots-surface_container_high) !important;
+  }
+  treechildren::-moz-tree-row(selected) {
+    background-color: var(--dots-primary_container) !important;
+  }
+  treechildren::-moz-tree-row(selected, focus) {
+    background-color: var(--dots-primary) !important;
+  }
+  treechildren::-moz-tree-row(current, focus) {
+    outline-color: var(--dots-primary) !important;
+  }
+  treechildren::-moz-tree-row(selected, current, focus) {
+    outline-color: var(--dots-on_primary) !important;
+  }
+  treechildren::-moz-tree-cell-text(selected),
+  treechildren::-moz-tree-image(selected),
+  treechildren::-moz-tree-twisty(selected) {
+    color: var(--dots-on_primary_container) !important;
+  }
+  treechildren::-moz-tree-cell-text(selected, focus),
+  treechildren::-moz-tree-image(selected, focus),
+  treechildren::-moz-tree-twisty(selected, focus) {
+    color: var(--dots-on_primary) !important;
+  }
+  treechildren::-moz-tree-line(selected, focus) {
+    border-color: var(--dots-on_primary) !important;
+  }
+  treechildren::-moz-tree-cell-text(primary, dropOn) {
+    background-color: var(--dots-primary) !important;
+    color: var(--dots-on_primary) !important;
+  }
+  treechildren::-moz-tree-drop-feedback {
+    background-color: var(--dots-primary) !important;
+  }
+}
+
+@-moz-document url("about:devtools-toolbox"), url-prefix("chrome://devtools/content/") {
+  :root {
+    color-scheme: var(--dots-color-scheme) !important;
+    --table-splitter-color: var(--dots-outline_variant) !important;
+    --table-zebra-inline-icons-background: var(--dots-surface_container_low) !important;
+    --table-selection-background-hover: var(--dots-surface_container_high) !important;
+    --table-selection-inline-icons-background-hover: var(--dots-surface_container_high) !important;
+    --theme-body-background: var(--dots-background) !important;
+    --theme-sidebar-background: var(--dots-background) !important;
+    --theme-body-alternate-emphasized-background: var(--dots-surface_container_low) !important;
+    --theme-toolbar-alternate-background: var(--dots-surface_container_low) !important;
+    --table-zebra-background: var(--dots-surface_container_low) !important;
+    --theme-body-emphasized-background: var(--dots-surface_container) !important;
+    --theme-tab-toolbar-background: var(--dots-surface_container) !important;
+    --theme-toolbar-background: var(--dots-surface_container) !important;
+    --theme-toolbar-background-alt: var(--dots-surface_container) !important;
+    --theme-popup-background: var(--dots-surface_container) !important;
+    --theme-select-background: var(--dots-surface_container) !important;
+    --toolbarbutton-background: var(--dots-surface_container) !important;
+    --theme-button-background: var(--dots-surface_container) !important;
+    --theme-toolbar-background-hover: var(--dots-surface_container_high) !important;
+    --theme-toolbar-hover: var(--dots-surface_container_high) !important;
+    --theme-toolbar-alternate-hover: var(--dots-surface_container_high) !important;
+    --toolbarbutton-hover-background: var(--dots-surface_container_high) !important;
+    --theme-button-active-background: var(--dots-surface_container_high) !important;
+    --theme-popup-hover-background: var(--dots-surface_container_high) !important;
+    --theme-toolbarbutton-hover-background: var(--dots-surface_container_high) !important;
+    --theme-selection-background-hover: var(--dots-surface_container_high) !important;
+    --theme-toolbar-hover-active: var(--dots-surface_container_highest) !important;
+    --theme-toolbarbutton-active-background: var(--dots-surface_container_highest) !important;
+    --theme-body-color: var(--dots-on_surface) !important;
+    --theme-toolbar-color: var(--dots-on_surface) !important;
+    --theme-text-color-strong: var(--dots-on_surface) !important;
+    --theme-icon-color: var(--dots-on_surface) !important;
+    --theme-popup-color: var(--dots-on_surface) !important;
+    --theme-select-color: var(--dots-on_surface) !important;
+    --theme-toolbarbutton-color: var(--dots-on_surface) !important;
+    --toolbarbutton-hover-color: var(--dots-on_surface) !important;
+    --theme-text-color-alt: var(--dots-on_surface_variant) !important;
+    --theme-text-color-inactive: var(--dots-on_surface_variant) !important;
+    --theme-icon-dimmed-color: var(--dots-on_surface_variant) !important;
+    --theme-splitter-color: var(--dots-outline_variant) !important;
+    --theme-toolbar-separator: var(--dots-outline_variant) !important;
+    --theme-popup-border-color: var(--dots-outline_variant) !important;
+    --theme-emphasized-splitter-color: var(--dots-outline) !important;
+    --theme-emphasized-splitter-color-hover: var(--dots-outline) !important;
+    --theme-select-hover-border-color: var(--dots-outline) !important;
+    --theme-selection-background: var(--dots-primary) !important;
+    --theme-link-color: var(--dots-primary) !important;
+    --theme-internal-link-color: var(--dots-primary) !important;
+    --theme-focus-outline-color: var(--dots-primary) !important;
+    --theme-toolbar-selected-color: var(--dots-primary) !important;
+    --theme-icon-checked-color: var(--dots-primary) !important;
+    --theme-toolbarbutton-checked-color: var(--dots-primary) !important;
+    --tab-line-selected-color: var(--dots-primary) !important;
+    --theme-selection-color: var(--dots-on_primary) !important;
+    --theme-selection-focus-background: var(--dots-primary_container) !important;
+    --theme-text-selection-background: var(--dots-primary_container) !important;
+    --theme-text-selection-unfocused-background: var(--dots-primary_container) !important;
+    --theme-toolbar-background-highlighted: var(--dots-primary_container) !important;
+    --theme-toolbarbutton-checked-background: var(--dots-primary_container) !important;
+    --theme-toolbar-selected-hover-color: var(--dots-on_primary_container) !important;
+    --toolbarbutton-checked-color: var(--dots-on_primary_container) !important;
+  }
+}

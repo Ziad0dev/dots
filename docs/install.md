@@ -1,0 +1,172 @@
+# Getting started
+
+## Pick an output
+
+| You have | Build | Profile |
+|---|---|---|
+| The desktop (or a fork of it) | `nixosConfigurations.nixos` | desktop: Hyprland + everything in `modules/` |
+| A Mac | `darwinConfigurations.mac` | nix-darwin + home-manager, darwin profile |
+| Any Linux with Nix, headless | `homeConfigurations."ziad0dev@linux"` / `"ziad0dev@aarch64-linux"` | minimal: shell, editors, CLI tools |
+| Any Linux with Nix, graphical | `homeConfigurations."ziad0dev@linux-desktop"` | desktop home profile without the NixOS system layer |
+
+`username` is set once at the top of `flake.nix`; hostnames are per output.
+
+## NixOS
+
+```fish
+git clone https://github.com/Ziad0dev/dots ~/dots
+cd ~/dots
+nixos-generate-config --show-hardware-config > hosts/nixos/hardware-configuration.nix
+sudo nixos-rebuild build --flake /home/ziad0dev/dots#nixos
+sudo nixos-rebuild switch --flake /home/ziad0dev/dots#nixos
+```
+
+The encrypted SOPS file is in the repo; restore the host age key to `/var/lib/sops-nix/key.txt` before switching so secrets decrypt at boot. See [Secrets](secrets.md).
+
+After the first switch, `nh` takes over (`update` in fish). See [Workflow](workflow.md).
+
+### Machine-specific values
+
+The desktop output is built for one box. On anything else, go through this list before switching — most of these fail soft (`nofail` mounts, units that aren't autostarted), but not all.
+
+| Where | Value | Why it matters |
+|---|---|---|
+| `hosts/nixos/hardware-configuration.nix` | initrd modules, microcode | Replace wholesale (or use nixos-facter) |
+| `hosts/nixos/disk.nix` | system disk by `/dev/disk/by-id`, LUKS/swap layout | See [Reinstalling the desktop](#reinstalling-the-desktop) |
+| `hosts/nixos/configuration.nix` | `hardware.nvidia` block (`nvidia_cachyos-bore`) | NVIDIA + CachyOS kernel only; drop on other GPUs |
+| `hosts/nixos/configuration.nix` | timezone, locale, `dots.sddm.theme` | |
+| `modules/gaming.nix` | `boot.kernelPackages = linuxPackages_cachyos-bore` | Kernel choice lives here, not in the host |
+| `modules/storage.nix`, `modules/media.nix` | Independent exFAT backup and media drives by UUID | `nofail`, so missing drives don't block boot; confirm each UUID still belongs to the intended drive |
+| `hosts/nixos/configuration.nix` | `dots.lanInterface = "enp5s0"` | Jellyfin, Soulseek, and mDNS ports are opened on this interface only |
+| `hosts/nixos/configuration.nix` | `dots.recording.monitor = "DP-1"` | Replay buffer captures nothing if the output doesn't exist (manual recordings take the focused output) |
+| `modules/performance.nix` | `cpuProfile`, `pl1Watts` / `pl2Watts` | Intel RAPL limits for a 12400F |
+| `config/hypr/hyprland.lua` | `monitorProfiles`, workspace → monitor rules | Unknown outputs fall back to `preferred/auto` |
+| `home/profiles/linux-desktop.nix` | MPD `hw:CARD=G30`, udiskie ignore list | Bit-perfect DAC output, drive UUIDs |
+| `modules/vpn.nix` | qBittorrent `AuthSubnetWhitelist`, Mullvad DNS | |
+| `modules/hello-page.nix` | expects `~/the-page/{data.db,config.json,content}` | Skipped (`ConditionPathExists`) when the database isn't there; code ships in `pkgs/hello-page` |
+
+### Files that must exist out-of-band
+
+Plaintext secret values stay out of Git and the Nix store. The desktop's encrypted SOPS file is tracked at `secrets/nixos.yaml`; only the age key has to be restored by hand. See [Secrets](secrets.md).
+
+| Path | Used by | Notes |
+|---|---|---|
+| `/var/lib/sops-nix/key.txt` | `sops-nix` | Host age private key; restore separately with root-only permissions |
+| `/etc/restic/password` | `sops-nix`, `modules/backup.nix` | Generated from the encrypted SOPS file; backup unit refuses to start if empty |
+| `/etc/wireguard/mullvad.conf` | `modules/vpn.nix` | Optional until the Mullvad secret is added; `wg-dns` rewrites its `DNS =` line on start |
+| `/var/lib/secrets/the-page.env` | `modules/hello-page.nix` | Optional (`-` prefix) |
+| `~/.password-store` | `pass`, `secretspec`, `pass-secret-service` | `pass init <gpg-id>` |
+| `/var/lib/dots/models/*.gguf` | `modules/llm.nix` | Copy or download manually; llama.cpp units are on-demand and need world-readable models |
+| `/var/lib/ollama/` | `modules/ollama.nix` | Created and populated by Ollama when used |
+| `~/.local/share/voxtype/models/ggml-*.bin` | `voxtype` | Create the directory and install a whisper.cpp model for dictation |
+| `/var/lib/libvirt/images/` and `/var/lib/libvirt/isos/` | `modules/virt.nix` | Directories are created by the system; restore VM disks and ISOs manually |
+| `~/Games/` | Steam library, if configured in Steam storage settings | Created by Home Manager; Steam also supports its home-directory default |
+| `~/Pictures/wallpapers/` | `themectl bg`, wallpaper picker | Created by Home Manager; restore your wallpaper files manually |
+
+Also: `sudo tailscale up` once — Jellyfin's remote access, the qBittorrent/Prowlarr port mappings and `hello-page-serve` all ride the tailnet.
+
+### First login
+
+The first activation renders `dots.theme` (oxocarbon), so the session starts themed. Pick another with `themectl set kanagawa` — see [Theming](theming.md).
+
+## A new machine: disko + `dots-install`
+
+`lib/disko.nix` is a one-disk layout (ESP + LUKS2 + btrfs subvolumes; with `impermanence = true`, `/` is a tmpfs and state lives in `/persist`). A host imports it with its disk:
+
+```nix
+imports = [
+  inputs.disko.nixosModules.disko
+  (import ../../lib/disko.nix { device = "/dev/disk/by-id/nvme-<model>_<serial>"; impermanence = true; })
+];
+```
+
+Add the host to `dots.installer.hosts` (next to `vm` in `flake.nix`), build the ISO and write it to a stick:
+
+```fish
+nix build .#nixosConfigurations.installer.config.system.build.isoImage
+sudo dd if=result/iso/*.iso of=/dev/sdX bs=4M status=progress oflag=sync
+```
+
+Boot it and run `dots-install <host> [--age-key FILE]`. It asks for the disk passphrase, partitions and formats (erasing the disk), puts an age key where a secret-enabled host expects it, and installs the prebuilt system — offline, nothing is built.
+
+Hosts in `dots.installer.onlineHosts` (the desktop) carry only their disk layout in the image; `dots-install` builds the system from the flake straight into the new disk's store, from the same binary caches the host uses.
+
+### Reinstalling the desktop
+
+The system disk lives in `hosts/nixos/disk.nix`. Today it describes the existing hand-made install (`useDisko = false`, UUIDs). For a reinstall it switches to `lib/disko.nix` on the Kingston NVMe by its `/dev/disk/by-id` name: ESP, a random-key 17G swap, LUKS2 `cryptroot` with btrfs `/`, `/home`, `/nix`. Partitions are found by partlabel, so nothing in the config changes from one install to the next, and the Windows disk is never described, so it is never touched.
+
+1. Back up what isn't in Git (restic does this daily to `/mnt/backup`), and make sure you have the age key (`pass dots/age-nixos`) and a copy of `/var/lib/sbctl` (also in restic).
+2. Set `useDisko = true` in `hosts/nixos/disk.nix`, commit and push. Don't switch the running system to it; the next boot would look for partitions that don't exist yet.
+3. Build the ISO and write it to a stick (above).
+4. Boot it, get online (`nmtui`), put the age key and the `sbctl` directory somewhere readable (e.g. restore them from `/mnt/backup` with `restic restore`), then:
+
+   ```sh
+   sudo dots-install nixos --age-key ./key.txt --sbctl ./sbctl
+   ```
+
+   It lists the disk it is about to erase (model and serial) and waits for `yes`, partitions, restores the age key to `/var/lib/sops-nix/key.txt` and the Secure Boot keys to `/var/lib/sbctl` (under `/persist` on impermanent hosts), builds and installs, and creates `~/dots` from the same source revision as the ISO for `nh` and future updates.
+5. Reboot. Then re-enroll the TPM keyslot ([Secure Boot](secure-boot.md); the LUKS header is new) and `sudo tailscale up`.
+
+The data drives (`/mnt/media`, `/mnt/backup`) are mounted by filesystem UUID, which a reinstall doesn't change.
+
+For a different machine, copy `hosts/nixos/disk.nix` with its own `/dev/disk/by-id` path, and instead of `nixos-generate-config` consider a [nixos-facter](https://nix-community.github.io/nixos-facter/) report: `sudo nixos-facter -o hosts/<host>/facter.json` (it's on the ISO) plus `hardware.facter.reportPath = ./facter.json;` detects kernel modules, firmware, microcode and GPU for you.
+
+### Testing in a VM
+
+`nixosConfigurations.vm` is the whole path in miniature. The quick check boots its config in a NixOS test:
+
+```fish
+nix build .#checks.x86_64-linux.vm -L
+```
+
+The full one installs it from the ISO onto a blank disk under QEMU (UEFI from `OVMF.fd`):
+
+```fish
+qemu-img create -f qcow2 vm.qcow2 20G
+cp (nix build --print-out-paths nixpkgs#OVMF.fd)/FV/OVMF_VARS.fd vars.fd; chmod +w vars.fd
+set ovmf (nix build --print-out-paths nixpkgs#OVMF.fd)/FV/OVMF_CODE.fd
+qemu-system-x86_64 -enable-kvm -m 4096 -smp 4 -machine q35 \
+  -drive if=pflash,format=raw,readonly=on,file=$ovmf -drive if=pflash,format=raw,file=vars.fd \
+  -drive file=vm.qcow2,if=virtio -cdrom result/iso/*.iso
+# in the ISO:
+sudo dots-install vm
+```
+
+Then boot without `-cdrom` and enter the disk passphrase chosen during installation. The VM auto-logs in on its console; its account has no password and the host has no SSH service. Anything written outside `/home`, `/nix` and the persisted paths is gone after a reboot. The automated installer test generates a fresh disk passphrase per run.
+
+`tests/iso-install.py` does all of that unattended over the serial console — install, LUKS unlock, login, home-manager, theme, then a second boot to check that `/` was reset and `/var/log`, `/home` and `machine-id` were kept. Usage is in its header.
+
+## macOS
+
+```fish
+git clone https://github.com/Ziad0dev/dots ~/dots
+sudo nix run github:nix-darwin/nix-darwin/master#darwin-rebuild -- switch --flake ~/dots#mac
+```
+
+Rebuild afterwards with `sudo darwin-rebuild switch --flake ~/dots#mac`. The `update` abbrev on darwin expands to `nh darwin switch`; home-manager installs nh there. Homebrew is declared in `hosts/darwin/default.nix` but `enable = false`.
+
+## Any other Linux
+
+```fish
+git clone https://github.com/Ziad0dev/dots ~/dots
+nix run github:nix-community/home-manager -- switch --flake ~/dots#ziad0dev@linux
+```
+
+Rebuild afterwards with `home-manager switch --flake ~/dots#ziad0dev@linux` — the base profile enables `programs.home-manager`, so the CLI is on PATH. `update` expands to `nh home switch -c ziad0dev@linux` (the output you switched to), and home-manager installs nh.
+
+On a fresh upstream Nix install, prefix with `nix --extra-experimental-features 'nix-command flakes'` until flakes are enabled.
+
+### Cloned somewhere other than `~/dots`
+
+Set both options — one is a NixOS option, the other a home-manager option:
+
+```nix
+dots.repoPath = "/path/to/dots";                               # NixOS, drives nh's flake path
+home-manager.users.<you>.dots.repoPath = "/path/to/dots";      # HM, drives live links and checkout-aware commands
+```
+
+For standalone home-manager, `mk.home` takes a `repoPath` argument. Scripts get the path baked in at build time, so nothing else needs it.
+
+### Live config from the checkout
+
+Linked configs come from the flake source in the store by default, so they need no checkout at runtime and roll back with the generation. Set `dots.liveConfig = true` to link `config/` from `repoPath` instead when immediate edits matter more than rollback — see [Architecture](architecture.md#live-config-dotslink-and-dotsliveconfig).

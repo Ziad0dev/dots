@@ -1,0 +1,39 @@
+[GeneralColors]
+window.color=${background}
+inactive.window.color=${background}
+base.color=${surface}
+inactive.base.color=${surface}
+alt.base.color=${surface}
+inactive.alt.base.color=${surface}
+button.color=${surface}
+light.color=${muted}
+mid.light.color=${surface}
+dark.color=${background}
+mid.color=${muted}
+shadow.color=#000000
+highlight.color=${accent}
+inactive.highlight.color=${muted}
+tooltip.base.color=${surface}
+text.color=${foreground}
+inactive.text.color=${dim}
+window.text.color=${foreground}
+inactive.window.text.color=${dim}
+button.text.color=${foreground}
+disabled.text.color=${dim}
+tooltip.text.color=${foreground}
+highlight.text.color=${background}
+inactive.highlight.text.color=${background}
+link.color=${blue}
+link.visited.color=${magenta}
+
+[%General]
+# merged over KvGlass's own [%General] by themectl (kvantum_compat).
+# Translucent windows/menus; Hyprland does the blur, so Kvantum's own is off.
+translucent_windows=true
+reduce_window_opacity=15
+reduce_menu_opacity=38
+blurring=false
+popup_blurring=false
+# a shadow margin would be blurred as a box around menus/tooltips
+menu_shadow_depth=0
+tooltip_shadow_depth=0

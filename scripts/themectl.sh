@@ -1,0 +1,591 @@
+DOTS="${DOTS_DIR:-$HOME/dots}"
+THEMES="$DOTS/config/themes"
+TPL="$THEMES/_templates"
+STATE="${XDG_STATE_HOME:-$HOME/.local/state}/dots/theme"
+CURRENT="$STATE/current"
+AUTO="${XDG_STATE_HOME:-$HOME/.local/state}/dots/theme-auto"
+
+PALETTE_KEYS="background foreground cursor accent selection_foreground selection_background
+color0 color1 color2 color3 color4 color5 color6 color7
+color8 color9 color10 color11 color12 color13 color14 color15
+bg fg
+base00 base01 base02 base03 base04 base05 base06 base07
+base08 base09 base0A base0B base0C base0D base0E base0F
+red green yellow blue magenta cyan pink"
+
+DERIVED_KEYS="dim muted surface accent_dim accent_container"
+
+# substituted verbatim (no _hex/_rgb variants)
+# glass_*: how see-through windows are; `dots-look glass` switches the set
+RAW_KEYS="border_colors scheme glass_window glass_view glass_bar glass_dialog glass_chrome glass_term glass_page glass_fill glass_raise glass_menu glass_menu_pct glass_hex"
+
+# dark or light, from the background's perceived brightness
+scheme_of() {
+    local h="${1#\#}"
+    if [[ "$h" =~ ^[0-9a-fA-F]{6} ]] &&
+        (( (16#${h:0:2} * 299 + 16#${h:2:2} * 587 + 16#${h:4:2} * 114) / 1000 > 140 )); then
+        echo light
+    else
+        echo dark
+    fi
+}
+
+mix() {
+    local a="${1#\#}" b="${2#\#}" w="$3" i ca cb r out="#"
+    for i in 0 2 4; do
+        ca=$((16#${a:$i:2}))
+        cb=$((16#${b:$i:2}))
+        r=$(((ca * (100 - w) + cb * w) / 100))
+        out="$out$(printf '%02x' "$r")"
+    done
+    printf '%s' "$out"
+}
+
+die() {
+    printf 'themectl: %s\n' "$1" >&2
+    exit 1
+}
+
+theme_dir() {
+    if [ "$1" = auto ]; then
+        printf '%s' "$AUTO"
+    else
+        printf '%s/%s' "$THEMES" "$1"
+    fi
+}
+
+palette_file() {
+    local d
+    d=$(theme_dir "$1")
+    if [ -f "$d/colors.sh" ]; then
+        printf '%s/colors.sh' "$d"
+    elif [ -f "$d/theme.sh" ]; then
+        printf '%s/theme.sh' "$d"
+    else
+        return 1
+    fi
+}
+
+cmd_list() {
+    local d
+    for d in "$THEMES"/*/; do
+        d="${d%/}"
+        [ "$(basename "$d")" = "_templates" ] && continue
+        palette_file "$(basename "$d")" >/dev/null 2>&1 || continue
+        basename "$d"
+    done | sort
+    echo auto
+}
+
+cmd_current() {
+    if [ -f "$CURRENT" ]; then
+        cat "$CURRENT"
+    else
+        cmd_list | head -n1
+    fi
+}
+
+render_all() {
+    local name="$1" pal t out varlist k
+    pal=$(palette_file "$name") || die "no colors.sh or theme.sh in theme '$name'"
+
+    # a missing key would abort every template under set -u and leave the
+    # previous theme's files in place, so refuse up front and name them
+    local missing
+    # shellcheck source=/dev/null
+    missing=$(
+        . "$pal"
+        for k in $PALETTE_KEYS; do [ -n "${!k:-}" ] || printf ' %s' "$k"; done
+    )
+    [ -z "$missing" ] || die "theme '$name' is missing palette keys:$missing"
+
+    varlist=""
+    for k in $PALETTE_KEYS $DERIVED_KEYS; do varlist="$varlist\${$k}\${${k}_hex}\${${k}_rgb}\${${k}_rgb_csv}"; done
+    for k in $RAW_KEYS; do varlist="$varlist\${$k}"; done
+
+    mkdir -p "$STATE"
+    for t in "$TPL"/*.in; do
+        [ -f "$t" ] || continue
+        out="$STATE/$(basename "${t%.in}")"
+        # shellcheck source=/dev/null
+        (
+            set -a
+            . "$pal"
+            # shellcheck disable=SC2154,SC2034  # palette vars come from the sourced colors.sh
+            dim=$(mix "$foreground" "$background" 35)
+            # shellcheck disable=SC2034
+            muted=$(mix "$foreground" "$background" 60)
+            # shellcheck disable=SC2034
+            surface=$(mix "$background" "$foreground" 8)
+            # shellcheck disable=SC2034,SC2154
+            accent_dim=$(mix "$accent" "$background" 25)
+            # shellcheck disable=SC2034
+            accent_container=$(mix "$accent" "$background" 72)
+            # Hyprland active border stops: color0 -> color1, or with an optional
+            # `border` key, color0 -> border -> color0 (fades out at both ends)
+            # shellcheck disable=SC2034,SC2154
+            if [ -n "${border:-}" ]; then
+                border_colors="\"rgb(${color0#\#})\", \"rgb(${border#\#})\", \"rgb(${color0#\#})\""
+            else
+                border_colors="\"rgb(${color0#\#})\", \"rgb(${color1#\#})\""
+            fi
+            for k in $PALETTE_KEYS $DERIVED_KEYS; do
+                h="${!k#\#}"
+                printf -v "${k}_hex" "%s" "$h"
+                if [[ "$h" =~ ^[0-9a-fA-F]{6} ]]; then
+                    printf -v "${k}_rgb" "%d %d %d" "$((16#${h:0:2}))" "$((16#${h:2:2}))" "$((16#${h:4:2}))"
+                else
+                    printf -v "${k}_rgb" "%s" "0 0 0"
+                fi
+                # for rgba(var(--x), a), which wants commas
+                rgbvar="${k}_rgb"
+                printf -v "${k}_rgb_csv" "%s" "${!rgbvar// /, }"
+            done
+            # shellcheck disable=SC2034
+            scheme=$(scheme_of "$background")
+            # shellcheck disable=SC2034
+            if [ "$(head -n1 "${XDG_STATE_HOME:-$HOME/.local/state}/dots/hypr/glass" 2>/dev/null)" = on ]; then
+                glass_window=0.55 glass_view=0.15 glass_bar=0.3 glass_dialog=0.7 glass_chrome=55% glass_term=0.55 glass_page=40%
+                glass_fill=transparent glass_raise=45% glass_menu=0.4 glass_menu_pct=40% glass_hex=80
+            else
+                glass_window=0.85 glass_view=0.35 glass_bar=0.6 glass_dialog=0.85 glass_chrome=85% glass_term=0.85 glass_page=100%
+                glass_fill=$background glass_raise=100% glass_menu=0.62 glass_menu_pct=62% glass_hex=d9
+            fi
+            set +a
+            envsubst "$varlist" <"$t"
+        ) >"$out.tmp" || {
+            # keep the previous file rather than a half-rendered one
+            rm -f "$out.tmp"
+            printf 'themectl: warning: could not render %s; left as it was\n' "$out" >&2
+            continue
+        }
+        mv -f "$out.tmp" "$out"
+
+        if grep -qE '\$\{[A-Za-z_]' "$out"; then
+            printf 'themectl: warning: unsubstituted tokens remain in %s\n' "$out" >&2
+            grep -noE '\$\{[A-Za-z_][A-Za-z0-9_]*\}' "$out" | head -n5 >&2
+        fi
+    done
+}
+
+# ln -sfn into a path that is a real directory creates the link INSIDE it
+# instead of replacing it, so clear non-symlink targets first.
+relink() {
+    [ -L "$2" ] || rm -rf "$2"
+    ln -sfn "$1" "$2"
+}
+
+# State tree the vendored Quickshell Rise shell reads after denix-rise.sh.
+# It wants <root>/theme.name, <root>/theme/colors.sh, <root>/theme/backgrounds
+# and <root>/background.
+shell_compat() {
+    local current="$1" root theme pal wp bg d name
+    root="${XDG_STATE_HOME:-$HOME/.local/state}/dots/shell/current"
+    theme="$root/theme"
+    bg="$HOME/Pictures/wallpapers"
+    mkdir -p "$theme"
+
+    pal=$(palette_file "$current") || return 0
+    printf '%s\n' "$current" >"$root/theme.name"
+    relink "$pal" "$theme/colors.sh"
+    relink "$bg" "$theme/backgrounds"
+
+    d=$(theme_dir "$current")
+    for name in "$d/preview.png" "$d/preview.jpg"; do
+        if [ -f "$name" ]; then
+            relink "$name" "$theme/preview.png"
+            break
+        fi
+    done
+
+    # a re-render of the same theme (restyle, render: KEEP_WALLPAPER=1)
+    # keeps the wallpaper picked since; only `set` brings the theme's own back
+    if [ -z "${KEEP_WALLPAPER:-}" ] && wp=$(theme_wallpaper "$current"); then
+        relink "$wp" "$root/background"
+    elif wp=$(dots-current-wallpaper 2>/dev/null) && [ -n "$wp" ]; then
+        relink "$wp" "$root/background"
+    fi
+}
+
+sddm_compat() {
+    local pal dir="/var/lib/dots-theme"
+    [ -w "$dir" ] || return 0
+    pal=$(palette_file "$1") || return 0
+    # shellcheck source=/dev/null
+    (
+        . "$pal"
+        # the live wallpaper copy is rendered by dots-set-wallpaper
+        wp=""
+        [ -f "$dir/wallpaper.jpg" ] && wp="file://$dir/wallpaper.jpg"
+        # shellcheck disable=SC2154
+        printf '{"background":"%s","foreground":"%s","accent":"%s","error":"%s","warn":"%s","wallpaper":"%s"}\n' \
+            "$background" "$foreground" "$accent" "$red" "$yellow" "$wp"
+    ) >"$dir/sddm.json.tmp" && mv -f "$dir/sddm.json.tmp" "$dir/sddm.json"
+}
+kvantum_compat() {
+    local out base full dir
+    out="$STATE/kvantum.kvconfig"
+    [ -f "$out" ] || return 0
+    base="${XDG_CONFIG_HOME:-$HOME/.config}/Kvantum/KvGlass/KvGlass.kvconfig"
+    [ -f "$base" ] || return 0
+    # A "KvGlass#" kvconfig replaces KvGlass's whole config (widget sections
+    # included), so merge the rendered sections/keys over the base one.
+    full="$STATE/kvantum-full.kvconfig"
+    awk '
+        FNR == NR {
+            if ($0 ~ /^\[.*\]$/) { sec = $0; if (!(sec in seen)) { seen[sec] = 1; order[++n] = sec } next }
+            if ($0 ~ /^[^#;][^=]*=/) { k = substr($0, 1, index($0, "=") - 1); ov[sec, k] = $0; keys[sec] = keys[sec] SUBSEP k }
+            next
+        }
+        function flush(   i, m, ks) {
+            if (cur == "" || !(cur in seen)) return
+            m = split(keys[cur], ks, SUBSEP)
+            for (i = 2; i <= m; i++) if (!((cur, ks[i]) in done)) print ov[cur, ks[i]]
+            emitted[cur] = 1
+        }
+        /^\[.*\]$/ { flush(); cur = $0; print; next }
+        /^[^#;][^=]*=/ {
+            k = substr($0, 1, index($0, "=") - 1)
+            if ((cur, k) in ov) { print ov[cur, k]; done[cur, k] = 1; next }
+        }
+        { print }
+        END {
+            flush()
+            for (i = 1; i <= n; i++) if (!(order[i] in emitted)) {
+                print ""; print order[i]; cur = order[i]; flush()
+            }
+        }
+    ' "$out" "$base" >"$full.tmp" && mv -f "$full.tmp" "$full" || return 0
+    dir="${XDG_CONFIG_HOME:-$HOME/.config}/Kvantum/KvGlass#"
+    mkdir -p "$dir"
+    relink "$full" "$dir/KvGlass#.kvconfig"
+    relink "${base%.kvconfig}.svg" "$dir/KvGlass#.svg"
+}
+gtk_compat() {
+    local out d scheme
+    # the desktop's light/dark preference: Zen and Firefox (and so every site
+    # through prefers-color-scheme) follow it live through the portal, as do
+    # libadwaita apps
+    scheme=$(sed -n 's/^ *--dots-color-scheme: *\([a-z]*\);.*/\1/p' "$STATE/zen-palette.css" 2>/dev/null | head -n1)
+    if [ -n "$scheme" ] && command -v dconf >/dev/null 2>&1; then
+        dconf write /org/gnome/desktop/interface/color-scheme "'prefer-$scheme'" >/dev/null 2>&1 || true
+    fi
+    out="$STATE/gtk.css"
+    [ -f "$out" ] || return 0
+    local cfg="${XDG_CONFIG_HOME:-$HOME/.config}"
+    mkdir -p "$cfg/gtk-3.0" "$cfg/gtk-4.0"
+    cp -f "$out" "$cfg/gtk-3.0/gtk.css"
+    # GTK 4 skips the GTK 3 only rules (between the gtk3-only markers)
+    sed '/gtk3-only:begin/,/gtk3-only:end/d' "$out" >"$cfg/gtk-4.0/gtk.css"
+}
+zen_compat() {
+    local sites="$DOTS/config/zen/sites" out="$STATE/zen-sites.css" f docs
+    [ -d "$sites" ] || return 0
+    # Zen Internet makes a page's root transparent. A site style here paints
+    # the site's containers, which end after the first screen; past them the
+    # browser showed through. So every web page a site style covers gets the
+    # theme background on its root, which spans the whole scroll. First, so a
+    # site's own html rule still wins.
+    docs=$(grep -h -E '^[[:space:]]*@-moz-document' "$sites"/*.css |
+        grep -o -E 'domain\("[^"]+"\)|url-prefix\("https?://[^"]+"\)' |
+        sort -u | paste -sd, - | sed 's/,/, /g') || docs=""
+    {
+        # first: the page colours for glass (zen-glass.css.in)
+        [ -f "$STATE/zen-glass.css" ] && cat "$STATE/zen-glass.css"
+        if [ -n "$docs" ]; then
+            # --dots-page: the theme background, see-through with glass on
+            printf '@-moz-document %s {\n  html { background-color: var(--dots-page, var(--dots-background)) !important; }\n}\n\n' "$docs"
+        fi
+        for f in "$sites"/*.css; do
+            [ -f "$f" ] && cat "$f"
+        done
+    } >"$out.tmp" && mv -f "$out.tmp" "$out"
+}
+
+# VSCodium: a local extension holding the rendered theme. Its theme file
+# links into $STATE, so a theme switch reaches it on the next window reload.
+vscode_compat() {
+    local out="$STATE/vscode-theme.json" ext bg ui type settings tmp
+    [ -f "$out" ] || return 0
+    command -v codium >/dev/null 2>&1 || [ -d "$HOME/.vscode-oss" ] || return 0
+
+    # light themes need VS Code's light base, or unthemed bits stay dark
+    bg=$(sed -n 's/^  *"editor.background": "#\([0-9a-fA-F]\{6\}\)".*/\1/p' "$out" | head -n1)
+    ui=vs-dark type=dark
+    if [ -n "$bg" ] && [ "$(scheme_of "$bg")" = light ]; then
+        ui=vs type=light
+    fi
+    sed -i "s/^  \"type\": \"[a-z]*\"/  \"type\": \"$type\"/" "$out"
+
+    ext="$HOME/.vscode-oss/extensions/dots.dots-theme-1.0.0"
+    mkdir -p "$ext/themes"
+    cat >"$ext/package.json" <<JSON
+{
+  "name": "dots-theme",
+  "displayName": "Dots",
+  "publisher": "dots",
+  "version": "1.0.0",
+  "engines": { "vscode": "^1.60.0" },
+  "categories": ["Themes"],
+  "contributes": {
+    "themes": [{ "label": "Dots", "uiTheme": "$ui", "path": "./themes/dots.json" }]
+  }
+}
+JSON
+    ln -sfn "$out" "$ext/themes/dots.json"
+
+    # pick it once; leave an explicit choice of another theme alone
+    settings="${XDG_CONFIG_HOME:-$HOME/.config}/VSCodium/User/settings.json"
+    command -v jq >/dev/null 2>&1 || return 0
+    mkdir -p "${settings%/*}"
+    [ -s "$settings" ] || printf '{}\n' >"$settings"
+    tmp="$settings.tmp"
+    if jq -e 'has("workbench.colorTheme") | not' "$settings" >/dev/null 2>&1; then
+        jq '. + {"workbench.colorTheme": "Dots"}' "$settings" >"$tmp" && mv -f "$tmp" "$settings"
+    fi
+    rm -f "$tmp"
+}
+
+gen_auto() {
+    local wp="${1:-}" json
+    if [ -z "$wp" ]; then
+        wp=$(dots-current-wallpaper 2>/dev/null) || true
+    fi
+    if [ -z "$wp" ] || [ ! -f "$wp" ]; then
+        die "auto: no wallpaper to sample"
+    fi
+    # a video wallpaper: sample a grabbed frame of it
+    local still
+    still=$("${DOTS_SHELL_PATH:-$HOME/.config/quickshell/rise}/ext/scripts/wallpaper-still" "$wp" 2>/dev/null) && wp=$still
+    json=$(matugen image "$wp" --json hex --dry-run --source-color-index 0 --mode dark 2>/dev/null) ||
+        die "auto: matugen failed on $wp"
+    mkdir -p "$AUTO"
+    jq -r '
+        def m($k): .colors[$k].default.color[0:7];
+        def b($k): .base16[$k].default.color[0:7];
+        [
+          ["background", m("surface")], ["foreground", m("on_surface")],
+          ["cursor", m("primary")], ["accent", m("primary")],
+          ["selection_foreground", m("on_primary_container")], ["selection_background", m("primary_container")],
+          ["color0", m("surface_container")], ["color1", m("error")], ["color2", b("base0b")],
+          ["color3", b("base0a")], ["color4", b("base0d")], ["color5", b("base0e")], ["color6", b("base0c")],
+          ["color7", m("on_surface_variant")], ["color8", m("outline")], ["color9", m("error")],
+          ["color10", b("base0b")], ["color11", b("base0a")], ["color12", b("base0d")],
+          ["color13", b("base0e")], ["color14", b("base0c")], ["color15", m("on_surface")],
+          ["bg", m("surface")], ["fg", m("on_surface")],
+          ["base00", m("surface")], ["base01", m("surface_container_low")], ["base02", m("surface_container_high")],
+          ["base03", m("outline_variant")], ["base04", m("on_surface_variant")], ["base05", m("on_surface")],
+          ["base06", m("on_primary_container")], ["base07", m("inverse_surface")],
+          ["base08", b("base08")], ["base09", b("base09")], ["base0A", b("base0a")], ["base0B", b("base0b")],
+          ["base0C", b("base0c")], ["base0D", b("base0d")], ["base0E", b("base0e")], ["base0F", b("base0f")],
+          ["red", m("error")], ["green", b("base0b")], ["yellow", b("base0a")], ["blue", b("base0d")],
+          ["magenta", b("base0e")], ["cyan", b("base0c")], ["pink", m("tertiary")]
+        ][] | "\(.[0])=\"\(.[1])\""
+    ' <<<"$json" >"$AUTO/colors.sh.tmp"
+    if grep -qvE '^[A-Za-z0-9_]+="#[0-9a-fA-F]{6}"$' "$AUTO/colors.sh.tmp" ||
+        [ "$(grep -c . "$AUTO/colors.sh.tmp")" -ne 47 ]; then
+        rm -f "$AUTO/colors.sh.tmp"
+        die "auto: matugen output was missing colours"
+    fi
+    mv -f "$AUTO/colors.sh.tmp" "$AUTO/colors.sh"
+}
+
+# SIGUSR2 reloads ghostty's config, but kills one that hasn't installed its
+# handler yet (just launched, e.g. by autostart): skip the young ones
+reload_ghostty() {
+    local pid age comm
+    while read -r pid age comm; do
+        case "$comm" in
+            *ghostty*) if [ "$age" -ge 3 ]; then kill -USR2 "$pid" 2>/dev/null || true; fi ;;
+        esac
+    done < <(ps -u "$(id -u)" -o pid=,etimes=,comm=)
+}
+
+reload_apps() {
+
+    reload_ghostty
+
+    if command -v qs >/dev/null 2>&1; then
+        qs -c rise ipc call theme reload >/dev/null 2>&1 || true
+    fi
+
+
+    # flip the GTK theme so running GTK apps re-read gtk.css (via dconf: no
+    # GSettings schemas are installed, so gsettings itself can't do this)
+    if command -v dconf >/dev/null 2>&1; then
+        local key=/org/gnome/desktop/interface/gtk-theme t
+        t=$(dconf read "$key" 2>/dev/null)
+        if [ -n "$t" ]; then
+            dconf write "$key" "''" >/dev/null 2>&1 || true
+            dconf write "$key" "$t" >/dev/null 2>&1 || true
+        fi
+    fi
+
+    # btop re-reads btop.conf and its theme file on SIGUSR2 (checked on 1.4.7)
+    pkill -USR2 -x btop >/dev/null 2>&1 || true
+
+    if command -v tmux >/dev/null 2>&1 && tmux info >/dev/null 2>&1; then
+        tmux source-file -q "$STATE/tmux.conf" >/dev/null 2>&1 || true
+    fi
+
+    # sway only; quickshell owns notifications under Hyprland
+    if systemctl --user is-active --quiet dunst.service 2>/dev/null; then
+        systemctl --user start dotsDunstTheme.service >/dev/null 2>&1 || true
+    fi
+
+    if command -v hyprctl >/dev/null 2>&1; then
+        hyprctl reload >/dev/null 2>&1 || true
+    fi
+
+    if [ -n "${SWAYSOCK:-}" ] && command -v swaymsg >/dev/null 2>&1; then
+        swaymsg reload >/dev/null 2>&1 || true
+    fi
+    if [ -x "$HOME/.config/sway/status.sh" ] && pgrep i3status-rs >/dev/null 2>&1; then
+        if "$HOME/.config/sway/status.sh" build; then
+            pkill -USR2 i3status-rs 2>/dev/null || true
+        fi
+    fi
+
+    if command -v systemctl >/dev/null 2>&1; then
+        systemctl --user try-restart swayosd.service 2>/dev/null || true
+    fi
+}
+
+theme_wallpaper() {
+    local d f
+    d=$(theme_dir "$1")
+    for f in "$d"/wallpaper.jpg "$d"/wallpaper.jpeg "$d"/wallpaper.png "$d"/wallpaper.webp; do
+        if [ -f "$f" ]; then
+            printf '%s' "$f"
+            return 0
+        fi
+    done
+    return 1
+}
+
+# every file a theme produces, without touching running apps or the wallpaper
+write_theme() {
+    local name="$1"
+    render_all "$name"
+    mkdir -p "$STATE"
+    printf '%s\n' "$name" >"$CURRENT"
+    shell_compat "$name"
+    sddm_compat "$name"
+    kvantum_compat "$name"
+    gtk_compat
+    zen_compat
+    vscode_compat
+}
+
+cmd_set() {
+    local name="$1" wp
+    [ -n "$name" ] || die "usage: themectl set <name>"
+    if [ "$name" = auto ]; then
+        gen_auto "${2:-}"
+    fi
+    [ -d "$(theme_dir "$name")" ] || die "no such theme: $name"
+
+    write_theme "$name"
+    reload_apps
+    # icons, cursor and fonts: the theme's look.conf under your own choices
+    if command -v dots-appearance >/dev/null 2>&1; then
+        dots-appearance apply --quiet || true
+    fi
+
+    if wp=$(theme_wallpaper "$name"); then
+        if command -v dots-set-wallpaper >/dev/null 2>&1; then
+            dots-set-wallpaper "$wp" || true
+        fi
+    fi
+}
+
+cmd_step() {
+    local delta="$1" cur idx n list
+    mapfile -t list < <(cmd_list)
+    n="${#list[@]}"
+    [ "$n" -gt 0 ] || die "no themes found in $THEMES"
+    cur=$(cmd_current)
+    idx=0
+    for i in "${!list[@]}"; do
+        if [ "${list[$i]}" = "$cur" ]; then
+            idx="$i"
+            break
+        fi
+    done
+    idx=$(((idx + delta + n) % n))
+    cmd_set "${list[$idx]}"
+}
+
+wallpapers() {
+    find -L "$HOME/Pictures/wallpapers" -maxdepth 2 -type f \
+        \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \) \
+        2>/dev/null | sort
+}
+
+follow_wallpaper() {
+    [ "$(cmd_current)" = auto ] || return 0
+    cmd_set auto "$1"
+}
+
+cmd_bg() {
+    local sub="${1:-}" cur list idx n
+    case "$sub" in
+        set)
+            [ -n "${2:-}" ] || die "usage: themectl bg set <path>"
+            dots-set-wallpaper "$2"
+            follow_wallpaper "$2"
+            ;;
+        next | prev)
+            mapfile -t list < <(wallpapers)
+            n="${#list[@]}"
+            [ "$n" -gt 0 ] || die "no wallpapers found"
+            cur=$(dots-current-wallpaper 2>/dev/null || true)
+            idx=0
+            for i in "${!list[@]}"; do
+                if [ "${list[$i]}" = "$cur" ]; then
+                    idx="$i"
+                    break
+                fi
+            done
+            if [ "$sub" = "next" ]; then idx=$(((idx + 1) % n)); else idx=$(((idx - 1 + n) % n)); fi
+            dots-set-wallpaper "${list[$idx]}"
+            follow_wallpaper "${list[$idx]}"
+            ;;
+        "")
+            dots-current-wallpaper
+            ;;
+        *)
+            die "usage: themectl bg [set <path>|next|prev]"
+            ;;
+    esac
+}
+
+# One writer at a time: every mutating command rewrites the same state files
+# (the auto palette goes through one shared .tmp) and reloads running apps, so
+# two overlapping runs (a held wallpaper-next key) would interleave. Readers
+# (current, list) don't lock. Waits for its turn instead of dropping the press.
+lock_state() {
+    local lockfile="${XDG_STATE_HOME:-$HOME/.local/state}/dots/themectl.lock"
+    mkdir -p "${lockfile%/*}"
+    exec 9>"$lockfile"
+    flock -w 60 9 || die "another themectl run has held the lock for 60s"
+}
+
+case "${1:-}" in
+    set | next | prev | reload | render) lock_state ;;
+    bg) [ -z "${2:-}" ] || lock_state ;; # bare `bg` only prints the current one
+esac
+
+case "${1:-}" in
+    set) cmd_set "${2:-}" "${3:-}" ;;
+    current) cmd_current ;;
+    list) cmd_list ;;
+    next) cmd_step 1 ;;
+    prev) cmd_step -1 ;;
+    reload) cmd_set "$(cmd_current)" ;;
+    render) KEEP_WALLPAPER=1 write_theme "$(cmd_current)" ;;
+    # re-render the current theme and reload apps, without the wallpaper step
+    restyle) KEEP_WALLPAPER=1 write_theme "$(cmd_current)"; reload_apps ;;
+    bg) shift; cmd_bg "$@" ;;
+    *) die "usage: themectl {set <name>|set auto [image]|current|list|next|prev|reload|render|bg [set <path>|next|prev]}" ;;
+esac

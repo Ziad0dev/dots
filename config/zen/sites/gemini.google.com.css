@@ -1,0 +1,89 @@
+@-moz-document domain("gemini.google.com") {
+
+    body {
+        color-scheme: dark !important;
+
+        --gem-sys-color--primary: var(--dots-primary) !important;
+        --gem-sys-color--on-primary: var(--dots-on_primary) !important;
+        --gem-sys-color--primary-container: var(--dots-primary_container) !important;
+        --gem-sys-color--on-primary-container: var(--dots-on_primary_container) !important;
+        --gem-sys-color--secondary: var(--dots-secondary) !important;
+        --gem-sys-color--on-secondary: var(--dots-on_secondary) !important;
+        --gem-sys-color--secondary-container: var(--dots-secondary_container) !important;
+        --gem-sys-color--on-secondary-container: var(--dots-secondary) !important;
+        --gem-sys-color--tertiary: var(--dots-tertiary) !important;
+        --gem-sys-color--on-tertiary: var(--dots-on_tertiary) !important;
+        --gem-sys-color--error: var(--dots-secondary) !important;
+        --gem-sys-color--on-error: var(--dots-on_secondary) !important;
+
+        --gem-sys-color--surface: var(--dots-surface) !important;
+        --gem-sys-color--surface-bright: var(--dots-surface_bright) !important;
+        --gem-sys-color--surface-container: var(--dots-surface_container) !important;
+        --gem-sys-color--surface-container-high: var(--dots-surface_container_high) !important;
+        --gem-sys-color--surface-container-highest: var(--dots-surface_container_highest) !important;
+        --gem-sys-color--surface-container-low: var(--dots-surface_container_low) !important;
+        --gem-sys-color--surface-container-lowest: var(--dots-surface_container_lowest) !important;
+        --bard-color-synthetic--chat-window-surface: var(--gem-sys-color--surface) !important;
+        --mat-app-background-color: var(--gem-sys-color--surface) !important;
+
+        --gem-sys-color--on-surface: var(--dots-on_surface) !important;
+        --gem-sys-color--on-surface-variant: var(--dots-on_surface_variant) !important;
+        --mat-app-text-color: var(--gem-sys-color--on-surface) !important;
+        --bard-color-form-field-placeholder: var(--dots-tertiary) !important;
+
+        --gem-sys-color--outline: var(--dots-outline) !important;
+        --gem-sys-color--outline-variant: var(--dots-outline_variant) !important;
+
+        --bard-color-response-container-flipped-background: var(--dots-surface_container) !important;
+        --bard-color-zero-state-prompt-chip-background: var(--dots-outline) !important;
+        --bard-color-zero-state-prompt-chip-text: var(--dots-secondary) !important;
+        --bard-color-image-placeholder-background: var(--dots-surface_container) !important;
+
+        --bard-color-code-comment: var(--dots-tertiary) !important;
+        --bard-color-code-variables: var(--dots-tertiary) !important;
+        --bard-color-code-literal: var(--dots-primary) !important;
+        --bard-color-code-class: var(--dots-tertiary) !important;
+        --bard-color-code-string: var(--dots-secondary) !important;
+        --bard-color-code-quotes-and-meta: var(--dots-tertiary) !important;
+        --bard-color-code-keyword: var(--dots-secondary) !important;
+
+        --mat-form-field-outlined-input-text-color: var(--dots-on_surface) !important;
+        --mat-form-field-filled-input-text-color: var(--dots-on_surface) !important;
+        --mat-select-enabled-trigger-text-color: var(--dots-on_surface) !important;
+        --mat-menu-item-label-text-color: var(--dots-on_surface) !important;
+        --mat-list-list-item-label-text-color: var(--dots-on_surface) !important;
+        --mat-dialog-subhead-color: var(--dots-on_surface) !important;
+        --mat-dialog-supporting-text-color: var(--dots-on_surface) !important;
+    }
+
+    body,
+    body.light-theme {
+        background-color: var(--gem-sys-color--surface) !important;
+        color: var(--gem-sys-color--on-surface) !important;
+    }
+
+    bard-sidenav {
+        background-color: var(--gem-sys-color--surface-container) !important;
+    }
+
+    .ia-redesign infinite-scroller {
+        --bottom-gradient-color: transparent !important;
+        --top-gradient-color: transparent !important;
+    }
+
+    hallucination-disclaimer.hallucination-disclaimer.ng-tns-c771103021-2.enable-luminous-disclaimer-updates { display: none !important; }
+    g1-dynamic-upsell-button.ng-star-inserted { display: none !important; }
+    #chat-history { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    span.user-query-bubble-with-background.luminous-collapsed.ng-star-inserted { background-color: var(--dots-surface_container_low) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    button.mdc-icon-button.mat-mdc-icon-button.mat-mdc-button-base { background-color: var(--dots-surface_container_low) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    p.query-text-line.ng-star-inserted { background-color: var(--dots-surface_container_low) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    span[data-test-id="luminous-collapsed-bubble"] { background-color: var(--dots-surface_container_low) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    span[data-test-id="luminous-expanded-bubble"] { background-color: var(--dots-surface_container_low) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    div.response-content.ng-tns-c3550608724-25 { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    div.scroll-container { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    div[data-test-id="overflow-container"] { background-color: var(--dots-surface) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    input-area-v2.ng-tns-c1873170697-4.ng-tns-c2287058552-3.ui-improvements-phase-1 { background-color: var(--dots-surface_container_high) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    input-container.hide-on-print.ng-tns-c2287058552-3.ng-tns-c1211221456-2 { background-color: var(--dots-surface_container_low) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    hallucination-disclaimer.hallucination-disclaimer.ng-tns-c2287058552-8.enable-luminous-disclaimer-updates { display: none !important; }
+
+}

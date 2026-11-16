@@ -1,0 +1,16 @@
+[general]
+adjustment-method=wayland
+temp-day=6500
+temp-night=2700
+; was 1000 (absolute floor, near-monochrome red) — drop back if that was the point
+transition=1
+fade=1
+; optional gamma tweak to mute green/blue a bit more:
+gamma-day=1.0
+gamma-night=0.9
+
+location-provider=manual
+
+[manual]
+lat=59.3293
+lon=18.0686

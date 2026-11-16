@@ -1,0 +1,11 @@
+@-moz-document domain("monkeytype.com") {
+
+    :root {
+      --bg-color: var(--dots-surface) !important;
+      --main-color: var(--dots-primary) !important;
+      --caret-color: var(--dots-primary_fixed) !important;
+      --sub-color: var(--dots-primary_container) !important;
+      --sub-alt-color: var(--dots-surface_container_low) !important;
+      --text-color: var(--dots-primary) !important;
+}
+}

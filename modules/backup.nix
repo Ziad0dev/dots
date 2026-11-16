@@ -1,0 +1,97 @@
+{ pkgs, username, ... }:
+
+let
+  staging = "/var/lib/restic-backup-staging";
+  snapshot = pkgs.writeShellApplication {
+    name = "dots-restic-snapshot";
+    runtimeInputs = with pkgs; [
+      coreutils
+      rsync
+      systemd
+    ];
+    text = builtins.readFile ../scripts/restic-snapshot.sh;
+  };
+in
+{
+  services.restic.backups.home = {
+    initialize = true;
+    # /mnt/backup/restic is the pre-2026-10 repo; its password was lost with the
+    # old drive's SOPS file, so it cannot be opened. Fresh repo from here on.
+    repository = "/mnt/backup/restic-new";
+    passwordFile = "/etc/restic/password";
+
+    # Quiesce application state, copy it to a static tree, then restart the
+    # services before Restic reads that tree. The upload causes no service downtime.
+    backupPrepareCommand = ''
+      #!${pkgs.bash}/bin/bash
+      exec ${snapshot}/bin/dots-restic-snapshot ${staging}
+    '';
+
+    paths = [
+      "/home/${username}"
+      # Quiesced media/download application state, prepared above.
+      staging
+      # Secure Boot keys: losing them means clearing and re-enrolling in firmware
+      "/var/lib/sbctl"
+    ];
+
+    exclude = [
+      "/home/${username}/.cache"
+      "/home/${username}/.local/share/Steam"
+      "/home/${username}/Games"
+      "/home/${username}/Videos/Replays"
+      "/home/${username}/.local/share/Trash"
+      "/home/${username}/.local/share/containers"
+      "/home/${username}/.local/state/nix"
+      "/home/${username}/Downloads"
+      "/home/${username}/.local/share/flatpak"
+      "/home/${username}/.local/share/umu"
+      "/home/${username}/.local/share/baloo"
+      "/home/${username}/.config/heroic"
+      # Application caches/artwork/logs are excluded while staging.
+      "**/Cache"
+      "**/CachedData"
+      "**/Code Cache"
+      "**/GPUCache"
+      "**/ShaderCache"
+      "**/node_modules"
+      "**/.direnv"
+      "**/target"
+      "**/zig-cache"
+      "**/zig-out"
+      "**/.venv"
+      "**/__pycache__"
+    ];
+
+    timerConfig = {
+      OnCalendar = "daily";
+      Persistent = true;
+      RandomizedDelaySec = "1h";
+    };
+
+    pruneOpts = [
+      "--keep-daily 7"
+      "--keep-weekly 4"
+      "--keep-monthly 6"
+    ];
+
+    checkOpts = [ "--read-data-subset=5%" ];
+  };
+
+  systemd.services.restic-backups-home = {
+    unitConfig.RequiresMountsFor = [ "/mnt/backup" ];
+    unitConfig.ConditionPathIsMountPoint = "/mnt/backup";
+    unitConfig.ConditionPathIsReadWrite = "/mnt/backup";
+    serviceConfig = {
+      Nice = 19;
+      IOSchedulingClass = "idle";
+      ExecStartPre = [
+        "${pkgs.coreutils}/bin/test -s /etc/restic/password"
+      ];
+    };
+  };
+
+  systemd.tmpfiles.rules = [ "d /etc/restic 0700 root root -" ];
+
+  environment.systemPackages = [ pkgs.restic ];
+}

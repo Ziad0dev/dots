@@ -1,0 +1,52 @@
+/* claude.ai, adapted from Zen Internet's claude.ai.css
+   (github.com/sameerasw/my-internet, MIT): the app's own grey layers go
+   clear so the page root's fill (--dots-page: solid, or see-through with
+   `dots-look glass on`) is the only background, and the blur shows. */
+@-moz-document domain("claude.ai") {
+    html, body,
+    .z-sidebar > nav,
+    .min-h-full > .bg-bg-100,
+    .max-h-screen > .bg-bg-100,
+    .root > div > div > div,
+    main, aside,
+    .df-header-backdrop,
+    [data-cds="ChatComposerNotices"] > [aria-live="polite"] > div,
+    [data-cds="ChatComposerNotices"] > [aria-live="polite"] > div::before,
+    [data-testid="answer-now-above-composer"],
+    [data-cds-part="toolbar-ground"],
+    [data-composer-card-holder],
+    [data-cds="ChatComposer"],
+    [data-cds="ChatComposerChin"],
+    [data-testid^="transcript-bottom-"] {
+        background-color: transparent !important;
+        background: none !important;
+    }
+    /* the root's fill (zen-sites.css puts it on html; html is cleared above) */
+    :root { background-color: var(--dots-page, var(--dots-background)) !important; }
+
+    [data-cds="ChatComposerChin"] { box-shadow: none !important; }
+
+    /* a backing behind the message box, so the chat doesn't show through it */
+    [data-chat-input-container="true"] { padding-bottom: 1rem !important; }
+    [data-composer-card-holder]::before {
+        content: "" !important;
+        position: absolute !important;
+        inset: -0.375rem !important;
+        z-index: -1 !important;
+        pointer-events: none !important;
+        border-radius: calc(var(--cds-radius-composer, 0.875rem) + 0.375rem) !important;
+        background: var(--dots-surface_container_high) !important;
+        box-shadow: 0 0 0 1px var(--dots-outline_variant), 0 4px 24px rgba(0, 0, 0, 0.25) !important;
+    }
+    [data-cds="ChatComposer"] .bg-surface-3 {
+        background-color: color-mix(in srgb, currentColor 8%, transparent) !important;
+    }
+
+    /* the top bar: a fading backing so scrolled text doesn't run under it */
+    [data-cds-part="toolbar-ground"] {
+        bottom: -1.5rem !important;
+        background: linear-gradient(to bottom, var(--dots-surface_container_low) calc(100% - 1.5rem), transparent) !important;
+        backdrop-filter: none !important;
+    }
+    [data-testid="chat-header"] [data-cds="Toolbar"]::after { display: none !important; }
+}

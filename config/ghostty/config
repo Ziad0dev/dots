@@ -1,0 +1,48 @@
+# Oxocarbon Theme for Ghostty (Black Background Variant)
+# Inspired by IBM Carbon Design System
+term = xterm-ghostty
+gtk-single-instance = false
+shell-integration = fish
+window-padding-x = 4
+window-padding-y = 2
+keybind = ctrl+shift+s=text:\x60\x73
+keybind = ctrl+shift+z=text:\x60\x7a
+# aesthet
+background-opacity = 0.85
+background-blur=16
+# typography
+font-size=13
+font-thicken=true
+font-thicken-strength=1
+adjust-cell-height=1
+# Background and Foreground
+background = 000000
+foreground = f2f4f8
+# Cursor
+cursor-color = f2f4f8
+# Selection
+selection-background = 525252
+selection-foreground = f2f4f8
+# Normal colors
+palette = 0=#161616
+palette = 1=#ee5396
+palette = 2=#42be65
+palette = 3=#ffe97b
+palette = 4=#33b1ff
+palette = 5=#be95ff
+palette = 6=#3ddbd9
+palette = 7=#dde1e6
+# Bright colors
+palette = 8=#525252
+palette = 9=#ff7eb6
+palette = 10=#56d679
+palette = 11=#ffeb99
+palette = 12=#78a9ff
+palette = 13=#d4bbff
+palette = 14=#08bdba
+palette = 15=#f2f4f8
+# kitty-integ
+image-storage-limit = 320000000
+config-file = ?~/.local/state/dots/theme/ghostty
+# font (Themes → App style, dots-appearance)
+config-file = ?~/.local/state/dots/appearance/ghostty

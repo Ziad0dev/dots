@@ -1,0 +1,37 @@
+{ pkgs, ... }:
+
+{
+
+  boot.kernelPackages = pkgs.linuxPackages_cachyos-bore;
+
+  services.scx-loader = {
+    enable = false;
+    config.default_sched = "scx_lavd";
+  };
+
+  programs.steam = {
+    enable = true;
+    gamescopeSession.enable = true;
+
+    extraCompatPackages = [
+      pkgs.proton-cachyos
+    ];
+    remotePlay.openFirewall = false;
+    dedicatedServer.openFirewall = false;
+  };
+
+  programs.gamemode.enable = true;
+
+  services.ananicy = {
+    enable = true;
+    package = pkgs.ananicy-cpp;
+    rulesProvider = pkgs.ananicy-rules-cachyos_git;
+  };
+
+  environment.systemPackages = with pkgs; [
+
+    protonup-qt
+    heroic
+  ];
+
+}

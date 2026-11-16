@@ -1,0 +1,15 @@
+/* Web pages under the dots site styles (config/zen/sites) and about: pages.
+   With `dots-look glass on` the page root carries the one see-through fill
+   (--dots-page) and the containers the site styles paint go clear or nearly
+   so, so the window blur shows through like Zen Internet's transparency;
+   nested fills would otherwise stack back into a solid page. Off: the
+   theme's colours unchanged. themectl puts this first in zen-sites.css,
+   which only userContent.css reads, so the browser chrome is untouched. */
+:root {
+  --dots-background: ${glass_fill} !important;
+  --dots-surface: ${glass_fill} !important;
+  --dots-surface_container_lowest: ${glass_fill} !important;
+  --dots-surface_container_low: color-mix(in srgb, ${surface} ${glass_raise}, transparent) !important;
+  --dots-surface_container: color-mix(in srgb, ${base01} ${glass_raise}, transparent) !important;
+  --dots-surface_container_high: color-mix(in srgb, ${base02} ${glass_raise}, transparent) !important;
+}

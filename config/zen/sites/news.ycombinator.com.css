@@ -1,0 +1,15 @@
+@-moz-document domain("news.ycombinator.com") {
+
+    html { background-color: var(--dots-background) !important; color: var(--dots-on_background) !important; border-color: var(--dots-outline_variant) !important; }
+    tbody { background-color: var(--dots-background) !important; color: var(--dots-on_background) !important; border-color: var(--dots-outline_variant) !important; }
+    a { color: var(--dots-inverse_surface) !important; }
+    table { background-color: var(--dots-background) !important; color: var(--dots-on_background) !important; border-color: var(--dots-outline_variant) !important; }
+    input[name="q"] { background-color: var(--dots-primary) !important; color: var(--dots-on_primary) !important; border-color: var(--dots-outline_variant) !important; }
+    div { color: var(--dots-on_surface) !important; }
+    textarea[name="text"] { background-color: var(--dots-background) !important; color: var(--dots-on_background) !important; border-color: var(--dots-outline_variant) !important; }
+    td:nth-of-type(2) > form > input:nth-of-type(4) { background-color: var(--dots-surface_container_lowest) !important; color: var(--dots-on_surface) !important; border-color: var(--dots-outline_variant) !important; }
+    span.pagetop > b.hnname > a { color: var(--dots-primary) !important; }
+    td:nth-of-type(3) > span.pagetop > a { color: var(--dots-secondary) !important; }
+    div.votearrow { background-color: var(--dots-tertiary_container) !important; color: var(--dots-on_tertiary_container) !important; border-color: var(--dots-outline_variant) !important; }
+
+}

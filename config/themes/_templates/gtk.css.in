@@ -1,0 +1,169 @@
+@define-color theme_bg_color ${background};
+@define-color theme_fg_color ${foreground};
+@define-color theme_base_color ${background};
+@define-color theme_text_color ${foreground};
+@define-color theme_selected_bg_color ${accent};
+@define-color theme_selected_fg_color ${background};
+@define-color theme_unfocused_bg_color ${background};
+@define-color theme_unfocused_fg_color ${dim};
+@define-color theme_unfocused_base_color ${background};
+@define-color theme_unfocused_text_color ${foreground};
+@define-color theme_unfocused_selected_bg_color ${accent};
+@define-color theme_unfocused_selected_fg_color ${background};
+@define-color insensitive_bg_color ${surface};
+@define-color insensitive_fg_color ${muted};
+@define-color insensitive_base_color ${background};
+@define-color borders ${dim};
+@define-color unfocused_borders ${dim};
+@define-color warning_color ${yellow};
+@define-color error_color ${red};
+@define-color success_color ${green};
+@define-color link_color ${accent};
+@define-color visited_link_color ${magenta};
+
+/* libadwaita/adw-gtk3 surfaces are translucent so Hyprland's blur shows
+   through (window like ghostty's background-opacity; inner layers stack on
+   it; the glass_* amounts come from themectl, `dots-look glass` raises them).
+   theme_* above stay opaque: GTK3 legacy apps and Zen read those. */
+@define-color window_bg_color alpha(${background}, ${glass_window});
+@define-color window_fg_color ${foreground};
+@define-color view_bg_color alpha(${background}, ${glass_view});
+@define-color view_fg_color ${foreground};
+@define-color headerbar_bg_color alpha(${surface}, ${glass_bar});
+@define-color headerbar_fg_color ${foreground};
+@define-color headerbar_border_color ${dim};
+@define-color headerbar_backdrop_color alpha(${background}, ${glass_bar});
+@define-color sidebar_bg_color alpha(${surface}, 0.5);
+@define-color sidebar_fg_color ${foreground};
+@define-color sidebar_backdrop_color alpha(${background}, 0.5);
+@define-color sidebar_border_color ${dim};
+@define-color secondary_sidebar_bg_color alpha(${surface}, 0.5);
+@define-color secondary_sidebar_fg_color ${foreground};
+@define-color card_bg_color alpha(${surface}, 0.5);
+@define-color card_fg_color ${foreground};
+@define-color dialog_bg_color alpha(${surface}, ${glass_dialog});
+@define-color dialog_fg_color ${foreground};
+@define-color popover_bg_color ${surface};
+@define-color popover_fg_color ${foreground};
+@define-color accent_bg_color ${accent};
+@define-color accent_fg_color ${background};
+@define-color accent_color ${accent};
+@define-color destructive_bg_color ${red};
+@define-color destructive_fg_color ${background};
+@define-color destructive_color ${red};
+@define-color success_bg_color ${green};
+@define-color success_fg_color ${background};
+@define-color warning_bg_color ${yellow};
+@define-color warning_fg_color ${background};
+@define-color error_bg_color ${red};
+@define-color error_fg_color ${background};
+
+/* translucent menus so Hyprland's popup blur shows through (GTK4 popovers
+   like Ghostty's right-click menu); keep above blur popups_ignorealpha 0.2.
+   Only the contents box: in GTK4 the popover itself carries .menu (and
+   .context-menu), so the GTK3 selectors below would paint it a second time
+   under the contents and stack the alpha (0.4 came out ~0.85 solid) */
+popover > contents,
+popover > arrow {
+  background-color: alpha(@popover_bg_color, ${glass_menu});
+}
+/* the shadow sits in a transparent margin that is part of the popup
+   surface, so Hyprland blurred it as a box around the menu */
+popover > contents {
+  box-shadow: none;
+  margin: 0;
+}
+/* gtk3-only:begin (GTK3 menus are their own menu nodes, no popover) */
+menu,
+.menu,
+.context-menu {
+  background-color: alpha(@popover_bg_color, ${glass_menu});
+  box-shadow: none;
+  margin: 0;
+}
+/* gtk3-only:end */
+
+/* Every GTK window translucent like the libadwaita ones, whatever the GTK
+   theme: GTK 3 apps and plain GTK 4 apps (file choosers, pavucontrol, …) get
+   the same surfaces as above so Hyprland's blur shows through. Selected and
+   hovered rows keep the theme's look. */
+window.background:not(.nemo-desktop-window) {
+  background-color: @window_bg_color;
+  background-image: none;
+}
+.view:not(:selected):not(:hover),
+iconview:not(:selected),
+textview text,
+treeview.view:not(:selected):not(:hover) {
+  background-color: @view_bg_color;
+}
+/* gtk3-only:begin (themectl leaves this out of gtk-4.0/gtk.css: libadwaita
+   already has these surfaces, and flat header bars must stay flat) */
+notebook > stack,
+scrolledwindow > viewport,
+scrolledwindow > viewport > list,
+list:not(.boxed-list),
+statusbar {
+  background-color: transparent;
+}
+headerbar,
+.titlebar,
+toolbar,
+.primary-toolbar,
+actionbar > revealer > box {
+  background-color: @headerbar_bg_color;
+  background-image: none;
+  box-shadow: none;
+}
+.sidebar,
+placessidebar,
+stacksidebar {
+  background-color: @sidebar_bg_color;
+  background-image: none;
+}
+notebook > header {
+  background-color: alpha(${surface}, 0.45);
+  background-image: none;
+}
+
+/* Nemo (GTK 3) the same as the libadwaita apps: one translucent window
+   surface so Hyprland's blur shows through, with everything inside it
+   transparent instead of stacking opaque theme colours. Works whatever the
+   GTK theme (this file outranks themes and Nemo's own CSS). Selection,
+   hover and the rename box keep the theme's look. */
+.nemo-window,
+.nemo-window.background {
+  background-color: alpha(${background}, 0.78);
+  background-image: none;
+}
+.nemo-window .nemo-window-pane,
+.nemo-window paned,
+.nemo-window notebook,
+.nemo-window notebook > stack,
+.nemo-window scrolledwindow,
+.nemo-window viewport,
+.nemo-window statusbar,
+.nemo-window .view:not(:selected):not(:hover),
+.nemo-window iconview:not(:selected),
+.nemo-window .places-treeview:not(:selected):not(:hover) {
+  background-color: transparent;
+  background-image: none;
+}
+.nemo-window .nemo-places-sidebar {
+  background-color: alpha(${surface}, 0.35);
+  background-image: none;
+}
+.nemo-window .primary-toolbar,
+.nemo-window toolbar,
+.nemo-window notebook > header {
+  background-color: alpha(${surface}, 0.45);
+  background-image: none;
+  border-color: alpha(${dim}, 0.5);
+  box-shadow: none;
+}
+/* the unfocused pane of a split view (F3): a light shade, not opaque */
+.nemo-window .nemo-inactive-pane .view:not(:selected),
+.nemo-window .nemo-inactive-pane iconview {
+  background-color: alpha(${background}, 0.3);
+}
+/* gtk3-only:end */

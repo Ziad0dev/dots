@@ -1,0 +1,46 @@
+@import url("dots-palette.css");
+@import url("dots-sites.css");
+
+/* Zen Internet (the extension) injects its per-site styles as page CSS; these
+   user-level !important rules outrank them, so its theme variables take the
+   palette and its transparent sites carry the theme's text, links and
+   surfaces. Pages it doesn't style never read these variables. */
+:root, body {
+  --trans-theme-primary-text: var(--dots-on_background_csv) !important;
+  --trans-theme-primary-bg: var(--dots-background_csv) !important;
+  --trans-theme-secondary-bg: var(--dots-surface_container_csv) !important;
+  --trans-theme-solid-bg: var(--dots-surface_container_high_csv) !important;
+  --trans-theme-link-text: var(--dots-primary_csv) !important;
+  --trans-theme-red: var(--dots-error_csv) !important;
+}
+
+/* every page: text selection and form controls in the theme's accent */
+:root {
+  accent-color: var(--dots-primary) !important;
+}
+::selection {
+  background-color: var(--dots-primary) !important;
+  color: var(--dots-on_primary) !important;
+}
+
+/* a frame with nothing visible (an ad slot uBlock emptied) on a page Dark
+   Reader turned dark: a light document in a dark embedder paints an opaque
+   white canvas. Following the preferred scheme matches the embedder, so the
+   frame stays transparent. Pages with content keep their own scheme */
+:root:not(:has(body :not(script, style, noscript, link, meta, template))) {
+  color-scheme: light dark !important;
+}
+
+/* --dots-background: solid, or clear with glass on (zen-glass.css.in), so a
+   new tab is the bare window blur like Zen Internet's transparent sites */
+@-moz-document url("about:blank"), url("about:newtab"), url("about:home") {
+  :root, body { background: var(--dots-background) !important; }
+}
+
+@-moz-document url-prefix("about:reader") {
+  :root {
+    --main-background: var(--dots-background) !important;
+    --main-foreground: var(--dots-on_background) !important;
+    --link-foreground: var(--dots-secondary) !important;
+  }
+}

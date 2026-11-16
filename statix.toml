@@ -1,0 +1,9 @@
+disabled = [
+  "repeated_keys",
+  "empty_pattern",
+]
+
+ignore = [
+  ".direnv",
+  "templates",
+]

@@ -1,0 +1,160 @@
+import QtQuick
+import Quickshell
+import Quickshell.Io
+
+Item {
+    id: rootMod
+    required property var root
+    property string gid: "G5"
+
+    visible: implicitWidth > 0.5
+    implicitWidth: root.modCpu ? row.implicitWidth + 18 : 0
+    implicitHeight: 28
+    opacity: root.modCpu ? 1 : 0
+    Behavior on opacity      { Anim { kind: "effects"; ms: 140 } }
+
+    readonly property int percent: root.systemCpuPercent
+    readonly property var history: root.systemCpuHistory
+    readonly property int maxSamples: 30
+    readonly property string tooltipText: percent + "%"
+
+    Rectangle {
+        x: 0; anchors.verticalCenter: parent.verticalCenter
+        width: Math.round(row.width) + 18
+        height: root.pillH
+        radius: root.pillRadius
+        color: root.widgetFillColor(rootMod.gid)
+        border.color: root.widgetBorderColor(rootMod.gid)
+        border.width: root.widgetBorderWidth(rootMod.gid)
+        PillShadow { theme: root }
+    }
+
+    Row {
+        id: row
+        anchors.centerIn: parent
+        spacing: root.compactCpu ? 4 : 5
+
+        BarLabel {
+            root: rootMod.root
+            anchors.verticalCenter: parent.verticalCenter
+            visible: !root.compactCpu
+            label: "CPU"
+            glyph: "developer_board"
+        }
+
+        Canvas {
+            id: wave
+            visible: !root.compactCpu
+            width: 36
+            height: 14
+            anchors.verticalCenter: parent.verticalCenter
+
+            property color tint: root.seal
+            onTintChanged: requestPaint()
+
+            onPaint: {
+                var ctx = getContext("2d")
+                ctx.clearRect(0, 0, width, height)
+                var h = rootMod.history
+                if (h.length < 2) return
+
+                var maxV = 0.25
+                for (var n = 0; n < h.length; n++) {
+                    if (h[n] > maxV) maxV = h[n]
+                }
+                maxV = Math.min(1, Math.max(0.25, maxV * 1.15))
+
+                var pts = []
+                for (var i = 0; i < h.length; i++) {
+                    var x = (i / (maxSamples - 1)) * width
+                    var y = height - (h[i] / maxV) * height
+                    pts.push({ x: x, y: y })
+                }
+
+                // fill
+                ctx.beginPath()
+                ctx.moveTo(pts[0].x, height)
+                ctx.lineTo(pts[0].x, pts[0].y)
+                for (var j = 1; j < pts.length; j++) {
+                    var cx = (pts[j-1].x + pts[j].x) / 2
+                    ctx.bezierCurveTo(cx, pts[j-1].y, cx, pts[j].y, pts[j].x, pts[j].y)
+                }
+                ctx.lineTo(pts[pts.length-1].x, height)
+                ctx.closePath()
+                ctx.fillStyle = Qt.rgba(tint.r, tint.g, tint.b, 0.12)
+                ctx.fill()
+
+                // stroke
+                ctx.beginPath()
+                ctx.moveTo(pts[0].x, pts[0].y)
+                for (var k = 1; k < pts.length; k++) {
+                    var mx = (pts[k-1].x + pts[k].x) / 2
+                    ctx.bezierCurveTo(mx, pts[k-1].y, mx, pts[k].y, pts[k].x, pts[k].y)
+                }
+                ctx.strokeStyle = tint
+                ctx.lineWidth = 1.5
+                ctx.lineCap = "round"
+                ctx.lineJoin = "round"
+                ctx.stroke()
+            }
+
+            Component.onCompleted: requestPaint()
+            Connections {
+                target: rootMod
+                function onHistoryChanged() { wave.requestPaint() }
+            }
+        }
+
+        RollingNumber {
+            anchors.verticalCenter: parent.verticalCenter
+            visible: !root.compactCpu
+            value: Math.min(100, rootMod.percent)
+            digits: 2
+            suffix: "%"
+            tint: root.seal
+            family: root.mono
+            pixelSize: 12
+            rolling: root.motionDigits
+        }
+
+        IconText {
+            id: compactCpuGlyph
+            anchors.verticalCenter: parent.verticalCenter
+            visible: root.compactCpu
+            text: "planner_review"
+            color: root.seal
+            font.pixelSize: 15
+            font.weight: Font.DemiBold
+            fill: 1
+        }
+
+        RollingNumber {
+            anchors.verticalCenter: parent.verticalCenter
+            visible: root.compactCpu
+            value: Math.min(100, rootMod.percent)
+            digits: 2
+            suffix: "%"
+            tint: root.seal
+            family: root.mono
+            pixelSize: 12
+            rolling: root.motionDigits
+        }
+    }
+
+    TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText; popout: "cpuVisible" }
+
+    Process { id: cpuTui; command: ["bash", "-c", "ghostty --class=com.dots.float.lg -e btop"] }
+
+
+    MouseArea {
+
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
+        anchors.fill: parent
+        hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
+        onEntered: tip.show()
+        onExited: { tip.hide() }
+        onClicked: function (e) {
+            if (e.button === Qt.RightButton) { cpuTui.running = false; cpuTui.running = true; return } tip.hide(); root.popout.click("cpuVisible") }
+    }
+}

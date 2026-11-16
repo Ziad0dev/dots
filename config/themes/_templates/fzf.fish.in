@@ -1,0 +1,6 @@
+set -gx FZF_DEFAULT_OPTS "\
+--color=bg+:${surface},bg:-1,spinner:${accent},hl:${blue} \
+--color=fg:${foreground},header:${red},info:${yellow},pointer:${accent} \
+--color=marker:${green},fg+:${foreground},prompt:${accent},hl+:${blue} \
+--color=border:${base02},gutter:-1,query:${foreground} \
+--color=preview-fg:${foreground},separator:${base02},label:${muted}"

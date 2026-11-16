@@ -1,0 +1,335 @@
+{
+  config,
+  lib,
+  pkgs,
+  inputs,
+  username,
+  hostname,
+  system,
+  ...
+}:
+
+{
+  imports = [
+
+    inputs.hyprland.nixosModules.default
+  ];
+
+  boot.kernelModules = [ "nct6775" ];
+
+  systemd.sleep.settings.Sleep = {
+    AllowSuspend = "no";
+    AllowHibernation = "no";
+    AllowHybridSleep = "no";
+    AllowSuspendThenHibernate = "no";
+  };
+
+  systemd.targets = {
+    sleep.enable = false;
+    suspend.enable = false;
+    hibernate.enable = false;
+    hybrid-sleep.enable = false;
+  };
+
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
+  boot.loader.systemd-boot.configurationLimit = 3;
+  boot.loader.systemd-boot.editor = false;
+  # Secure Boot keys have been enrolled; see docs/secure-boot.md. The TPM
+  # keyslot (enrolled separately with systemd-cryptenroll) is in ./disk.nix.
+  dots.secureBoot.enable = true;
+  boot.loader.timeout = 1;
+
+  # Host age key is backed up in pass at dots/age-nixos.
+  dots.secrets = {
+    enable = true;
+    # Encrypted ciphertext only; the age key stays outside the repo and store.
+    file = ../../secrets/nixos.yaml;
+  };
+  sops.secrets = lib.mkIf config.dots.secrets.enable {
+    restic-password.path = "/etc/restic/password";
+    soulseek-password.owner = username;
+  };
+
+  dots.recording.monitor = "DP-1";
+  dots.sddm.theme = "demon";
+  networking.hostName = hostname;
+  networking.networkmanager.enable = true;
+  dots.lanInterface = "enp5s0";
+
+  time.timeZone = "Europe/Stockholm";
+  i18n.defaultLocale = "en_US.UTF-8";
+  i18n.extraLocaleSettings = {
+    LC_ADDRESS = "en_US.UTF-8";
+    LC_IDENTIFICATION = "en_US.UTF-8";
+    LC_MEASUREMENT = "en_US.UTF-8";
+    LC_MONETARY = "en_US.UTF-8";
+    LC_NAME = "en_US.UTF-8";
+    LC_NUMERIC = "en_US.UTF-8";
+    LC_PAPER = "en_US.UTF-8";
+    LC_TELEPHONE = "en_US.UTF-8";
+    LC_TIME = "en_US.UTF-8";
+  };
+
+  # English only: only these glibc locales are generated, and the translated
+  # man page trees (man/de, man/ja, ...) are dropped from the system profile
+  i18n.supportedLocales = [
+    "C.UTF-8/UTF-8"
+    "en_US.UTF-8/UTF-8"
+  ];
+  environment.extraSetup = ''
+    find $out/share/man -mindepth 1 -maxdepth 1 ! -name 'man[0-9n]*' -exec rm -rf {} + 2>/dev/null || true
+  '';
+
+  services.xserver.xkb.layout = "us";
+
+  zramSwap = {
+    enable = true;
+    memoryPercent = 150;
+
+  };
+  # the swap partition is in ./disk.nix
+  services.xserver.videoDrivers = [ "nvidia" ];
+
+  hardware.graphics = {
+    enable = true;
+    enable32Bit = true;
+  };
+  hardware.nvidia = {
+    modesetting.enable = true;
+    open = true;
+    nvidiaPersistenced = true;
+    package = pkgs.nvidia_cachyos-bore;
+  };
+  services.lact.enable = true;
+
+  programs.coolercontrol.enable = true;
+
+  programs.hyprland = {
+    enable = true;
+    package = inputs.hyprland.packages.${system}.hyprland;
+    portalPackage = inputs.hyprland.packages.${system}.xdg-desktop-portal-hyprland;
+    xwayland.enable = true;
+  };
+
+  xdg.portal = {
+    enable = true;
+    extraPortals = with pkgs; [
+      xdg-desktop-portal-gtk
+      xdg-desktop-portal-wlr
+    ];
+    config = {
+      common.default = [
+        "hyprland"
+        "gtk"
+      ];
+      hyprland = {
+        default = [
+          "hyprland"
+          "gtk"
+        ];
+        "org.freedesktop.impl.portal.ScreenCast" = [ "hyprland" ];
+        "org.freedesktop.impl.portal.Screenshot" = [ "wlr" ];
+      };
+    };
+  };
+
+  services.dbus.enable = true;
+  security.polkit.enable = true;
+
+  security.polkit.extraConfig = ''
+    polkit.addRule(function(action, subject) {
+      if (subject.local && subject.active &&
+          (action.id == "org.freedesktop.udisks2.filesystem-mount" ||
+           action.id == "org.freedesktop.udisks2.filesystem-unmount-others" ||
+           action.id == "org.freedesktop.udisks2.eject-media" ||
+           action.id == "org.freedesktop.udisks2.power-off-drive")) {
+        return polkit.Result.YES;
+      }
+    });
+  '';
+  services.printing.enable = true;
+  services.printing.browsed.enable = false;
+  services.gvfs.enable = true;
+  services.udisks2.enable = true;
+
+  services.usbmuxd.enable = true;
+
+  hardware.bluetooth = {
+    enable = false;
+    powerOnBoot = false;
+  };
+  services.blueman.enable = false;
+  # the bar's battery widget asks UPower; without it Quickshell logs a warning
+  # on every start (and a UPS or Bluetooth battery would show up here)
+  services.upower.enable = true;
+
+  # rootless only (started on first use by the `docker` fish function); the
+  # root daemon and /run/docker.sock were never used
+  virtualisation.docker.rootless = {
+    enable = true;
+    setSocketVariable = true;
+  };
+
+  systemd.user.services.docker.wantedBy = lib.mkForce [ ];
+
+  virtualisation.podman.enable = true;
+
+  # Root has no password; normal administration uses sudo from the wheel group.
+  # Use the installer ISO to recover a machine that will not boot.
+  users.users.root.hashedPassword = "!";
+
+  users.users.${username} = {
+    isNormalUser = true;
+    description = username;
+
+    # This account was created as UID 1000 on the installed desktop. Keep the
+    # declarative UID aligned so Home Manager activation accepts the account.
+    uid = 1000;
+    extraGroups = [
+      "wheel"
+      "networkmanager"
+      "audio"
+      "video"
+    ];
+    shell = pkgs.fish;
+  };
+  programs.fish.enable = true;
+
+  # Declarative Helium extensions: /etc/chromium/policies/managed (Helium reads it).
+  # IDs were checked against the Chrome Web Store update endpoint.
+  programs.chromium = {
+    enable = true;
+    extensions = [
+      "mnjggcdmjocbbbhaepdhchncahnbgone" # SponsorBlock
+      "gebbhagfogifgggkldgodflihgfeippi" # Return YouTube Dislike
+      "dbepggeogbaibhgnhhndojpepiihcmeb" # Vimium
+      "pkehgijcmpdhfbdbbnkijodmdjhbjlgp" # Privacy Badger (learns and blocks trackers)
+      "ldpochfccmkkmhdbclfhpagapcfdljkj" # Decentraleyes (serves common CDN libraries locally)
+      "mdjildafknihdffpkfmmpnpoiajfjnjd" # Consent-O-Matic (auto-declines cookie banners)
+      "hhinaapppaileiechjoiifaancjggfjm" # Web Scrobbler (already installed)
+      "padcfdpdlnpdojcihidkgjnmleeingep" # Bandcamp Enhancement Suite (already installed)
+      "nngceckbapebfimnlniiiahkandclblb" # Bitwarden (already installed)
+    ];
+    # "Continue where you left off": 1 = restore last session. Chromium only keeps
+    # session cookies (logins without an expiry) across quits when this is set;
+    # otherwise they are dropped on every exit and you get logged out.
+    extraOpts.RestoreOnStartup = 1;
+  };
+
+  programs.agents.enable = true;
+  programs.agents.pi.enable = true;
+
+  nixpkgs.overlays = import ../../lib/overlays.nix { inherit inputs; };
+  nixpkgs.config.allowUnfree = true;
+  nixpkgs.config.problems.handlers = {
+    "gtk+".broken = "ignore";
+  };
+
+  nix = {
+    optimise.automatic = true;
+    registry.chaotic.flake = inputs.chaotic;
+    settings = {
+      experimental-features = [
+        "nix-command"
+        "flakes"
+      ];
+      substituters = [
+        "https://cache.nixos.org"
+        "https://hyprland.cachix.org"
+      ];
+      trusted-public-keys = [
+        "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
+        "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc="
+      ];
+    };
+  };
+
+  environment.sessionVariables = {
+    NIXOS_OZONE_WL = "1";
+    MOZ_ENABLE_WAYLAND = "1";
+    QT_QPA_PLATFORM = "wayland;xcb";
+    QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
+    _JAVA_AWT_WM_NONREPARENTING = "1";
+  };
+
+  environment.systemPackages = with pkgs; [
+    git
+    curl
+    wget
+    jq
+    tree
+    unzip
+    zip
+    neovim
+    # Diagnostics / hardware
+    htop
+    btop
+    lm_sensors
+    usbutils
+    gparted
+    exfatprogs
+    # gvfs's network:// backend (nemo "Network") spawns it to find SMB hosts
+    wsdd
+    # Pairs with services.usbmuxd
+    libimobiledevice
+    ifuse
+    # polkit agent for the sway session; quickshell is the agent under Hyprland
+    hyprpolkitagent
+    # Pairs with programs.coolercontrol
+    coolercontrol.coolercontrol-gui
+    kdePackages.ark
+    kdePackages.qt6ct
+    inputs.dvr-patched.packages.${pkgs.stdenv.hostPlatform.system}.default
+  ];
+
+  fonts = {
+    enableDefaultPackages = true;
+    packages = with pkgs; [
+      nerd-fonts.fira-code
+      nerd-fonts.jetbrains-mono
+      nerd-fonts.sauce-code-pro
+      source-code-pro
+      # picked for legibility; the quick picks in Themes → App style
+      inter
+      atkinson-hyperlegible-next
+      atkinson-hyperlegible-mono
+      lexend
+      ibm-plex
+      source-sans
+      nerd-fonts.blex-mono
+      nerd-fonts.commit-mono
+      nerd-fonts.hack
+      nerd-fonts.iosevka
+      b612 # the lumon theme's mono (rise-theme-fonts only has B612)
+      noto-fonts
+      noto-fonts-cjk-sans
+      noto-fonts-cjk-serif
+      noto-fonts-color-emoji
+      font-awesome
+
+      newcomputermodern
+      libertinus
+      stix-two
+      lmodern
+      dejavu_fonts
+      liberation_ttf
+    ];
+    fontconfig.defaultFonts = {
+      monospace = [ "FiraCode Nerd Font Mono" ];
+      sansSerif = [ "Noto Sans" ];
+      serif = [ "Noto Serif" ];
+      emoji = [ "Noto Color Emoji" ];
+    };
+  };
+
+  programs.git.enable = true;
+  programs.dconf.enable = true;
+  home-manager.users.${username} = { lib, ... }: {
+    home.activation.createUserDataDirectories = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      $DRY_RUN_CMD mkdir -p "$HOME/Games" "$HOME/Pictures/wallpapers"
+    '';
+  };
+
+  system.stateVersion = "24.05";
+}
