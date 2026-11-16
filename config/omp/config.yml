@@ -9,7 +9,7 @@ modelRoles:
   advisor: lc-big/gpt-oss-20b:high
   vision: lc-vision/qwen3-vl-8b
   web: web/google
-setupVersion: 2
+setupVersion: 3
 composer:
   shape: band
 compaction:
@@ -18,7 +18,11 @@ provider:
   appendOnlyContext: "on"
 tools:
   artifactSpillThreshold: 4
-  enabled: [read, edit, bash, grep]
+  enabled:
+    - read
+    - edit
+    - bash
+    - grep
 retry:
   fallbackChains:
     lc-big/gpt-oss-20b:
