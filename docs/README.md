@@ -13,6 +13,7 @@ set of project templates.
 | [Architecture](architecture.md) | You want to know how the flake, hosts, modules and home profiles fit together |
 | [System modules](modules.md) | Looking up what a file in `modules/` owns |
 | [Services](services.md) | Media stack, VPN namespace, local LLMs, backups, mounts, ports |
+| [Offline](offline.md) | The offline library, planet map, local AI and the rebuild-without-internet archive |
 | [Desktop](desktop.md) | Hyprland, keybinds, the Quickshell bar, lock/idle, recording, dictation |
 | [Theming](theming.md) | `themectl`, palette format, templates, adding a theme |
 | [Development](development.md) | Languages, editors, templates, tool flakes, the agent VM, foreign binaries |

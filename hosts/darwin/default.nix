@@ -28,8 +28,6 @@
     ];
     trusted-users = [ "root" ];
     max-jobs = "auto";
-    keep-outputs = true;
-    keep-derivations = true;
     substituters = [
       "https://cache.nixos.org"
       "https://nix-community.cachix.org"

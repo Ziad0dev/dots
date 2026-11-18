@@ -137,7 +137,7 @@ in
   vpnNamespaces.wg = {
     enable = true;
     wireguardConfigFile = wgConfig;
-    accessibleFrom = [ tailnet ];
+    allowedIngress = [ tailnet ];
     allowedEgress = [ config.vpnNamespaces.wg.bridgeAddress ];
     portMappings = [
       {

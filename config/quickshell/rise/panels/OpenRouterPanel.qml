@@ -46,14 +46,19 @@ PanelWindow {
 
     onVisibleChanged: if (visible) { refreshModels.running = true; refreshKey.running = true }
 
+    // next to this file, like every other rise script: the store copy in pure
+    // mode, the checkout in live mode (a fixed ~/dots path read the checkout
+    // even when the QML came from the store)
+    readonly property string script: Qt.resolvedUrl("../scripts/openrouter").toString().replace(/^file:\/\//, "")
+
     Process {
         id: refreshModels
-        command: ["python3", Quickshell.env("HOME") + "/dots/config/quickshell/rise/scripts/openrouter", "models"]
+        command: ["python3", win.script, "models"]
         onExited: modelFile.reload()
     }
     Process {
         id: refreshKey
-        command: ["python3", Quickshell.env("HOME") + "/dots/config/quickshell/rise/scripts/openrouter", "key"]
+        command: ["python3", win.script, "key"]
         onExited: keyFile.reload()
     }
 
@@ -86,9 +91,14 @@ PanelWindow {
         }
     }
 
+    // The prompt goes in on stdin, which is closed once it's written so the
+    // script's read() ends. stdin is re-enabled before every start: a process
+    // started with it disabled gets an open pipe that never closes, so the
+    // second question asked in one open panel used to hang forever.
     Process {
         id: chat
-        stdinEnabled: true
+        property string prompt: ""
+        onStarted: { write(prompt); stdinEnabled = false }
         stdout: StdioCollector {
             onStreamFinished: { win.reply = this.text.trim(); win.busy = false }
         }
@@ -99,12 +109,10 @@ PanelWindow {
         if (busy || promptBox.text.trim() === "") return
         busy = true
         reply = ""
-        chat.command = ["python3",
-                        Quickshell.env("HOME") + "/dots/config/quickshell/rise/scripts/openrouter",
-                        "chat", selected]
+        chat.command = ["python3", win.script, "chat", selected]
+        chat.prompt = promptBox.text
+        chat.stdinEnabled = true
         chat.running = true
-        chat.write(promptBox.text)
-        chat.stdinEnabled = false
     }
 
     Rectangle {

@@ -2060,20 +2060,19 @@ ThemeAiUsage {
     property real notifBarX:    0
 
     // ── Power Profile state ──
+    // power-profiles-daemon over D-Bus (modules/performance.nix turns it on):
+    // follows a change made anywhere (powerprofilesctl, the panel) as it
+    // happens. This replaced polling `powerprofilesctl get` every 5 s per bar,
+    // a Python start-up costing ~90 ms of CPU each time.
     property bool powerProfileVisible: false
     onPowerProfileVisibleChanged: popupOpened("powerProfileVisible")
-    property string powerProfileCurrent: ""
-
-    Process {
-        id: initPowerProfile
-        command: ["bash", "-c", "powerprofilesctl get 2>/dev/null || echo balanced"]
-        running: true
-        stdout: StdioCollector {
-            onStreamFinished: {
-                var p = this.text.trim()
-                if (p) theme.powerProfileCurrent = p
-            }
-        }
+    readonly property string powerProfileCurrent: PowerProfiles.profile === PowerProfile.PowerSaver ? "power-saver"
+        : PowerProfiles.profile === PowerProfile.Performance ? "performance"
+        : "balanced"
+    function setPowerProfile(key) {
+        PowerProfiles.profile = key === "power-saver" ? PowerProfile.PowerSaver
+            : key === "performance" ? PowerProfile.Performance
+            : PowerProfile.Balanced
     }
 
     // ── Hyprland workspace dispatch (config-mode-aware) ──

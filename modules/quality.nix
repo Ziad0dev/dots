@@ -22,8 +22,9 @@
 
     nix.settings = {
       allowed-users = [ "@wheel" ];
-      keep-outputs = true;
-      keep-derivations = true;
+      # no keep-outputs: with it (and keep-derivations, Nix's default) every
+      # build-time input of every live generation stayed out of the GC's
+      # reach. nix-direnv roots its own shells.
       substituters = [ "https://nix-community.cachix.org" ];
       trusted-public-keys = [
         "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="

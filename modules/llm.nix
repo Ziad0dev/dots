@@ -8,11 +8,11 @@
 
 let
   modelDir = "/var/lib/dots/models";
-  # CUDA kernels for the RTX 5060 Ti (sm_120) only. No binary cache carries a
-  # CUDA llama.cpp, so this builds locally; one arch keeps that shorter.
-  llama = (pkgs.llama-cpp.override { cudaSupport = true; }).overrideAttrs (o: {
-    cmakeFlags = (o.cmakeFlags or [ ]) ++ [ "-DCMAKE_CUDA_ARCHITECTURES=120" ];
-  });
+
+  # CUDA build for every GPU generation nixpkgs targets, so nothing here is
+  # tied to one card. The NixOS CUDA cache (nix.settings below) serves it
+  # prebuilt: it's downloaded, never compiled on this machine.
+  llama = pkgs.llama-cpp.override { cudaSupport = true; };
 
   freeGpu = pkgs.writeShellScript "free-gpu" ''
     set -u
@@ -43,19 +43,57 @@ let
     ];
   };
 
+  # One unit per model, all on :8080 but the FIM one. Where layers and MoE
+  # experts go is left to llama-server's --fit (on by default): it sizes them
+  # to the VRAM that's free when the unit starts, so no card size or layer
+  # count is written down here. -c is the context each model is used with.
+  models = {
+    llama-uncensored = {
+      description = "Huihui Qwen3.5-9B abliterated (uncensored general)";
+      file = "Huihui-Qwen3.5-9B-abliterated.Q6_K.gguf";
+      args = "-c 16384 --flash-attn on --jinja";
+    };
+    llama-hermes = {
+      description = "Hermes 4 14B (steerable)";
+      file = "NousResearch_Hermes-4-14B-IQ4_XS.gguf";
+      args = "-c 8192 --flash-attn on --jinja --cache-type-k q8_0 --cache-type-v q8_0";
+    };
+    llama-sec = {
+      description = "WhiteRabbitNeo V3-7B (security)";
+      file = "WhiteRabbitNeo_WhiteRabbitNeo-V3-7B-Q5_K_M.gguf";
+      args = "-c 16384 --flash-attn on --jinja";
+    };
+    llama-agent = {
+      description = "Qwen2.5-Coder-14B (agent / tool-calling)";
+      file = "Qwen2.5-Coder-14B-Instruct-Q4_K_M.gguf";
+      args = "-c 16384 --flash-attn on --jinja";
+    };
+    llama-gemma = {
+      description = "Gemma 4 12B Unified (general / vision / audio)";
+      file = "gemma-4-12B-it-Q4_K_M.gguf";
+      args = "-c 16384 --flash-attn on --jinja --temp 1.0 --top-p 0.95 --top-k 64";
+    };
+    llama-coder = {
+      description = "Gemma 4 26B A4B MoE (coding / agentic)";
+      file = "gemma-4-26B-A4B-it-Q4_K_M.gguf";
+      args = "-c 16384 --flash-attn on --jinja --temp 1.0 --top-p 0.95 --top-k 64 --cache-type-k q8_0 --cache-type-v q8_0";
+    };
+    llama-fim = {
+      description = "Qwen2.5-Coder-3B FIM (llama.vim)";
+      file = "qwen2.5-coder-3b-q8_0.gguf";
+      port = 8012;
+      args = "-c 8192";
+    };
+  };
+
+  # every unit that holds the GPU: one runs at a time, and the user may start
+  # and stop each without sudo (the polkit rule below, with ollama)
+  gpuUnits = [ "llama-cpp" ] ++ builtins.attrNames models;
+
   # a missing model would fail and retry every 5 min until someone notices;
   # skip the start instead (the unit just stays inactive)
   gpuUnit = self: model: {
-    conflicts = lib.filter (n: n != self) [
-      "llama-cpp.service"
-      "llama-uncensored.service"
-      "llama-hermes.service"
-      "llama-sec.service"
-      "llama-agent.service"
-      "llama-gemma.service"
-      "llama-coder.service"
-      "llama-fim.service"
-    ];
+    conflicts = map (u: "${u}.service") (lib.remove self gpuUnits);
     unitConfig = {
       StartLimitBurst = 5;
       ConditionPathExists = model;
@@ -65,6 +103,12 @@ let
   };
 in
 {
+  nix.settings = {
+    extra-substituters = [ "https://cache.nixos-cuda.org" ];
+    extra-trusted-public-keys = [
+      "cache.nixos-cuda.org:74DUi4Ye579gUqzH4ziL9IyiJBlDpMRn9MBN8oNan9M="
+    ];
+  };
 
   services.llama-cpp = {
     enable = true;
@@ -74,133 +118,33 @@ in
       host = "127.0.0.1";
       port = 8080;
       ctx-size = 16384;
-      n-gpu-layers = 99;
       flash-attn = "on";
     };
   };
 
-  systemd.services.llama-cpp = gpuUnit "llama-cpp.service" config.services.llama-cpp.settings.model;
-
-  systemd.services.llama-uncensored =
-    lib.recursiveUpdate
-      (gpuUnit "llama-uncensored.service" "${modelDir}/Huihui-Qwen3.5-9B-abliterated.Q6_K.gguf")
-      {
-        description = "Huihui Qwen3.5-9B abliterated (uncensored general)";
-        serviceConfig = sandbox // {
-          ExecStart = ''
-            ${llama}/bin/llama-server \
-              -m ${modelDir}/Huihui-Qwen3.5-9B-abliterated.Q6_K.gguf \
-              --host 127.0.0.1 --port 8080 \
-              -c 16384 -ngl 99 --flash-attn on --jinja
-          '';
-        };
+  systemd.services = {
+    llama-cpp = gpuUnit "llama-cpp" config.services.llama-cpp.settings.model;
+  }
+  // lib.mapAttrs (
+    name: m:
+    lib.recursiveUpdate (gpuUnit name "${modelDir}/${m.file}") {
+      inherit (m) description;
+      serviceConfig = sandbox // {
+        ExecStart = "${llama}/bin/llama-server -m ${modelDir}/${m.file} --host 127.0.0.1 --port ${toString (m.port or 8080)} ${m.args}";
       };
+    }
+  ) models;
 
-  # 8.1 GB of weights: 8k context with a q8 KV cache keeps it on a 12 GB card
-  # next to the desktop's own VRAM use
-  systemd.services.llama-hermes =
-    lib.recursiveUpdate
-      (gpuUnit "llama-hermes.service" "${modelDir}/NousResearch_Hermes-4-14B-IQ4_XS.gguf")
-      {
-        description = "Hermes 4 14B (steerable)";
-        serviceConfig = sandbox // {
-          ExecStart = ''
-            ${llama}/bin/llama-server \
-              -m ${modelDir}/NousResearch_Hermes-4-14B-IQ4_XS.gguf \
-              --host 127.0.0.1 --port 8080 \
-              -c 8192 -ngl 99 --flash-attn on --jinja \
-              --cache-type-k q8_0 --cache-type-v q8_0
-          '';
-        };
-      };
-
-  systemd.services.llama-sec =
-    lib.recursiveUpdate
-      (gpuUnit "llama-sec.service" "${modelDir}/WhiteRabbitNeo_WhiteRabbitNeo-V3-7B-Q5_K_M.gguf")
-      {
-        description = "WhiteRabbitNeo V3-7B (security)";
-        serviceConfig = sandbox // {
-          ExecStart = ''
-            ${llama}/bin/llama-server \
-              -m ${modelDir}/WhiteRabbitNeo_WhiteRabbitNeo-V3-7B-Q5_K_M.gguf \
-              --host 127.0.0.1 --port 8080 \
-              -c 16384 -ngl 99 --flash-attn on --jinja
-          '';
-        };
-      };
-
-  systemd.services.llama-agent =
-    lib.recursiveUpdate
-      (gpuUnit "llama-agent.service" "${modelDir}/Qwen2.5-Coder-14B-Instruct-Q4_K_M.gguf")
-      {
-        description = "Qwen2.5-Coder-14B (agent / tool-calling)";
-        serviceConfig = sandbox // {
-          ExecStart = ''
-            ${llama}/bin/llama-server \
-              -m ${modelDir}/Qwen2.5-Coder-14B-Instruct-Q4_K_M.gguf \
-              --host 127.0.0.1 --port 8080 \
-              -c 16384 -ngl 99 --flash-attn on --jinja
-          '';
-        };
-      };
-
-  systemd.services.llama-gemma =
-    lib.recursiveUpdate (gpuUnit "llama-gemma.service" "${modelDir}/gemma-4-12B-it-Q4_K_M.gguf")
-      {
-        description = "Gemma 4 12B Unified (general / vision / audio)";
-        serviceConfig = sandbox // {
-          ExecStart = ''
-            ${llama}/bin/llama-server \
-              -m ${modelDir}/gemma-4-12B-it-Q4_K_M.gguf \
-              --host 127.0.0.1 --port 8080 \
-              -c 16384 -ngl 99 --flash-attn on --jinja \
-              --temp 1.0 --top-p 0.95 --top-k 64
-          '';
-        };
-      };
-
-  systemd.services.llama-coder =
-    lib.recursiveUpdate (gpuUnit "llama-coder.service" "${modelDir}/gemma-4-26B-A4B-it-Q4_K_M.gguf")
-      {
-        description = "Gemma 4 26B A4B MoE (coding / agentic)";
-        serviceConfig = sandbox // {
-          ExecStart = ''
-            ${llama}/bin/llama-server \
-              -m ${modelDir}/gemma-4-26B-A4B-it-Q4_K_M.gguf \
-              --host 127.0.0.1 --port 8080 \
-              -c 16384 -ngl 99 --n-cpu-moe 18 --flash-attn on --jinja \
-              --temp 1.0 --top-p 0.95 --top-k 64 \
-              --cache-type-k q8_0 --cache-type-v q8_0
-          '';
-        };
-      };
-
-  systemd.services.llama-fim =
-    lib.recursiveUpdate (gpuUnit "llama-fim.service" "${modelDir}/qwen2.5-coder-3b-q8_0.gguf")
-      {
-        description = "Qwen2.5-Coder-3B FIM (llama.vim)";
-        serviceConfig = sandbox // {
-          ExecStart = ''
-            ${llama}/bin/llama-server \
-              -m ${modelDir}/qwen2.5-coder-3b-q8_0.gguf \
-              --host 127.0.0.1 --port 8012 \
-              -c 8192
-          '';
-        };
-      };
-
+  # By user, not session: ghostty and the Quickshell bar (whose Oracle starts
+  # these) run as systemd user services, outside the login session, where
+  # polkit sees no active session and refused them. The unit list keeps it narrow.
   security.polkit.extraConfig = ''
     polkit.addRule(function(action, subject) {
+      var units = ${builtins.toJSON (map (u: "${u}.service") (gpuUnits ++ [ "ollama" ]))};
       if (action.id == "org.freedesktop.systemd1.manage-units"
-          && subject.local && subject.active && subject.user == "${username}") {
-        var u = action.lookup("unit");
-        if (u == "llama-cpp.service" || u == "llama-uncensored.service"
-            || u == "llama-hermes.service" || u == "llama-sec.service"
-            || u == "llama-agent.service" || u == "llama-gemma.service"
-            || u == "llama-coder.service" || u == "llama-fim.service"
-            || u == "ollama.service") {
-          return polkit.Result.YES;
-        }
+          && subject.user == "${username}"
+          && units.indexOf(action.lookup("unit")) >= 0) {
+        return polkit.Result.YES;
       }
     });
   '';

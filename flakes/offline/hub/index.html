@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Offline</title>
+<style>
+  :root {
+    --bg: #f6f5f1; --fg: #1d1d1b; --muted: #6b6a65; --card: #ffffff;
+    --line: #dddbd3; --accent: #2f6f4f; --warn: #a1452c;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #151614; --fg: #e9e7e1; --muted: #9a988f; --card: #1f201d;
+            --line: #33342f; --accent: #7cc49d; --warn: #e08a6d; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg);
+         font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 960px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font-size: 1.6rem; margin: 0 0 4px; }
+  h2 { font-size: 1.1rem; margin: 32px 0 12px; }
+  p.lede { color: var(--muted); margin: 0 0 24px; }
+  .grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+  a.card { display: block; padding: 16px; border: 1px solid var(--line); border-radius: 10px;
+           background: var(--card); color: inherit; text-decoration: none; }
+  a.card:hover, a.card:focus-visible { border-color: var(--accent); outline: none; }
+  a.card strong { display: block; font-size: 1.05rem; margin-bottom: 4px; color: var(--accent); }
+  a.card span { color: var(--muted); font-size: .9rem; }
+  a.card.off { opacity: .5; pointer-events: none; }
+  .status { padding: 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); }
+  .status ul { margin: 8px 0 0; padding-left: 20px; }
+  .muted { color: var(--muted); }
+  .warn { color: var(--warn); }
+  code, pre { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .85rem; }
+  pre { background: var(--card); border: 1px solid var(--line); border-radius: 8px;
+        padding: 12px; overflow-x: auto; white-space: pre-wrap; word-break: break-all; }
+  ol li { margin-bottom: 12px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Offline</h1>
+  <p class="lede">Knowledge, maps and AI that keep working without the internet.</p>
+
+  <div class="grid">
+    <a class="card" id="library" href="/library/"><strong>Library</strong>
+      <span>Wikipedia, medicine, survival and repair guides, books</span></a>
+    <a class="card" id="maps" href="/maps/"><strong>Maps</strong>
+      <span>The whole planet, every street</span></a>
+    <a class="card" id="ai" href="#"><strong>AI</strong>
+      <span>Local models that can look things up in the library</span></a>
+    <a class="card" id="docs" href="/docs/"><strong>Documents</strong>
+      <span>The crisis brochure (English, svenska), Where There Is No Doctor</span></a>
+    <a class="card" id="apps" href="/apps/"><strong>Phone apps</strong>
+      <span>Install Kiwix, offline maps, Meshtastic and more on a phone</span></a>
+    <a class="card" id="meshtastic" href="#"><strong>Meshtastic</strong>
+      <span>Text messages over a LoRa radio node</span></a>
+    <a class="card" id="cyberchef" href="/cyberchef/"><strong>CyberChef</strong>
+      <span>Encode, decode, decrypt and analyse data</span></a>
+  </div>
+
+  <h2>Status</h2>
+  <div class="status" id="status"><span class="muted">Loading…</span></div>
+
+  <h2>When the internet is gone</h2>
+  <ol id="runbook">
+    <li>From any phone or laptop on the same network (or the tailnet), open this page at
+      <code id="here"></code>. Everything above works offline.</li>
+    <li>To put the apps on a phone, open <em>Phone apps</em> on the phone, tap an app and allow
+      the browser to install apps. Kiwix and CoMaps then work on the phone by themselves:
+      copy books from the library drive, download map regions while there is internet.</li>
+    <li>Rebuild this machine from the offline Nix cache:
+      <pre id="rebuild"></pre></li>
+    <li>Reinstall on a new disk: boot the dots installer, mount this drive where it is mounted now, then
+      <pre id="reinstall"></pre></li>
+    <li>While there is internet, fetch new releases now instead of waiting for the timer:
+      <pre>systemctl start --no-block offline-sync.service offline-archive.service</pre></li>
+  </ol>
+</main>
+<script>
+  "use strict";
+  const gib = (n) => (n / 2 ** 30).toFixed(1) + " GiB";
+  const el = (tag, text, cls) => { const e = document.createElement(tag); e.textContent = text; if (cls) e.className = cls; return e; };
+  document.getElementById("here").textContent = location.origin + "/";
+
+  fetch("config.json").then((r) => r.json()).then((cfg) => {
+    const ai = document.getElementById("ai");
+    if (cfg.aiPort) ai.href = location.protocol + "//" + location.hostname + ":" + cfg.aiPort + "/";
+    else ai.classList.add("off");
+    if (!cfg.maps) document.getElementById("maps").classList.add("off");
+    if (!cfg.library) document.getElementById("library").classList.add("off");
+    if (!cfg.docs) document.getElementById("docs").classList.add("off");
+    if (!cfg.apps) document.getElementById("apps").classList.add("off");
+    const mesh = document.getElementById("meshtastic");
+    if (cfg.meshtasticPort) mesh.href = location.protocol + "//" + location.hostname + ":" + cfg.meshtasticPort + "/";
+    else mesh.classList.add("off");
+    const cache = cfg.nixCache ? "file://" + cfg.nixCache : "<no offline cache configured>";
+    const flake = cfg.flake || "/path/to/dots";
+    document.getElementById("rebuild").textContent =
+      "sudo nixos-rebuild switch --offline --flake " + flake + "#" + cfg.host +
+      " \\\n  --option substituters " + cache + " --option require-sigs false";
+    document.getElementById("reinstall").textContent =
+      "git clone " + (cfg.bundle || "<dots.bundle>") + " /mnt/etc/dots\n" +
+      "nixos-install --flake /mnt/etc/dots#" + cfg.host +
+      " \\\n  --option substituters " + cache + " --option require-sigs false";
+  }).catch(() => {});
+
+  fetch("status.json", { cache: "no-store" }).then((r) => r.json()).then((s) => {
+    const box = document.getElementById("status");
+    box.replaceChildren();
+    const books = s.library || [];
+    const total = books.reduce((n, b) => n + b.bytes, 0);
+    box.append(el("div", books.length + " book(s) in the library, " + gib(total) +
+      (s.maps ? "; planet map from " + s.maps.key.slice(0, 8) : "; planet map not downloaded yet")));
+    if (s.docs || (s.apps || []).length)
+      box.append(el("div", (s.docs || 0) + " document(s), " + (s.apps || []).length + " phone app(s)"));
+    box.append(el("div", "Last sync: " + new Date(s.updated).toLocaleString(), "muted"));
+    if ((s.missing || []).length) {
+      box.append(el("div", s.missing.length + " book(s) still to download:", "warn"));
+      const ul = document.createElement("ul");
+      s.missing.slice(0, 12).forEach((b) => ul.append(el("li", b)));
+      if (s.missing.length > 12) ul.append(el("li", "…and " + (s.missing.length - 12) + " more"));
+      box.append(ul);
+    }
+    const ul = document.createElement("ul");
+    Object.entries(s.disks || {}).forEach(([dir, d]) => ul.append(el("li", dir + ": " + gib(d.free) + " free")));
+    box.append(ul);
+  }).catch(() => {
+    document.getElementById("status").replaceChildren(el("span", "No sync has run yet.", "muted"));
+  });
+</script>
+</body>
+</html>

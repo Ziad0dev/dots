@@ -4,7 +4,8 @@
 (
     address: "127.0.0.1:6600",
     cache_dir: Some("/tmp/rmpc/cache"),
-    lyrics_dir: None,
+    // .lrc files sit next to the songs (written by `music-lyrics`)
+    lyrics_dir: "/mnt/media/music/",
     password: None,
     theme: "occult",
 

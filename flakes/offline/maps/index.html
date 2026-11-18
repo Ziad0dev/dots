@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Offline map</title>
+<link rel="stylesheet" href="lib/maplibre-gl.css">
+<script src="lib/maplibre-gl.js"></script>
+<script src="lib/pmtiles.js"></script>
+<script src="lib/basemaps.js"></script>
+<style>
+  :root { --bg: #fff; --fg: #222; --muted: #666; --line: #999; --hover: #eef3ef; --accent: #2f6f4f; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #1f201d; --fg: #e9e7e1; --muted: #9a988f; --line: #555; --hover: #2c302b; --accent: #7cc49d; }
+  }
+  html, body, #map { margin: 0; height: 100%; }
+  #side { position: absolute; top: 10px; left: 10px; z-index: 1; width: min(340px, calc(100vw - 70px));
+          font: 14px system-ui, sans-serif; color: var(--fg); }
+  #panel { display: flex; gap: 6px; }
+  #panel input, #directions input, #directions select {
+    min-width: 0; flex: 1; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px;
+    background: var(--bg); color: var(--fg); font: inherit; }
+  #side a, #side button { padding: 6px 10px; border: 1px solid var(--line); border-radius: 6px;
+                          background: var(--bg); color: var(--fg); text-decoration: none; cursor: pointer; font: inherit; }
+  #side button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+  .box { margin-top: 6px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); }
+  .results { list-style: none; margin: 0; padding: 0; max-height: 40vh; overflow-y: auto; }
+  .results li { padding: 6px 8px; cursor: pointer; }
+  .results li:hover, .results li:focus { background: var(--hover); outline: none; }
+  .results small, .muted { color: var(--muted); }
+  #directions { padding: 8px; display: grid; gap: 6px; }
+  #directions .row { display: flex; gap: 6px; align-items: center; }
+  #directions .row b { width: 3.2em; color: var(--muted); font-weight: normal; }
+  #summary { font-weight: 600; }
+  #steps { margin: 0; padding-left: 20px; max-height: 35vh; overflow-y: auto; }
+  #steps li { margin-bottom: 4px; }
+  [hidden] { display: none !important; }
+  #note { position: absolute; inset: 0; display: none; place-items: center; text-align: center;
+          font: 16px system-ui, sans-serif; padding: 24px; background: #f4f4f2; color: #333; }
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div id="side">
+  <form id="panel">
+    <a href="/" title="Back to the hub">←</a>
+    <input id="go" placeholder="lat, lon  (e.g. 48.86, 2.35)" aria-label="Search" autocomplete="off">
+    <button type="button" id="routeToggle" hidden aria-pressed="false" title="Directions">↱</button>
+  </form>
+  <ul class="results box" id="found" hidden></ul>
+  <div class="box" id="directions" hidden>
+    <div class="row"><b>From</b><input id="from" placeholder="search, or click the map" autocomplete="off"></div>
+    <ul class="results box" id="fromFound" hidden></ul>
+    <div class="row"><b>To</b><input id="to" placeholder="search, or click the map" autocomplete="off"></div>
+    <ul class="results box" id="toFound" hidden></ul>
+    <div class="row"><b>By</b>
+      <select id="mode">
+        <option value="auto">car</option>
+        <option value="bicycle">bicycle</option>
+        <option value="pedestrian">foot</option>
+      </select>
+      <button type="button" id="swap" title="Swap start and end">⇅</button>
+    </div>
+    <div id="summary" aria-live="polite"></div>
+    <ol id="steps"></ol>
+  </div>
+</div>
+<div id="note">The planet map hasn't been downloaded yet.<br>
+  It arrives with the next <code>offline-sync</code> run.</div>
+<script>
+  "use strict";
+  // No starting place is built in: the map opens on the whole world, then on
+  // wherever this browser last left it.
+  const base = new URL(".", location.href).href;
+  const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+  const flavor = dark ? "dark" : "light";
+  const lang = (navigator.language || "en").slice(0, 2);
+  const $ = (id) => document.getElementById(id);
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem("offline-map-view")); } catch (e) {}
+
+  const protocol = new pmtiles.Protocol();
+  maplibregl.addProtocol("pmtiles", protocol.tile);
+
+  fetch("data/planet.pmtiles", { method: "HEAD" }).then((r) => {
+    if (!r.ok) $("note").style.display = "grid";
+  }).catch(() => { $("note").style.display = "grid"; });
+
+  const map = new maplibregl.Map({
+    container: "map",
+    hash: true,
+    center: saved ? saved.center : [0, 20],
+    zoom: saved ? saved.zoom : 1.5,
+    style: {
+      version: 8,
+      glyphs: base + "assets/fonts/{fontstack}/{range}.pbf",
+      sprite: base + "assets/sprites/v4/" + flavor,
+      sources: {
+        protomaps: {
+          type: "vector",
+          url: "pmtiles://" + base + "data/planet.pmtiles",
+          attribution: '<a href="https://openstreetmap.org/copyright">© OpenStreetMap</a>',
+        },
+      },
+      layers: basemaps.layers("protomaps", basemaps.namedFlavor(flavor), { lang }),
+    },
+  });
+  map.addControl(new maplibregl.NavigationControl(), "top-right");
+  map.addControl(new maplibregl.ScaleControl({ unit: "metric" }));
+  map.addControl(new maplibregl.GeolocateControl({ trackUserLocation: true }), "top-right");
+  map.on("moveend", () => {
+    try {
+      localStorage.setItem("offline-map-view",
+        JSON.stringify({ center: map.getCenter().toArray(), zoom: map.getZoom() }));
+    } catch (e) {}
+  });
+
+  const coords = (text) => {
+    const m = text.match(/^\s*(-?\d+(?:\.\d+)?)[ ,;]+(-?\d+(?:\.\d+)?)\s*$/);
+    return m ? [parseFloat(m[2]), parseFloat(m[1])] : null;
+  };
+
+  // --- place search (Photon, through the hub at /nav) ----------------------
+  let navigation = false;
+  let navRegions = [];
+  let searched = null;  // the last place found, [lng, lat]
+  const marker = new maplibregl.Marker({ color: "#2f6f4f" });
+
+  const label = (p) => {
+    const name = p.name || [p.street, p.housenumber].filter(Boolean).join(" ") || p.city || "";
+    const where = [p.city !== name ? p.city : null, p.county, p.country].filter(Boolean).join(", ");
+    return { name, where };
+  };
+
+  async function search(q) {
+    const c = map.getCenter();
+    const params = new URLSearchParams({ q, limit: "6", lat: c.lat.toFixed(4), lon: c.lng.toFixed(4) });
+    if (lang === "sv" || lang === "en") params.set("lang", lang);
+    const r = await fetch("/nav/search?" + params);
+    if (!r.ok) throw new Error("search " + r.status);
+    return (await r.json()).features || [];
+  }
+
+  async function nameOf(lngLat) {
+    try {
+      const r = await fetch("/nav/reverse?" + new URLSearchParams({ lat: lngLat[1], lon: lngLat[0], limit: "1" }));
+      const f = ((await r.json()).features || [])[0];
+      if (f) return label(f.properties).name || label(f.properties).where;
+    } catch (e) {}
+    return lngLat[1].toFixed(5) + ", " + lngLat[0].toFixed(5);
+  }
+
+  // A search box: suggestions while typing, `pick` with [lng, lat] and a name.
+  function searchBox(input, list, pick) {
+    let timer = null, seq = 0;
+    const close = () => { list.hidden = true; list.replaceChildren(); };
+    input.addEventListener("input", () => {
+      clearTimeout(timer);
+      const q = input.value.trim();
+      if (!navigation || q.length < 2 || coords(q)) { close(); return; }
+      timer = setTimeout(async () => {
+        const mine = ++seq;
+        let found = [];
+        try { found = await search(q); } catch (e) { close(); return; }
+        if (mine !== seq) return;
+        list.replaceChildren();
+        for (const f of found) {
+          const { name, where } = label(f.properties);
+          const li = document.createElement("li");
+          li.tabIndex = 0;
+          li.append(name || where, " ");
+          const small = document.createElement("small");
+          small.textContent = where;
+          li.append(small);
+          const choose = () => { close(); input.value = name || where; pick(f.geometry.coordinates, name || where, f.properties.extent); };
+          li.addEventListener("click", choose);
+          li.addEventListener("keydown", (e) => { if (e.key === "Enter") choose(); });
+          list.append(li);
+        }
+        list.hidden = found.length === 0;
+      }, 250);
+    });
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") close();
+      if (e.key === "ArrowDown" && list.firstChild) { e.preventDefault(); list.firstChild.focus(); }
+    });
+    return close;
+  }
+
+  const show = (lngLat, extent) => {
+    searched = lngLat;
+    marker.setLngLat(lngLat).addTo(map);
+    if (extent) map.fitBounds([[extent[0], extent[3]], [extent[2], extent[1]]], { maxZoom: 16, padding: 40 });
+    else map.flyTo({ center: lngLat, zoom: 15 });
+  };
+  const closeFound = searchBox($("go"), $("found"), (lngLat, name, extent) => show(lngLat, extent));
+
+  $("panel").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const q = $("go").value.trim();
+    const c = coords(q);
+    if (c) { closeFound(); show(c); return; }
+    if (!navigation || !q) return;
+    try {
+      const f = (await search(q))[0];
+      if (f) { closeFound(); show(f.geometry.coordinates, f.properties.extent); }
+    } catch (e) {}
+  });
+
+  // --- directions (Valhalla, through the hub at /nav) ----------------------
+  const ends = { from: null, to: null };
+  const pins = { from: new maplibregl.Marker({ color: "#2f6f4f" }), to: new maplibregl.Marker({ color: "#a1452c" }) };
+
+  // Valhalla's shapes: polylines with six decimals
+  function decode(str) {
+    const out = [];
+    let i = 0, lat = 0, lng = 0;
+    while (i < str.length) {
+      for (const which of [0, 1]) {
+        let shift = 0, result = 0, b;
+        do { b = str.charCodeAt(i++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
+        const delta = result & 1 ? ~(result >> 1) : result >> 1;
+        if (which === 0) lat += delta; else lng += delta;
+      }
+      out.push([lng / 1e6, lat / 1e6]);
+    }
+    return out;
+  }
+
+  const setRoute = (coordinates) => {
+    const data = { type: "Feature", geometry: { type: "LineString", coordinates }, properties: {} };
+    const src = map.getSource("route");
+    if (src) { src.setData(data); return; }
+    map.addSource("route", { type: "geojson", data });
+    map.addLayer({ id: "route", type: "line", source: "route",
+      layout: { "line-cap": "round", "line-join": "round" },
+      paint: { "line-color": dark ? "#7cc49d" : "#2f6f4f", "line-width": 6, "line-opacity": 0.85 } });
+  };
+
+  async function route() {
+    $("summary").textContent = "";
+    $("steps").replaceChildren();
+    if (!ends.from || !ends.to) return;
+    $("summary").textContent = "Finding a route…";
+    const body = {
+      locations: [ends.from, ends.to].map(([lon, lat]) => ({ lon, lat })),
+      costing: $("mode").value,
+      directions_options: { units: "kilometers", language: lang === "sv" ? "sv-SE" : "en-US" },
+    };
+    try {
+      const r = await fetch("/nav/route", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      const d = await r.json();
+      if (!r.ok || !d.trip) throw new Error(d.error || "no route");
+      const leg = d.trip.legs[0];
+      const line = decode(leg.shape);
+      setRoute(line);
+      const s = d.trip.summary;
+      const min = Math.round(s.time / 60);
+      $("summary").textContent = s.length.toFixed(1) + " km · " +
+        (min >= 60 ? Math.floor(min / 60) + " h " + (min % 60) + " min" : min + " min");
+      for (const m of leg.maneuvers) $("steps").append(Object.assign(document.createElement("li"), { textContent: m.instruction }));
+      const bounds = line.reduce((b, p) => b.extend(p), new maplibregl.LngLatBounds(line[0], line[0]));
+      map.fitBounds(bounds, { padding: 60 });
+    } catch (e) {
+      $("summary").textContent = "No route: " + e.message + " (directions cover " +
+        (navRegions.map((r) => r.split("/").pop()).join(", ") || "the configured regions") + ")";
+    }
+  }
+
+  const setEnd = (which, lngLat, name) => {
+    ends[which] = lngLat;
+    pins[which].setLngLat(lngLat).addTo(map);
+    if (name !== undefined) $(which).value = name;
+    route();
+  };
+  searchBox($("from"), $("fromFound"), (lngLat, name) => setEnd("from", lngLat, name));
+  searchBox($("to"), $("toFound"), (lngLat, name) => setEnd("to", lngLat, name));
+  $("mode").addEventListener("change", route);
+  $("swap").addEventListener("click", () => {
+    [ends.from, ends.to] = [ends.to, ends.from];
+    [$("from").value, $("to").value] = [$("to").value, $("from").value];
+    for (const w of ["from", "to"]) { if (ends[w]) pins[w].setLngLat(ends[w]).addTo(map); else pins[w].remove(); }
+    route();
+  });
+
+  // with directions open, a click on the map sets the start, then the end
+  map.on("click", async (e) => {
+    if ($("directions").hidden) return;
+    const which = !ends.from ? "from" : !ends.to ? "to" : "to";
+    const lngLat = [e.lngLat.lng, e.lngLat.lat];
+    setEnd(which, lngLat, "…");
+    $(which).value = await nameOf(lngLat);
+  });
+
+  $("routeToggle").addEventListener("click", () => {
+    const open = $("directions").hidden;
+    $("directions").hidden = !open;
+    $("routeToggle").setAttribute("aria-pressed", String(open));
+    if (open) {
+      closeFound();
+      // the place just searched for is where to go
+      if (!ends.to && searched) setEnd("to", searched, $("go").value);
+      $("from").focus();
+    }
+  });
+
+  fetch("/config.json").then((r) => r.json()).then((cfg) => {
+    if (!cfg.navigation) return;
+    navigation = true;
+    $("go").placeholder = "Search a place, or lat, lon";
+    $("routeToggle").hidden = false;
+  }).catch(() => {});
+  fetch("/status.json", { cache: "no-store" }).then((r) => r.json()).then((s) => {
+    if (s.navigation) navRegions = s.navigation.regions;
+  }).catch(() => {});
+</script>
+</body>
+</html>

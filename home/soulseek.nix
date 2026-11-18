@@ -73,6 +73,39 @@ let
     '';
   };
 
+  # Files what beets doesn't know yet, then fills in cover art and lyrics for
+  # the whole library. Safe to rerun: each step skips what's already done.
+  music-tidy = pkgs.writeShellApplication {
+    name = "music-tidy";
+    runtimeInputs = [
+      config.programs.beets.package
+      pkgs.util-linux
+    ];
+    text = ''
+      lock="''${XDG_RUNTIME_DIR:-/tmp}/slsk-import.lock" # one beets run at a time
+      lib="${config.xdg.dataHome}/beets/library.db"
+      exec 9>"$lock"
+      flock 9
+
+      echo "== filing music beets doesn't know yet"
+      # `unimported` ignores beets' `ignore` list: leave the compilations alone here
+      mapfile -t dirs < <(beet unimported | grep -v '^${config.programs.beets.settings.directory}/playlists/' |
+        xargs -r -d '\n' dirname | sort -u)
+      if [ "''${#dirs[@]}" -gt 0 ]; then
+        # MusicBrainz where the match is clear, the files' own tags otherwise
+        beet import -q --quiet-fallback=asis "''${dirs[@]}" </dev/null || true
+      fi
+
+      echo "== cover art: fetch what's missing, put it in the files"
+      beet fetchart -q || true
+      beet embedart -y || true
+
+      echo "== lyrics"
+      beet lyrics || true
+      ${python}/bin/python3 ${../scripts/music-lyrics.py} "$lib"
+    '';
+  };
+
   music-fill = pkgs.writeShellApplication {
     name = "music-fill";
     runtimeInputs = [
@@ -217,6 +250,7 @@ in
     pkgs.mp3val
     album-doctor
     music-fill
+    music-tidy
     music-scout
     slsk-import
     slsk-search
@@ -282,10 +316,15 @@ in
         "edit"
         "info"
         "mbsync"
+        "lyrics"
+        "embedart"
       ];
       ignore = [
         ".*"
         "*~"
+        # the compilations in music/playlists are kept as they are, not split
+        # up by artist
+        "playlists"
         "System Volume Information"
         "lost+found"
         "*.part"
@@ -355,7 +394,25 @@ in
           "album"
         ];
       };
+      # timed lyrics from LRCLIB first (Tauon, rmpc and the bar scroll them),
+      # plain ones from Genius otherwise; never replace timed lyrics a file has
+      lyrics = {
+        auto = true;
+        synced = true;
+        keep_synced = true;
+        sources = [
+          "lrclib"
+          "genius"
+        ];
+      };
+      # the cover goes into the files too (players that don't read cover.jpg,
+      # phones, Jellyfin), but never over art a file already carries
+      embedart = {
+        auto = true;
+        ifempty = true;
+      };
       unimported.ignore_extensions = [
+        "lrc"
         "jpg"
         "jpeg"
         "png"

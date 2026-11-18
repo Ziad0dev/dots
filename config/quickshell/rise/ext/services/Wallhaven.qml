@@ -60,6 +60,17 @@ Singleton {
     // No fetch at startup: the wallpaper picker asks when its Wallhaven tab
     // is first opened.
 
+    function largestScreen() {
+        let best = null
+        for (let i = 0; i < Quickshell.screens.length; i++) {
+            const s = Quickshell.screens[i]
+            const w = Math.round(s.width * s.devicePixelRatio)
+            const h = Math.round(s.height * s.devicePixelRatio)
+            if (w > 0 && h > 0 && (!best || w * h > best.w * best.h)) best = { w: w, h: h }
+        }
+        return best ? best.w + "x" + best.h : ""
+    }
+
     function buildWallhavenUrl(page) {
         const p = []
         p.push("categories=" + SettingsConfig.wallhavenCategories)
@@ -68,8 +79,11 @@ Singleton {
         p.push("order="      + SettingsConfig.wallhavenOrder)
         if (SettingsConfig.wallhavenSorting === "toplist")
             p.push("topRange=" + SettingsConfig.wallhavenTopRange)
-        if (SettingsConfig.wallhavenAtleast.length > 0)
-            p.push("atleast=" + SettingsConfig.wallhavenAtleast)
+        // rise: no resolution written into the settings defaults; unset means
+        // at least the largest screen, in physical pixels
+        const atleast = SettingsConfig.wallhavenAtleast || root.largestScreen()
+        if (atleast.length > 0)
+            p.push("atleast=" + atleast)
         if (SettingsConfig.wallhavenRatios.length > 0)
             p.push("ratios=" + SettingsConfig.wallhavenRatios)
         if (currentSearchText.length > 0)

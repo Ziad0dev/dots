@@ -58,6 +58,12 @@ The bar's update indicator comes from two shims: `dots-updates` compares the loc
 2. No legacy `hyprctl dispatch …` strings under `config/` — they exit 0 and silently do nothing under the Lua config.
 3. `nix eval` of every output that produces an activation package. It also refuses any tracked `secrets/*` file that is not SOPS ciphertext.
 4. `statix check .` (config in `statix.toml`: `repeated_keys` and `empty_pattern` disabled, `templates/` ignored) and `deadnix --fail -L --exclude templates .`.
+5. `scripts/privacy-check.sh`: no tracked file names the machines' hardware (GPU/CPU/drive models, memory sizes, serial numbers, monitor modes). A line that has to can end in `privacy: allow`.
+6. `scripts/command-check.py`: every program the bar's QML and the Hyprland binds run is installed by the configuration being committed (it builds the desktop's system and user profiles; skipped in CI and on machines without the bar). A deliberately optional one goes in its `OPTIONAL` list or behind `command -v`.
+7. `scripts/docs-check.py`: every repo path in backticks in `docs/` and `README.md` exists, and every bare file name ending in .nix or .qml is a file somewhere in the repo.
+8. `nixfmt --check` on every tracked `.nix` file (as the security audit does), and the evals above run with `abort-on-warn`, so a renamed option fails the commit.
+
+The commit-msg hook runs the same privacy check on the commit message.
 
 `git commit --no-verify` skips it when you're committing a known-broken WIP.
 

@@ -1,30 +1,13 @@
-{
-  pkgs,
-  inputs,
-  system,
-  ...
-}:
+{ pkgs, ... }:
 
-let
-  zls = inputs.zls.packages.${system}.zls.overrideAttrs (old: {
-    preCheck = (old.preCheck or "") + ''
-      # Zig lazily compiles translate-c on first use; warm the test cache so
-      # ZLS's cimport test stays within its 90-second timeout.
-      mkdir -p .zig-cache/zls
-      printf 'void zls_check_warmup(int);\n' > .translate-c-warmup.h
-      zig translate-c \
-        --zig-lib-dir ${pkgs.zigpkgs."0.16.0"}/lib \
-        --cache-dir .zig-cache/zls \
-        --global-cache-dir .zig-cache/zls \
-        -lc .translate-c-warmup.h > /dev/null
-      rm .translate-c-warmup.h
-    '';
-  });
-in
 {
   environment.systemPackages = with pkgs; [
     zigpkgs."0.16.0"
-    zls
+    # nixpkgs' zls for the 0.16 series: prebuilt, and it finds the zig above
+    # on PATH. The zls flake's build ran its test suite locally (with a
+    # warm-up hack to stay under a test timeout) and carried a second copy
+    # of Zig 0.16.0 in its closure.
+    zls_0_16
 
     nixd
     lua-language-server

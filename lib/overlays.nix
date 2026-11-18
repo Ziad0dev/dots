@@ -1,9 +1,10 @@
 { inputs }:
 
+# ghostty comes from nixpkgs (prebuilt on cache.nixos.org). The upstream
+# flake's build was never in any configured cache, so every bump compiled it
+# with Zig locally, and its output kept references to the Zig compiler and
+# its package cache: a 3.2 GiB closure against 0.9 GiB for the same release.
 [
-  (final: _prev: {
-    ghostty = inputs.ghostty.packages.${final.stdenv.hostPlatform.system}.default;
-  })
   inputs.zig-overlay.overlays.default
   inputs.obsidian-extensions.overlays.default
   (final: _prev: {

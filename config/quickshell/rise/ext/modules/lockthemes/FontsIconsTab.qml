@@ -68,9 +68,10 @@ Item {
         setProc.running = true;
     }
 
+    // rise: dots-appearance (home/desktop-tools.nix) is on the bar's PATH. The
+    // old fallback ran scripts/ under $DOTS_DIR, which holds only config/.
     function cmd(args) {
-        return ["sh", "-c", "if command -v dots-appearance >/dev/null 2>&1; then exec dots-appearance \"$@\"; fi; "
-            + "exec bash \"${DOTS_DIR:-$HOME/dots}/scripts/dots-appearance.sh\" \"$@\"", "sh"].concat(args);
+        return ["dots-appearance"].concat(args);
     }
 
     function parse(text) {

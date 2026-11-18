@@ -12,9 +12,6 @@ let
   isPassive = cpuProfile == "passive";
   isMax = cpuProfile == "max";
   usesPPD = cpuProfile == "responsive";
-
-  pl1Watts = 65;
-  pl2Watts = 117;
 in
 {
 
@@ -85,6 +82,11 @@ in
   # choice persists across reboots in /var/lib/power-profiles-daemon.
   services.power-profiles-daemon.enable = usesPPD;
 
+  # RAPL package limits at boot. The sustained limit (PL1) is the one the CPU
+  # reports as its own rating, so no part number or wattage is written in
+  # this public repo. A machine-local /var/lib/dots/cpu-power-limit.env
+  # (PL1_WATTS=…, PL2_WATTS=…) overrides PL1 and is the only source of PL2;
+  # without it the boost limit stays as the firmware set it.
   systemd.services.cpu-power-limit = {
     description = "Set RAPL package power limits";
     wantedBy = [ "multi-user.target" ];
@@ -95,11 +97,22 @@ in
       PrivateNetwork = true;
       ProtectKernelTunables = false;
       RestrictAddressFamilies = [ "AF_UNIX" ];
+      EnvironmentFile = "-/var/lib/dots/cpu-power-limit.env";
     };
     script = ''
       for d in /sys/class/powercap/intel-rapl:0 /sys/class/powercap/intel-rapl-mmio:0; do
-        [ -w "$d/constraint_0_power_limit_uw" ] && echo ${toString (pl1Watts * 1000000)} > "$d/constraint_0_power_limit_uw"
-        [ -w "$d/constraint_1_power_limit_uw" ] && echo ${toString (pl2Watts * 1000000)} > "$d/constraint_1_power_limit_uw"
+        [ -d "$d" ] || continue
+        if [ -n "''${PL1_WATTS:-}" ]; then
+          pl1=$((PL1_WATTS * 1000000))
+        else
+          pl1=$(cat "$d/constraint_0_max_power_uw" 2>/dev/null || echo 0)
+        fi
+        if [ "$pl1" -gt 0 ] && [ -w "$d/constraint_0_power_limit_uw" ]; then
+          echo "$pl1" > "$d/constraint_0_power_limit_uw"
+        fi
+        if [ -n "''${PL2_WATTS:-}" ] && [ -w "$d/constraint_1_power_limit_uw" ]; then
+          echo $((PL2_WATTS * 1000000)) > "$d/constraint_1_power_limit_uw"
+        fi
       done
       exit 0
     '';

@@ -24,7 +24,7 @@ in
     options = backupOpts;
   };
 
-  # Spare 2 TB ext4 drive (WDC WD2003FZEX, label pool1): general storage.
+  # Spare ext4 drive (label pool1): general storage.
   # ext4 keeps real ownership, so unlike the exFAT drives it needs no
   # uid/umask options; nofail + automount so a missing drive never blocks boot.
   fileSystems."/mnt/pool1" = {

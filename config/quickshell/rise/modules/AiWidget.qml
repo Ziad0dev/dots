@@ -47,14 +47,18 @@ Item {
     // ── process detection ──
     Process {
         id: detectClaude
-        // Nix wraps the binary, so the process is ".claude-wrapped"; skip the Chrome native host
-        command: ["bash", "-c", "pgrep -ax '\\.?claude(-wrapped)?' | grep -qv -- --chrome-native-host && echo 1 || echo 0"]
+        // Nix wraps the binary, so the process is ".claude-wrapped"; the Chrome
+        // native host runs the same binary and is skipped. pgrep alone, no shell.
+        command: ["pgrep", "-ax", "\\.?claude(-wrapped)?"]
         stdout: StdioCollector {
-            onStreamFinished: rootMod.clActive = String(this.text || "").trim() === "1"
+            onStreamFinished: rootMod.clActive = String(this.text || "").split("\n")
+                .some(l => l.trim() !== "" && l.indexOf("--chrome-native-host") < 0)
         }
     }
     Timer {
-        interval: 5000; running: root.modAi || root.aiUsageVisible; repeat: true; triggeredOnStart: true
+        // each check scans /proc (~25 ms of CPU); a usage pill needn't know
+        // within 5 s, and its numbers only refresh every 10 min anyway
+        interval: 15000; running: root.modAi || root.aiUsageVisible; repeat: true; triggeredOnStart: true
         onTriggered: { detectClaude.running = false; detectClaude.running = true }
     }
 

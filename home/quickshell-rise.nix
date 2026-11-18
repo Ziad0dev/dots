@@ -238,6 +238,7 @@ in
     vpn
     voxtype
     pkgs.wtype
+    pkgs.iw # the network pill's SSID probe
     dotsShims
     pkgs.cava
     pkgs.pulseaudio
@@ -272,8 +273,10 @@ in
       PartOf = [ "hyprland-session.target" ];
       # quickshell is the tray's StatusNotifierWatcher: a restart on every
       # switch drops apps that only register at startup (Discord/Electron).
-      # The QML live-reloads from ~/dots; after a package/env change run
-      # `systemctl --user restart quickshell` by hand.
+      # With dots.liveConfig the QML live-reloads from the checkout. In pure
+      # mode (the default) the bar keeps watching the previous generation's
+      # store files, so QML changes, like package/env changes, show only
+      # after `systemctl --user restart quickshell`.
       X-RestartIfChanged = false;
     };
     Service = {
@@ -307,7 +310,9 @@ in
       # rise/ext keeps its settings here and its caches (palettes, favourites,
       # lock stats) under ~/.cache/quickshell; FileView won't create folders
       ExecStartPre = "${pkgs.coreutils}/bin/mkdir -p %S/dots/shell/ext %C/quickshell";
-      ExecStart = lib.mkForce "${thpOff}/bin/thp-off ${config.programs.quickshell.package}/bin/quickshell --config rise";
+      # tray apps and MPRIS players with broken D-Bus properties logged a
+      # warning on every update (~80 an hour); nothing here can act on them
+      ExecStart = lib.mkForce "${thpOff}/bin/thp-off ${config.programs.quickshell.package}/bin/quickshell --config rise --log-rules quickshell.dbus.properties.warning=false";
       # soft backstop: the bar idles at ~300–450 MB; past this the kernel
       # reclaims/throttles the cgroup instead of letting a runaway helper (a
       # thumbnail batch, a leak) push the whole session into swap

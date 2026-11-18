@@ -246,7 +246,9 @@ Scope {
                     anchors.fill: parent
                     visible: false
                     sourceItem: anim.running ? win.front : null
-                    textureSize: Qt.size(width * win.modelData.devicePixelRatio, height * win.modelData.devicePixelRatio)
+                    // rise: modelData goes null while a removed screen's window
+                    // is torn down (a TypeError in the journal); 0x0 = item size
+                    textureSize: win.modelData ? Qt.size(width * win.modelData.devicePixelRatio, height * win.modelData.devicePixelRatio) : Qt.size(0, 0)
                 }
 
                 ShaderEffectSource {

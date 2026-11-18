@@ -22,17 +22,13 @@ SDDM (kwin greeter, dots theme)
 
 Defined at the top of `config/hypr/hyprland.lua` in `monitorProfiles`:
 
-| Output | Mode | Position | Notes |
-|---|---|---|---|
-| `DP-1` | 2560×1440 @ 239.97 | `0x0` | ASUS XG27AQDMG OLED; 10-bit, `cm = "hdr"`, panel luminance values |
-| `HDMI-A-1` | 1920×1080 @ 60 | right of DP-1 | portrait (`transform = 3`) |
-| anything else | preferred | auto | fallback rule |
+Monitor profiles (exact mode, position, rotation, HDR calibration) belong to one machine, so they stay out of the repo: `config/hypr/modules/10-monitors.lua` loads them from `~/.config/dots-local/hypr/monitors.lua`, a Lua file returning a list of `hl.monitor()` tables. An output without a profile gets its preferred mode, placed automatically. The sway session reads its `output` lines from `~/.config/dots-local/sway/outputs.conf` the same way.
 
 A `monitor.added` handler re-applies the matching profile when a display reconnects.
 
 Workspaces 1–8 and 10 live on DP-1; 9 is pinned to HDMI-A-1 and persistent.
 
-HDR: the profile runs DP-1 in 10-bit HDR permanently. That costs compositor CPU on the desktop; if Hyprland starts pegging a core, drop `bitdepth` / `cm` / luminance from the profile and pin `cm = "srgb"` — see [Troubleshooting](troubleshooting.md#hyprland-uses-a-lot-of-cpu).
+HDR: a profile with `bitdepth = 10` and `cm = "hdr"` keeps that output in HDR permanently. That costs compositor CPU on the desktop; if Hyprland starts pegging a core, drop `bitdepth` / `cm` / luminance from the local profile and pin `cm = "srgb"` — see [Troubleshooting](troubleshooting.md#hyprland-uses-a-lot-of-cpu).
 
 ## Input
 

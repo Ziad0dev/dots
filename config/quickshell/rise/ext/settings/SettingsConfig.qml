@@ -63,7 +63,8 @@ Singleton {
             property string wallhavenSorting: "toplist"
             property string wallhavenOrder: "desc"
             property string wallhavenTopRange: "1M"
-            property string wallhavenAtleast: "2560x1440"
+            // rise: empty = at least the largest screen (services/Wallhaven.qml)
+            property string wallhavenAtleast: ""
             property string wallhavenRatios: ""
         }
     }

@@ -46,7 +46,7 @@ The package test for the system list: root needs it, a system service needs it, 
 | `"max"` | `performance` governor |
 | `"passive"` | `intel_pstate=passive` + schedutil — the only mode where a sched_ext scheduler's frequency hints reach a governor |
 
-`cpu-power-limit` sets RAPL PL1/PL2 from `pl1Watts` / `pl2Watts` (65 / 117 W) at boot.
+`cpu-power-limit` sets RAPL PL1 at boot to the sustained limit the CPU reports as its own rating. A machine-local `/var/lib/dots/cpu-power-limit.env` (`PL1_WATTS=…`, `PL2_WATTS=…`, not in the repo) overrides PL1 and is the only source of PL2.
 
 ### Desktop
 
@@ -82,12 +82,12 @@ Per-user: MangoHud in `home/gaming-home.nix` (hidden by default, `Right Shift + 
 
 | Module | Owns | Details |
 |---|---|---|
-| `media.nix` | Jellyfin (NVENC), Radarr, Sonarr, Tailscale, the 10 TB `/mnt/media` mount, `media` group (gid 3000) | [Services](services.md#media) |
+| `media.nix` | Jellyfin (NVENC), Radarr, Sonarr, Tailscale, the `/mnt/media` mount, `media` group (gid 3000) | [Services](services.md#media) |
 | `media-extras.nix` | Audiobookshelf, calibre-web, whisper-cpp | [Services](services.md#media) |
 | `vpn.nix` | WireGuard namespace `wg`; qBittorrent, Prowlarr, FlareSolverr confined to it | [Services](services.md#vpn-namespace) |
 | `mullvad.nix` | Mullvad daemon + GUI for the host; systemd-resolved with LLMNR off | |
 | `lan.nix` | Jellyfin ports on the LAN interface only | |
-| `llm.nix` | Eight llama.cpp units (CUDA, sm_120), mutually exclusive, user-startable without sudo | [Services](services.md#local-llms) |
+| `llm.nix` | Eight llama.cpp units (CUDA, prebuilt from the NixOS CUDA cache; `--fit` places layers in free VRAM), mutually exclusive, user-startable without sudo | [Services](services.md#local-llms) |
 | `ollama.nix` | Ollama (Vulkan) on `127.0.0.1:11434`, Qwen3.5 9B, Qwen2.5-Coder 14B + 7B, Devstral Small 2 24B, starts at boot, loads models on demand | [Services](services.md#local-llms) |
 | `backup.nix` | Daily restic of `$HOME`, quiesced media/download application state and the Secure Boot keys to `/mnt/backup/restic-new` | [Services](services.md#backups) |
 | `arr-automation.nix` | Clears stale *arr indexer backoff at boot and once the VPN path works again, a daily backlog search, and the `arr-status` command | [Services](services.md#vpn-namespace) |

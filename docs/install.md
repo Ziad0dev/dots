@@ -39,9 +39,9 @@ The desktop output is built for one box. On anything else, go through this list 
 | `modules/storage.nix`, `modules/media.nix` | Independent exFAT backup and media drives by UUID | `nofail`, so missing drives don't block boot; confirm each UUID still belongs to the intended drive |
 | `hosts/nixos/configuration.nix` | `dots.lanInterface = "enp5s0"` | Jellyfin, Soulseek, and mDNS ports are opened on this interface only |
 | `hosts/nixos/configuration.nix` | `dots.recording.monitor = "DP-1"` | Replay buffer captures nothing if the output doesn't exist (manual recordings take the focused output) |
-| `modules/performance.nix` | `cpuProfile`, `pl1Watts` / `pl2Watts` | Intel RAPL limits for a 12400F |
-| `config/hypr/hyprland.lua` | `monitorProfiles`, workspace → monitor rules | Unknown outputs fall back to `preferred/auto` |
-| `home/profiles/linux-desktop.nix` | MPD `hw:CARD=G30`, udiskie ignore list | Bit-perfect DAC output, drive UUIDs |
+| `modules/performance.nix` | `cpuProfile` | RAPL PL1 comes from the CPU's own rating; `/var/lib/dots/cpu-power-limit.env` (`PL1_WATTS`, `PL2_WATTS`, not in the repo) overrides it |
+| `~/.config/dots-local/hypr/monitors.lua` (not in the repo); workspace → monitor rules in `config/hypr` | monitor profiles | Outputs without a profile fall back to `preferred/auto` |
+| `~/.config/dots-local/mpd.conf`, `~/.config/wireplumber/wireplumber.conf.d/` (not in the repo); udiskie ignore list in `home/profiles/linux-desktop.nix` | DAC output and profile, drive UUIDs | |
 | `modules/vpn.nix` | qBittorrent `AuthSubnetWhitelist`, Mullvad DNS | |
 | `modules/hello-page.nix` | expects `~/the-page/{data.db,config.json,content}` | Skipped (`ConditionPathExists`) when the database isn't there; code ships in `pkgs/hello-page` |
 
@@ -76,7 +76,7 @@ The first activation renders `dots.theme` (oxocarbon), so the session starts the
 ```nix
 imports = [
   inputs.disko.nixosModules.disko
-  (import ../../lib/disko.nix { device = "/dev/disk/by-id/nvme-<model>_<serial>"; impermanence = true; })
+  (import ../../lib/disko.nix { device = "/dev/disk/by-path/pci-<address>-nvme-1"; impermanence = true; })
 ];
 ```
 
@@ -93,7 +93,7 @@ Hosts in `dots.installer.onlineHosts` (the desktop) carry only their disk layout
 
 ### Reinstalling the desktop
 
-The system disk lives in `hosts/nixos/disk.nix`. Today it describes the existing hand-made install (`useDisko = false`, UUIDs). For a reinstall it switches to `lib/disko.nix` on the Kingston NVMe by its `/dev/disk/by-id` name: ESP, a random-key 17G swap, LUKS2 `cryptroot` with btrfs `/`, `/home`, `/nix`. Partitions are found by partlabel, so nothing in the config changes from one install to the next, and the Windows disk is never described, so it is never touched.
+The system disk lives in `hosts/nixos/disk.nix`. Today it describes the existing hand-made install (`useDisko = false`, UUIDs). For a reinstall it switches to `lib/disko.nix` on the system NVMe by its `/dev/disk/by-path` name (the slot; a by-id name would publish the drive's model and serial): ESP, LUKS2 `cryptroot` with btrfs `/`, `/home`, `/nix`; swap is zram plus the swapfile. Partitions are found by partlabel, so nothing in the config changes from one install to the next, and the Windows disk is never described, so it is never touched.
 
 1. Back up what isn't in Git (restic does this daily to `/mnt/backup`), and make sure you have the age key (`pass dots/age-nixos`) and a copy of `/var/lib/sbctl` (also in restic).
 2. Set `useDisko = true` in `hosts/nixos/disk.nix`, commit and push. Don't switch the running system to it; the next boot would look for partitions that don't exist yet.

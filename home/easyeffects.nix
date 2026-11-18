@@ -1,4 +1,4 @@
-# EasyEffects microphone chain for the EPZ G30 boom mic.
+# EasyEffects microphone chain for the USB boom mic.
 # Output is deliberately left untouched: the IEM EQ lives in the cable's own DSP.
 #
 # Two input presets that differ ONLY in the noise-reduction stage, so Discord's Krisp
@@ -15,7 +15,11 @@ let
     { denoise }:
     {
       blocklist = [ ];
-      plugins_order = [ "filter#0" ] ++ lib.optional denoise "rnnoise#0" ++ [
+      plugins_order = [
+        "filter#0"
+      ]
+      ++ lib.optional denoise "rnnoise#0"
+      ++ [
         "gate#0"
         "compressor#0"
         "deesser#0"

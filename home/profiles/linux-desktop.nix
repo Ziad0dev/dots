@@ -124,8 +124,6 @@ in
 
   services.ssh-agent.enable = true;
 
-  # Calibre keeps its library path in a file it rewrites itself, so seed it
-  # only when unset instead of managing the file.
   # a new Zen profile starts without the dots chrome CSS; link it on every
   # switch (idempotent, and a missing profile is not an error here)
   home.activation.zenTheme = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
@@ -134,6 +132,8 @@ in
     fi
   '';
 
+  # Calibre keeps its library path in a file it rewrites itself, so seed it
+  # only when unset instead of managing the file.
   home.activation.calibreLibrary = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     if [[ ! -v DRY_RUN ]]; then
       f="$HOME/.config/calibre/global.py.json"
@@ -172,7 +172,7 @@ in
     };
   };
 
-  # mic processing for the EPZ G30 boom mic (presets in ../easyeffects.nix); output stays untouched
+  # mic processing for the USB boom mic (presets in ../easyeffects.nix); output stays untouched
   services.easyeffects.enable = true;
 
   home.packages =
@@ -198,15 +198,7 @@ in
       xdg-utils
       zenity
       (flameshot.override { enableWlrSupport = true; })
-      (tesseract.override {
-        enableLanguages = [
-          "eng"
-          "swe"
-          "ara"
-          "fra"
-          "deu"
-        ];
-      })
+      # tesseract: ../documents.nix (one trimmed build, shared with ocrmypdf)
       zbar
       gammastep
       brightnessctl
@@ -357,22 +349,18 @@ in
     };
     extraConfig = ''
       restore_paused "yes"
+      # rescan by itself when files land in the music folder (beets imports,
+      # Soulseek, purchases) instead of waiting for `mpc update`
+      auto_update "yes"
 
       audio_output {
         type "pipewire"
         name "PipeWire"
       }
 
-      audio_output {
-        type "alsa"
-        name "DAC bit-perfect"
-        device "hw:CARD=G30"
-        auto_resample "no"
-        auto_format "no"
-        auto_channels "no"
-        mixer_type "none"
-        enabled "no"
-      }
+      # outputs tied to this machine's hardware (the bit-perfect DAC output
+      # names the card), kept out of this public repo
+      include_optional "${config.xdg.configHome}/dots-local/mpd.conf"
     '';
   };
 

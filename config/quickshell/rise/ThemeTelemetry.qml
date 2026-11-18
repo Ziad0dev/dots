@@ -553,7 +553,32 @@ Item {
             + "[[ -r $sensor ]] || continue; read -r raw < \"$sensor\"; temp=$((raw / 1000)); break; done; "
             + "printf 'sysfs|GPU||%s|%s|0|0|0|0|0||0|0\\n' \"$util\" \"$temp\"; exit 0; done; "
             + "printf 'none||||||||||||\\n'"]
-        stdout: StdioCollector { onStreamFinished: theme.parseGpuTelemetry(this.text) }
+        stdout: StdioCollector {
+            onStreamFinished: {
+                theme.parseGpuTelemetry(this.text)
+                // NVIDIA answered: from now on the stream below feeds samples
+                if (this.text.indexOf("nvidia|") === 0) theme._gpuStream = true
+            }
+        }
+    }
+
+    // NVIDIA: one long-lived nvidia-smi prints a sample every 2.5 s. Starting
+    // it (and NVML) per sample cost ~12 ms of CPU each time; the stream costs
+    // next to nothing. GPU 0, as the probe above reads. Other GPUs keep the
+    // probe's sysfs path, which is cheap.
+    property bool _gpuStream: false
+    readonly property bool _gpuWanted: theme.modGpu || theme.gpuVisible || theme.thermalVisible || theme.dashboardVisible
+    Process {
+        id: gpuStreamProc
+        command: ["nvidia-smi", "-i", "0",
+            "--query-gpu=name,driver_version,utilization.gpu,temperature.gpu,memory.used,memory.total,clocks.current.graphics,power.draw,power.limit,pstate,fan.speed,clocks.max.graphics",
+            "--format=csv,noheader,nounits", "-lms", "2500"]
+        running: theme._gpuWanted && theme._gpuStream
+        stdout: SplitParser {
+            onRead: line => theme.parseGpuTelemetry("nvidia|" + line.split(",").map(f => f.trim()).join("|"))
+        }
+        // it died while still wanted (a driver reload): back to the probe
+        onExited: if (theme._gpuWanted) theme._gpuStream = false
     }
 
     Process {
@@ -623,7 +648,7 @@ Item {
 
     Timer {
         interval: 2500
-        running: theme.modGpu || theme.gpuVisible || theme.thermalVisible || theme.dashboardVisible
+        running: theme._gpuWanted && !theme._gpuStream
         repeat: true
         triggeredOnStart: true
         onTriggered: if (!gpuTelemetryProc.running) gpuTelemetryProc.running = true

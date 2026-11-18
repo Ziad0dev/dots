@@ -23,6 +23,22 @@ let
   # mupdf's JS engine does the annotation / redaction / text-search work
   annotJs = ../scripts/dots-pdf-annot.js;
 
+  # OCR: the `tesseract` on PATH and dots-pdf's ocrmypdf share one build with
+  # just these languages, where the default carries ~1 GiB of data for every
+  # language. osd is the page-orientation model (`ocrmypdf --rotate-pages`).
+  # These two names shadow pkgs' inside the `with pkgs` lists below.
+  tesseract = pkgs.tesseract.override {
+    enableLanguages = [
+      "eng"
+      "swe"
+      "ara"
+      "fra"
+      "deu"
+      "osd"
+    ];
+  };
+  ocrmypdf = pkgs.ocrmypdf.override { inherit tesseract; };
+
   dotsPdfsign = pkgs.writeShellApplication {
     name = "dots-pdfsign";
     runtimeInputs = with pkgs; [
@@ -70,6 +86,7 @@ in
 
     poppler-utils
     qpdf
+    tesseract
 
     nvimSynctex
 

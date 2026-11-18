@@ -23,7 +23,7 @@ On the LAN only Jellyfin, the Soulseek listener and mDNS are admitted; on the ta
 
 ## Media
 
-`/mnt/media` is a 10 TB exFAT drive (`modules/media.nix`) mounted with the user as owner and gid 3000 (`media`), `dmask=0002` / `fmask=0113` so the whole media group can write. It's `nofail` + `x-systemd.automount`; every unit that touches it has `RequiresMountsFor = /mnt/media`, so services wait for the drive instead of writing into an empty mountpoint.
+`/mnt/media` is an exFAT drive (`modules/media.nix`) mounted with the user as owner and gid 3000 (`media`), `dmask=0002` / `fmask=0113` so the whole media group can write. It's `nofail` + `x-systemd.automount`; every unit that touches it has `RequiresMountsFor = /mnt/media`, so services wait for the drive instead of writing into an empty mountpoint.
 
 | Service | Notes |
 |---|---|
@@ -31,7 +31,7 @@ On the LAN only Jellyfin, the Soulseek listener and mDNS are admitted; on the ta
 | **Radarr / Sonarr** | group `media`, `lib/hardening.nix` with `ReadWritePaths = /mnt/media` |
 | **Audiobookshelf** | loopback only, group `media`, hardened |
 | **calibre-web** | loopback only, library at `/mnt/media/books`, uploads disabled. `GOOGLE_BOOKS_API_KEY` (optional) comes from secretspec |
-| **MPD** | user service (`home/profiles/linux-desktop.nix`), music at `/mnt/media/music`. Two outputs: PipeWire (default) and a bit-perfect ALSA output on `hw:CARD=G30` (disabled; switch with `mpc enable only 2`, back with `mpc enable only 1`). Clients: rmpc, mpdris2 for media keys |
+| **MPD** | user service (`home/profiles/linux-desktop.nix`), music at `/mnt/media/music`. Two outputs: PipeWire (default) and a bit-perfect ALSA output from `~/.config/dots-local/mpd.conf` (it names the DAC, so it stays out of the repo; disabled; switch with `mpc enable only 2`, back with `mpc enable only 1`). Clients: rmpc, mpdris2 for media keys |
 
 ## VPN namespace
 
@@ -83,7 +83,7 @@ Mullvad for the host itself is separate (`modules/mullvad.nix`, the GUI and `dot
 
 How they behave:
 
-- **CUDA** build of llama.cpp, kernels for the RTX 5060 Ti (sm_120) only. No binary cache carries it, so it builds locally. All layers on GPU (`-ngl 99`), 16k context unless noted, flash attention, `--jinja` chat templates.
+- **CUDA** build of llama.cpp for every GPU generation nixpkgs targets, downloaded prebuilt from the NixOS CUDA cache (`cache.nixos-cuda.org`, trusted in `modules/llm.nix`). Layer and MoE-expert placement is left to llama-server's `--fit`, which sizes it to the VRAM free when the unit starts; 16k context unless noted, flash attention, `--jinja` chat templates.
 - **One at a time.** Every llama unit `Conflicts=` every other llama unit, so starting one stops the last. Before starting, `free-gpu` asks Ollama to unload whatever it holds. Ollama keeps at most one model loaded and drops it after 5 minutes idle.
 - **Never at boot.** `wantedBy` is forced empty on all the llama units. Ollama does start at boot, but holds no VRAM until a model is requested.
 - **No sudo.** A polkit rule lets your active local session start and stop these units.
@@ -134,9 +134,9 @@ sudo restic -r /mnt/backup/restic-new -p /etc/restic/password snapshots
 | Mount | What | Mounted as |
 |---|---|---|
 | `/` | LUKS, ext4 | |
-| `/mnt/media` | exFAT 10 TB | user:media, group-writable, automount, visible in file managers |
+| `/mnt/media` | exFAT | user:media, group-writable, automount, visible in file managers |
 | `/mnt/backup` | Independent exFAT backup drive, configured by its own UUID | root:root `0077`, automount (10 min idle), hidden from file managers |
-| `/mnt/pool1` | ext4 2 TB spare drive | owned by the user, automount (10 min idle), visible in file managers |
+| `/mnt/pool1` | ext4 spare drive | owned by the user, automount (10 min idle), visible in file managers |
 
 exFAT has no permissions, so ownership comes from mount options. udiskie ignores both external exFAT drives by UUID — they belong to systemd — but still automounts real removable media. `dots-mounts` (the bar's storage alert) reports whether `/mnt/media`, `/mnt/backup` and `/mnt/pool1` are healthy. If the backup drive is replaced, update its UUID in `modules/storage.nix`.
 

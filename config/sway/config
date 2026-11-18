@@ -13,8 +13,8 @@ include ~/.local/state/dots/theme/sway.conf
 
 set $session_vars WAYLAND_DISPLAY DISPLAY SWAYSOCK XDG_CURRENT_DESKTOP XDG_SESSION_TYPE XDG_SESSION_DESKTOP NIXOS_OZONE_WL MOZ_ENABLE_WAYLAND QT_QPA_PLATFORM QT_QPA_PLATFORMTHEME
 
-output DP-1 mode 2560x1440@239.970Hz position 0 0 scale 1 adaptive_sync off
-output HDMI-A-1 mode 1920x1080@60Hz position 2560 0 scale 1 transform 90
+# output modes and layout belong to one machine: kept outside the repo
+include ~/.config/dots-local/sway/outputs.conf
 
 workspace 1 output DP-1
 workspace 2 output DP-1

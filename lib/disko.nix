@@ -2,11 +2,12 @@
 #
 #   impermanence = false   subvolumes /  /home  /nix
 #   impermanence = true    / is a tmpfs; subvolumes /home  /nix  /persist
-#   swap = "17G"           plus a swap partition, re-keyed randomly every boot
+#   swap = "8G"            plus a swap partition, re-keyed randomly every boot
 #                          (nothing to unlock; rules out hibernation)
 #
 # Partitions are found by partlabel and the disk by whatever `device` says
-# (use /dev/disk/by-id/…), so no UUID ever lands in the config.
+# (use /dev/disk/by-path/…: stable, and unlike by-id it carries no model or
+# serial number), so no UUID ever lands in the config.
 #
 # The LUKS passphrase is read from /tmp/dots-disk.key while formatting (the
 # installer writes it there); afterwards it's typed at boot, or enroll the TPM.

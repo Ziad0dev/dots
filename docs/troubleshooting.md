@@ -97,9 +97,9 @@ The config is Lua. Dispatchers are namespaced (`hl.dsp.*`) and legacy strings ex
 
 Check in this order:
 
-1. **Persistent HDR.** DP-1's profile pins 10-bit + `cm = "hdr"`, which keeps the colour-management pipeline running every frame on the desktop. Remove `bitdepth`, `cm` and the luminance keys from the profile when you're not watching HDR, and pin `cm = "srgb"` — left on auto it picks a wide-gamut preset and sRGB content looks washed out.
+1. **Persistent HDR.** A monitor profile with 10-bit + `cm = "hdr"` (in `~/.config/dots-local/hypr/monitors.lua`) keeps the colour-management pipeline running every frame on the desktop. Remove `bitdepth`, `cm` and the luminance keys from the profile when you're not watching HDR, and pin `cm = "srgb"` — left on auto it picks a wide-gamut preset and sRGB content looks washed out.
 2. **Software cursors.** `hyprctl monitors | grep hardwareCursorsInUse` should say true on every output. On NVIDIA, the working combination is `no_hardware_cursors = false` + `use_cpu_buffer = true` (what's committed).
-3. **Blur and animation cost** scale with resolution × refresh; at 1440p240 blur passes are expensive.
+3. **Blur and animation cost** scale with resolution × refresh; at high resolution and refresh rate blur passes are expensive.
 4. Known upstream issues with the same signature: hyprwm discussion #11411, issues #7156 and #9471.
 
 ### Periodic 30–45 s freezes in video, browsers, Discord

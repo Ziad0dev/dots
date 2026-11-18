@@ -37,8 +37,8 @@
 
       OLLAMA_KV_CACHE_TYPE = "q8_0";
 
-      # Repository agents need more than the old 16k default. 32k fits the
-      # 9B/14B models on the 16 GB card; larger models can offload KV cache.
+      # repository agents need far more than the old 16k default; whatever
+      # doesn't fit in VRAM, Ollama spills to the CPU
       OLLAMA_CONTEXT_LENGTH = "131072";
     };
   };

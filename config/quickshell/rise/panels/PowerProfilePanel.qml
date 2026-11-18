@@ -1,7 +1,6 @@
 import QtQuick
 import "../modules"
 import Quickshell
-import Quickshell.Io
 import Quickshell.Wayland
 
 PanelWindow {
@@ -167,10 +166,7 @@ PanelWindow {
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
                             onClicked: {
-                                setProfileProc.command = ["powerprofilesctl", "set", modelData.key]
-                                setProfileProc.running = false
-                                setProfileProc.running = true
-                                root.powerProfileCurrent = modelData.key
+                                root.setPowerProfile(modelData.key)
                                 root.powerProfileVisible = false
                             }
                         }
@@ -178,11 +174,5 @@ PanelWindow {
                 }
             }
         }
-    }
-
-    Process {
-        id: setProfileProc
-        command: ["bash", "-c", "powerprofilesctl set balanced"]
-        running: false
     }
 }

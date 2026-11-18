@@ -29,10 +29,10 @@ modules keep loading.
    them. Leftovers from plain systemd-boot (`*bzImage.efi`,
    `EFI/systemd/systemd-boot-fallbackx64.efi`) can be deleted.
 4. **Setup Mode.** `systemctl reboot --firmware-setup`, then in the firmware's
-   Secure Boot menu reset or delete the keys so it enters *Setup Mode* (on ASUS
-   boards: Key Management → Clear Secure Boot keys). Keep Secure Boot off for now.
+   Secure Boot menu reset or delete the keys so it enters *Setup Mode* (often
+   Key Management → Clear Secure Boot keys). Keep Secure Boot off for now.
 5. **Enroll.** Back in NixOS: `sudo sbctl enroll-keys --microsoft`.
-   Keep `--microsoft`: the RTX 3060's option ROM is Microsoft-signed, and
+   Keep `--microsoft`: a discrete GPU's option ROM is Microsoft-signed, and
    without those keys the card can show nothing before Linux starts.
 6. **Enable.** `systemctl reboot --firmware-setup`, turn Secure Boot on, boot.
    `bootctl status` should say `Secure Boot: enabled (user)`.

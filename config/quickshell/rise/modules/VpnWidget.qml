@@ -15,29 +15,42 @@ Item {
         ? "VPN: switching…"
         : (on ? "Mullvad: connected" : "Mullvad: disconnected")
 
+    // The tunnel state is read once, then pushed by the daemon on every
+    // change (`mullvad status listen`), where it used to be asked for every 5 s.
+    // Returns false for anything that isn't a state, so the caller can re-ask.
+    function apply(text) {
+        var state = ""
+        try { state = JSON.parse(text).state || "" } catch (e) { return false }
+        if (state === "") return false
+        rootMod.on = state === "connected"
+        rootMod.busy = state === "connecting" || state === "disconnecting"
+        return true
+    }
+
     Process {
         id: query
-        command: ["dots-vpn", "status"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                var s = this.text.trim()
-                if (s) { rootMod.on = (s === "on"); rootMod.busy = false }
-            }
-        }
+        command: ["mullvad", "status", "--json"]
+        stdout: StdioCollector { onStreamFinished: rootMod.apply(this.text) }
     }
+
+    Process {
+        id: listen
+        command: ["mullvad", "status", "--json", "listen"]
+        running: true
+        // an event that isn't a parseable state still means "something changed"
+        stdout: SplitParser { onRead: line => { if (!rootMod.apply(line)) settle.restart() } }
+        onStarted: query.running = true
+        // the daemon restarted (or isn't up yet): listen again in a while
+        onExited: relisten.restart()
+    }
+
+    Timer { id: settle; interval: 300; onTriggered: query.running = true }
+    Timer { id: relisten; interval: 15000; onTriggered: listen.running = true }
 
     Process {
         id: toggle
         command: ["dots-vpn", "toggle"]
         onExited: query.running = true
-    }
-
-    Timer {
-        interval: 5000
-        running: true
-        repeat: true
-        triggeredOnStart: true
-        onTriggered: query.running = true
     }
 
     UiText {

@@ -1,13 +1,12 @@
 import QtQuick
 import Quickshell
-import Quickshell.Io
 
 Item {
     id: rootMod
     required property var root
     property string gid: "G14"
 
-    property string profile: root.powerProfileCurrent
+    readonly property string profile: root.powerProfileCurrent
 
     readonly property bool isPowerSaver:  profile === "power-saver"
     readonly property bool isBalanced:    profile === "balanced"
@@ -90,28 +89,6 @@ Item {
         }
     }
 
-    Process {
-        id: profileProc
-        command: ["bash", "-c", "powerprofilesctl get 2>/dev/null || echo balanced"]
-        running: false
-        stdout: StdioCollector {
-            onStreamFinished: {
-                var p = this.text.trim()
-                if (p) { rootMod.profile = p; root.powerProfileCurrent = p }
-            }
-        }
-    }
-
-    Timer {
-        interval: 5000; running: root.modPower || root.powerProfileVisible; repeat: true; triggeredOnStart: true
-        onTriggered: { profileProc.running = false; profileProc.running = true }
-    }
-
-    Process {
-        id: setProfileProc
-        command: ["bash", "-c", "powerprofilesctl set balanced"]
-    }
-
     TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText; popout: "powerProfileVisible" }
 
     MouseArea {
@@ -126,10 +103,7 @@ Item {
             if (e.button === Qt.RightButton) {
                 var profiles = ["power-saver", "balanced", "performance"]
                 var idx = profiles.indexOf(root.powerProfileCurrent)
-                var next = profiles[(Math.max(0, idx) + 1) % profiles.length]
-                setProfileProc.command = ["powerprofilesctl", "set", next]
-                setProfileProc.running = false; setProfileProc.running = true
-                root.powerProfileCurrent = next
+                root.setPowerProfile(profiles[(Math.max(0, idx) + 1) % profiles.length])
             } else {
                 root.popout.click("powerProfileVisible")
             }

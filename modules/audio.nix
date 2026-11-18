@@ -68,16 +68,9 @@
       };
     };
 
-    wireplumber.extraConfig."51-pin-profile" = {
-      "monitor.alsa.rules" = [
-        {
-          matches = [
-            { "device.name" = "alsa_card.usb-EPZ_Technology_G30_3302128F250725-00"; }
-          ];
-          actions.update-props."device.profile" = "output:analog-stereo+input:mono-fallback";
-        }
-      ];
-    };
-
+    # Rules for this machine's own devices (a USB DAC's pinned profile) name
+    # them by model and serial number, so they stay out of this public repo,
+    # in ~/.config/wireplumber/wireplumber.conf.d/ (read by the user's
+    # WirePlumber as well as these).
   };
 }

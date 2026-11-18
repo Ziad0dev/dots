@@ -27,6 +27,10 @@ for f in $(git ls-files -- 'secrets/*'); do
     fi
 done
 
+#    …and it names no hardware of the machines it configures (models, memory
+#    sizes, serial numbers). The commit-msg hook checks the message too.
+bash "$(dirname "$0")/../privacy-check.sh" files || fail=1
+
 # 2. Legacy hyprctl dispatch strings fail SILENTLY under the Lua config
 #    (hyprctl still exits 0), so nothing else would catch these.
 if grep -rn "hyprctl dispatch" --include="*.conf" --include="*.jsonc" --include="*.sh" \
@@ -47,11 +51,19 @@ if command -v python3 >/dev/null; then
             && export QMLLINT="$decl/bin/qmllint"
     fi
     python3 "$(dirname "$0")/../qml-check.py" || fail=1
+    # a program the bar or a keybind runs that the config doesn't install
+    # fails silently too: the button just does nothing. Builds the desktop's
+    # profiles from the working tree; skipped in CI and where the bar doesn't run.
+    python3 "$(dirname "$0")/../command-check.py" || fail=1
+    # docs must not name files that are gone
+    python3 "$(dirname "$0")/../docs-check.py" || fail=1
 fi
 
 # 4. Full eval — catches duplicate attrs, bad option names, type errors.
 #    Evaluating only the nixos host let a broken homeConfigurations output sit
 #    unnoticed, so every output that builds an activation package is checked.
+#    abort-on-warn: a renamed option or a lib.warn fails the eval instead of
+#    scrolling past (vpn.nix's accessibleFrom warned on every switch).
 # CI runs this hook too; there whoami is the runner, not the flake's username.
 user="${DOTS_USERNAME:-$(whoami)}"
 if command -v nix >/dev/null; then
@@ -69,7 +81,7 @@ if command -v nix >/dev/null; then
         "checks.x86_64-linux.vm"
     do
         echo "pre-commit: evaluating $out"
-        nix eval --no-warn-dirty ".#${out}.drvPath" \
+        nix eval --no-warn-dirty --option abort-on-warn true ".#${out}.drvPath" \
             >/dev/null 2>"$evallog" || {
             echo "pre-commit: EVAL FAILED for $out"
             tail -15 "$evallog"; fail=1; }
@@ -82,6 +94,9 @@ fi
 #    which are idiomatic and not dead code.
 command -v statix  >/dev/null && { statix check . || fail=1; }
 command -v deadnix >/dev/null && { deadnix --fail -L --exclude templates . || fail=1; }
+# nixfmt was CI-only, so an unformatted file failed the security audit on
+# every push for ten days before anyone looked.
+command -v nixfmt  >/dev/null && { bash "$(dirname "$0")/../audit.sh" nixfmt || fail=1; }
 
 [ $fail -eq 0 ] && echo "pre-commit: ok"
 exit $fail

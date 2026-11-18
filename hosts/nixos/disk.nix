@@ -4,34 +4,33 @@
 #
 #   false  the current hand-made install: ext4 in LUKS, found by the UUIDs
 #          nixos-generate-config wrote. Matches the disk as it is today.
-#   true   lib/disko.nix on the same NVMe, addressed by its by-id name:
-#          ESP + random-key swap + LUKS2 (`cryptroot`) holding btrfs. Nothing
-#          in it changes between installs, so a reinstall needs no edits here.
+#   true   lib/disko.nix on the same NVMe, addressed by its PCI slot:
+#          ESP + LUKS2 (`cryptroot`) holding btrfs; swap is zram plus the
+#          swapfile (modules/performance.nix). Nothing in it changes between
+#          installs, so a reinstall needs no edits here.
 #
 # Reinstalling: set useDisko = true, commit, then boot the dots installer
 # and run `dots-install nixos` (docs/install.md). Never flip it on the
 # running legacy install: the fstab would point at partitions that don't
 # exist yet and the next boot would fail.
 #
-# The Windows disk (INTEL SSDPEKKF512G8L) is not described here, so disko
-# never touches it.
+# The Windows disk is not described here, so disko never touches it.
 { lib, inputs, ... }:
 
 let
   useDisko = false;
 
-  # kernel names (nvme0n1/nvme1n1) swap between boots on this board
-  disk = "/dev/disk/by-id/nvme-KINGSTON_SKC3000S1024G_50026B7382A52463";
+  # kernel names (nvme0n1/nvme1n1) swap between boots on this board; the
+  # by-path name is stable and names the slot, where a by-id name would
+  # publish the drive's model and serial number
+  disk = "/dev/disk/by-path/pci-0000:02:00.0-nvme-1";
 
   legacyLuks = "luks-bd950db0-dc83-432a-bec6-0bc1a72bd76e";
 in
 {
   imports = [
     inputs.disko.nixosModules.disko
-    (import ../../lib/disko.nix {
-      device = disk;
-      swap = "17G";
-    })
+    (import ../../lib/disko.nix { device = disk; })
   ];
 
   # the layout is always declared, so dots-install can format with it; it
@@ -62,7 +61,7 @@ in
     ${legacyLuks}.device = "/dev/disk/by-uuid/bd950db0-dc83-432a-bec6-0bc1a72bd76e";
   };
 
-  # The installer's 17G swap partition, re-keyed randomly every boot. By
+  # The current install's swap partition, re-keyed randomly every boot. By
   # PARTUUID because the LUKS UUID changes each boot. Sits between zram (100)
   # and the swapfile (-2).
   swapDevices = lib.mkIf (!useDisko) [

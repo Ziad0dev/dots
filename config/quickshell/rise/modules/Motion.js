@@ -27,8 +27,8 @@ var durations = {
     exit:        200   // Caelestia's durations.small
 }
 
-// rise: Caelestia's lengths felt slow on a 240 Hz desk (2026-10-08, "snappier
-// and faster"); every token runs at this fraction. Hand-tuned `ms` are left
+// rise: Caelestia's lengths felt slow on a high-refresh desk (2026-10-08,
+// "snappier and faster"); every token runs at this fraction. Hand-tuned `ms` are left
 // alone (they're already short).
 var speed = 0.65
 
@@ -36,5 +36,5 @@ function curve(kind) { return curves[kind] || curves.effects }
 function duration(kind) { return Math.round((durations[kind] || durations.effects) * speed) }
 
 // a hand-tuned `ms` wins (the bar's short snaps are deliberate: every frame
-// of a bar animation is a redraw at 240 Hz); the token otherwise
+// of a bar animation is a redraw at the display's refresh rate); the token otherwise
 function durationOr(kind, ms) { return ms > 0 ? ms : duration(kind) }

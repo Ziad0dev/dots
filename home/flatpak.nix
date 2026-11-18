@@ -1,4 +1,9 @@
-{ inputs, ... }:
+{
+  inputs,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
   # Most apps are pinned to a commit, so a switch installs exactly that build.
@@ -8,6 +13,18 @@ let
 in
 {
   imports = [ inputs.nix-flatpak.homeManagerModules.nix-flatpak ];
+
+  # Tauon only knows what it imported, so it never saw the mixes music-scout
+  # writes (On Repeat, Liked Songs, the yearly Top 50s). Its playlist folder
+  # makes "Rescan All Folders" import them; the Spotify export's ~300
+  # playlists stay opt-in. Tauon rewrites tauon.conf, so this only seeds the
+  # setting while it's empty and Tauon isn't running.
+  home.activation.tauonPlaylistFolder = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    conf="$HOME/.var/app/com.github.taiko2k.tauonmb/data/TauonMusicBox/tauon.conf"
+    if [[ ! -v DRY_RUN ]] && [ -f "$conf" ] && ! ${pkgs.procps}/bin/pgrep -f com.github.taiko2k.tauonmb >/dev/null; then
+      ${pkgs.gnused}/bin/sed -i 's|^playlist_folder_path = ""|playlist_folder_path = "/mnt/media/playlists/Mixes"|' "$conf"
+    fi
+  '';
 
   services.flatpak = {
     remotes = [

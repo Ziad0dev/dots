@@ -1,11 +1,13 @@
-local profiles = {
-    { output = "DP-1",     mode = "2560x1440@239.97", position = "0x0",        scale = 1,
-      bitdepth = 10, cm = "hdr", supports_wide_color = 1,
-      supports_hdr = 1, sdrsaturation = 1, sdrbrightness = 1.0,
-      sdr_min_luminance = 0.0011, sdr_max_luminance = 350,
-      min_luminance = 0.0011, max_luminance = 800, max_avg_luminance = 269 },
-    { output = "HDMI-A-1", mode = "1920x1080@60",     position = "auto-right", scale = 1, transform = 3 },
-}
+-- Monitor profiles (exact mode, position, rotation, HDR calibration) belong
+-- to one machine, so they stay out of this public repo: this loads them from
+-- ~/.config/dots-local/hypr/monitors.lua, a file returning a list of
+-- hl.monitor() tables. Outputs without a profile get their preferred mode,
+-- placed automatically.
+local profiles = {}
+local ok, loaded = pcall(dofile, os.getenv("HOME") .. "/.config/dots-local/hypr/monitors.lua")
+if ok and type(loaded) == "table" then
+    profiles = loaded
+end
 
 local byOutput = {}
 for _, m in ipairs(profiles) do

@@ -12,8 +12,6 @@
       url = "github:nix-darwin/nix-darwin/master";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    # no nixpkgs follows: keeps upstream's binary cache hitting
-    ghostty.url = "github:ghostty-org/ghostty/v1.4.0";
 
     helium = {
       url = "github:schembriaiden/helium-browser-nix-flake";
@@ -101,11 +99,6 @@
 
     zig-overlay = {
       url = "github:mitchellh/zig-overlay";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    zls = {
-      url = "github:zigtools/zls/0.16.0";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
