@@ -98,6 +98,16 @@ Item {
         acceptedButtons: Qt.LeftButton | Qt.RightButton
         onEntered: tip.show()
         onExited: { tip.hide() }
+        property real wheelAccum: 0
+        onWheel: (e) => {
+            wheelAccum += e.angleDelta.y
+            if (Math.abs(wheelAccum) < 120) return
+            var profiles = ["power-saver", "balanced", "performance"]
+            var idx = Math.max(0, profiles.indexOf(root.powerProfileCurrent))
+            var next = Math.min(profiles.length - 1, Math.max(0, idx + (wheelAccum > 0 ? 1 : -1)))
+            wheelAccum = 0
+            if (next !== idx) root.setPowerProfile(profiles[next])
+        }
         onClicked: (e) => {
             tip.hide()
             if (e.button === Qt.RightButton) {

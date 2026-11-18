@@ -160,6 +160,7 @@ Item {
     }
 
     Process { id: brightnessErrNotify }
+    Process { id: nightLightToggle; command: ["dots-nightlight", "toggle"] }
     Process {
         id: briUp
         command: ["bash", "-c", DotsPower.brightnessSetCmd("+5%")]
@@ -182,9 +183,15 @@ Item {
     MouseArea {
         anchors.fill: parent
         hoverEnabled: true; cursorShape: Qt.PointingHandCursor
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
         onEntered: { if (rootMod.hasBacklight) tip.show() }
         onExited:  { tip.hide() }
-        onClicked: { tip.hide(); root.popout.click("brightnessVisible") }
+        // left: the brightness panel; right: the night light, as its own widget does
+        onClicked: (e) => {
+            tip.hide()
+            if (e.button === Qt.RightButton) { nightLightToggle.running = false; nightLightToggle.running = true }
+            else root.popout.click("brightnessVisible")
+        }
         onWheel: (e) => {
             rootMod.runBrightnessStep(e.angleDelta.y > 0)
         }

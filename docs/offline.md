@@ -46,6 +46,13 @@ the LAN or the tailnet: the library at `/library/`, the map at `/maps/`,
 documents at `/docs/`, phone apps at `/apps/`, CyberChef, the AI and
 Meshtastic links, what the last sync left on disk, and the commands below.
 
+- **Library**: `/library/` lists every book; filter by name, language or
+  category, open one, and its search bar searches inside that book. The
+  Kiwix desktop app reads the same books from the shelf
+  `kiwix/all-books`, picking up new ones when it starts. Its library view
+  hides books outside its language filter, so clear the filter to see
+  the Swedish and Arabic sets. If it misses books, add them while it's closed:
+  `kiwix-manage ~/.local/share/kiwix-desktop/library.xml add <book.zim>`.
 - **Map**: type a place or an address in the search box (`lat, lon` works
   too). ↱ opens directions: search or click the map for the start and the
   end, then pick car, bicycle or foot. Search and directions cover the

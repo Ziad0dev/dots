@@ -30,13 +30,14 @@ Item {
 
     implicitWidth: st.bar === "ascii" ? look.implicitWidth : 200
     implicitHeight: st.bar === "ascii" ? look.implicitHeight
-        : ({ orbit: 10, segments: 6, neon: 6, ink: 6, hairline: 3, deco: 9, glass: 9, rule: 8, hazard: 9, vernier: 11, sonar: 12, mala: 10, sword: 12 })[st.bar] ?? 4
+        : ({ pill: 10, orbit: 10, segments: 6, neon: 6, ink: 6, hairline: 3, deco: 9, glass: 9, rule: 8, hazard: 9, vernier: 11, sonar: 12, mala: 10, sword: 12 })[st.bar] ?? 4
 
     Loader {
         id: look
         anchors.fill: parent
         sourceComponent: ({
             line: lineLook,
+            pill: pillLook,
             segments: segmentsLook,
             ascii: asciiLook,
             orbit: orbitLook,
@@ -61,6 +62,27 @@ Item {
     }
 
     // line
+    Component {
+        id: pillLook
+
+        // thick and round, the fill a pill of its own (Material 3)
+        Item {
+            Rectangle {
+                width: parent.width
+                height: 10
+                radius: 5
+                color: bar.track
+
+                Rectangle {
+                    width: Math.max(height, parent.width * bar.v)
+                    height: parent.height
+                    radius: 5
+                    color: bar.accent
+                }
+            }
+        }
+    }
+
     Component {
         id: lineLook
 

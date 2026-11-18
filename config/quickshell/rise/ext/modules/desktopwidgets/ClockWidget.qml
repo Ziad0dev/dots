@@ -21,7 +21,12 @@ Item {
 
     Loader {
         id: face
-        sourceComponent: ({ hud: hud, terminal: terminal, cosmos: cosmos, zen: zen, xianxia: xianxia, cyberpunk: neon, wabisabi: wabi, artdeco: deco, gothic: gothic, newspaper: broadsheet, wasteland: wasteland, observatory: observatory, abyss: abyss, devaloka: devaloka, siege: siege, "": gothic })[root.themeId] ?? plain // rise: the grimoire keeps the rose window
+        sourceComponent: ({ hud: hud, terminal: terminal, cosmos: cosmos, zen: zen, xianxia: xianxia, cyberpunk: neon, wabisabi: wabi, artdeco: deco, gothic: gothic, newspaper: broadsheet, wasteland: wasteland, observatory: observatory, abyss: abyss, devaloka: devaloka, siege: siege, "": expressive })[root.themeId] ?? plain
+    }
+
+    Component {
+        id: expressive
+        ExpressiveClock { now: clock.date }
     }
 
     Component {

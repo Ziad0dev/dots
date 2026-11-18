@@ -170,6 +170,71 @@ The bar, launcher, control panel, pickers and notifications UI. Vendored in `con
 - The unit's PATH is pinned: the `dots-*` shims, wallpaper helpers and a fixed tool set come first, so the bar behaves the same regardless of your login environment. `DOTS_SHELL_PATH` points at the repo copy.
 - Bar widgets include workspaces, clock/calendar, media (MPRIS), audio, network, CPU/GPU/memory/temps, storage and mount health, power profile, weather, VPN, night light, idle inhibitor, notification silencing, dictation state, LLM unit, qBittorrent speeds, update indicator, screen recording, tray, AI usage (Claude Code quota refreshed every 10 minutes by `dots-ai-usage.timer`), and OpenRouter credits.
 
+### Mouse on the bar
+
+Every module opens its panel on a left click, or on hover with STYLE → Hover
+popouts (on by default; a click pins a hovered panel). The other buttons and
+the wheel do the module's next most common things:
+
+| Module | Right click | Middle click | Wheel |
+|---|---|---|---|
+| Workspaces | workspace panel | overview | next / previous workspace |
+| Notifications | Do Not Disturb | clear all | — |
+| Clock (left: 12 / 24 h) | time-zone picker | calendar | — |
+| Media (left: play / pause) | media panel | play / pause | next / previous track |
+| Volume | mute | mute the microphone | volume |
+| Brightness | night light | — | brightness |
+| Battery | power profiles | — | — |
+| Network | Wi-Fi settings app | Wi-Fi radio on / off | — |
+| Power profile | next profile | — | more / less performance |
+| Keyboard layout | — | — | next / previous layout |
+
+The wheel moves one step per notch; a touchpad's small scrolls add up to one.
+
+### Desktop widgets
+
+Widgets sit on the wallpaper, under the windows, each draggable to where you
+want it (the place is kept). Add them from the gallery in the themes panel's
+**Widgets** tab (`SUPER + ALT + W`): each card shows the widget live, and a
+click puts it on the desktop or takes it off. With no desktop theme they use
+the expressive look (tonal cards in the wallpaper's colours, a scalloped
+clock, wavy progress rings, after lucid); a desktop theme gives them its own
+frames. Code: `ext/modules/desktopwidgets/` (the looks are in
+`WidgetStyle.qml`), the list in `ext/services/DesktopWidgets.qml`.
+
+| Widget | What it shows |
+|---|---|
+| Clock | the theme's clock face |
+| Music player | now playing, with controls |
+| System monitor | CPU (with history), memory, temperature, disk |
+| Quote | a line from the quotes every ten minutes |
+| Visualizer | the cava spectrum |
+| Calendar | the month (wheel or arrows to turn it), days with calendar notes dotted, today's notes |
+| Progress | how much of the day, week, month and year has gone |
+| Timer | countdown (presets, the wheel sets minutes), pomodoro, stopwatch; notifies at the end |
+| Lyrics | the song's timed lyrics from LRCLIB, the sung line lit |
+| Weather | now, three days, sunrise and sunset (wttr.in, like the bar's panel) |
+| At a glance | the date, the next of today's notes, what's playing |
+| Network | download and upload speed, the last minute as lines |
+| Devices | battery of wireless mice, headsets and controllers |
+| Note | a sticky note (click and type; saved as you go) |
+| To-do | a checklist: add, tick, clear the done ones |
+| Quick toggles | do not disturb, night light, Wi-Fi, microphone, stay awake |
+| Shortcuts | app icons that launch them (the list is `apps` in `ShortcutsWidget.qml`) |
+
+The calendar, progress, timer, lyrics, weather, glance, network, devices,
+note, to-do, toggles and shortcuts widgets are written after
+[lucid](https://github.com/Sn3akyy1/lucid)'s (MIT).
+
+### Overview
+
+`SUPER + A`, or a middle click on the workspaces, shows every workspace as a
+miniature of its screen: the wallpaper, and each window as a live picture
+where it really sits, its app's icon on it. Click a window to go to it,
+middle-click it to close it, click a card's empty space for the workspace.
+Keys: arrows or `hjkl` move, `1`–`9` jump, `Enter` goes, `Escape` leaves.
+Code: `panels/OverviewPanel.qml` (after lucid's workspaces overview).
+
 ### System tray icons
 
 Settings (`SUPER + ,`) → **Bar → System tray** controls tinting, compact spacing, and the tray's own background. Tinting is on by default and uses the active palette accent; turn it off to keep each application's original icon colors. Tray icons appear directly on the bar; hovering an app with a DBus menu opens that menu, while clicking activates the app. There is no overflow dots button or separate AppMenu button.

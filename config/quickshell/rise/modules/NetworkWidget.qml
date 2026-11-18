@@ -220,6 +220,8 @@ Item {
 
     property string ifaceCur: ""
 
+    Process { id: wifiRadio; command: ["rfkill", "toggle", "wifi"] }
+
     function netRefresh() { routeFile.reload() }
 
     function fetchSsid() {
@@ -351,12 +353,13 @@ Item {
     MouseArea {
         anchors.fill: parent
         hoverEnabled: true; cursorShape: Qt.PointingHandCursor
-        acceptedButtons: Qt.LeftButton | Qt.RightButton
+        acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
         onEntered: tip.show()
         onExited:  { tip.hide() }
         onClicked: (e) => {
             tip.hide()
             if (e.button === Qt.RightButton) { clickRunner.running = false; clickRunner.running = true }
+            else if (e.button === Qt.MiddleButton) { wifiRadio.running = false; wifiRadio.running = true }
             else root.popout.click("networkVisible")
         }
     }

@@ -24,9 +24,10 @@ import qs.ext.services as Services
 // labelCase is "upper", "lower", "small" (small capitals) or "none".
 Singleton {
     readonly property var styles: ({
-        // rise: no desktop theme is rise's grimoire: Cathedral's lancet
-        // windows and leaded glass, glazed in blood (see Gothic.qml)
-        "": { frame: "lancet", font: "Alegreya Sans", display: "Grenze Gotisch", mono: "Alegreya Sans", ui: "Grenze Gotisch", weight: Font.Medium, labelCase: "none", labelSpacing: 0.4, labelRole: "accent", accentRole: "accent", bar: "glass", art: "arch", pad: 20 },
+        // rise: no desktop theme is the expressive look, after lucid
+        // (github.com/Sn3akyy1/lucid): tonal cards in the wallpaper's colours,
+        // rounded type, pill meters. The grimoire's lancet is the Gothic theme's.
+        "": { frame: "tonal", font: "Google Sans Flex", display: "Google Sans Flex", mono: "Google Sans Flex", weight: Font.Medium, labelCase: "none", labelSpacing: 0.2, labelRole: "primary", accentRole: "primary", bar: "pill", art: "rounded", pad: 20 },
         hud: { frame: "chamfer", font: "JetBrainsMono Nerd Font", display: "Orbitron", mono: "JetBrainsMono Nerd Font", weight: Font.Medium, labelCase: "upper", labelSpacing: 3.5, labelRole: "primary", accentRole: "primary", bar: "segments", art: "chamfer", pad: 18 },
         terminal: { frame: "console", font: "Iosevka Nerd Font", display: "Iosevka Nerd Font", mono: "Iosevka Nerd Font", weight: Font.Normal, labelCase: "lower", labelSpacing: 0.5, labelRole: "primary", accentRole: "primary", bar: "ascii", art: "square", pad: 16 },
         cosmos: { frame: "glass", font: "Adwaita Sans", display: "ESPACION", mono: "JetBrainsMono Nerd Font", weight: Font.Normal, labelCase: "upper", labelSpacing: 3, labelRole: "on_surface_variant", accentRole: "primary", bar: "orbit", art: "circle", pad: 20 },
@@ -72,15 +73,26 @@ Singleton {
 
     // Per theme wording: words[widget][theme] (falls back to "").
     readonly property var words: ({
-        music: { "": "The choir sings", hud: "Now playing", terminal: "~/music $ playerctl status", cosmos: "Transmission", zen: "listening", xianxia: "琴音 · Qin melody", cyberpunk: "Now playing // 再生中", wabisabi: "音 · sound", artdeco: "On the gramophone", gothic: "The choir sings", newspaper: "Topping the charts", wasteland: "Salvaged radio", observatory: "Music of the spheres", abyss: "Hydrophone", devaloka: "गान · The Gandharvas sing", siege: "The minstrels play" },
-        musicIdle: { "": "The choir is silent", hud: "No signal", terminal: "no players found", cosmos: "Silence between stars", zen: "quiet", xianxia: "琴弦静 · The strings are still", cyberpunk: "Dead air", wabisabi: "静寂 · stillness", artdeco: "The band is taking five", gothic: "The choir is silent", newspaper: "No music news today", wasteland: "Static on every frequency", observatory: "The spheres are silent", abyss: "Only whale song", devaloka: "The veena rests", siege: "The minstrels rest" },
-        sysmon: { "": "The workings", hud: "System status", terminal: "~ $ top -b -n1", cosmos: "Ship systems", zen: "", xianxia: "气海 · Sea of Qi", cyberpunk: "Cyberdeck // 電脳", wabisabi: "炉 · the hearth", artdeco: "The engine room", gothic: "The workings", newspaper: "Market report", wasteland: "Rig status", observatory: "The orrery", abyss: "Boat systems", devaloka: "यन्त्र · The yantra", siege: "The garrison" },
-        quote: { "": "From the grimoire", hud: "Side quest", terminal: "~ $ fortune", cosmos: "Incoming signal", zen: "a thought", xianxia: "箴言 · Proverb", cyberpunk: "Street talk // 噂", wabisabi: "言の葉 · words", artdeco: "Overheard at the speakeasy", gothic: "From the scriptorium", newspaper: "Funny pages", wasteland: "Scrawled on the wall", observatory: "From the almanac", abyss: "Overheard in the mess", devaloka: "नारद उवाच · Narada said", siege: "Round the campfire" },
-        cpu: { "": "The great wheel", hud: "CPU", terminal: "cpu", cosmos: "Reactor", zen: "mind", xianxia: "灵力 Spirit", cyberpunk: "Neural core", wabisabi: "火 fire", artdeco: "Dynamo", gothic: "The great wheel", newspaper: "Processor index", wasteland: "Engine", observatory: "Clockwork", abyss: "Propulsion", devaloka: "प्राण Prana", siege: "Siege engines" },
-        ram: { "": "The library", hud: "MEM", terminal: "mem", cosmos: "Memory core", zen: "memory", xianxia: "神识 Sense", cyberpunk: "RAM", wabisabi: "水 water", artdeco: "Ledger", gothic: "The library", newspaper: "Memory futures", wasteland: "Supplies", observatory: "Tables", abyss: "Ballast", devaloka: "स्मृति Smriti", siege: "Provisions" },
-        temp: { "": "The forge", hud: "TEMP", terminal: "tmp", cosmos: "Hull temp", zen: "warmth", xianxia: "丹火 Pill fire", cyberpunk: "Heat", wabisabi: "湯 heat", artdeco: "Boiler", gothic: "The forge", newspaper: "Weather", wasteland: "Heat", observatory: "The lamp", abyss: "Coolant", devaloka: "अग्नि Agni", siege: "Boiling oil" },
-        disk: { "": "The crypt", hud: "DISK", terminal: "dsk", cosmos: "Cargo", zen: "space", xianxia: "储物 Storage", cyberpunk: "Shards", wabisabi: "蔵 storehouse", artdeco: "Vault", gothic: "The crypt", newspaper: "Archives", wasteland: "Stash", observatory: "Star catalogue", abyss: "Hold", devaloka: "कोश Kosha", siege: "The armoury" },
-        uptime: { "": "Vigil", hud: "UPTIME", terminal: "up", cosmos: "Mission time", zen: "awake", xianxia: "闭关 Seclusion", cyberpunk: "Jacked in", wabisabi: "時 hours", artdeco: "Open since", gothic: "Vigil", newspaper: "In print", wasteland: "Survived", observatory: "Observing", abyss: "Submerged", devaloka: "तपस् Tapas", siege: "Under siege" }
+        calendar: { "": "Calendar" },
+        progress: { "": "Progress" },
+        timer: { "": "Timer" },
+        lyrics: { "": "Lyrics" },
+        weather: { "": "Weather" },
+        network: { "": "Network" },
+        devices: { "": "Devices" },
+        note: { "": "Note" },
+        todo: { "": "To-do" },
+        toggles: { "": "Quick toggles" },
+        shortcuts: { "": "Shortcuts" },
+        music: { "": "Now playing", hud: "Now playing", terminal: "~/music $ playerctl status", cosmos: "Transmission", zen: "listening", xianxia: "琴音 · Qin melody", cyberpunk: "Now playing // 再生中", wabisabi: "音 · sound", artdeco: "On the gramophone", gothic: "The choir sings", newspaper: "Topping the charts", wasteland: "Salvaged radio", observatory: "Music of the spheres", abyss: "Hydrophone", devaloka: "गान · The Gandharvas sing", siege: "The minstrels play" },
+        musicIdle: { "": "Nothing playing", hud: "No signal", terminal: "no players found", cosmos: "Silence between stars", zen: "quiet", xianxia: "琴弦静 · The strings are still", cyberpunk: "Dead air", wabisabi: "静寂 · stillness", artdeco: "The band is taking five", gothic: "The choir is silent", newspaper: "No music news today", wasteland: "Static on every frequency", observatory: "The spheres are silent", abyss: "Only whale song", devaloka: "The veena rests", siege: "The minstrels rest" },
+        sysmon: { "": "System", hud: "System status", terminal: "~ $ top -b -n1", cosmos: "Ship systems", zen: "", xianxia: "气海 · Sea of Qi", cyberpunk: "Cyberdeck // 電脳", wabisabi: "炉 · the hearth", artdeco: "The engine room", gothic: "The workings", newspaper: "Market report", wasteland: "Rig status", observatory: "The orrery", abyss: "Boat systems", devaloka: "यन्त्र · The yantra", siege: "The garrison" },
+        quote: { "": "Quote", hud: "Side quest", terminal: "~ $ fortune", cosmos: "Incoming signal", zen: "a thought", xianxia: "箴言 · Proverb", cyberpunk: "Street talk // 噂", wabisabi: "言の葉 · words", artdeco: "Overheard at the speakeasy", gothic: "From the scriptorium", newspaper: "Funny pages", wasteland: "Scrawled on the wall", observatory: "From the almanac", abyss: "Overheard in the mess", devaloka: "नारद उवाच · Narada said", siege: "Round the campfire" },
+        cpu: { "": "Processor", hud: "CPU", terminal: "cpu", cosmos: "Reactor", zen: "mind", xianxia: "灵力 Spirit", cyberpunk: "Neural core", wabisabi: "火 fire", artdeco: "Dynamo", gothic: "The great wheel", newspaper: "Processor index", wasteland: "Engine", observatory: "Clockwork", abyss: "Propulsion", devaloka: "प्राण Prana", siege: "Siege engines" },
+        ram: { "": "Memory", hud: "MEM", terminal: "mem", cosmos: "Memory core", zen: "memory", xianxia: "神识 Sense", cyberpunk: "RAM", wabisabi: "水 water", artdeco: "Ledger", gothic: "The library", newspaper: "Memory futures", wasteland: "Supplies", observatory: "Tables", abyss: "Ballast", devaloka: "स्मृति Smriti", siege: "Provisions" },
+        temp: { "": "Temperature", hud: "TEMP", terminal: "tmp", cosmos: "Hull temp", zen: "warmth", xianxia: "丹火 Pill fire", cyberpunk: "Heat", wabisabi: "湯 heat", artdeco: "Boiler", gothic: "The forge", newspaper: "Weather", wasteland: "Heat", observatory: "The lamp", abyss: "Coolant", devaloka: "अग्नि Agni", siege: "Boiling oil" },
+        disk: { "": "Disk", hud: "DISK", terminal: "dsk", cosmos: "Cargo", zen: "space", xianxia: "储物 Storage", cyberpunk: "Shards", wabisabi: "蔵 storehouse", artdeco: "Vault", gothic: "The crypt", newspaper: "Archives", wasteland: "Stash", observatory: "Star catalogue", abyss: "Hold", devaloka: "कोश Kosha", siege: "The armoury" },
+        uptime: { "": "Up", hud: "UPTIME", terminal: "up", cosmos: "Mission time", zen: "awake", xianxia: "闭关 Seclusion", cyberpunk: "Jacked in", wabisabi: "時 hours", artdeco: "Open since", gothic: "Vigil", newspaper: "In print", wasteland: "Survived", observatory: "Observing", abyss: "Submerged", devaloka: "तपस् Tapas", siege: "Under siege" }
     })
 
     function word(key, themeId) {

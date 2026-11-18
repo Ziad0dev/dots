@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell.Io
 import Quickshell
 
 Item {
@@ -47,12 +48,26 @@ Item {
 
     TooltipMixin { id: tip; root: rootMod.root; owner: rootMod; text: rootMod.tooltipText }
 
+    // the same toggle as NotificationSilenceWidget
+    Process {
+        id: dndProc
+        command: ["bash", "-c", "if command -v dots-toggle-notification-silencing >/dev/null 2>&1; then exec dots-toggle-notification-silencing; fi; exec dots toggle notification silencing"]
+        onExited: root.refreshStatusIndicators()
+    }
+
+    // left: the notification centre; right: Do Not Disturb; middle: clear all
     MouseArea {
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
+        acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
         onEntered: tip.show()
         onExited: { tip.hide() }
-        onClicked: { tip.hide(); root.notifVisible = !root.notifVisible }
+        onClicked: (e) => {
+            tip.hide()
+            if (e.button === Qt.RightButton) { dndProc.running = false; dndProc.running = true }
+            else if (e.button === Qt.MiddleButton) { if (root.notifService) root.notifService.clearAll() }
+            else root.notifVisible = !root.notifVisible
+        }
     }
 }

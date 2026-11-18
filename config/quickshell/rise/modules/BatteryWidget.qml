@@ -202,8 +202,13 @@ Item {
     MouseArea {
         anchors.fill: parent
         hoverEnabled: true; cursorShape: Qt.PointingHandCursor
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
         onEntered: { if (rootMod.hasBattery) tip.show() }
         onExited:  { tip.hide() }
-        onClicked: { tip.hide(); root.popout.click("batteryVisible") }
+        // left: the battery; right: the power profiles
+        onClicked: (e) => {
+            tip.hide()
+            root.popout.click(e.button === Qt.RightButton ? "powerProfileVisible" : "batteryVisible")
+        }
     }
 }

@@ -129,6 +129,7 @@ Item {
 
     // ── Widget list ───────────────────────────────────────────────────────────
     Flickable {
+        id: flick
         anchors.left: mock.right
         anchors.leftMargin: 24
         anchors.right: parent.right
@@ -146,16 +147,24 @@ Item {
             Repeater {
                 model: tab.dw.widgets
 
+                // a gallery card: the widget itself, live but inert, scaled
+                // into a preview box; a click puts it on the desktop or takes
+                // it off (after lucid's widget gallery)
                 ClickableRect {
                     id: card
 
                     required property var modelData
                     required property int index
                     readonly property bool on: tab.dw.enabled(modelData.id)
+                    readonly property var preview: desktop.components[modelData.id] ?? null
+                    readonly property bool isSel: tab.sel === index
+                    // keyboard choice scrolls into view
+                    onIsSelChanged: if (isSel && (y < flick.contentY || y + height > flick.contentY + flick.height))
+                        flick.contentY = Math.max(0, Math.min(y, flick.contentHeight - flick.height))
 
                     width: list.width
-                    height: 68
-                    radius: Services.DesktopTheme.rad(18)
+                    height: (preview ? 176 : 0) + 64
+                    radius: Services.DesktopTheme.rad(22)
                     color: on ? Colors.primary_container : card.hovered ? Colors.surface_container_high : Colors.surface_container
                     border.width: tab.sel === index ? 2 : 0
                     border.color: Colors.primary
@@ -169,10 +178,46 @@ Item {
                         ColorAnimation { duration: 140 }
                     }
 
+                    Item {
+                        id: stage
+                        visible: card.preview !== null
+                        x: 10
+                        y: 10
+                        width: parent.width - 20
+                        height: 166
+                        clip: true
+
+                        // the wallpaper behind it, so it looks as on the desktop
+                        Rectangle {
+                            anchors.fill: parent
+                            radius: Services.DesktopTheme.rad(14)
+                            color: Colors.surface_container_lowest
+                            clip: true
+                            Image {
+                                anchors.fill: parent
+                                source: Services.WallpaperEngine.current ? "file://" + Services.WallpaperEngine.current : ""
+                                sourceSize.width: 400
+                                fillMode: Image.PreserveAspectCrop
+                                asynchronous: true
+                                opacity: 0.5
+                            }
+                        }
+
+                        Loader {
+                            id: live
+                            active: card.preview !== null && tab.visible
+                            sourceComponent: card.preview
+                            enabled: false
+                            readonly property real k: item ? Math.min(1, (stage.width - 16) / Math.max(1, item.implicitWidth), (stage.height - 16) / Math.max(1, item.implicitHeight)) : 1
+                            anchors.centerIn: parent
+                            scale: k
+                        }
+                    }
+
                     Glyph {
                         id: icon
                         x: 18
-                        anchors.verticalCenter: parent.verticalCenter
+                        y: (card.preview ? 176 : 0) + 20
                         text: card.modelData.icon
                         filled: card.on
                         font.pixelSize: 24
@@ -182,9 +227,9 @@ Item {
                     Column {
                         anchors.left: icon.right
                         anchors.leftMargin: 14
-                        anchors.right: toggle.left
+                        anchors.right: badge.left
                         anchors.rightMargin: 12
-                        anchors.verticalCenter: parent.verticalCenter
+                        y: (card.preview ? 176 : 0) + 12
                         spacing: 2
 
                         StyledText {
@@ -203,26 +248,33 @@ Item {
                         }
                     }
 
+                    // add / on the desktop
                     Rectangle {
-                        id: toggle
+                        id: badge
                         anchors.right: parent.right
-                        anchors.rightMargin: 18
-                        anchors.verticalCenter: parent.verticalCenter
-                        width: 46
-                        height: 26
-                        radius: Services.DesktopTheme.rad(13)
+                        anchors.rightMargin: 14
+                        y: (card.preview ? 176 : 0) + 14
+                        width: badgeRow.implicitWidth + 20
+                        height: 34
+                        radius: Services.DesktopTheme.rad(17)
                         color: card.on ? Colors.primary : Colors.surface_container_highest
 
-                        Rectangle {
-                            width: 20
-                            height: 20
-                            radius: Services.DesktopTheme.rad(10)
-                            y: 3
-                            x: card.on ? 23 : 3
-                            color: card.on ? Colors.on_primary : Colors.outline
-
-                            Behavior on x {
-                                NumberAnimation { duration: 180; easing.type: Easing.OutCubic }
+                        Row {
+                            id: badgeRow
+                            anchors.centerIn: parent
+                            spacing: 4
+                            Glyph {
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: card.on ? "check" : "add"
+                                font.pixelSize: 18
+                                color: card.on ? Colors.on_primary : Colors.on_surface
+                            }
+                            StyledText {
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: card.on ? "On desktop" : "Add"
+                                font.pixelSize: 13
+                                font.weight: Font.DemiBold
+                                color: card.on ? Colors.on_primary : Colors.on_surface
                             }
                         }
                     }

@@ -55,7 +55,7 @@ Item {
         id: mouse
         anchors.fill: parent
         hoverEnabled: true; cursorShape: Qt.PointingHandCursor
-        acceptedButtons: Qt.LeftButton | Qt.RightButton
+        acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
         onEntered: { tip.show(); }
         onExited: { tip.hide(); }
         onClicked: (e) => {
@@ -65,6 +65,9 @@ Item {
                 tip.hide();
                 tzRunner.running = false;                // timezone picker (unchanged)
                 tzRunner.running = true;
+            } else {
+                tip.hide();
+                root.openCalendar();                     // middle: the calendar
             }
         }
     }

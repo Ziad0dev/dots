@@ -2,8 +2,17 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
+import Quickshell.Widgets
+import qs.ext.colors
+import qs.ext.services as Services
 import "../modules"
 
+// Every workspace as a miniature of its screen, after lucid's workspaces
+// overview (github.com/Sn3akyy1/lucid, MIT): a tonal card with the wallpaper,
+// each window a live picture of itself where it really sits, its app's icon
+// on it. Click a window to go to it, middle-click to close it, click the
+// card's empty space for the workspace. Keys: arrows / hjkl move, 1-9 jump,
+// Enter goes, Escape leaves.
 PanelWindow {
     id: win
     required property var root
@@ -26,11 +35,6 @@ PanelWindow {
 
     property int sel: 0
 
-    readonly property color island: Qt.rgba(
-        root.paper.r + (root.ink.r - root.paper.r) * 0.07,
-        root.paper.g + (root.ink.g - root.paper.g) * 0.07,
-        root.paper.b + (root.ink.b - root.paper.b) * 0.07, 1.0)
-
     readonly property var cells: {
         var out = []
         var vals = Hyprland.workspaces ? Hyprland.workspaces.values : []
@@ -38,13 +42,23 @@ PanelWindow {
             var w = vals[i]
             if (!w || w.id < 0) continue
             var tl = (w.toplevels && w.toplevels.values) ? w.toplevels.values : []
-            out.push({ id: w.id, name: w.name, wins: tl })
+            out.push({ id: w.id, name: w.name, wins: tl, monitor: w.monitor })
         }
         out.sort(function (a, b) { return a.id - b.id })
         return out
     }
+    // the cards take the shape of the screen the overview opens on
+    readonly property real aspect: screen ? screen.height / Math.max(1, screen.width) : 9 / 16
+    readonly property int columns: Math.min(4, Math.max(1, cells.length))
+    readonly property real cardW: Math.min(480, (width - 160) / columns - 18)
+    readonly property real cardH: cardW * aspect
 
-    onVisibleChanged: if (visible) sel = 0
+    // window and monitor geometry is only fetched on request
+    onVisibleChanged: if (visible) {
+        sel = Math.max(0, cells.findIndex(c => Hyprland.focusedWorkspace && c.id === Hyprland.focusedWorkspace.id))
+        Hyprland.refreshMonitors()
+        Hyprland.refreshToplevels()
+    }
 
     function activate(i) {
         if (i < 0 || i >= cells.length) return
@@ -52,9 +66,10 @@ PanelWindow {
         root.overviewVisible = false
     }
 
+    // the scrim: dimmed, and blurred by Hyprland (the dots-* layer rule)
     Rectangle {
         anchors.fill: parent
-        color: Qt.rgba(root.paper.r, root.paper.g, root.paper.b, 0.72 * win.reveal)
+        color: Colors.withAlpha(Colors.background, 0.55 * win.reveal)
         MouseArea { anchors.fill: parent; onClicked: root.overviewVisible = false }
     }
 
@@ -63,7 +78,7 @@ PanelWindow {
         width: grid.width
         height: grid.height
         opacity: win.reveal
-        scale: 0.96 + 0.04 * win.reveal
+        scale: 0.94 + 0.06 * win.reveal
         focus: root.overviewVisible
 
         Keys.onPressed: function (event) {
@@ -74,9 +89,9 @@ PanelWindow {
             } else if (event.key === Qt.Key_Left || event.key === Qt.Key_H) {
                 win.sel = Math.max(win.sel - 1, 0); event.accepted = true
             } else if (event.key === Qt.Key_Down || event.key === Qt.Key_J) {
-                win.sel = Math.min(win.sel + grid.columns, win.cells.length - 1); event.accepted = true
+                win.sel = Math.min(win.sel + win.columns, win.cells.length - 1); event.accepted = true
             } else if (event.key === Qt.Key_Up || event.key === Qt.Key_K) {
-                win.sel = Math.max(win.sel - grid.columns, 0); event.accepted = true
+                win.sel = Math.max(win.sel - win.columns, 0); event.accepted = true
             } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
                 win.activate(win.sel); event.accepted = true
             } else if (event.key >= Qt.Key_1 && event.key <= Qt.Key_9) {
@@ -89,91 +104,158 @@ PanelWindow {
 
         Grid {
             id: grid
-            columns: Math.min(4, Math.max(1, win.cells.length))
-            spacing: 14
+            columns: win.columns
+            spacing: 18
 
             Repeater {
                 model: win.cells
 
-                Rectangle {
+                Item {
                     id: cell
                     required property var modelData
                     required property int index
 
-                    width: 260
-                    height: 156
-                    radius: root.pillRadius
-                    color: win.island
-                    border.width: 2
-                    border.color: index === win.sel ? root.seal : root.pillBorder
-                    Behavior on border.color { CAnim { ms: 120 } }
-
-                    readonly property bool isActive:
-                        Hyprland.focusedWorkspace
+                    readonly property bool isActive: Hyprland.focusedWorkspace !== null
                         && Hyprland.focusedWorkspace.id === modelData.id
+                    readonly property bool isSel: index === win.sel
+                    // the workspace's screen, for placing its windows
+                    // (Quickshell's screen has the logical, rotated size; Hyprland's
+                    // monitor reports the mode before rotation)
+                    readonly property var mon: modelData.monitor
+                    readonly property var scr: mon ? Quickshell.screens.find(s => s.name === mon.name) ?? null : null
+                    readonly property real monX: scr ? scr.x : mon ? mon.x : 0
+                    readonly property real monY: scr ? scr.y : mon ? mon.y : 0
+                    readonly property real monW: scr ? scr.width : mon && mon.width > 0 ? mon.width / (mon.scale || 1) : 1920
+                    readonly property real monH: scr ? scr.height : mon && mon.height > 0 ? mon.height / (mon.scale || 1) : 1080
+                    // the screen fitted into the card, centred
+                    readonly property real k: Math.min(win.cardW / monW, win.cardH / monH)
+                    readonly property real offX: (win.cardW - monW * k) / 2
+                    readonly property real offY: (win.cardH - monH * k) / 2
 
-                    Column {
-                        anchors.fill: parent
-                        anchors.margins: 10
-                        spacing: 6
+                    width: win.cardW
+                    height: win.cardH + 34
 
-                        Row {
-                            spacing: 6
-                            UiText {
-                                text: cell.modelData.name && cell.modelData.name !== ""
-                                    ? cell.modelData.name : String(cell.modelData.id)
-                                font.family: root.mono
-                                font.pixelSize: 13
-                                font.bold: cell.isActive
-                                color: cell.isActive ? root.seal : root.ink
-                            }
-                            UiText {
-                                text: cell.modelData.wins.length > 0
-                                    ? "· " + cell.modelData.wins.length : ""
-                                font.family: root.mono
-                                font.pixelSize: 12
-                                color: Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.45)
-                            }
+                    // the miniature screen
+                    ClippingRectangle {
+                        id: screenCard
+                        width: win.cardW
+                        height: win.cardH
+                        radius: 22
+                        color: Qt.tint(Colors.surface_container_high, Colors.withAlpha(Colors.primary, 0.10))
+                        border.width: cell.isSel || cell.isActive ? 3 : 0
+                        border.color: cell.isActive ? Colors.primary : Colors.withAlpha(Colors.primary, 0.55)
+                        scale: cardArea.containsMouse ? 1.02 : 1
+                        Behavior on scale { Anim { kind: "spatialFast" } }
+
+                        Image {
+                            anchors.fill: parent
+                            source: Services.WallpaperEngine.current ? "file://" + Services.WallpaperEngine.current : ""
+                            fillMode: Image.PreserveAspectCrop
+                            sourceSize.width: 480
+                            asynchronous: true
+                            cache: false
+                            opacity: 0.55
                         }
 
-                        Column {
-                            width: parent.width
-                            spacing: 3
+                        // the empty part of the card: the workspace itself
+                        MouseArea {
+                            id: cardArea
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onEntered: win.sel = cell.index
+                            onClicked: win.activate(cell.index)
+                        }
 
-                            Repeater {
-                                model: cell.modelData.wins.slice(0, 5)
+                        Repeater {
+                            model: cell.modelData.wins
 
-                                Rectangle {
-                                    required property var modelData
-                                    width: parent.width
-                                    height: 20
-                                    radius: 4
-                                    color: Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.06)
+                            Item {
+                                id: thumb
+                                required property var modelData
+                                readonly property var ipc: modelData.lastIpcObject
+                                readonly property bool placed: ipc && ipc.at && ipc.size
+                                x: placed ? cell.offX + (ipc.at[0] - cell.monX) * cell.k : 8
+                                y: placed ? cell.offY + (ipc.at[1] - cell.monY) * cell.k : 8
+                                width: placed ? Math.max(24, ipc.size[0] * cell.k) : win.cardW * 0.4
+                                height: placed ? Math.max(18, ipc.size[1] * cell.k) : win.cardH * 0.4
+                                visible: !ipc || !ipc.hidden
 
-                                    UiText {
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        anchors.left: parent.left
-                                        anchors.leftMargin: 6
-                                        anchors.right: parent.right
-                                        anchors.rightMargin: 6
-                                        elide: Text.ElideRight
-                                        text: parent.modelData.title && parent.modelData.title !== ""
-                                            ? parent.modelData.title : "—"
-                                        font.family: root.mono
-                                        font.pixelSize: 11
-                                        color: Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.75)
+                                ClippingRectangle {
+                                    anchors.fill: parent
+                                    radius: 8
+                                    color: Colors.surface_container_highest
+                                    border.width: thumbArea.containsMouse ? 2 : 0
+                                    border.color: Colors.primary
+
+                                    ScreencopyView {
+                                        anchors.fill: parent
+                                        captureSource: win.visible && thumb.modelData.wayland ? thumb.modelData.wayland : null
+                                        live: win.root.overviewVisible
+                                    }
+                                }
+
+                                // the app, in the middle of its window
+                                IconImage {
+                                    anchors.centerIn: parent
+                                    implicitSize: Math.min(40, Math.max(16, Math.min(parent.width, parent.height) * 0.35))
+                                    source: {
+                                        const cls = thumb.ipc && thumb.ipc.class ? thumb.ipc.class : "";
+                                        const entry = cls ? DesktopEntries.heuristicLookup(cls) : null;
+                                        return Quickshell.iconPath(entry ? entry.icon : cls.toLowerCase(), "application-x-executable");
+                                    }
+                                }
+
+                                MouseArea {
+                                    id: thumbArea
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    acceptedButtons: Qt.LeftButton | Qt.MiddleButton
+                                    onEntered: win.sel = cell.index
+                                    onClicked: (e) => {
+                                        const w = thumb.modelData.wayland;
+                                        if (e.button === Qt.MiddleButton) {
+                                            if (w) w.close();
+                                            return;
+                                        }
+                                        if (w) w.activate(); else win.root.gotoWorkspace(cell.modelData.id);
+                                        win.root.overviewVisible = false;
                                     }
                                 }
                             }
                         }
                     }
 
-                    MouseArea {
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onEntered: win.sel = cell.index
-                        onClicked: win.activate(cell.index)
+                    // the workspace's number, and how many windows it holds
+                    Row {
+                        anchors.top: screenCard.bottom
+                        anchors.topMargin: 8
+                        anchors.horizontalCenter: screenCard.horizontalCenter
+                        spacing: 8
+
+                        Rectangle {
+                            width: Math.max(26, num.implicitWidth + 14)
+                            height: 24
+                            radius: 12
+                            color: cell.isActive ? Colors.primary : Colors.withAlpha(Colors.surface_container_highest, 0.9)
+                            Text {
+                                id: num
+                                anchors.centerIn: parent
+                                text: cell.modelData.name && cell.modelData.name !== "" ? cell.modelData.name : String(cell.modelData.id)
+                                font.family: "Google Sans Flex"
+                                font.pixelSize: 13
+                                font.weight: Font.DemiBold
+                                color: cell.isActive ? Colors.on_primary : Colors.on_surface
+                            }
+                        }
+                        Text {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: cell.modelData.wins.length === 1 ? "1 window" : cell.modelData.wins.length + " windows"
+                            font.family: "Google Sans Flex"
+                            font.pixelSize: 12
+                            color: Colors.withAlpha(Colors.on_surface, 0.7)
+                        }
                     }
                 }
             }

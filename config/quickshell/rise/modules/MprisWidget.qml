@@ -460,9 +460,13 @@ Item {
     MouseArea {
         anchors.fill: parent
         hoverEnabled: true
-        acceptedButtons: Qt.RightButton
+        acceptedButtons: Qt.RightButton | Qt.MiddleButton
         onEntered: { if (rootMod.tooltipText) tip.show() }
         onExited:  { tip.hide() }
-        onClicked: { tip.hide(); root.popout.click("mprisVisible") }
+        onClicked: (e) => {
+            tip.hide()
+            if (e.button === Qt.MiddleButton) { if (rootMod.player) rootMod.player.togglePlaying() }
+            else root.popout.click("mprisVisible")
+        }
     }
 }

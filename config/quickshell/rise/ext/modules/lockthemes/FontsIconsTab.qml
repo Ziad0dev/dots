@@ -282,7 +282,8 @@ Item {
                     id: sizeChip
                     required property int modelData
                     readonly property bool current: tab.eff(tab.catInfo.sizeKey) === String(modelData)
-                    anchors.verticalCenter: parent.verticalCenter
+                    // null while a category switch tears the old chips down
+                    anchors.verticalCenter: parent ? parent.verticalCenter : undefined
                     width: 38
                     height: 30
                     radius: Services.DesktopTheme.rad(15)

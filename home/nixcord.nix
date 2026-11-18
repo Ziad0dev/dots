@@ -47,9 +47,12 @@ in
       openASAR.enable = false;
       commandLineArgs = [
         "--disable-features=WaylandWpColorManagerV1,EnableDrDc"
-        # NVIDIA + Wayland: GPU compositing hands Hyprland empty frames, so the
-        # window flashes see-through then black every few seconds
-        "--disable-gpu-compositing"
+        # NVIDIA + native Wayland made the window flash see-through then black
+        # every few seconds, with GPU compositing (empty frames) and without it
+        # (software frames). Through XWayland, which Hyprland syncs properly on
+        # NVIDIA, it doesn't; this comes after the wrapper's
+        # --ozone-platform=wayland, and the last one wins.
+        "--ozone-platform=x11"
       ];
     };
 

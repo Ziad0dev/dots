@@ -15,8 +15,9 @@ Item {
     property string themeId: Services.DesktopTheme.enabled ? Services.DesktopTheme.theme : ""
     property bool editable: false
 
-    readonly property var ids: ["clock", "music", "sysmon", "quote"]
-    readonly property var components: ({ clock: clockC, music: musicC, sysmon: sysmonC, quote: quoteC })
+    // every widget, also used by the Widgets tab"s gallery for its previews
+    readonly property var ids: ["clock", "music", "sysmon", "quote", "calendar", "progress", "timer", "lyrics", "weather", "glance", "network", "devices", "note", "todo", "toggles", "shortcuts"]
+    readonly property var components: ({ clock: clockC, music: musicC, sysmon: sysmonC, quote: quoteC, calendar: calendarC, progress: progressC, timer: timerC, lyrics: lyricsC, weather: weatherC, glance: glanceC, network: networkC, devices: devicesC, note: noteC, todo: todoC, toggles: togglesC, shortcuts: shortcutsC })
 
     width: Services.DesktopWidgets.screen?.width ?? 1920
     height: Services.DesktopWidgets.screen?.height ?? 1080
@@ -71,6 +72,7 @@ Item {
 
             Loader {
                 id: loader
+                active: slot.visible
                 sourceComponent: root.components[slot.modelData]
             }
 
@@ -137,5 +139,65 @@ Item {
     Component {
         id: quoteC
         QuoteWidget { themeId: root.themeId }
+    }
+
+    Component {
+        id: calendarC
+        CalendarWidget { themeId: root.themeId }
+    }
+
+    Component {
+        id: progressC
+        ProgressWidget { themeId: root.themeId }
+    }
+
+    Component {
+        id: timerC
+        TimerWidget { themeId: root.themeId }
+    }
+
+    Component {
+        id: lyricsC
+        LyricsWidget { themeId: root.themeId }
+    }
+
+    Component {
+        id: weatherC
+        WeatherDeskWidget { themeId: root.themeId }
+    }
+
+    Component {
+        id: glanceC
+        GlanceWidget { themeId: root.themeId }
+    }
+
+    Component {
+        id: networkC
+        NetworkDeskWidget { themeId: root.themeId }
+    }
+
+    Component {
+        id: devicesC
+        DevicesWidget { themeId: root.themeId }
+    }
+
+    Component {
+        id: noteC
+        NoteWidget { themeId: root.themeId }
+    }
+
+    Component {
+        id: todoC
+        TodoWidget { themeId: root.themeId }
+    }
+
+    Component {
+        id: togglesC
+        TogglesWidget { themeId: root.themeId }
+    }
+
+    Component {
+        id: shortcutsC
+        ShortcutsWidget { themeId: root.themeId }
     }
 }

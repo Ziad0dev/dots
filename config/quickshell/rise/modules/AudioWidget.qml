@@ -166,6 +166,11 @@ Item {
     }
 
     Process { id: audioErrNotify }
+    // the volume panel's microphone mute
+    Process {
+        id: micMute
+        command: ["bash", "-c", "if command -v dots-audio-input-mute >/dev/null 2>&1; then exec dots-audio-input-mute; fi; wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"]
+    }
     Process {
         id: muteRunner
         command: ["bash", "-c", rootMod.muteCommand]
@@ -188,7 +193,7 @@ Item {
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
-        acceptedButtons: Qt.LeftButton | Qt.RightButton
+        acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
         onEntered: tip.show()
         onExited: { tip.hide() }
         onWheel: (e) => {
@@ -196,8 +201,9 @@ Item {
         }
         onClicked: (e) => {
             tip.hide()
-            if (e.button === Qt.RightButton) { if (!muteRunner.running) muteRunner.running = true }
-            else                             { root.popout.click("volVisible") }
+            if (e.button === Qt.RightButton)       { if (!muteRunner.running) muteRunner.running = true }
+            else if (e.button === Qt.MiddleButton) { micMute.running = false; micMute.running = true }
+            else                                   { root.popout.click("volVisible") }
         }
     }
 }

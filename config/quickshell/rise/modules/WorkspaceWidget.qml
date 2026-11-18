@@ -66,11 +66,33 @@ Item {
     }
 
     // right-click anywhere opens the workspace panel
+    // the next or previous workspace the bar shows, wrapping round
+    function stepWorkspace(step) {
+        var list = workspaceList
+        if (!list || list.length === 0) return
+        var i = list.indexOf(focusedId)
+        root.gotoWorkspace(list[i < 0 ? 0 : (i + step + list.length) % list.length])
+    }
+
+    // right: the workspace panel; middle: the overview; the wheel steps
+    // through the workspaces, one per notch (a touchpad's small deltas add up)
     MouseArea {
         anchors.fill: parent
-        acceptedButtons: Qt.RightButton
+        acceptedButtons: Qt.RightButton | Qt.MiddleButton
         cursorShape: Qt.PointingHandCursor
-        onClicked: root.popout.click("workspaceVisible")
+        property real wheelAccum: 0
+        onClicked: (e) => {
+            if (e.button === Qt.MiddleButton) root.overviewVisible = !root.overviewVisible
+            else root.popout.click("workspaceVisible")
+        }
+        onWheel: (e) => {
+            wheelAccum += e.angleDelta.y
+            while (Math.abs(wheelAccum) >= 120) {
+                var up = wheelAccum > 0
+                wheelAccum -= up ? 120 : -120
+                wsWidget.stepWorkspace(up ? -1 : 1)
+            }
+        }
     }
 
     // kanji numerals: 1-10 一…十, 11-99 十一, 二十, 二十一 …; anything else stays arabic

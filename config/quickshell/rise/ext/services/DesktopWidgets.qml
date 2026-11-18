@@ -25,7 +25,20 @@ Singleton {
         { id: "music", name: "Music player", icon: "music_note", description: "Now playing, with controls", x: 0.97, y: 0.08 },
         { id: "sysmon", name: "System monitor", icon: "monitoring", description: "CPU, memory, temperature and disk", x: 0.97, y: 0.52 },
         { id: "quote", name: "Quote", icon: "format_quote", description: "A line from the grimoire's quotes every ten minutes", x: 0.97, y: 0.98 }, // rise: bottom-left is the desk clock's
-        { id: "cava", name: "Visualizer", icon: "graphic_eq", description: "Cava spectrum of what's playing" }
+        { id: "cava", name: "Visualizer", icon: "graphic_eq", description: "Cava spectrum of what's playing" },
+        // after lucid's widgets (github.com/Sn3akyy1/lucid)
+        { id: "calendar", name: "Calendar", icon: "calendar_month", description: "The month, days with notes marked, and today's notes", x: 0.03, y: 0.55 },
+        { id: "progress", name: "Progress", icon: "donut_large", description: "How much of the day, week, month and year has gone", x: 0.5, y: 0.04 },
+        { id: "timer", name: "Timer", icon: "timer", description: "Countdown, pomodoro or stopwatch, with a notification at the end", x: 0.5, y: 0.6 },
+        { id: "lyrics", name: "Lyrics", icon: "lyrics", description: "The song's timed lyrics, the sung line lit", x: 0.5, y: 0.35 },
+        { id: "weather", name: "Weather", icon: "partly_cloudy_day", description: "Now, the next three days, sunrise and sunset", x: 0.03, y: 0.3 },
+        { id: "glance", name: "At a glance", icon: "today", description: "The date, what's next today, what's playing", x: 0.5, y: 0.15 },
+        { id: "network", name: "Network", icon: "network_check", description: "Download and upload speed, with the last minute", x: 0.97, y: 0.75 },
+        { id: "devices", name: "Devices", icon: "battery_full", description: "Battery of wireless mice, headsets and controllers", x: 0.97, y: 0.3 },
+        { id: "note", name: "Note", icon: "sticky_note_2", description: "A sticky note you type into, kept between sessions", x: 0.25, y: 0.3 },
+        { id: "todo", name: "To-do", icon: "checklist", description: "A checklist: add, tick off, clear", x: 0.25, y: 0.7 },
+        { id: "toggles", name: "Quick toggles", icon: "toggle_on", description: "Do not disturb, night light, Wi-Fi, microphone, stay awake", x: 0.75, y: 0.04 },
+        { id: "shortcuts", name: "Shortcuts", icon: "apps", description: "Your apps, a click away", x: 0.75, y: 0.9 }
     ]
 
     readonly property var defaults: ({ clock: true, music: true, sysmon: true, quote: true })

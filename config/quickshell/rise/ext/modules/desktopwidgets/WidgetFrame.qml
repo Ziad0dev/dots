@@ -67,6 +67,7 @@ Item {
         anchors.fill: parent
         sourceComponent: ({
             card: cardFrame,
+            tonal: tonalFrame,
             chamfer: chamferFrame,
             console: consoleFrame,
             glass: glassFrame,
@@ -82,6 +83,20 @@ Item {
             patta: pattaFrame,
             banner: bannerFrame
         })[frame.st.frame] ?? null
+    }
+
+    // the expressive default: a tonal plate, tinted with the wallpaper's
+    // primary so it reads as the theme's colour, not near-black
+    Component {
+        id: tonalFrame
+
+        Item {
+            Rectangle {
+                anchors.fill: parent
+                radius: 28
+                color: Colors.withAlpha(Qt.tint(Colors.surface_container_high, Colors.withAlpha(Colors.primary, 0.12)), 0.94)
+            }
+        }
     }
 
     Component {

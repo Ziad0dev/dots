@@ -21,6 +21,7 @@ PanelWindow {
 
     required property string widgetId
     property Component widget
+    property bool wantsKeyboard: false
 
     property bool held: false
     property bool moved: false
@@ -44,7 +45,8 @@ PanelWindow {
     visible: loader.item !== null && (held || !Services.Hyprland.covered(Services.DesktopWidgets.screen))
     WlrLayershell.layer: WlrLayer.Bottom
     WlrLayershell.namespace: "dots-ext-widget"
-    WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
+    // widgets you type into (notes, to-do) take the keyboard when clicked
+    WlrLayershell.keyboardFocus: wantsKeyboard ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
     exclusionMode: ExclusionMode.Ignore
     color: "transparent"
 

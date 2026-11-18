@@ -191,6 +191,36 @@ def inherited(path, index, seen=None):
     return names
 
 
+# Types that only exist with their module's import. Without it Quickshell
+# drops the whole file ("Process is not a type"), and with BarSlot, the bar:
+# that took the bar down once (a Process added to NotificationWidget).
+NEEDS_IMPORT = {
+    "Quickshell.Io": ["Process", "StdioCollector", "SplitParser", "FileView", "JsonAdapter", "Socket", "SocketServer", "IpcHandler"],
+    "Quickshell.Widgets": ["IconImage", "ClippingRectangle", "ClippingWrapperRectangle", "WrapperItem", "WrapperRectangle", "WrapperMouseArea"],
+    "Quickshell.Wayland": ["WlrLayershell", "ScreencopyView", "WlSessionLock", "WlSessionLockSurface"],
+    "Quickshell.Services.UPower": ["UPower", "UPowerDeviceType", "UPowerDeviceState", "PowerProfiles", "PowerProfile"],
+    "Quickshell.Services.Mpris": ["Mpris", "MprisPlaybackState"],
+    "Quickshell.Services.Pipewire": ["Pipewire", "PwObjectTracker", "PwNodeLinkTracker"],
+    "Quickshell.Hyprland": ["HyprlandFocusGrab", "GlobalShortcut"],
+    "QtQuick.Layouts": ["RowLayout", "ColumnLayout", "GridLayout", "StackLayout"],
+    "QtCore": ["Settings", "StandardPaths"],
+}
+TYPE_USE = {t: re.compile(r"(?:^\s*|:\s*)" + t + r"\s*\{|(?<![.\w])" + t + r"\.[a-z]", re.M)
+            for types in NEEDS_IMPORT.values() for t in types}
+
+
+def missing_imports(raw):
+    imported = set(re.findall(r"^\s*import\s+([\w.]+)", raw, re.M))
+    found = []
+    for module, types in NEEDS_IMPORT.items():
+        if module in imported:
+            continue
+        for t in types:
+            if TYPE_USE[t].search(strip_noise(raw)):
+                found.append(f"uses {t} without `import {module}`")
+    return found
+
+
 def check_file(path, index):
     raw = path.read_text(errors="replace")
     raw_lines = raw.split("\n")
@@ -201,7 +231,7 @@ def check_file(path, index):
     m = ROOT_TYPE.search(src)
     if m and m.group(1) in index and index[m.group(1)] != path:
         names |= inherited(index[m.group(1)], index)
-    problems = []
+    problems = missing_imports(raw)
 
     ids = DECL_ID.findall(src)
     for i in set(ids):
