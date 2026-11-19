@@ -15,6 +15,9 @@ The desktop currently declares the Restic password. Mullvad's WireGuard config c
 | Secret | Path |
 |---|---|
 | `restic-password` | `/etc/restic/password` |
+| `opensubtitles-username`, `opensubtitles-password` (optional) | `/run/secrets/…`, read by Bazarr (`modules/subtitles.nix`) |
+| `subdl-api-key`, `subsource-api-key` (optional) | `/run/secrets/…`, read by Bazarr (`modules/subtitles.nix`) |
+| `bazarr-ui-password` (optional, MD5 of the password) | `/run/secrets/…`, Bazarr's web UI login for user `admin` |
 
 The host age key is `/var/lib/sops-nix/key.txt`; its encrypted backup is stored in the password store at `dots/age-nixos`. On an impermanent host the key is bind-mounted from `/persist`, and the installer restores it there. Keep an independent backup of the age key and the GPG key recovery material: the home Restic backup holds the password store, so it cannot be the only recovery copy. `.sops.yaml` has the matching public age recipient and your GPG key as recipients for the desktop file.
 
