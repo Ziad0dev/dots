@@ -15,7 +15,19 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 
+-- The config is a read-only store copy unless dots.liveConfig is on, so the
+-- lockfile lives in state instead. The repo's lazy-lock.json seeds it on first
+-- start, so a fresh install gets the pinned versions; copy it back into the
+-- repo to record updates.
+local lockfile = vim.fn.stdpath("state") .. "/lazy-lock.json"
+local seed = vim.fn.stdpath("config") .. "/lazy-lock.json"
+if not (vim.uv or vim.loop).fs_stat(lockfile) and (vim.uv or vim.loop).fs_stat(seed) then
+  vim.fn.mkdir(vim.fn.stdpath("state"), "p")
+  vim.fn.writefile(vim.fn.readfile(seed, "b"), lockfile, "b")
+end
+
 require("lazy").setup({
+  lockfile = lockfile,
   spec = {
     { import = "plugins" },
   },

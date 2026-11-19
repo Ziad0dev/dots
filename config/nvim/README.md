@@ -192,4 +192,8 @@ doesn't replace the buffer with a one-page image stub.
 ## Install
 
 Drop the `nvim/` folder at `~/.config/nvim` (or symlink it from `~/dots`).
-First launch bootstraps lazy.nvim and installs everything.
+First launch bootstraps lazy.nvim and installs everything. The config is a
+read-only store copy (unless `dots.liveConfig` is on), so lazy keeps its
+lockfile in `~/.local/state/nvim/lazy-lock.json`, seeded from this
+directory's `lazy-lock.json` on first start. After `:Lazy update`, copy it
+back here to record the new versions.
