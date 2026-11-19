@@ -140,11 +140,6 @@ Item {
         }
     }
     IpcHandler {
-        target: "openrouter"
-        function toggle(): void { router.invoke("toggleOpenRouter") }
-    }
-
-    IpcHandler {
         target: "overview"
         function toggle(): void { router.invoke("toggleOverview") }
     }

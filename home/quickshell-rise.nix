@@ -166,9 +166,24 @@ let
     text = builtins.readFile ../scripts/voxtype.sh;
   };
 
+  # tz offsets, reminders, disk speed test, remote sessions (Omarchy-style bar tools)
+  barTools = pkgs.writeShellApplication {
+    name = "dots-bar-tools";
+    runtimeInputs = with pkgs; [
+      coreutils
+      gawk
+      jq
+      libnotify
+      systemd
+      util-linux
+    ];
+    text = builtins.readFile ../scripts/dots-bar-tools.sh;
+  };
+
   helpers = [
     setWallpaper
     currentWallpaper
+    barTools
   ];
 
   compatBase = pkgs.writeShellApplication {

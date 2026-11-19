@@ -10,7 +10,7 @@ import "Palette.js" as Palette
 // Part of Theme (see Theme.qml): GitHub inbox: shared parse of scripts/github-inbox for pill + panel.
 // Same object as `theme` — split into an inheritance chain only for size;
 // every property/function here is still read as theme.<name>.
-ThemeTelemetry {
+ThemeBarTools {
     id: theme
 
     // ── GitHub inbox ──

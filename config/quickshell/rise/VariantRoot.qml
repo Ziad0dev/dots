@@ -13,8 +13,6 @@ import "panels"
 Item {
     id: root
 
-    function toggleOpenRouter() { if (!theme.openRouterVisible) theme.activateFocusedPopupScreen(); theme.openRouterVisible = !theme.openRouterVisible }
-
     function toggleOverview() { if (!theme.overviewVisible) theme.activateFocusedPopupScreen(); theme.overviewVisible = !theme.overviewVisible }
 
     function toggleClipboard() { if (!theme.clipboardVisible) theme.activateFocusedPopupScreen(); theme.clipboardVisible = !theme.clipboardVisible }
@@ -329,7 +327,6 @@ Item {
     StoragePanel { root: theme }
     AiUsagePanel { root: theme }
     GithubPanel { root: theme }
-    LazyLoader { active: theme.openRouterVisible; OpenRouterPanel { root: theme } }
     VolumePanel { root: theme }
     LanguagePanel { root: theme }
     TrayPanel { root: theme }
@@ -365,6 +362,9 @@ Item {
     BrightnessPanel { root: theme }
     MprisPanel { root: theme }
     WeatherPanel { root: theme }
+    TailscalePanel { root: theme }
+    WorldClockPanel { root: theme }
+    ReminderPanel { root: theme }
     KeybindsPanel { root: theme }
     DiscoverPanel { root: theme }
     WorkspacePanel { root: theme }

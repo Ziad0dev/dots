@@ -29,7 +29,8 @@ Item {
         "brightnessVisible", "mprisVisible", "weatherVisible", "calendarVisible",
         "cpuVisible", "memVisible", "gpuVisible", "thermalVisible", "storageVisible",
         "powerProfileVisible", "langVisible", "aiUsageVisible", "githubVisible",
-        "trayVisible", "trayMenuVisible", "workspaceVisible"
+        "trayVisible", "trayMenuVisible", "workspaceVisible",
+        "tailscaleVisible", "worldClockVisible", "reminderVisible"
     ]
     function hosts(flag) { return hosted.indexOf(flag) >= 0 }
 
@@ -187,7 +188,8 @@ Item {
         memory: "memVisible", gpu: "gpuVisible", thermals: "thermalVisible",
         storage: "storageVisible", power: "powerProfileVisible", language: "langVisible",
         ai: "aiUsageVisible", github: "githubVisible", tray: "trayVisible",
-        workspaces: "workspaceVisible"
+        workspaces: "workspaceVisible", tailscale: "tailscaleVisible",
+        worldclock: "worldClockVisible", reminders: "reminderVisible"
     })
     function command(action, name) {
         var flag = names[name] || name

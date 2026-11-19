@@ -17,6 +17,23 @@ let
 
   mediaGid = 3000;
 
+  # a oneshot running `tailscale <verb>` for the bar's Tailscale panel
+  tailscaleUnit = verb: {
+    description = "Tailscale ${verb} (bar panel)";
+    after = [ "tailscaled.service" ];
+    requires = [ "tailscaled.service" ];
+    serviceConfig = import ../lib/hardening.nix // {
+      Type = "oneshot";
+      ExecStart = "${config.services.tailscale.package}/bin/tailscale ${verb}";
+      # a logged-out node would wait for a login URL
+      TimeoutStartSec = "30s";
+      ProtectSystem = "strict";
+      # only tailscaled's unix socket
+      RestrictAddressFamilies = [ "AF_UNIX" ];
+      IPAddressDeny = "any";
+    };
+  };
+
   extraNvidiaDevices = [
     "/dev/nvidia0"
     "/dev/nvidia-uvm"
@@ -121,6 +138,24 @@ in
     enable = true;
     openFirewall = true;
   };
+
+  # The bar's Tailscale panel connects and disconnects by starting these two
+  # units. Making the user the Tailscale operator instead would also let any
+  # user process run `tailscale serve`/`funnel` and publish local services.
+  systemd.services.tailscale-connect = tailscaleUnit "up";
+  systemd.services.tailscale-disconnect = tailscaleUnit "down";
+
+  security.polkit.extraConfig = ''
+    polkit.addRule(function(action, subject) {
+      var units = ["tailscale-connect.service", "tailscale-disconnect.service"];
+      if (action.id == "org.freedesktop.systemd1.manage-units"
+          && subject.user == "${username}"
+          && action.lookup("verb") == "start"
+          && units.indexOf(action.lookup("unit")) >= 0) {
+        return polkit.Result.YES;
+      }
+    });
+  '';
 
   # 8443: Jellyfin over HTTPS via `tailscale serve --https 8443` (set by hand)
   networking.firewall.interfaces.tailscale0.allowedTCPPorts = [

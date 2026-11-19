@@ -303,6 +303,7 @@ ThemeAiUsage {
         || discoverVisible || workspaceVisible || imagePickerVisible || mediaBrowserVisible || notifVisible
         || powerProfileVisible || trayVisible || trayMenuVisible || utilitiesVisible
         || dashboardVisible || drawerVisible || sessionVisible || windowInfoVisible || settingsVisible
+        || tailscaleVisible || worldClockVisible || reminderVisible
     readonly property bool keyboardPopupVisible: imagePickerVisible || mediaBrowserVisible
 
     function registerBarLayoutController(screenName, controller) {
@@ -589,6 +590,9 @@ ThemeAiUsage {
         if (except !== "trayVisible") trayVisible = false
         if (except !== "trayMenuVisible") trayMenuVisible = false
         if (except !== "githubVisible") githubVisible = false
+        if (except !== "tailscaleVisible") tailscaleVisible = false
+        if (except !== "worldClockVisible") worldClockVisible = false
+        if (except !== "reminderVisible") reminderVisible = false
         if (except !== "utilitiesVisible") utilitiesVisible = false
         if (except !== "dashboardVisible") dashboardVisible = false
         if (except !== "drawerVisible") drawerVisible = false
@@ -1491,7 +1495,7 @@ ThemeAiUsage {
     // The full-screen panels that take exclusive keyboard focus. closePopups()
     // doesn't know them (each has its own Esc / click-away), so a second
     // keybind used to stack one on top of another; opening one closes the rest.
-    readonly property var _modalFlags: ["appLauncherVisible", "clipboardVisible", "openRouterVisible", "overviewVisible"]
+    readonly property var _modalFlags: ["appLauncherVisible", "clipboardVisible", "overviewVisible"]
     function modalOpened(prop) {
         if (!theme[prop]) return
         for (var i = 0; i < _modalFlags.length; i++)
@@ -2095,8 +2099,6 @@ ThemeAiUsage {
             onStreamFinished: { theme.hyprUsesLua = (this.text.trim() === "lua") }
         }
     }
-    property bool openRouterVisible: false
-    onOpenRouterVisibleChanged: { popupOpened("openRouterVisible"); modalOpened("openRouterVisible") }
 
     property bool overviewVisible: false
     onOverviewVisibleChanged: { popupOpened("overviewVisible"); modalOpened("overviewVisible") }

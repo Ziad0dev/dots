@@ -14,7 +14,6 @@ hl.bind(mod .. " + U", hl.dsp.exec_cmd("qs -c rise ipc call utilities toggle"))
 hl.bind(mod .. " + I", hl.dsp.exec_cmd("qs -c rise ipc call dashboard toggle"))
 hl.bind(mod .. " + W", hl.dsp.exec_cmd("qs -c rise ipc call drawer toggle"))
 hl.bind(mod .. " + E", hl.dsp.exec_cmd("qs -c rise ipc call picker wallpaper"))
-hl.bind(mod .. " + SHIFT + O", hl.dsp.exec_cmd("qs -c rise ipc call openrouter toggle"))
 hl.bind(mod .. " + CTRL + SHIFT + SPACE", hl.dsp.exec_cmd("qs -c rise ipc call picker theme"))
 
 hl.bind(mod .. " + SHIFT + T", hl.dsp.exec_cmd("themectl next"))

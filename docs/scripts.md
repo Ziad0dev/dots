@@ -83,6 +83,7 @@ These open a floating terminal (`$DOTS_TERMINAL`, default ghostty) with window c
 | `voxtype` | `scripts/voxtype.sh` | `toggle` · `start` · `stop` · `status [json]` · `model` · `models` · `set-model <path>`. Models: `ggml-*.bin` in `$VOXTYPE_MODEL_DIR` (default `~/.local/share/voxtype/models`) |
 | `dots-nightlight` | `home/quickshell-rise.nix` | `on` · `off` · `toggle` · `status` |
 | `dots-vpn` | `home/quickshell-rise.nix` | `on` · `off` · `toggle` · `status` — Mullvad on the host |
+| `dots-bar-tools` | `home/quickshell-rise.nix` | `tz <Zone>…` · `remind add <sec> <text>` / `list` / `cancel <unit>` · `disk targets` / `run <dir>` · `remote` — backends of the bar's Omarchy-style tools |
 | `dots-set-wallpaper <file>` | `scripts/dots-set-wallpaper.sh` | awww with a random transition; records the choice |
 | `dots-current-wallpaper` | `scripts/dots-current-wallpaper.sh` | Print the current wallpaper path |
 | `dots-thumb-prune` | `home/quickshell-rise.nix` | Prune picker thumbnails (weekly timer) |
@@ -109,7 +110,7 @@ These open a floating terminal (`$DOTS_TERMINAL`, default ghostty) with window c
 | `scripts/rise-upstream.sh` | Track the upstream Rise repo the bar was vendored from: `status`, `diff [file]`, `ahead [rev]`, `pin <rev>` (the pin lives in `config/quickshell/rise/.upstream-rev`) |
 | `tests/iso-install.py` | Install the `vm` host from the ISO under QEMU and check two boots; see [Getting started](install.md#testing-in-a-vm) |
 | `config/zen/zen-theme-link.sh` | Link `config/zen/*.css`, plus the rendered `dots-palette.css` and `dots-sites.css`, into every Zen profile's `chrome/`. `SRC` (default: the directory the script is in) / `ROOT` env override source and profile root. Launch Zen once first so a profile exists |
-| `config/quickshell/rise/scripts/*` | Bar helpers: `claude-usage`, `github-inbox`, `openrouter`, `qs-barctl`, `qs-dns`, `qs-kb-fetch`, `qs-proj`, `qs-thumb` |
+| `config/quickshell/rise/scripts/*` | Bar helpers: `claude-usage`, `github-inbox`, `qs-barctl`, `qs-dns`, `qs-kb-fetch`, `qs-proj`, `qs-thumb` |
 
 ## Fish
 

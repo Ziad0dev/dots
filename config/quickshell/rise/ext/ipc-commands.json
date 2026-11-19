@@ -128,10 +128,6 @@
     "subtext": "Toggle Notifications"
   },
   {
-    "text": "qs -c rise ipc call openrouter toggle",
-    "subtext": "Toggle Openrouter · SUPER+SHIFT+O"
-  },
-  {
     "text": "qs -c rise ipc call oracle last",
     "subtext": "Last Oracle"
   },

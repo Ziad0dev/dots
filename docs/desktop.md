@@ -85,7 +85,6 @@ HDR: a profile with `bitdepth = 10` and `cm = "hdr"` keeps that output in HDR pe
 | `SUPER + W` | Theme / wallpaper drawer |
 | `SUPER + SHIFT + Escape` | Session menu (lock, suspend, log out, restart, shut down) |
 | `SUPER + B` / `O` / `C` | Focus-or-launch Zen / Obsidian / Discord |
-| `SUPER + SHIFT + O` | OpenRouter panel |
 | `SUPER + period` | Emoji picker (bemoji) |
 | `SUPER + SHIFT + V` | Clipboard history (cliphist → fuzzel) |
 | `SUPER + V` | Dictation — start / stop (voxtype) |
@@ -173,7 +172,15 @@ The bar, launcher, control panel, pickers and notifications UI. Vendored in `con
 - Settings live in `~/.local/state/dots/shell/settings.json` (one key per control-panel toggle, validated on load) — add a setting by adding its property to `_settingsSchema` in `Theme.qml`.
 - Compositor side: `config/hypr/modules/71-layers.lua` blurs the bar (`quickshell`) and panels (`dots-*`) and turns off Hyprland's own layer animation for panels, which animate themselves.
 - The unit's PATH is pinned: the `dots-*` shims, wallpaper helpers and a fixed tool set come first, so the bar behaves the same regardless of your login environment. `DOTS_SHELL_PATH` points at the repo copy.
-- Bar widgets include workspaces, clock/calendar, media (MPRIS), audio, network, CPU/GPU/memory/temps, storage and mount health, power profile, weather, VPN, night light, idle inhibitor, notification silencing, dictation state, LLM unit, qBittorrent speeds, update indicator, screen recording, tray, AI usage (Claude Code quota refreshed every 10 minutes by `dots-ai-usage.timer`), and OpenRouter credits.
+- Bar widgets include workspaces, clock/calendar, media (MPRIS), audio, network, CPU/GPU/memory/temps, storage and mount health, power profile, weather, VPN, night light, idle inhibitor, notification silencing, dictation state, LLM unit, qBittorrent speeds, update indicator, screen recording, tray, and AI usage (Claude Code quota refreshed every 10 minutes by `dots-ai-usage.timer`).
+- The quick group folds like Omarchy 4.5's indicators (`modules/QuickReveal.qml`): tools that are on (stay-awake, night light, VPN, Tailscale connected, pending reminders, a running LLM, qBittorrent transferring) always show; the rest appear while you hover the group or one of its popouts is open, and fold away shortly after. With nothing on, a ⋯ handle marks the group. The whole group is still the `modQuick` setting.
+- Tools after Omarchy 4.5's bar (`ThemeBarTools.qml`, `scripts/dots-bar-tools.sh`; new code, ideas from basecamp/omarchy, MIT), hover to open and click to pin like the other popouts:
+  - **Tailscale** (quick group, lit when connected; hidden if `tailscaled` isn't running): state, this machine and the tailnet's machines (online first). Click a machine to copy its IP, right-click for its MagicDNS name. Connect / Disconnect starts the root oneshots `tailscale-connect` / `tailscale-disconnect` (`tailscale up` / `down`, `modules/media.nix`), which a polkit rule lets your user start. Your user is deliberately not the Tailscale operator, which would also allow `tailscale serve` / `funnel`. If `up` fails (e.g. it wants flags you set earlier), see `journalctl -u tailscale-connect`.
+  - **World clock** (globe): the time, offset and day in each zone listed in `~/.local/state/dots/worldclock` (one IANA zone per line); add zones in the panel, hover a row for ✕.
+  - **Reminders** (alarm, with a count while any are pending): a preset (5 m–1 h) or `20`, `1h30`, `at 15:30`; each is a transient systemd user timer (`dots-reminder-*`) that sends a critical notification, so it survives a bar restart. ✕ cancels.
+  - **Disk speed test** (Storage popout, pinned only): a 1 GiB direct-I/O write then read in the chosen writable mount (click the mount name to cycle), deleted afterwards. Needs 2 GiB free.
+  - **Cached sudo** (status row): shown for ~5 min after `sudo` opened a session, read from sudo's journal lines rather than by running sudo. Click runs `sudo -K` to forget every cached credential.
+  - **Remote login** (status row): shown while a remote logind session (SSH, Tailscale SSH) exists; the tooltip says who and from where.
 
 ### Mouse on the bar
 
@@ -276,7 +283,6 @@ qs -c rise ipc call <target> <function>
 | `windowinfo` | `toggle` |
 | `settings` | `toggle` |
 | `drawer` | `toggle` |
-| `openrouter` | `toggle` |
 | `picker` | `theme`, `wallpaper`, `screenshots`, `videos` |
 | `theme` | `reload`, `apply <json>`, `applyLauncher <json>` |
 | `layout` | `lock`, `unlock` |

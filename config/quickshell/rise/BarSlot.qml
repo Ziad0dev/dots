@@ -89,7 +89,7 @@ PanelWindow {
     property bool pointerOnBar: false
     readonly property bool barShown: !autoHide || pointerOnBar
                                      || barSlot.root.anyPopupVisible || barSlot.root.anchoredPanelVisible
-                                     || barSlot.root.openRouterVisible || barSlot.root.barUnlocked
+                                     || barSlot.root.barUnlocked
     // a fullscreen window hides the Top layer this bar lives on, so anything
     // that only animates the strip (the particle layer) can stop meanwhile
     readonly property var hyprMonitor: Hyprland.monitorFor(barSlot.screen)
@@ -491,8 +491,12 @@ PanelWindow {
                             || voxInd.state === "recording"
                             || voxInd.state === "transcribing"
                             || dotsUpdateInd.updateAvailable
+                            || sudoInd.on
+                            || remoteInd.on
                         PrivacyWidget            { id: privacyInd;       root: barSlot.root; anchors.verticalCenter: parent.verticalCenter }
                         CapsLockWidget           { id: capsInd;          root: barSlot.root; anchors.verticalCenter: parent.verticalCenter }
+                        SudoCachedWidget         { id: sudoInd;          root: barSlot.root; anchors.verticalCenter: parent.verticalCenter }
+                        RemoteSessionWidget      { id: remoteInd;        root: barSlot.root; anchors.verticalCenter: parent.verticalCenter }
                         IdleWidget               { id: idleInd;          root: barSlot.root; anchors.verticalCenter: parent.verticalCenter }
                         NotificationSilenceWidget{ id: dndInd;           root: barSlot.root; anchors.verticalCenter: parent.verticalCenter }
                         ScreenRecordWidget       { id: screenRecInd;     root: barSlot.root; anchors.verticalCenter: parent.verticalCenter }
@@ -509,32 +513,116 @@ PanelWindow {
     Component {
         id: compQuick                                    // G10: idle-inhib · media · theme
         Item {
+            id: qcGroup
+            // Omarchy 4.5-style: tools that are on stay, the rest fold away
+            // until the group is hovered (or one of its popouts is open);
+            // a short delay keeps them while the pointer crosses a gap
+            readonly property var r: barSlot.root
+            property bool hovered: false
+            readonly property bool revealed: hovered || qcHide.running
+                || r.tailscaleVisible || r.worldClockVisible || r.reminderVisible
+                || r.keybindsVisible || r.mediaBrowserVisible || r.imagePickerVisible
+            Timer { id: qcHide; interval: 350 }
+            HoverHandler {
+                onHoveredChanged: {
+                    qcGroup.hovered = hovered
+                    if (!hovered) qcHide.restart()
+                }
+            }
+
             visible: implicitWidth > 0.5
-            implicitWidth: barSlot.root.modQuick ? Math.round(qcRow.implicitWidth) + 16 : 0
+            implicitWidth: r.modQuick ? Math.round(qcRow.implicitWidth) + 16 : 0
             implicitHeight: 28
-            opacity: barSlot.root.modQuick ? 1 : 0
+            opacity: r.modQuick ? 1 : 0
             Behavior on implicitWidth { Anim { kind: "size"; ms: 250 } }
             Behavior on opacity      { Anim { kind: "effects"; ms: 140 } }
             Rectangle {
                 anchors.centerIn: parent
-                width: parent.implicitWidth; height: barSlot.root.pillH; radius: barSlot.root.pillRadius
-                color: barSlot.root.widgetFillColor("G10"); border.color: barSlot.root.widgetBorderColor("G10"); border.width: barSlot.root.widgetBorderWidth("G10")
-                PillShadow { theme: barSlot.root }
+                width: parent.implicitWidth; height: qcGroup.r.pillH; radius: qcGroup.r.pillRadius
+                color: qcGroup.r.widgetFillColor("G10"); border.color: qcGroup.r.widgetBorderColor("G10"); border.width: qcGroup.r.widgetBorderWidth("G10")
+                PillShadow { theme: qcGroup.r }
             }
             Row {
                 id: qcRow
                 anchors.verticalCenter: parent.verticalCenter
                 x: Math.round((parent.width - width) / 2)
                 spacing: 4
-                IdleInhibitorWidget { root: barSlot.root; anchors.verticalCenter: parent.verticalCenter }
-                NightLightWidget { root: barSlot.root; anchors.verticalCenter: parent.verticalCenter }
-                VpnWidget { root: barSlot.root; anchors.verticalCenter: parent.verticalCenter }
-                OpenRouterWidget { root: barSlot.root; anchors.verticalCenter: parent.verticalCenter }
-                MediaBrowserWidget  { root: barSlot.root; screen: barSlot.screen; anchors.verticalCenter: parent.verticalCenter }
-                ThemeDisplayWidget  { root: barSlot.root; screen: barSlot.screen; anchors.verticalCenter: parent.verticalCenter }
-                KeybindsWidget      { root: barSlot.root; anchors.verticalCenter: parent.verticalCenter }
-                LlmWidget           { root: barSlot.root; anchors.verticalCenter: parent.verticalCenter }
-                QbtWidget           { root: barSlot.root; anchors.verticalCenter: parent.verticalCenter }
+
+                // shown when everything is folded, so there's something to hover
+                IconText {
+                    anchors.verticalCenter: parent.verticalCenter
+                    visible: !qcGroup.revealed && !qcIdle.shown && !qcNight.shown && !qcVpn.shown
+                        && !qcTs.shown && !qcRem.shown && !qcLlm.shown && !qcQbt.shown
+                    text: "more_horiz"
+                    font.pixelSize: 16
+                    color: Qt.rgba(qcGroup.r.ink.r, qcGroup.r.ink.g, qcGroup.r.ink.b, 0.55)
+                }
+
+                QuickReveal {
+                    id: qcIdle; revealed: qcGroup.revealed; active: idleW.on; contentWidth: idleW.implicitWidth
+                    IdleInhibitorWidget { id: idleW; root: barSlot.root; anchors.verticalCenter: parent.verticalCenter }
+                }
+                QuickReveal {
+                    id: qcNight; revealed: qcGroup.revealed; active: nightW.on; contentWidth: nightW.implicitWidth
+                    NightLightWidget { id: nightW; root: barSlot.root; anchors.verticalCenter: parent.verticalCenter }
+                }
+                QuickReveal {
+                    id: qcVpn; revealed: qcGroup.revealed; active: vpnW.on || vpnW.busy; contentWidth: vpnW.implicitWidth
+                    VpnWidget { id: vpnW; root: barSlot.root; anchors.verticalCenter: parent.verticalCenter }
+                }
+                // Omarchy 4.5-style tools (ThemeBarTools, panels/*Panel.qml)
+                QuickReveal {
+                    id: qcTs; revealed: qcGroup.revealed; active: qcGroup.r.tsUp
+                    available: qcGroup.r.tsAvailable; contentWidth: tsW.implicitWidth
+                    BarToolButton {
+                        id: tsW
+                        root: barSlot.root; anchors.verticalCenter: parent.verticalCenter
+                        flag: "tailscaleVisible"; icon: "hub"; lit: barSlot.root.tsUp
+                        tooltipText: barSlot.root.tsUp ? "Tailscale: connected" : "Tailscale: " + barSlot.root.plain(barSlot.root.tsState)
+                    }
+                }
+                QuickReveal {
+                    revealed: qcGroup.revealed; contentWidth: wcW.implicitWidth
+                    BarToolButton {
+                        id: wcW
+                        root: barSlot.root; anchors.verticalCenter: parent.verticalCenter
+                        flag: "worldClockVisible"; icon: "public"
+                        tooltipText: "World clock"
+                    }
+                }
+                QuickReveal {
+                    id: qcRem; revealed: qcGroup.revealed; active: qcGroup.r.reminders.length > 0
+                    contentWidth: remW.implicitWidth
+                    BarToolButton {
+                        id: remW
+                        root: barSlot.root; anchors.verticalCenter: parent.verticalCenter
+                        flag: "reminderVisible"; icon: "alarm"
+                        lit: barSlot.root.reminders.length > 0
+                        badge: barSlot.root.reminders.length
+                        tooltipText: barSlot.root.reminders.length > 0
+                            ? "Next reminder: " + barSlot.root.plain(barSlot.root.reminders[0].text) : "Reminders"
+                    }
+                }
+                QuickReveal {
+                    revealed: qcGroup.revealed; contentWidth: mbW.implicitWidth
+                    MediaBrowserWidget { id: mbW; root: barSlot.root; screen: barSlot.screen; anchors.verticalCenter: parent.verticalCenter }
+                }
+                QuickReveal {
+                    revealed: qcGroup.revealed; contentWidth: tdW.implicitWidth
+                    ThemeDisplayWidget { id: tdW; root: barSlot.root; screen: barSlot.screen; anchors.verticalCenter: parent.verticalCenter }
+                }
+                QuickReveal {
+                    revealed: qcGroup.revealed; contentWidth: kbW.implicitWidth
+                    KeybindsWidget { id: kbW; root: barSlot.root; anchors.verticalCenter: parent.verticalCenter }
+                }
+                QuickReveal {
+                    id: qcLlm; revealed: qcGroup.revealed; active: !llmW.idle; contentWidth: llmW.implicitWidth
+                    LlmWidget { id: llmW; root: barSlot.root; anchors.verticalCenter: parent.verticalCenter }
+                }
+                QuickReveal {
+                    id: qcQbt; revealed: qcGroup.revealed; active: qbtW.busy; contentWidth: qbtW.implicitWidth
+                    QbtWidget { id: qbtW; root: barSlot.root; anchors.verticalCenter: parent.verticalCenter }
+                }
             }
         }
     }
