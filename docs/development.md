@@ -50,7 +50,7 @@ Documented in [`config/nvim/README.md`](../config/nvim/README.md). The short ver
 - Trouble for the problems panel, diffview for history/merges, grug-far for project search & replace, persistence for per-directory sessions, direnv.vim so `:tcd` into a project loads its devshell, treesitter-context for sticky scroll.
 - Colours follow themectl live.
 - **Local FIM**: llama.vim talks to `http://127.0.0.1:8012/infill` — `systemctl start llama-fim`. It conflicts with the chat-model units, so it's one or the other on the GPU.
-- **Chat**: codecompanion via OpenRouter, key read with `secretspec get OPENROUTER_API_KEY`.
+- **Chat**: codecompanion's chat, inline edits and commands all use the local llama-server (`http://127.0.0.1:8080`, `modules/llm.nix`); start the chat model's unit first.
 - Lisp: nvlime + vim-sexp. LaTeX: vimtex, with Zathura inverse search going through the `nvim-synctex` wrapper. Typst: tinymist preview.
 
 ### Emacs
@@ -114,11 +114,10 @@ Sets live in `names.nix`, one attribute path string per entry (`"python3Packages
 | Secret | Required | Used by |
 |---|---|---|
 | `GOOGLE_BOOKS_API_KEY` | no | calibre-web metadata |
-| `OPENROUTER_API_KEY` | no | codecompanion.nvim, the OpenRouter bar panel |
 
 ```fish
 secretspec check
-secretspec get OPENROUTER_API_KEY
+secretspec get GOOGLE_BOOKS_API_KEY
 ```
 
 `pass-secret-service` exposes the password store over the Secret Service API, so apps that want a keyring (libsecret) get `pass` instead of gnome-keyring.
