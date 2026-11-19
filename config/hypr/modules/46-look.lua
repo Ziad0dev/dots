@@ -19,6 +19,11 @@ if util.state("glass") == "on" then
             dim_strength   = 0.05,
             shadow = { enabled = true, range = 24, render_power = 3, color = "rgba(00000066)" },
             blur = {
+                -- acrylic: the wiki's "similar to liquid glass" variant (frost is
+                -- a cracked-ice pattern). Low clarity frosts the lens so text
+                -- stays readable; its defaults (0.82) leave the backdrop sharp.
+                variant    = "acrylic",
+                acrylic    = { clarity = 0.25, bulb = 24, refraction = 12, aberration = 0.01 },
                 size       = 10,
                 passes     = 3,
                 xray       = false,
@@ -28,7 +33,7 @@ if util.state("glass") == "on" then
                 brightness = 1.0,
                 contrast   = 1.0,
                 noise      = 0.04,
-                vibrancy   = 0.25,
+                vibrancy   = 0.2,
             },
         },
     })

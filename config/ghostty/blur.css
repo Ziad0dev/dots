@@ -1,0 +1,11 @@
+/* Hyprland blur behind Ghostty.
+ * GTK >= 4.24 gives every window an ext-background-effect object, and its
+ * blur region comes only from CSS backdrop-filter. Without one, the region
+ * is empty, and Hyprland reads that as "this client wants no blur"
+ * (CWindow::shouldBlur), so a see-through Ghostty shows the wallpaper sharp.
+ * Ghostty's own background-blur only drives the protocol on older GTK.
+ * The radius only has to be large enough for GTK to hand the region to the
+ * compositor (4px wasn't); Hyprland's decoration.blur settings set the look. */
+window {
+  backdrop-filter: blur(12px);
+}

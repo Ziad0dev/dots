@@ -10,6 +10,8 @@ keybind = ctrl+shift+z=text:\x60\x7a
 # aesthet
 background-opacity = 0.85
 background-blur=16
+# on GTK >= 4.24 the blur request comes from CSS instead; see blur.css
+gtk-custom-css = ?blur.css
 # typography
 font-size=13
 font-thicken=true

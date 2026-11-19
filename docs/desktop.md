@@ -107,7 +107,7 @@ HDR: a profile with `bitdepth = 10` and `cm = "hdr"` keeps that output in HDR pe
 | `SUPER + ALT + A` | Animation preset picker |
 | `SUPER + ALT + S` | Screen shader picker |
 | `SUPER + ALT + B` | Blur on / off |
-| `SUPER + ALT + V` | Glass on / off: rounder borderless windows, heavier frosted blur, more see-through GTK / ghostty / Zen (`dots-look glass`) |
+| `SUPER + ALT + V` | Glass on / off: rounder borderless windows, frosted acrylic glass blur (`acrylic` variant), more see-through GTK / ghostty / Zen (`dots-look glass`) |
 
 ### Capture
 
@@ -145,6 +145,11 @@ The last three go through `dots-shot`: saved as `~/Pictures/<date>_<time>.png`, 
 | `com.gabm.satty` (screenshot editor) | Floating |
 
 Ghostty windows swallow what they launch (`enable_swallow`).
+
+Hyprland blurs behind a GTK 4.24+ window only when the window asks for it
+through CSS `backdrop-filter`. GTK always attaches an `ext-background-effect`
+object, and an empty blur region tells Hyprland not to blur. Ghostty asks
+through `config/ghostty/blur.css` (`gtk-custom-css`).
 
 ## Quickshell Rise
 
