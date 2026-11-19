@@ -52,7 +52,7 @@ When home-manager rides on a system (`mk.nixos`, `mk.darwin`) it runs with `useG
 
 | Input | Role | Notes |
 |---|---|---|
-| `chaotic` | chaotic-nyx: CachyOS kernel, `nvidia_cachyos`, `proton-cachyos`, ananicy rules, binary cache, registry entry | **Source of nixpkgs** |
+| `chaotic` | chaotic-nyx: CachyOS kernel, `nvidia_cachyos`, `proton-cachyos-bin_edge`, ananicy rules, binary cache, registry entry | **Source of nixpkgs** |
 | `nixpkgs` | — | `follows = "chaotic/nixpkgs"` |
 | `home-manager` | | chaotic's HM follows this one |
 | `nix-darwin` | Mac output | |

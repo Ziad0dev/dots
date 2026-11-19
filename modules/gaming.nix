@@ -14,7 +14,7 @@
     gamescopeSession.enable = true;
 
     extraCompatPackages = [
-      pkgs.proton-cachyos
+      pkgs.proton-cachyos-bin_edge
     ];
     remotePlay.openFirewall = false;
     dedicatedServer.openFirewall = false;
