@@ -262,14 +262,14 @@ PanelWindow {
                         width: kitText.implicitWidth + 12
                         height: 18
                         radius: 9
-                        color: Qt.rgba(0, 0, 0, 0.55)
+                        color: Qt.rgba(root.paper.r, root.paper.g, root.paper.b, 0.85)
                         border.color: root.seal
                         border.width: 1
                         UiText {
                             id: kitText
                             anchors.centerIn: parent
                             text: "full kit"
-                            color: "white"
+                            color: root.ink
                             font.family: root.mono; font.pixelSize: 9
                         }
                     }

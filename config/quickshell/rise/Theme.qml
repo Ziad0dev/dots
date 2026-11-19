@@ -120,6 +120,9 @@ ThemeAiUsage {
         var lb = _relativeLuminance(b)
         return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05)
     }
+    // dark or light theme, from the background's luminance: highlights that
+    // were hardcoded white use ink on light themes instead
+    readonly property bool paperIsDark: _relativeLuminance(paper) < 0.2
     function paletteContrastColor(id) {
         var fill = paletteColor(id)
         return _contrastRatio(fill, paper) >= _contrastRatio(fill, ink) ? paper : ink

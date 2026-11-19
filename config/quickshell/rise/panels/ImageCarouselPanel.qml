@@ -613,7 +613,7 @@ PanelWindow {
                     width: 8; height: 8; radius: 4
                     x: 9; y: 9; z: 5
                     color: root.seal
-                    border.color: Qt.rgba(0, 0, 0, 0.35); border.width: 1
+                    border.color: root.sep; border.width: 1
                 }
 
                 MouseArea {
@@ -668,7 +668,7 @@ PanelWindow {
                     required property var modelData
                     width: 13; height: 13; radius: 6.5
                     color: modelData
-                    border.color: Qt.rgba(1, 1, 1, 0.15); border.width: 1
+                    border.color: root.sep; border.width: 1
                 }
             }
         }

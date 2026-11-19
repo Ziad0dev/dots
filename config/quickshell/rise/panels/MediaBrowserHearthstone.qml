@@ -279,10 +279,11 @@ PanelWindow {
     readonly property int  maxVisible: 5
 
     // ── felt look ──
-    readonly property color feltColor: Qt.rgba(0.035, 0.035, 0.05, 0.975)
-    readonly property color frameDark: "#16161c"
-    readonly property color textLight: "#ECECEE"
-    readonly property color textDim:   Qt.rgba(0.92, 0.92, 0.94, 0.55)
+    // the card table follows the theme (was a fixed near-black felt)
+    readonly property color feltColor: Qt.rgba(root.paper.r, root.paper.g, root.paper.b, 0.975)
+    readonly property color frameDark: root.surfaceTone(0.06, 1)
+    readonly property color textLight: root.ink
+    readonly property color textDim:   Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.55)
 
     // ── felt scrim ──
     Rectangle {
@@ -464,7 +465,7 @@ PanelWindow {
                         height: 70
                         gradient: Gradient {
                             GradientStop { position: 0.0; color: "transparent" }
-                            GradientStop { position: 1.0; color: Qt.rgba(0, 0, 0, 0.72) }
+                            GradientStop { position: 1.0; color: Qt.rgba(root.paper.r, root.paper.g, root.paper.b, 0.78) }
                         }
                     }
                     Text {
@@ -475,7 +476,7 @@ PanelWindow {
                         horizontalAlignment: Text.AlignHCenter; elide: Text.ElideRight
                     }
                     Rectangle {
-                        anchors.fill: parent; color: "black"
+                        anchors.fill: parent; color: root.paper
                         opacity: card.dim
                         Behavior on opacity { Anim { kind: "effects"; ms: 180 } }
                     }

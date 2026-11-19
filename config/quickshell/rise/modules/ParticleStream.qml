@@ -8,6 +8,9 @@ import Quickshell.Services.Mpris
 Item {
     id: root
     required property var   theme
+    // the particles' hot cores: white on a dark bar, the theme's ink on a light
+    // one (white sparks vanished on light themes)
+    readonly property string hotStyle: theme && !theme.paperIsDark ? String(theme.ink) : "#ffffff"
     required property Item  layout   // island: exposes pillRuns, runRightEdge(), runLeftEdge()
     property bool active: false
     property int  mode:   1          // 1=stream, 2=surge, 3=bolt, 4=bolt2, 5=stream2, 6=surge2, 7=reactor, 8=quotes
@@ -1073,7 +1076,7 @@ Item {
                     ctx.fillStyle = seal
                     ctx.fillRect(px - rg, py - rg, rg * 2, rg * 2)
                     ctx.globalAlpha = 0.92 * a * v8
-                    ctx.fillStyle = "#ffffff"
+                    ctx.fillStyle = root.hotStyle
                     ctx.fillRect(px - rc, py - rc, rc * 2, rc * 2)
                 }
                 var qGapFor8 = function(seed) {
@@ -1342,7 +1345,7 @@ Item {
                         ctx.globalAlpha = 0.30 * al8 * PV8[i8]
                         drawR8 = PG8[i8]; ctx.fillRect(PX8[i8] - drawR8, PY8[i8] - drawR8, drawR8 * 2, drawR8 * 2)
                     }
-                ctx.fillStyle = "#ffffff"
+                ctx.fillStyle = root.hotStyle
                 ctx.globalAlpha = 0.92 * al8
                 for (i8 = 0; i8 < N8; i8++)
                     if (PV8[i8] >= 0.999) { drawR8 = PC8[i8]; ctx.fillRect(PX8[i8] - drawR8, PY8[i8] - drawR8, drawR8 * 2, drawR8 * 2) }
@@ -1451,7 +1454,7 @@ Item {
                     if (v <= 0.01) return
                     ctx.globalAlpha = 0.30 * a * v; ctx.fillStyle = seal
                     ctx.fillRect(px - rg, py - rg, rg * 2, rg * 2)
-                    ctx.globalAlpha = 0.92 * a * v; ctx.fillStyle = "#ffffff"
+                    ctx.globalAlpha = 0.92 * a * v; ctx.fillStyle = root.hotStyle
                     ctx.fillRect(px - rc, py - rc, rc * 2, rc * 2)
                 }
                 var clockGapPair7 = function() {
@@ -1791,7 +1794,7 @@ Item {
                     ctx.beginPath(); ctx.moveTo(x1, cy); ctx.lineTo(x2, cy); ctx.stroke()
                     // white core of the rail
                     ctx.globalAlpha = 0.28
-                    ctx.strokeStyle = "#ffffff"
+                    ctx.strokeStyle = root.hotStyle
                     ctx.lineWidth   = 0.75
                     ctx.beginPath(); ctx.moveTo(x1, cy); ctx.lineTo(x2, cy); ctx.stroke()
 
@@ -1847,7 +1850,7 @@ Item {
                         ctx.beginPath(); ctx.arc(pulseX[du], cy, 4.0 + pulseV[du] * 1.5, 0, Math.PI * 2); ctx.fill()
                     }
 
-                    ctx.fillStyle = "#ffffff"
+                    ctx.fillStyle = root.hotStyle
                     if (slowX.length > 0) {
                         ctx.globalAlpha = 0.50
                         ctx.beginPath()
@@ -1900,14 +1903,14 @@ Item {
                     ctx.globalAlpha = 0.45 * env; ctx.fillStyle = seal
                     ctx.beginPath(); ctx.arc(xL, cy, 4.0, 0, Math.PI * 2); ctx.fill()
                     ctx.beginPath(); ctx.arc(xR, cy, 4.0, 0, Math.PI * 2); ctx.fill()
-                    ctx.globalAlpha = 0.95 * env; ctx.fillStyle = "#ffffff"
+                    ctx.globalAlpha = 0.95 * env; ctx.fillStyle = root.hotStyle
                     ctx.beginPath(); ctx.arc(xL, cy, 1.7, 0, Math.PI * 2); ctx.fill()
                     ctx.beginPath(); ctx.arc(xR, cy, 1.7, 0, Math.PI * 2); ctx.fill()
 
                     // soft flash where the two pulses meet
                     if (p > 0.78) {
                         var fl = (p - 0.78) / 0.22          // 0..1 bloom
-                        ctx.globalAlpha = 0.50 * (1 - fl); ctx.fillStyle = "#ffffff"
+                        ctx.globalAlpha = 0.50 * (1 - fl); ctx.fillStyle = root.hotStyle
                         ctx.beginPath(); ctx.arc(mid, cy, 2 + fl * 6,  0, Math.PI * 2); ctx.fill()
                         ctx.globalAlpha = 0.30 * (1 - fl); ctx.fillStyle = seal
                         ctx.beginPath(); ctx.arc(mid, cy, 4 + fl * 10, 0, Math.PI * 2); ctx.fill()
@@ -2001,9 +2004,9 @@ Item {
                                 ctx.lineTo(bx, by)
                             }
                             ctx.globalAlpha = 0.18 * trail; ctx.strokeStyle = seal;      ctx.lineWidth = 4.8; ctx.stroke()
-                            ctx.globalAlpha = 0.08 * trail; ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 1.8; ctx.stroke()
+                            ctx.globalAlpha = 0.08 * trail; ctx.strokeStyle = root.hotStyle; ctx.lineWidth = 1.8; ctx.stroke()
                             ctx.globalAlpha = 0.40 * hot; ctx.strokeStyle = seal;      ctx.lineWidth = 3.2; ctx.stroke()
-                            ctx.globalAlpha = 0.92 * hot; ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 1.15; ctx.stroke()
+                            ctx.globalAlpha = 0.92 * hot; ctx.strokeStyle = root.hotStyle; ctx.lineWidth = 1.15; ctx.stroke()
                         }
                         drawStrike(seed + 17.0 + hash(seed + 221.0) * 23.0, strikeA, trailA)
                         drawStrike(seed + 91.0 + hash(seed + 222.0) * 29.0, strikeB, trailB)
@@ -2039,10 +2042,10 @@ Item {
                         }
                         var fl4 = 0.6 + 0.4 * Math.sin(now / 23 + sps)
                         ctx.globalAlpha = 0.30 * life * fl4; ctx.strokeStyle = seal;      ctx.lineWidth = 1.6; ctx.stroke()
-                        ctx.globalAlpha = 0.75 * life * fl4; ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 0.7; ctx.stroke()
+                        ctx.globalAlpha = 0.75 * life * fl4; ctx.strokeStyle = root.hotStyle; ctx.lineWidth = 0.7; ctx.stroke()
                         // tiny hot point on the electrode
                         ctx.globalAlpha = 0.55 * life
-                        ctx.fillStyle   = "#ffffff"
+                        ctx.fillStyle   = root.hotStyle
                         ctx.beginPath(); ctx.arc(ex0, ey0, 0.9, 0, Math.PI * 2); ctx.fill()
                     }
 
@@ -2070,7 +2073,7 @@ Item {
                                        (i === segs) ? cy : cy + (hash(sd4 + i) - 0.5) * 2 * aS)
                         }
                         ctx.globalAlpha = 0.42 * b4; ctx.strokeStyle = seal;      ctx.lineWidth = 3.4; ctx.stroke()
-                        ctx.globalAlpha = 0.95 * b4; ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 1.2; ctx.stroke()
+                        ctx.globalAlpha = 0.95 * b4; ctx.strokeStyle = root.hotStyle; ctx.lineWidth = 1.2; ctx.stroke()
 
                         // electrode blooms while the arc burns
                         var ebr = 6 + b4 * 3
@@ -2128,7 +2131,7 @@ Item {
                             bg5.addColorStop(1.0, rgba(0.0))
                             ctx.globalAlpha = 1.0; ctx.fillStyle = bg5
                             ctx.beginPath(); ctx.arc(dx5, cy, R5 * 2.6 * sc5 * br5, 0, Math.PI * 2); ctx.fill()
-                            ctx.globalAlpha = 0.92 * sc5; ctx.fillStyle = "#ffffff"
+                            ctx.globalAlpha = 0.92 * sc5; ctx.fillStyle = root.hotStyle
                             ctx.beginPath(); ctx.arc(dx5, cy, R5 * 0.7 * sc5, 0, Math.PI * 2); ctx.fill()
                         } else {
                             // absorbed: quick flash on the right edge, swallowed by the pill
@@ -2138,7 +2141,7 @@ Item {
                             fg5.addColorStop(1.0, rgba(0.0))
                             ctx.globalAlpha = 1.0; ctx.fillStyle = fg5
                             ctx.beginPath(); ctx.arc(x2, cy, 8, 0, Math.PI * 2); ctx.fill()
-                            ctx.globalAlpha = 0.9 * fb5; ctx.fillStyle = "#ffffff"
+                            ctx.globalAlpha = 0.9 * fb5; ctx.fillStyle = root.hotStyle
                             ctx.beginPath(); ctx.arc(x2, cy, 1.2 * fb5, 0, Math.PI * 2); ctx.fill()
                         }
                     }
@@ -2174,7 +2177,7 @@ Item {
                                 hg6.addColorStop(1.0, rgba(0.0))
                                 ctx.fillStyle = hg6
                                 ctx.beginPath(); ctx.arc(hx6, cy, 4.5, 0, Math.PI * 2); ctx.fill()
-                                ctx.globalAlpha = 0.95; ctx.fillStyle = "#ffffff"
+                                ctx.globalAlpha = 0.95; ctx.fillStyle = root.hotStyle
                                 ctx.beginPath(); ctx.arc(hx6, cy, 1.5, 0, Math.PI * 2); ctx.fill()
                             }
                         } else {
@@ -2188,7 +2191,7 @@ Item {
                             ctx.globalAlpha = 1.0; ctx.fillStyle = ig6
                             ctx.beginPath(); ctx.arc(mid6, cy, fr6, 0, Math.PI * 2); ctx.fill()
                             if (t6 < 0.25) {
-                                ctx.globalAlpha = 0.95 * (1 - t6 / 0.25); ctx.fillStyle = "#ffffff"
+                                ctx.globalAlpha = 0.95 * (1 - t6 / 0.25); ctx.fillStyle = root.hotStyle
                                 ctx.beginPath(); ctx.arc(mid6, cy, 1.8, 0, Math.PI * 2); ctx.fill()
                             }
                             // debris: short spark shards, decelerating outward
@@ -2203,7 +2206,7 @@ Item {
                                 var sxb = sxa + Math.cos(an6) * 3.5
                                 var syb = sya + Math.sin(an6) * 3.5 * 0.55
                                 ctx.globalAlpha = 0.75 * fl6
-                                ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 0.8
+                                ctx.strokeStyle = root.hotStyle; ctx.lineWidth = 0.8
                                 ctx.beginPath(); ctx.moveTo(sxa, sya); ctx.lineTo(sxb, syb); ctx.stroke()
                             }
                         }
@@ -2264,7 +2267,7 @@ Item {
                             ctx.arc(wvHx[wvG], wvHy[wvG], 2.2, 0, Math.PI * 2)
                         }
                         ctx.fill()
-                        ctx.globalAlpha = 0.9; ctx.fillStyle = "#ffffff"
+                        ctx.globalAlpha = 0.9; ctx.fillStyle = root.hotStyle
                         ctx.beginPath()
                         for (var wvH = 0; wvH < wvHx.length; wvH++) {
                             ctx.moveTo(wvHx[wvH] + 1.1, wvHy[wvH])
@@ -2341,7 +2344,7 @@ Item {
                         ctx.globalAlpha = 0.30 * emAs[emQ]
                         ctx.beginPath(); ctx.arc(emXs[emQ], emYs[emQ], emRs[emQ] * 1.5, 0, Math.PI * 2); ctx.fill()
                     }
-                    ctx.fillStyle = "#ffffff"
+                    ctx.fillStyle = root.hotStyle
                     for (var emW = 0; emW < emXs.length; emW++) {
                         ctx.globalAlpha = 0.8 * emAs[emW]
                         ctx.beginPath(); ctx.arc(emXs[emW], emYs[emW], emRs[emW] * 0.45, 0, Math.PI * 2); ctx.fill()
@@ -2397,7 +2400,7 @@ Item {
                     ctx.globalAlpha = 0.55; ctx.strokeStyle = rgba(1.0); ctx.lineWidth = 1.1
                     ctx.stroke()
 
-                    ctx.globalAlpha = 0.20; ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 0.9
+                    ctx.globalAlpha = 0.20; ctx.strokeStyle = root.hotStyle; ctx.lineWidth = 0.9
                     ctx.beginPath()
                     for (var mcG = 0; mcG <= mcNs; mcG++) {
                         var mcGx = x1 + mcG * mcStep
@@ -2441,7 +2444,7 @@ Item {
                             }
                             ctx.stroke()
                         }
-                        ctx.globalAlpha = 0.9 * hmEnv; ctx.fillStyle = "#ffffff"
+                        ctx.globalAlpha = 0.9 * hmEnv; ctx.fillStyle = root.hotStyle
                         ctx.beginPath(); ctx.arc(hmPx, hmPy, 1.4, 0, Math.PI * 2); ctx.fill()
                         ctx.globalAlpha = 0.28 * hmEnv; ctx.fillStyle = rgba(1.0)
                         ctx.beginPath(); ctx.arc(hmPx, hmPy, 3.4, 0, Math.PI * 2); ctx.fill()
@@ -2508,7 +2511,7 @@ Item {
                         ctx.lineJoin = "round"
                         for (var scP = 0; scP < 3; scP++) {
                             ctx.globalAlpha = scP === 0 ? 0.22 : scP === 1 ? 0.78 : 0.55
-                            ctx.strokeStyle = scP === 2 ? "#ffffff" : rgba(1.0)
+                            ctx.strokeStyle = scP === 2 ? root.hotStyle : rgba(1.0)
                             ctx.lineWidth   = scP === 0 ? 3.4 : scP === 1 ? 1.8 : 0.9
                             ctx.beginPath()
                             for (var scQ = 0; scQ <= scNs; scQ++) {
