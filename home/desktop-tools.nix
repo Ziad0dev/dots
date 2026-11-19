@@ -112,7 +112,9 @@ let
 
   voice =
     let
-      base = "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/amy/medium/en_US-amy-medium";
+      # Pinned to a commit: under resolve/main the files change whenever
+      # upstream retrains or re-exports a voice, which breaks these hashes.
+      base = "https://huggingface.co/rhasspy/piper-voices/resolve/e7229f7d33a10e145e109b886d661984201ac3c4/en/en_US/amy/medium/en_US-amy-medium";
     in
     {
       model = pkgs.fetchurl {
