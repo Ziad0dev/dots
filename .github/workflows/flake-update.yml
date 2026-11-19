@@ -1,8 +1,9 @@
 name: flake-update
 
 # Weekly flake.lock bump as a pull request. A PR opened with GITHUB_TOKEN does
-# not trigger other workflows, so check.yml never runs on it: the update is
-# checked here instead, and the result is posted on the PR.
+# not trigger other workflows, so check.yml and security.yml never run on it:
+# both run here instead, on the PR's head, and the result is posted on the PR.
+# That avoids a long-lived token with write access just to trigger them.
 on:
   schedule:
     - cron: "0 6 * * 1"
@@ -39,8 +40,17 @@ jobs:
     permissions:
       contents: read
 
+  security:
+    needs: update
+    if: needs.update.outputs.pull-request-number != ''
+    uses: ./.github/workflows/security.yml
+    with:
+      ref: refs/pull/${{ needs.update.outputs.pull-request-number }}/head
+    permissions:
+      contents: read
+
   report:
-    needs: [update, check]
+    needs: [update, check, security]
     if: always() && needs.update.outputs.pull-request-number != ''
     runs-on: ubuntu-latest
     permissions:
@@ -49,14 +59,17 @@ jobs:
       - name: report on the PR
         env:
           GH_TOKEN: ${{ github.token }}
+          # no checkout in this job, so gh can't infer the repo from .git
+          GH_REPO: ${{ github.repository }}
           PR: ${{ needs.update.outputs.pull-request-number }}
-          OUTCOME: ${{ needs.check.result }}
+          CHECK: ${{ needs.check.result }}
+          SECURITY: ${{ needs.security.result }}
           RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          if [ "$OUTCOME" = success ]; then
-            body="All checks pass with the new lock ([run]($RUN))."
+          if [ "$CHECK" = success ] && [ "$SECURITY" = success ]; then
+            body="Build, VM test and security audit all pass with the new lock ([run]($RUN))."
           else
-            body="**Checks failed** with the new lock ([run]($RUN)) — do not merge as is."
+            body="**Checks failed** with the new lock (check: $CHECK, security: $SECURITY; [run]($RUN)) — do not merge as is."
           fi
           gh pr comment "$PR" --body "$body"
-          [ "$OUTCOME" = success ]
+          [ "$CHECK" = success ] && [ "$SECURITY" = success ]

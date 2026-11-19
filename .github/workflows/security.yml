@@ -11,12 +11,20 @@ on:
     # weekly: new scanner rules can flag old code
     - cron: "0 7 * * 1"
   workflow_dispatch:
+  # flake-update.yml runs this on its lock PR, which can't trigger it
+  workflow_call:
+    inputs:
+      ref:
+        description: Git ref to audit
+        required: false
+        type: string
+        default: ""
 
 permissions:
   contents: read
 
 concurrency:
-  group: security-${{ github.ref }}
+  group: security-${{ inputs.ref || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -25,6 +33,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ inputs.ref || github.ref }}
           fetch-depth: 0 # the whole history: a secret removed later is still public
           persist-credentials: false
       - uses: cachix/install-nix-action@3dc140bfc76c49fbd4dd958429132e3746bcb086 # v31.11.5
@@ -35,6 +44,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ inputs.ref || github.ref }}
           persist-credentials: false
       - uses: cachix/install-nix-action@3dc140bfc76c49fbd4dd958429132e3746bcb086 # v31.11.5
       - run: bash scripts/audit.sh workflows
@@ -44,6 +54,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ inputs.ref || github.ref }}
           persist-credentials: false
       - uses: cachix/install-nix-action@3dc140bfc76c49fbd4dd958429132e3746bcb086 # v31.11.5
       - run: bash scripts/audit.sh shell
@@ -57,6 +68,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ inputs.ref || github.ref }}
           persist-credentials: false
       - uses: cachix/install-nix-action@3dc140bfc76c49fbd4dd958429132e3746bcb086 # v31.11.5
       - run: bash scripts/audit.sh policy

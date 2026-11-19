@@ -96,6 +96,7 @@ The commit-msg hook runs the same privacy check on the commit message.
 
 | Thing | Source | Regenerate |
 |---|---|---|
+| Weekly `flake.lock` PR | `.github/workflows/flake-update.yml` | automatic on Mondays, or from the Actions tab. A PR the workflow opens can't trigger other workflows, so it runs `check.yml` and `security.yml` on the PR itself and comments the result there; merge only on a passing comment |
 | Wiki | `docs/*.md` | automatic — `.github/workflows/wiki.yml` runs on pushes touching `docs/`, and on demand from the Actions tab |
 | Banner and theme gallery | `config/themes/*/colors.sh` | `python3 .github/scripts/gen-assets.py` after adding or editing a theme, then commit `.github/assets/*.svg` |
 | Wiki preview, locally | `docs/*.md` | `python3 .github/scripts/wiki.py docs /tmp/wiki --repo Ziad0dev/dots` |
