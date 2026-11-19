@@ -305,7 +305,7 @@ qs -c rise ipc call <target> <function>
 
 ## Dictation
 
-`voxtype` (from `scripts/voxtype.sh`): `SUPER + V` starts recording from the default PipeWire source (16 kHz mono); press again to transcribe with whisper.cpp and type the result into the focused window with `wtype` (falls back to the clipboard). Put `ggml-*.bin` files in `~/.local/share/voxtype/models`; pick one with `voxtype models` / `voxtype set-model <path>` or from the bar. Install a model manually after reinstalling.
+`voxtype` (from `scripts/voxtype.sh`): `SUPER + V` starts recording from the default PipeWire source (16 kHz mono); press again to transcribe with whisper.cpp and type the result into the focused window with `wtype` (falls back to the clipboard). Put `ggml-*.bin` files in `~/.local/share/voxtype/models`; pick one with `voxtype models` / `voxtype set-model <path>` or from the bar. Install a model manually after reinstalling, e.g. `ggml-large-v3-turbo-q5_0.bin` (550 MB, multilingual) from `huggingface.co/ggerganov/whisper.cpp`, checked against the SHA-256 shown there. whisper.cpp is the CUDA build (`modules/media-extras.nix`), so transcription runs on the GPU.
 
 ## Night light
 
