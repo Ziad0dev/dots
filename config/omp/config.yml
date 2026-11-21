@@ -1,5 +1,4 @@
 modelRoles:
-  default: lc-small/qwen3-4b:high
   smol: lc-small/qwen3-4b
   task: lc-small/qwen3-4b
   tiny: lc-small/qwen3-4b

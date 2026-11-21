@@ -15,7 +15,11 @@
       # soulseek-rs listener (home/soulseek.nix); peers reach it through a
       # port forward on the router
       2234
+      32400
     ];
-    allowedUDPPorts = [ 5353 ];
+    allowedUDPPorts = [
+      5353
+      32410
+    ];
   };
 }

@@ -85,6 +85,27 @@ in
       h265Crf = 26;
     };
   };
+  services.plex = {
+    enable = true;
+
+    # LAN interface only, same as Jellyfin (see modules/lan.nix)
+    openFirewall = false;
+
+    # runs as the default `plex` user, but in the media group so it can
+    # read/write under dmask=0002; dataDir stays on the system disk
+    group = "media";
+
+    # NVENC transcode devices, mirroring Jellyfin's DeviceAllow above
+    accelerationDevices = [
+      "/dev/nvidiactl"
+      "/dev/nvidia0"
+      "/dev/nvidia-uvm"
+      "/dev/nvidia-uvm-tools"
+      "/dev/nvidia-modeset"
+    ];
+  };
+
+  systemd.services.plex.unitConfig.RequiresMountsFor = [ mediaRoot ];
 
   systemd.services.jellyfin.serviceConfig.DeviceAllow = map (d: "${d} rw") extraNvidiaDevices;
 

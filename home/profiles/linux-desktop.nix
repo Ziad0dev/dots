@@ -229,6 +229,7 @@ in
       qt6.qtwayland
       (obs-studio.override { browserSupport = false; })
       cliamp
+      plexamp
       wlopm
 
       tor
@@ -337,7 +338,6 @@ in
       ];
     };
   };
-
   services.mpd = {
     enable = true;
 

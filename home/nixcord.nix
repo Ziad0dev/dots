@@ -68,7 +68,7 @@ in
         disableDeepLinks.enable = true;
         fakeNitro.enable = true;
         fixImagesQuality.enable = true;
-        fixYoutubeEmbeds.enable = true;
+        fixYoutubeEmbeds.enable = false;
         gameActivityToggle.enable = true;
         messageLogger.enable = true;
         noMosaic.enable = true;
@@ -84,7 +84,7 @@ in
         unsuppressEmbeds.enable = true;
         viewRaw.enable = true;
         volumeBooster.enable = true;
-        youtubeAdblock.enable = true;
+        youtubeAdblock.enable = false;
         disableCallIdle.enable = true;
         memberCount.enable = true;
         voiceChatDoubleClick.enable = true;
