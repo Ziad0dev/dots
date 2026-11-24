@@ -4,6 +4,8 @@ import Quickshell.Io
 
 Item {
     id: rootMod
+    // folded readings show while true (the bar sets it from hover)
+    property bool detail: true
     required property var root
     property string gid: "G12"
 
@@ -57,22 +59,34 @@ Item {
             fill: 1
         }
 
-        UiText {
+        DetailFold {
             anchors.verticalCenter: parent.verticalCenter
-            text: String(Math.min(100, rootMod.percent)).padStart(2, '0') + "%"
-            color: root.seal
-            font.family: root.mono
-            font.pixelSize: 12
+            shown: rootMod.detail || (rootMod.memPercent >= 90)
+            contentWidth: foldValue4.implicitWidth
+            contentHeight: foldValue4.implicitHeight
+            UiText {
+                id: foldValue4
+                anchors.verticalCenter: parent.verticalCenter
+                text: String(Math.min(100, rootMod.percent)).padStart(2, '0') + "%"
+                color: root.barValue
+                font.family: root.mono
+                font.pixelSize: 12
+            }
         }
 
-        UiText {
+        DetailFold {
             anchors.verticalCenter: parent.verticalCenter
-            text: rootMod.memUsedGiB.toFixed(1) + "G"
-            color: rootMod.memPercent >= 90
-                ? root.color01
-                : Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.6)
-            font.family: root.mono
-            font.pixelSize: 12
+            shown: rootMod.detail || (rootMod.memPercent >= 90)
+            contentWidth: foldValue5.implicitWidth
+            contentHeight: foldValue5.implicitHeight
+            UiText {
+                id: foldValue5
+                anchors.verticalCenter: parent.verticalCenter
+                text: rootMod.memUsedGiB.toFixed(1) + "G"
+                color: rootMod.memPercent >= 90 ? root.barAlert : root.barValueSoft
+                font.family: root.mono
+                font.pixelSize: 12
+            }
         }
     }
 

@@ -5,6 +5,8 @@ import "../IconMap.js" as IconMap
 
 Item {
     id: rootMod
+    // folded readings show while true (the bar sets it from hover)
+    property bool detail: true
     required property var root
     property string gid: "G11"
 
@@ -91,97 +93,117 @@ Item {
         }
 
         // ── ethernet: dual sparkline ──
-        Canvas {
-            id: netGraph
-            visible: rootMod.mode === "ethernet" && !root.compactNetwork
-            width: 36; height: 14
+        DetailFold {
             anchors.verticalCenter: parent.verticalCenter
+            shown: rootMod.detail && rootMod.mode === "ethernet" && !root.compactNetwork
+            contentWidth: netGraph.implicitWidth
+            contentHeight: netGraph.implicitHeight
+            Canvas {
+                id: netGraph
+                visible: rootMod.mode === "ethernet" && !root.compactNetwork
+                width: 36; height: 14
+            implicitWidth: 36; implicitHeight: 14
+                anchors.verticalCenter: parent.verticalCenter
 
-            property color tint: root.seal
-            onTintChanged: requestPaint()
+                property color tint: root.seal
+                onTintChanged: requestPaint()
+            property color upTint: root.barValueSoft
+            onUpTintChanged: requestPaint()
 
-            onPaint: {
-                var ctx = getContext("2d")
-                ctx.clearRect(0, 0, width, height)
+                onPaint: {
+                    var ctx = getContext("2d")
+                    ctx.clearRect(0, 0, width, height)
 
-                var dl = rootMod.dlHistory
-                var ul = rootMod.ulHistory
-                if (dl.length < 2 && ul.length < 2) return
+                    var dl = rootMod.dlHistory
+                    var ul = rootMod.ulHistory
+                    if (dl.length < 2 && ul.length < 2) return
 
-                // shared scale so both lines are visually comparable
-                var maxV = 1
-                for (var n = 0; n < dl.length; n++) if (dl[n] > maxV) maxV = dl[n]
-                for (var n = 0; n < ul.length; n++) if (ul[n] > maxV) maxV = ul[n]
-                maxV *= 1.15
+                    // shared scale so both lines are visually comparable
+                    var maxV = 1
+                    for (var n = 0; n < dl.length; n++) if (dl[n] > maxV) maxV = dl[n]
+                    for (var n = 0; n < ul.length; n++) if (ul[n] > maxV) maxV = ul[n]
+                    maxV *= 1.15
 
-                function drawLine(history, color, fillAlpha, strokeW) {
-                    if (history.length < 2) return
-                    var pts = []
-                    for (var i = 0; i < history.length; i++) {
-                        pts.push({
-                            x: (i / (rootMod.maxSamples - 1)) * width,
-                            y: height - (history[i] / maxV) * height
-                        })
+                    function drawLine(history, color, fillAlpha, strokeW) {
+                        if (history.length < 2) return
+                        var pts = []
+                        // newest sample on the right edge: a short history (just
+                        // after start) grows in from the right instead of leaving
+                        // a stub at the left
+                        var last = history.length - 1
+                        for (var i = 0; i < history.length; i++) {
+                            pts.push({
+                                x: width - ((last - i) / (rootMod.maxSamples - 1)) * width,
+                                y: height - (history[i] / maxV) * height
+                            })
+                        }
+                        // fill
+                        ctx.beginPath()
+                        ctx.moveTo(pts[0].x, height)
+                        ctx.lineTo(pts[0].x, pts[0].y)
+                        for (var j = 1; j < pts.length; j++) {
+                            var cx = (pts[j-1].x + pts[j].x) / 2
+                            ctx.bezierCurveTo(cx, pts[j-1].y, cx, pts[j].y, pts[j].x, pts[j].y)
+                        }
+                        ctx.lineTo(pts[pts.length-1].x, height)
+                        ctx.closePath()
+                        ctx.fillStyle = Qt.rgba(color.r, color.g, color.b, fillAlpha)
+                        ctx.fill()
+                        // stroke
+                        ctx.beginPath()
+                        ctx.moveTo(pts[0].x, pts[0].y)
+                        for (var k = 1; k < pts.length; k++) {
+                            var mx = (pts[k-1].x + pts[k].x) / 2
+                            ctx.bezierCurveTo(mx, pts[k-1].y, mx, pts[k].y, pts[k].x, pts[k].y)
+                        }
+                        ctx.strokeStyle = color
+                        ctx.lineWidth = strokeW
+                        ctx.lineCap = "round"; ctx.lineJoin = "round"
+                        ctx.stroke()
                     }
-                    // fill
-                    ctx.beginPath()
-                    ctx.moveTo(pts[0].x, height)
-                    ctx.lineTo(pts[0].x, pts[0].y)
-                    for (var j = 1; j < pts.length; j++) {
-                        var cx = (pts[j-1].x + pts[j].x) / 2
-                        ctx.bezierCurveTo(cx, pts[j-1].y, cx, pts[j].y, pts[j].x, pts[j].y)
-                    }
-                    ctx.lineTo(pts[pts.length-1].x, height)
-                    ctx.closePath()
-                    ctx.fillStyle = Qt.rgba(color.r, color.g, color.b, fillAlpha)
-                    ctx.fill()
-                    // stroke
-                    ctx.beginPath()
-                    ctx.moveTo(pts[0].x, pts[0].y)
-                    for (var k = 1; k < pts.length; k++) {
-                        var mx = (pts[k-1].x + pts[k].x) / 2
-                        ctx.bezierCurveTo(mx, pts[k-1].y, mx, pts[k].y, pts[k].x, pts[k].y)
-                    }
-                    ctx.strokeStyle = color
-                    ctx.lineWidth = strokeW
-                    ctx.lineCap = "round"; ctx.lineJoin = "round"
-                    ctx.stroke()
+
+                    drawLine(dl, root.seal,   0.12, 1.5)   // download — seal
+                    drawLine(ul, upTint, 0.10, 1.0)   // upload: the quieter line
                 }
 
-                drawLine(dl, root.seal,   0.12, 1.5)   // download — seal
-                drawLine(ul, root.indigo, 0.10, 1.0)   // upload   — indigo
+                Connections {
+                    target: rootMod
+                    function onDlHistoryChanged() { netGraph.requestPaint() }
+                    function onUlHistoryChanged() { netGraph.requestPaint() }
+                }
+                Component.onCompleted: requestPaint()
             }
-
-            Connections {
-                target: rootMod
-                function onDlHistoryChanged() { netGraph.requestPaint() }
-                function onUlHistoryChanged() { netGraph.requestPaint() }
-            }
-            Component.onCompleted: requestPaint()
         }
 
         // ── ethernet: down/up speed, stacked to save width ──
-        Column {
+        DetailFold {
             anchors.verticalCenter: parent.verticalCenter
-            visible: rootMod.mode === "ethernet" && !root.compactNetwork
-            spacing: 0
-            UiText {
-                width: 54; height: 11
-                verticalAlignment: Text.AlignVCenter
-                horizontalAlignment: Text.AlignRight
-                text: "↓" + rootMod.formatSpeed(rootMod.dlRate)
-                color: root.seal
-                font.family: root.mono
-                font.pixelSize: 10
-            }
-            UiText {
-                width: 54; height: 11
-                verticalAlignment: Text.AlignVCenter
-                horizontalAlignment: Text.AlignRight
-                text: "↑" + rootMod.formatSpeed(rootMod.ulRate)
-                color: root.indigo
-                font.family: root.mono
-                font.pixelSize: 10
+            shown: rootMod.detail && rootMod.mode === "ethernet" && !root.compactNetwork
+            contentWidth: foldValue8.implicitWidth
+            contentHeight: foldValue8.implicitHeight
+            Column {
+                id: foldValue8
+                anchors.verticalCenter: parent.verticalCenter
+                visible: rootMod.mode === "ethernet" && !root.compactNetwork
+                spacing: 0
+                UiText {
+                    width: 54; height: 11
+                    verticalAlignment: Text.AlignVCenter
+                    horizontalAlignment: Text.AlignRight
+                    text: "↓" + rootMod.formatSpeed(rootMod.dlRate)
+                    color: root.barValue
+                    font.family: root.mono
+                    font.pixelSize: 10
+                }
+                UiText {
+                    width: 54; height: 11
+                    verticalAlignment: Text.AlignVCenter
+                    horizontalAlignment: Text.AlignRight
+                    text: "↑" + rootMod.formatSpeed(rootMod.ulRate)
+                    color: root.barValueSoft
+                    font.family: root.mono
+                    font.pixelSize: 10
+                }
             }
         }
 
@@ -207,14 +229,21 @@ Item {
         }
 
         // ── wifi: ssid ──
-        UiText {
+        DetailFold {
             anchors.verticalCenter: parent.verticalCenter
-            visible: rootMod.mode === "wifi" && !root.compactNetwork
-            text: rootMod.ssid
-            color: root.seal
-            font.family: root.mono
-            font.pixelSize: 12
-            font.letterSpacing: 1
+            shown: rootMod.detail && rootMod.mode === "wifi" && !root.compactNetwork
+            contentWidth: foldValue9.implicitWidth
+            contentHeight: foldValue9.implicitHeight
+            UiText {
+                id: foldValue9
+                anchors.verticalCenter: parent.verticalCenter
+                visible: rootMod.mode === "wifi" && !root.compactNetwork
+                text: rootMod.ssid
+                color: root.barValue
+                font.family: root.mono
+                font.pixelSize: 12
+                font.letterSpacing: 1
+            }
         }
     }
 

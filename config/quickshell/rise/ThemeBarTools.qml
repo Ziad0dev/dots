@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Quickshell.Hyprland
 import "modules"
 
 // Part of Theme (see Theme.qml): state for the Omarchy-style bar tools, ported
@@ -28,6 +29,54 @@ ThemeTelemetry {
     onWorldClockVisibleChanged: { popupOpened("worldClockVisible"); if (worldClockVisible) refreshZoneOffsets() }
     property bool reminderVisible: false
     onReminderVisibleChanged: { popupOpened("reminderVisible"); if (reminderVisible) refreshReminders() }
+    property bool layoutVisible: false
+    onLayoutVisibleChanged: popupOpened("layoutVisible")
+
+    // ── workspace layouts (Omarchy 4.5; scripts/dots-layout.sh applies them
+    // through config/hypr/lib/workspace_modes.lua) ──
+    // `default=<mode>` and `<ws>=<mode>` lines, written by dots-layout
+    property string wsLayoutDefault: "dwindle"
+    property var wsLayouts: ({})
+    readonly property int wsLayoutWorkspace: Hyprland.focusedWorkspace ? Hyprland.focusedWorkspace.id : 0
+    readonly property string wsLayoutCurrent: wsLayoutOf(wsLayoutWorkspace)
+    readonly property var wsLayoutModes: ["dwindle", "scrolling", "floating"]
+    function wsLayoutOf(id) {
+        return (id >= 1 && wsLayouts[String(id)]) || wsLayoutDefault
+    }
+    function wsLayoutLabel(mode) {
+        return mode === "scrolling" ? "Scrolling" : mode === "floating" ? "Floating" : "Tiling"
+    }
+    function wsLayoutIcon(mode) {
+        return mode === "scrolling" ? "view_column" : mode === "floating" ? "filter_none" : "view_quilt"
+    }
+    // the script names tiling by what people call it
+    function wsLayoutArg(mode) { return mode === "dwindle" ? "tiling" : mode }
+    function setWsLayout(mode) {
+        if (wsLayoutWorkspace >= 1)
+            Quickshell.execDetached(["dots-layout", "set", wsLayoutArg(mode), String(wsLayoutWorkspace)])
+    }
+    function setDefaultWsLayout(mode) {
+        Quickshell.execDetached(["dots-layout", "default", wsLayoutArg(mode)])
+    }
+    FileView {
+        path: theme.barToolsStateDir + "/workspace-layouts"
+        watchChanges: true
+        printErrors: false
+        onFileChanged: reload()
+        onLoaded: {
+            var modes = {}, def = "dwindle"
+            String(text()).split("\n").forEach(function (line) {
+                var m = /^\s*(default|[1-9][0-9]*)\s*=\s*(dwindle|scrolling|floating)\s*$/.exec(line)
+                if (!m) return
+                if (m[1] === "default") def = m[2]
+                else modes[m[1]] = m[2]
+            })
+            theme.wsLayoutDefault = def
+            theme.wsLayouts = modes
+        }
+        // deleted (every workspace back on the default): the defaults again
+        onLoadFailed: { theme.wsLayoutDefault = "dwindle"; theme.wsLayouts = ({}) }
+    }
 
     // ── Tailscale ──
     property var tsStatus: ({})

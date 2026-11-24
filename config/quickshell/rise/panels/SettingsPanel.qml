@@ -46,7 +46,9 @@ PanelWindow {
                 e("barColor", "Accent", "The palette colour the bar and panels use",
                   o(root.barColorOptions, root.barColorOptions.map(function (id) { return root.barColorLabel(id) }))),
                 e("barAnim", "Bar animation", "Runs continuously on the bar, so it costs some GPU",
-                  o(barAnimNames.map(function (_, i) { return i }), barAnimNames))
+                  o(barAnimNames.map(function (_, i) { return i }), barAnimNames)),
+                b("barFoldDetails", "Readings on hover", "Numbers and speeds fold away until you hover their side of the bar; warnings stay"),
+                e("dockMode", "Dock", "The app dock at the bottom (right-click an app to keep it)", o(["autohide", "floating", "always", "off"], ["Auto-hide", "Floating only", "Always", "Off"]))
             ] },
             { title: "Launcher button", rows: [
                 e("launcherLogoMode", "Shows", "", o(["text", "icon"], ["Wordmark", "Icon"])),
@@ -54,7 +56,7 @@ PanelWindow {
                 e("launcherLogoIcon", "Icon", "", o(root.launcherLogoIconOptions))
             ] },
             { title: "System tray", rows: [
-                b("trayRecolour", "Tint tray icons", "Use the bar accent for monochrome (symbolic) tray icons; colour icons keep their own colours"),
+                b("trayRecolour", "Tint tray icons", "Fill symbolic tray icons with the bar accent and wash colour icons in it, keeping their shading"),
                 b("trayCompact", "Compact tray", "Use smaller icons and tighter spacing"),
                 b("trayBackground", "Tray background", "Draw a separate rounded surface behind tray icons")
             ] },
@@ -139,7 +141,7 @@ PanelWindow {
             "modCpu", "modCpuTemperature", "modGpu", "modMemory", "modStorage", "modWeather", "modAi", "modGithub",
             "compactMpris", "compactVolume", "compactBrightness", "compactNetwork", "compactBluetooth", "compactBattery",
             "compactPower", "compactCpu", "compactMemory", "archBadgePackages", "archBadgeThemes", "archBadgeShell",
-            "trayBackground", "trayCompact", "trayRecolour", "trayIconSubs", "trayHiddenIcons",
+            "trayBackground", "trayCompact", "trayRecolour", "trayIconSubs", "trayHiddenIcons", "barFoldDetails", "dockMode",
             "styleFrame", "popoutHover", "styleFrameEdge", "styleAutoHide", "styleFrost", "styleShadow", "styleBorder", "styleDepth",
             "styleRadiusSmall", "styleIconLabels", "styleDeskClock", "styleDeskVisualiser", "motionHover", "motionSweep", "motionDigits",
             "pickerStyle", "clock12h", "weatherImperial", "widgetColorStyles"]

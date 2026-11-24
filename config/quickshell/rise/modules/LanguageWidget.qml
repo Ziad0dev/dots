@@ -5,6 +5,8 @@ import "../IconMap.js" as IconMap
 
 Item {
     id: rootMod
+    // folded readings show while true (the bar sets it from hover)
+    property bool detail: true
     required property var root
 
     LanguageData { id: lang }
@@ -40,13 +42,20 @@ Item {
             fill: 1
         }
 
-        UiText {
+        DetailFold {
             anchors.verticalCenter: parent.verticalCenter
-            text: rootMod.activeLabel
-            color: root.seal
-            font.family: root.mono
-            font.pixelSize: 12
-            font.letterSpacing: 0.5
+            shown: rootMod.detail
+            contentWidth: foldValue10.implicitWidth
+            contentHeight: foldValue10.implicitHeight
+            UiText {
+                id: foldValue10
+                anchors.verticalCenter: parent.verticalCenter
+                text: rootMod.activeLabel
+                color: root.barValue
+                font.family: root.mono
+                font.pixelSize: 12
+                font.letterSpacing: 0.5
+            }
         }
     }
 

@@ -368,6 +368,8 @@ Scope {
         // Display only; true when rise draws it (see WallpaperEngine).
         // (not `show`: qs's CLI takes that for its own `ipc show`)
         function display(path: string): bool { return Services.WallpaperEngine.show(path); }
+        // play `video` once, then show `still` (themectl, on a theme switch)
+        function intro(video: string, still: string): bool { return Services.WallpaperEngine.intro(video, still); }
         function current(): string { return Services.WallpaperEngine.current; }
     }
 

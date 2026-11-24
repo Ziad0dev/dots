@@ -132,6 +132,22 @@ in
     fi
   '';
 
+  # A switch points ~/.config/hypr at a new store path, but Hyprland only
+  # watches the files it loaded: without a reload it keeps the old config,
+  # binds included. Reload every running instance (none: nothing to do).
+  home.activation.hyprlandReload = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+    if [[ ! -v DRY_RUN ]]; then
+      hc=/run/current-system/sw/bin/hyprctl
+      [ -x "$hc" ] || hc=$(command -v hyprctl || true)
+      if [ -n "$hc" ]; then
+        for sock in /run/user/"$(id -u)"/hypr/*/.socket.sock; do
+          [ -S "$sock" ] || continue
+          HYPRLAND_INSTANCE_SIGNATURE=$(basename "$(dirname "$sock")") "$hc" reload >/dev/null 2>&1 || true
+        done
+      fi
+    fi
+  '';
+
   # Calibre keeps its library path in a file it rewrites itself, so seed it
   # only when unset instead of managing the file.
   home.activation.calibreLibrary = lib.hm.dag.entryAfter [ "writeBoundary" ] ''

@@ -20,20 +20,22 @@ if util.state("glass") == "on" then
             shadow = { enabled = true, range = 24, render_power = 3, color = "rgba(00000066)" },
             blur = {
                 -- acrylic: the wiki's "similar to liquid glass" variant (frost is
-                -- a cracked-ice pattern). Low clarity frosts the lens so text
-                -- stays readable; its defaults (0.82) leave the backdrop sharp.
+                -- a cracked-ice pattern). Clarity between frosted (0.25 read
+                -- as smoke) and its sharp default (0.82): the light and the
+                -- refraction show through, and text still reads.
                 variant    = "acrylic",
-                acrylic    = { clarity = 0.25, bulb = 24, refraction = 12, aberration = 0.01 },
+                acrylic    = { clarity = 0.4, bulb = 28, refraction = 16, aberration = 0.012 },
                 size       = 10,
                 passes     = 3,
                 xray       = false,
                 -- Orbit darkens to 0.8; over a dark wallpaper and a 55% fill
                 -- that reads as plain black, not glass, so keep full brightness
                 -- and lift the wallpaper's colour a little instead
-                brightness = 1.0,
+                brightness = 1.05,
                 contrast   = 1.0,
-                noise      = 0.04,
-                vibrancy   = 0.2,
+                noise      = 0.03,
+                -- colours behind glow through the glass instead of greying out
+                vibrancy   = 0.45,
             },
         },
     })

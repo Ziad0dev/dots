@@ -4,6 +4,8 @@ import Quickshell.Io
 
 Item {
     id: rootMod
+    // folded readings show while true (the bar sets it from hover)
+    property bool detail: true
     required property var root
     property string gid: "G5"
 
@@ -105,16 +107,23 @@ Item {
             }
         }
 
-        RollingNumber {
+        DetailFold {
             anchors.verticalCenter: parent.verticalCenter
-            visible: !root.compactCpu
-            value: Math.min(100, rootMod.percent)
-            digits: 2
-            suffix: "%"
-            tint: root.seal
-            family: root.mono
-            pixelSize: 12
-            rolling: root.motionDigits
+            shown: rootMod.detail && !root.compactCpu
+            contentWidth: foldValue1.implicitWidth
+            contentHeight: foldValue1.implicitHeight
+            RollingNumber {
+                id: foldValue1
+                anchors.verticalCenter: parent.verticalCenter
+                visible: !root.compactCpu
+                value: Math.min(100, rootMod.percent)
+                digits: 2
+                suffix: "%"
+                tint: root.barValue
+                family: root.mono
+                pixelSize: 12
+                rolling: root.motionDigits
+            }
         }
 
         IconText {
@@ -128,16 +137,23 @@ Item {
             fill: 1
         }
 
-        RollingNumber {
+        DetailFold {
             anchors.verticalCenter: parent.verticalCenter
-            visible: root.compactCpu
-            value: Math.min(100, rootMod.percent)
-            digits: 2
-            suffix: "%"
-            tint: root.seal
-            family: root.mono
-            pixelSize: 12
-            rolling: root.motionDigits
+            shown: rootMod.detail && root.compactCpu
+            contentWidth: foldValue2.implicitWidth
+            contentHeight: foldValue2.implicitHeight
+            RollingNumber {
+                id: foldValue2
+                anchors.verticalCenter: parent.verticalCenter
+                visible: root.compactCpu
+                value: Math.min(100, rootMod.percent)
+                digits: 2
+                suffix: "%"
+                tint: root.barValue
+                family: root.mono
+                pixelSize: 12
+                rolling: root.motionDigits
+            }
         }
     }
 

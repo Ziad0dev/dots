@@ -4,6 +4,8 @@ import Quickshell.Io
 
 Item {
     id: rootMod
+    // folded readings show while true (the bar sets it from hover)
+    property bool detail: true
     required property var root
     property string gid: "G6"
 
@@ -88,15 +90,20 @@ Item {
             }
         }
 
-        UiText {
+        DetailFold {
             anchors.verticalCenter: parent.verticalCenter
-            visible: !root.compactVolume
-            text: String(rootMod.volume).padStart(2, '0') + "%"
-            color: rootMod.muted
-                ? Qt.rgba(root.seal.r, root.seal.g, root.seal.b, 0.35)
-                : root.seal
-            font.family: root.mono
-            font.pixelSize: 12
+            shown: (rootMod.detail || rootMod.muted) && !root.compactVolume
+            contentWidth: foldValue1.implicitWidth
+            contentHeight: foldValue1.implicitHeight
+            UiText {
+                id: foldValue1
+                anchors.verticalCenter: parent.verticalCenter
+                visible: !root.compactVolume
+                text: String(rootMod.volume).padStart(2, '0') + "%"
+                color: rootMod.muted ? root.barValueSoft : root.barValue
+                font.family: root.mono
+                font.pixelSize: 12
+            }
         }
 
         IconText {
@@ -111,16 +118,21 @@ Item {
             Behavior on color { CAnim { ms: 160 } }
         }
 
-        UiText {
+        DetailFold {
             anchors.verticalCenter: parent.verticalCenter
-            visible: root.compactVolume
-            text: String(rootMod.volume).padStart(2, '0') + "%"
-            color: rootMod.muted
-                ? Qt.rgba(root.seal.r, root.seal.g, root.seal.b, 0.35)
-                : root.seal
-            font.family: root.mono
-            font.pixelSize: 12
-            Behavior on color { CAnim { ms: 160 } }
+            shown: (rootMod.detail || rootMod.muted) && root.compactVolume
+            contentWidth: foldValue2.implicitWidth
+            contentHeight: foldValue2.implicitHeight
+            UiText {
+                id: foldValue2
+                anchors.verticalCenter: parent.verticalCenter
+                visible: root.compactVolume
+                text: String(rootMod.volume).padStart(2, '0') + "%"
+                color: rootMod.muted ? root.barValueSoft : root.barValue
+                font.family: root.mono
+                font.pixelSize: 12
+                Behavior on color { CAnim { ms: 160 } }
+            }
         }
 
     }

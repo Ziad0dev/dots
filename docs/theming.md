@@ -33,8 +33,8 @@ A fresh home gets `dots.theme` (oxocarbon) on its first activation, so nothing s
 3. Points `~/.local/state/dots/shell/current/` at the palette, wallpaper directory, preview and background — what Quickshell and the lock screen read.
 4. Writes `/var/lib/dots-theme/sddm.json` for the login greeter (if the directory is writable).
 5. Links or copies the rendered Kvantum and GTK files into place, and concatenates `config/zen/sites/*.css` into `zen-sites.css`.
-6. Reloads: Ghostty (`SIGUSR2`), Quickshell (`theme reload` over IPC), GTK (theme name bounce), btop (`SIGUSR2`), tmux, dunst (sway only), Hyprland, swayosd. Zen reads its CSS only at startup.
-7. If the theme ships a `wallpaper.*`, sets it with a random `awww` transition.
+6. If the theme ships a `wallpaper.*`, sets it before reloading anything, so the wallpaper's reveal starts as the bar and apps recolour (the desktop changes in one motion, as in Omarchy 4.5). On a switch to another theme (not `reload`), its intro plays first if it has one (below).
+7. Reloads: Ghostty (`SIGUSR2`), Quickshell (`theme reload` over IPC), GTK (theme name bounce), btop (`SIGUSR2`), tmux, dunst (sway only), Hyprland, swayosd. Zen reads its CSS only at startup.
 
 ## Palette format
 
@@ -118,6 +118,8 @@ If a template references a name that isn't a palette key, it passes through unsu
 ## Wallpapers
 
 - Pool: `~/Pictures/wallpapers` (top level only; jpg/jpeg/png/webp).
-- `dots-set-wallpaper <file>` runs `awww img` with a random transition and records the file at `~/.local/state/dots/theme/wallpaper`.
+- `dots-set-wallpaper <file>` hands the file to Rise, which draws the wallpaper with the desktop theme's transition (`ext/shaders/wallpaper_transition.frag`; without a desktop theme, Omarchy 4.5's slanted band opening from the centre). It falls back to `awww img` when Rise isn't running or a wallpaper command is set. It records the file at `~/.local/state/dots/theme/wallpaper`.
+- **Theme intros** (after Omarchy 4.5): a short clip that plays once when you switch to a theme, then settles on its wallpaper with no second transition. `themectl` looks for the theme's own `intro.{mp4,webm,mkv,mov,m4v}`, then `~/.local/share/dots/intros/<theme>.<ext>`; keep clips that aren't yours to publish in the second place, out of this public repo. Intros are silent, play even under windows, and never reach the lock screen's still. Reloading the current theme or changing only the wallpaper plays none, and a clip that stalls hands over after 30 s. Rebuild the transition shader with the `qsb` line in `config/quickshell/rise/ext/README.md`.
 - `dots-current-wallpaper` reads that link (falling back to `awww query`).
 - Setting a theme with its own `wallpaper.*` overrides the current wallpaper; setting one without leaves it alone.
+- To give a theme a different wallpaper without changing the repo, put it at `~/.local/share/dots/wallpapers/<theme>.{jpg,jpeg,png,webp}`. It wins over the theme's own `wallpaper.*` when switching and in the theme drawer. The login greeter's build-time copy (`dots.sddm.theme`) still uses the repo's file; the live greeter copy follows the wallpaper on screen.

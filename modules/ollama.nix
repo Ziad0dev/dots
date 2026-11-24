@@ -23,14 +23,16 @@
       "qwen2.5-coder:14b"
       "qwen2.5-coder:7b"
       "devstral-small-2:24b"
+      # OMP's default for every role (config/omp/config.yml)
+      "qwen3.6:35b-a3b"
     ];
 
     environmentVariables = {
 
       OLLAMA_MAX_LOADED_MODELS = "1";
 
-      # starts at boot but holds no VRAM until a model is requested; pi's
-      # ollama-unload extension frees it on exit, KEEP_ALIVE covers crashes
+      # starts at boot but holds no VRAM until a model is requested, and
+      # unloads it after 5 idle minutes (gpu-free does it at once)
       OLLAMA_KEEP_ALIVE = "5m";
 
       OLLAMA_FLASH_ATTENTION = "1";

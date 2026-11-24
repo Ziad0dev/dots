@@ -275,6 +275,20 @@ Item {
         }
     }
 
+    // the app dock (Omarchy 4.5's), along the bottom of each bar screen
+    Variants {
+        model: root.barScreens
+
+        delegate: Component {
+            Dock {
+                required property var modelData
+
+                root: theme
+                screen: modelData
+            }
+        }
+    }
+
     Variants {
         model: root.barScreens
 
@@ -364,6 +378,11 @@ Item {
     WeatherPanel { root: theme }
     TailscalePanel { root: theme }
     WorldClockPanel { root: theme }
+    LayoutPanel { root: theme }
+    // Print / dots-shot region: frozen screens, window snapping (Caelestia's area picker)
+    AreaPicker { root: theme }
+    // settings app (Caelestia's Nexus): SUPER + CTRL + I
+    Nexus { root: theme }
     ReminderPanel { root: theme }
     KeybindsPanel { root: theme }
     DiscoverPanel { root: theme }

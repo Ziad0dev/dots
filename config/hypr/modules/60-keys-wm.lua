@@ -5,11 +5,18 @@ hl.bind(mod .. " + SHIFT + Q", hl.dsp.window.close())
 hl.bind(mod .. " + F", hl.dsp.window.fullscreen())
 hl.bind(mod .. " + SHIFT + space", hl.dsp.window.float({ action = "toggle" }))
 hl.bind(mod .. " + space", hl.dsp.focus({ last = true }))
+-- this workspace's layout: tiling → scrolling → floating (Omarchy's Super + L,
+-- which here locks)
+hl.bind(mod .. " + T",        hl.dsp.exec_cmd("dots-layout next"))
+hl.bind(mod .. " + CTRL + T", hl.dsp.exec_cmd("dots-layout back"))
 
 local dirs = { H = "left", L = "right", K = "up", J = "down",
                left = "left", right = "right", up = "up", down = "down" }
 for key, dir in pairs(dirs) do
-    hl.bind(mod .. " + " .. key,         hl.dsp.focus({ direction = dir }))
+    -- SUPER + L locks (below); focus right stays on SUPER + Right
+    if key ~= "L" then
+        hl.bind(mod .. " + " .. key,     hl.dsp.focus({ direction = dir }))
+    end
     hl.bind(mod .. " + SHIFT + " .. key, hl.dsp.window.move({ direction = dir }))
 end
 
@@ -58,6 +65,7 @@ end)
 
 hl.bind(mod .. " + SHIFT + E", hl.dsp.exit())
 hl.bind(mod .. " + CTRL + R",  hl.dsp.exec_cmd("hyprctl reload"))
+hl.bind(mod .. " + L",         hl.dsp.exec_cmd("loginctl lock-session"))
 hl.bind(mod .. " + CTRL + L",  hl.dsp.exec_cmd("loginctl lock-session"))
 hl.bind(mod .. " + Escape",    hl.dsp.exec_cmd("loginctl lock-session"))
 hl.bind(mod .. " + SHIFT + Escape", hl.dsp.exec_cmd("qs -c rise ipc call session toggle"))

@@ -145,8 +145,8 @@ render_all() {
             scheme=$(scheme_of "$background")
             # shellcheck disable=SC2034
             if [ "$(head -n1 "${XDG_STATE_HOME:-$HOME/.local/state}/dots/hypr/glass" 2>/dev/null)" = on ]; then
-                glass_window=0.55 glass_view=0.15 glass_bar=0.3 glass_dialog=0.7 glass_chrome=55% glass_term=0.55 glass_page=40%
-                glass_fill=transparent glass_raise=45% glass_menu=0.4 glass_menu_pct=40% glass_hex=80
+                glass_window=0.4 glass_view=0.1 glass_bar=0.2 glass_dialog=0.55 glass_chrome=40% glass_term=0.42 glass_page=30%
+                glass_fill=transparent glass_raise=35% glass_menu=0.3 glass_menu_pct=30% glass_hex=66
             else
                 glass_window=0.85 glass_view=0.35 glass_bar=0.6 glass_dialog=0.85 glass_chrome=85% glass_term=0.85 glass_page=100%
                 glass_fill=$background glass_raise=100% glass_menu=0.62 glass_menu_pct=62% glass_hex=d9
@@ -451,14 +451,33 @@ reload_apps() {
     fi
 }
 
+# A theme's wallpaper: your own pick for it in ~/.local/share/dots/wallpapers/
+# <theme>.* (outside the public repo, like the intros), else its wallpaper.*.
 theme_wallpaper() {
-    local d f
+    local d f o
     d=$(theme_dir "$1")
-    for f in "$d"/wallpaper.jpg "$d"/wallpaper.jpeg "$d"/wallpaper.png "$d"/wallpaper.webp; do
+    o="${XDG_DATA_HOME:-$HOME/.local/share}/dots/wallpapers/$1"
+    for f in "$o".jpg "$o".jpeg "$o".png "$o".webp "$d"/wallpaper.jpg "$d"/wallpaper.jpeg "$d"/wallpaper.png "$d"/wallpaper.webp; do
         if [ -f "$f" ]; then
             printf '%s' "$f"
             return 0
         fi
+    done
+    return 1
+}
+
+# A theme's intro (Omarchy 4.5): a short clip played once when switching to
+# the theme, before its wallpaper. The theme's own intro.*, else a local one
+# in ~/.local/share/dots/intros/<theme>.* (clips stay out of the public repo).
+theme_intro() {
+    local f ext
+    for f in "$(theme_dir "$1")/intro" "${XDG_DATA_HOME:-$HOME/.local/share}/dots/intros/$1"; do
+        for ext in mp4 webm mkv mov m4v; do
+            if [ -f "$f.$ext" ]; then
+                realpath -- "$f.$ext"
+                return 0
+            fi
+        done
     done
     return 1
 }
@@ -484,18 +503,30 @@ cmd_set() {
         gen_auto "${2:-}"
     fi
     [ -d "$(theme_dir "$name")" ] || die "no such theme: $name"
+    local previous intro
+    previous=$(cat "$CURRENT" 2>/dev/null || true)
 
     write_theme "$name"
-    reload_apps
-    # icons, cursor and fonts: the theme's look.conf under your own choices
-    if command -v dots-appearance >/dev/null 2>&1; then
-        dots-appearance apply --quiet || true
+    # only on a switch: reloading the current theme plays no intro. Rise then
+    # holds the wallpaper below until the clip ends; without Rise it's skipped.
+    if [ "$name" != "$previous" ] && wp=$(theme_wallpaper "$name") && intro=$(theme_intro "$name") \
+        && command -v qs >/dev/null 2>&1; then
+        # real paths: dots-set-wallpaper resolves the still the same way, and
+        # Rise holds it only for an exact match
+        qs -c rise ipc call wallpaper intro "$intro" "$(realpath -- "$wp")" >/dev/null 2>&1 || true
     fi
-
+    # The wallpaper first, then the colours: the reveal starts as the bar and
+    # apps recolour, so the desktop changes in one motion (as in Omarchy 4.5).
+    # Last, it landed after every reload and dots-appearance, a beat late.
     if wp=$(theme_wallpaper "$name"); then
         if command -v dots-set-wallpaper >/dev/null 2>&1; then
             dots-set-wallpaper "$wp" || true
         fi
+    fi
+    reload_apps
+    # icons, cursor and fonts: the theme's look.conf under your own choices
+    if command -v dots-appearance >/dev/null 2>&1; then
+        dots-appearance apply --quiet || true
     fi
 }
 

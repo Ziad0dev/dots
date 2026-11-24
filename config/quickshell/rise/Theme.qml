@@ -172,13 +172,13 @@ ThemeAiUsage {
     // ── transparency knobs (0.0 = fully transparent, 1.0 = opaque) ──
     // große Insel / Split-Sektionen; with glass on, about half, so bar,
     // panels and frame show Hyprland's blur like the windows do
-    property real barOpacity:  glassMode ? 0.5 : 0.94
+    property real barOpacity:  glassMode ? 0.32 : 0.94
     property real pillOpacity: 0.18   // einzelne Widget-Pillen (workspace, mem, cpu, …)
 
     readonly property color bg:     Qt.rgba(paper.r, paper.g, paper.b, barOpacity)
     // the backing of standalone cards (launcher, clipboard, polkit): solid,
     // or see-through with glass on (layer rule "rise-panels" blurs them)
-    readonly property color cardFill: glassMode ? Qt.rgba(paper.r, paper.g, paper.b, 0.5) : paper
+    readonly property color cardFill: glassMode ? Qt.rgba(paper.r, paper.g, paper.b, 0.36) : paper
     // bar island/section bg ONLY (NOT the shared bg -> panels keep their opacity): Frost
     // lowers the island alpha; compositor blur appears automatically when the theme
     // already blurs Quickshell layer surfaces.
@@ -237,7 +237,7 @@ ThemeAiUsage {
     readonly property color windowBorder: _pb
     // the frame layer's alpha: with Frost, low enough that Hyprland's layer blur
     // (71-layers.lua) reads through the bar band and the panels
-    readonly property real frameOpacity: glassMode ? 0.42 : styleFrost ? 0.55 : barOpacity
+    readonly property real frameOpacity: glassMode ? 0.3 : styleFrost ? 0.55 : barOpacity
     readonly property color frameColor: styleDepth ? surfaceTone(0.03, 1) : Qt.rgba(paper.r, paper.g, paper.b, 1)
     // a split bar's sections in frame mode: a tone above the band, same alpha
     readonly property color frameRunFill:   surfaceTone(styleDepth ? 0.09 : 0.06, frameOpacity)
@@ -269,6 +269,13 @@ ThemeAiUsage {
     readonly property color muted:  sumi
     readonly property color accent: seal
     readonly property color warn:   seal
+    // Bar text rule: glyphs carry the accent, readings stay in the text colour,
+    // and a reading in trouble (hot, nearly full, muted) changes colour. With
+    // readings in the accent too, a warning in color01 vanished whenever the
+    // bar colour was color01 (the default).
+    readonly property color barValue:     Qt.rgba(ink.r, ink.g, ink.b, 0.92)
+    readonly property color barValueSoft: Qt.rgba(ink.r, ink.g, ink.b, 0.55)
+    readonly property color barAlert:     color01
     readonly property color sep:    Qt.rgba(ink.r, ink.g, ink.b, 0.18)
 
     // ── interactive fill tokens (button/tile backgrounds) ──
@@ -303,7 +310,7 @@ ThemeAiUsage {
         || discoverVisible || workspaceVisible || imagePickerVisible || mediaBrowserVisible || notifVisible
         || powerProfileVisible || trayVisible || trayMenuVisible || utilitiesVisible
         || dashboardVisible || drawerVisible || sessionVisible || windowInfoVisible || settingsVisible
-        || tailscaleVisible || worldClockVisible || reminderVisible
+        || tailscaleVisible || worldClockVisible || reminderVisible || layoutVisible
     readonly property bool keyboardPopupVisible: imagePickerVisible || mediaBrowserVisible
 
     function registerBarLayoutController(screenName, controller) {
@@ -592,6 +599,7 @@ ThemeAiUsage {
         if (except !== "githubVisible") githubVisible = false
         if (except !== "tailscaleVisible") tailscaleVisible = false
         if (except !== "worldClockVisible") worldClockVisible = false
+        if (except !== "layoutVisible") layoutVisible = false
         if (except !== "reminderVisible") reminderVisible = false
         if (except !== "utilitiesVisible") utilitiesVisible = false
         if (except !== "dashboardVisible") dashboardVisible = false
@@ -1487,6 +1495,9 @@ ThemeAiUsage {
 
     // ── bar screen position (persisted) ──
     property string barPosition: "top"   // "top" or "bottom"
+    // the dock (Dock.qml): "autohide" (every workspace, up from the bottom
+    // edge), "floating" (floating workspaces only, as in Omarchy), "always", "off"
+    property string dockMode: "autohide"
 
     // ── picker visual style (theme/wallpaper/screenshot/video pickers) ──
     property string pickerStyle: "tanzaku"   // "tanzaku", "hearthstone", "carousel"
@@ -1895,6 +1906,7 @@ ThemeAiUsage {
         compactBluetooth: "bool", compactPower: "bool", compactMpris: "bool",
         archBadgePackages: "bool", archBadgeThemes: "bool", archBadgeShell: "bool",
         trayBackground: "bool", trayCompact: "bool", trayRecolour: "bool",
+        barFoldDetails: "bool",
         trayIconSubs: function (v) {
             return Array.isArray(v) && v.length <= 100 && v.every(function (entry) {
                 return entry && typeof entry === "object"
@@ -1915,6 +1927,7 @@ ThemeAiUsage {
         weatherImperial: "bool", clock12h: "bool",
         splitArch: "bool", splitMon: "bool", splitMprisL: "bool", splitNet: "bool",
         workspaceMode: ["10", "5", "active"],
+        dockMode: ["autohide", "floating", "always", "off"],
         workspaceStyle: ["default", "numbers", "magic", "comet", "segments", "occupancy", "icons", "kanji", "runes", "planets", "roman", "lunar"],
         pickerStyle: ["hearthstone", "carousel", "tanzaku"],
         barPosition: ["top", "bottom"],
@@ -2121,6 +2134,9 @@ ThemeAiUsage {
     property bool trayBackground: false
     property bool trayCompact: false
     property bool trayRecolour: true
+    // readings (CPU %, temperatures, speeds…) fold away until their side of
+    // the bar is hovered (BarSlot SlotRow, modules/DetailFold.qml)
+    property bool barFoldDetails: true
     property var trayIconSubs: []
     property var trayHiddenIcons: []
 

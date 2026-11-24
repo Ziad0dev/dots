@@ -81,7 +81,7 @@ Mullvad for the host itself is separate (`modules/mullvad.nix`, the GUI and `dot
 | `llama-gemma` | Gemma 4 12B Q4_K_M | 8080 | general, vision, audio |
 | `llama-coder` | Gemma 4 26B-A4B MoE Q4_K_M | 8080 | coding / agentic — 10 expert layers on CPU, q8_0 KV cache |
 | `llama-fim` | Qwen2.5-Coder-3B Q8_0 | 8012 | llama.vim fill-in-the-middle |
-| `ollama` | Qwen3.5 9B, Qwen2.5-Coder 14B + 7B, Devstral Small 2 24B; other models on demand | 11434 | local coding agents and trying models quickly |
+| `ollama` | Qwen3.6 35B-A3B (OMP default), Qwen3.5 9B, Qwen2.5-Coder 14B + 7B, Devstral Small 2 24B; other models on demand | 11434 | local coding agents and trying models quickly |
 
 How they behave:
 
@@ -90,17 +90,27 @@ How they behave:
 - **Never at boot.** `wantedBy` is forced empty on all the llama units. Ollama does start at boot, but holds no VRAM until a model is requested.
 - **No sudo.** A polkit rule lets your active local session start and stop these units.
 - **Sandboxed.** The llama units run as `DynamicUser` with `ProtectHome`, `ProtectSystem=strict`, no capabilities and `MemoryDenyWriteExecute`. GGUF files must be world-readable.
-- llama.cpp's model directory is created for your user. Download or copy GGUF files there; the services do not download them. Ollama creates and manages its own model files. Its declared coding models use a 32k default context and q8 KV cache.
+- llama.cpp's model directory is created for your user. Download or copy GGUF files there; the services do not download them. Ollama creates and manages its own model files. It serves a 128k default context (`OLLAMA_CONTEXT_LENGTH`) with a q8 KV cache, spilling what does not fit in VRAM to the CPU.
 
-For local coding agents, `omp-local` starts OMP with Qwen3.5 9B and
-`claude-local` starts Claude Code with the same model through Ollama's
-Anthropic-compatible API. The normal `omp` and `claude` commands are unchanged.
-For the heavier coding model, run `omp --model ollama/devstral-small-2:24b` or
+OMP is the local coding agent; Claude stays in Claude Code. OMP discovers
+every Ollama model by itself, so `config/omp/models.yml` declares no
+providers. `config/omp/config.yml` (linked live to `~/.omp/agent/`) gives
+every role the Qwen3.6 35B-A3B MoE, falling back to Qwen3.5 9B: Ollama holds
+one model at a time, and a second role model would reload on every commit
+message or subagent. OMP compacts at 48k tokens, well under Ollama's 128k
+context. Pick another model with `omp --model ollama/<name>`.
+
+`omp-local` starts OMP with Qwen3.5 9B, which fits in VRAM and loads fastest.
+`claude-local` starts Claude Code on the same model through Ollama's
+Anthropic-compatible API, capped at 32k context so it compacts early. For the
+heavier coding model, run `omp --model ollama/devstral-small-2:24b` or
 `env CLAUDE_CODE_MAX_CONTEXT_TOKENS=32768 ollama launch claude --model devstral-small-2:24b`.
-Qwen3.5 is the fast default; Devstral trades some speed and host memory for
-multi-file coding quality. The explicit context override makes Claude Code
-compact at Ollama's real 32k limit instead of assuming a 200k window. OMP's
-entries in `~/.omp/agent/models.yml` are pinned to the same 32k window.
+
+Inkling 2 Mini (`inkling-2-mini`) needs an Ollama that supports it on Linux.
+Ollama 0.40.17 supports it on Apple silicon only. Once a release with PC
+support reaches nixpkgs, add `inkling-2-mini` to `loadModels` in
+`modules/ollama.nix`, switch, and point `modelRoles.default` at
+`ollama/inkling-2-mini`. It is about 20 GB, so expect part of it on the CPU.
 
 ```fish
 systemctl start llama-coder      # swap models

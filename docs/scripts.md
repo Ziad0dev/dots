@@ -84,7 +84,8 @@ These open a floating terminal (`$DOTS_TERMINAL`, default ghostty) with window c
 | `dots-nightlight` | `home/quickshell-rise.nix` | `on` · `off` · `toggle` · `status` |
 | `dots-vpn` | `home/quickshell-rise.nix` | `on` · `off` · `toggle` · `status` — Mullvad on the host |
 | `dots-bar-tools` | `home/quickshell-rise.nix` | `tz <Zone>…` · `remind add <sec> <text>` / `list` / `cancel <unit>` · `disk targets` / `run <dir>` · `remote` — backends of the bar's Omarchy-style tools |
-| `dots-set-wallpaper <file>` | `scripts/dots-set-wallpaper.sh` | awww with a random transition; records the choice |
+| `dots-layout current\|next\|back\|set <mode> [ws]\|default [mode]` | `scripts/dots-layout.sh` | per-workspace tiling, scrolling or floating (`SUPER + T`); see [Workspace layouts](desktop.md#workspace-layouts) |
+| `dots-set-wallpaper <file>` | `scripts/dots-set-wallpaper.sh` | hands the file to Rise (its own transition), else awww; records the choice |
 | `dots-current-wallpaper` | `scripts/dots-current-wallpaper.sh` | Print the current wallpaper path |
 | `dots-thumb-prune` | `home/quickshell-rise.nix` | Prune picker thumbnails (weekly timer) |
 | `nvim-synctex <line> <file>` | `home/documents.nix` | Zathura → Neovim inverse search |

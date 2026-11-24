@@ -36,10 +36,12 @@ PanelWindow {
         id: themeScan
         command: ["bash", "-c",
             "shopt -s nullglob nocaseglob; for d in \"$1\"/*/; do n=$(basename \"$d\"); " +
-            "[ \"${n#_}\" = \"$n\" ] || continue; p=; for c in \"$d\"wallpaper.* \"$d\"preview.* \"$d\"backgrounds/*; do " +
+            "[ \"${n#_}\" = \"$n\" ] || continue; p=; for c in \"$2/$n\".* \"$d\"wallpaper.* \"$d\"preview.* \"$d\"backgrounds/*; do " +
             "case \"$c\" in *.jpg|*.jpeg|*.png|*.webp) p=$c; break;; esac; done; " +
             "k=0; grep -qsE '^(gtk|kvantum)=.' \"$d\"look.conf && k=1; " +
-            "[ -n \"$p\" ] && printf '%s\\t%s\\t%s\\n' \"$n\" \"$p\" \"$k\"; done", "_", drawer.themesDir]
+            "[ -n \"$p\" ] && printf '%s\\t%s\\t%s\\n' \"$n\" \"$p\" \"$k\"; done", "_", drawer.themesDir,
+            // your own wallpaper for a theme wins (themectl's theme_wallpaper)
+            Quickshell.env("HOME") + "/.local/share/dots/wallpapers"]
         stdout: StdioCollector {
             onStreamFinished: {
                 var out = [], rows = String(this.text || "").split("\n")

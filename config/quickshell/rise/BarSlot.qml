@@ -520,7 +520,7 @@ PanelWindow {
             readonly property var r: barSlot.root
             property bool hovered: false
             readonly property bool revealed: hovered || qcHide.running
-                || r.tailscaleVisible || r.worldClockVisible || r.reminderVisible
+                || r.tailscaleVisible || r.worldClockVisible || r.reminderVisible || r.layoutVisible
                 || r.keybindsVisible || r.mediaBrowserVisible || r.imagePickerVisible
             Timer { id: qcHide; interval: 350 }
             HoverHandler {
@@ -552,7 +552,7 @@ PanelWindow {
                 IconText {
                     anchors.verticalCenter: parent.verticalCenter
                     visible: !qcGroup.revealed && !qcIdle.shown && !qcNight.shown && !qcVpn.shown
-                        && !qcTs.shown && !qcRem.shown && !qcLlm.shown && !qcQbt.shown
+                        && !qcTs.shown && !qcRem.shown && !qcLlm.shown && !qcQbt.shown && !qcLayout.shown
                     text: "more_horiz"
                     font.pixelSize: 16
                     color: Qt.rgba(qcGroup.r.ink.r, qcGroup.r.ink.g, qcGroup.r.ink.b, 0.55)
@@ -579,6 +579,18 @@ PanelWindow {
                         root: barSlot.root; anchors.verticalCenter: parent.verticalCenter
                         flag: "tailscaleVisible"; icon: "hub"; lit: barSlot.root.tsUp
                         tooltipText: barSlot.root.tsUp ? "Tailscale: connected" : "Tailscale: " + barSlot.root.plain(barSlot.root.tsState)
+                    }
+                }
+                QuickReveal {
+                    // stays out while this workspace scrolls or floats
+                    id: qcLayout; revealed: qcGroup.revealed; active: barSlot.root.wsLayoutCurrent !== "dwindle"
+                    contentWidth: layW.implicitWidth
+                    BarToolButton {
+                        id: layW
+                        root: barSlot.root; anchors.verticalCenter: parent.verticalCenter
+                        flag: "layoutVisible"; icon: barSlot.root.wsLayoutIcon(barSlot.root.wsLayoutCurrent)
+                        lit: barSlot.root.wsLayoutCurrent !== "dwindle"
+                        tooltipText: "Layout: " + barSlot.root.wsLayoutLabel(barSlot.root.wsLayoutCurrent) + " (Super + T)"
                     }
                 }
                 QuickReveal {
@@ -655,6 +667,20 @@ PanelWindow {
         property alias rep: repeater
         spacing: 6
         height: 32
+        // Quiet bar (Omarchy 4.5): readings fold away until this side of the
+        // bar is hovered; the whole side unfolds so the pointer can sweep it.
+        // The delay keeps them while it crosses a gap; an open popout or edit
+        // mode keeps them out too.
+        property bool rowHovered: false
+        readonly property bool details: !barSlot.root.barFoldDetails || rowHovered || rowFold.running
+            || barSlot.root.anyPopupVisible || barSlot.root.barUnlocked
+        HoverHandler {
+            onHoveredChanged: {
+                slotRow.rowHovered = hovered
+                if (!hovered) rowFold.restart()
+            }
+        }
+        Timer { id: rowFold; interval: 600 }
         // index of the LAST currently shown slot (skips disabled and auto-hidden
         // narrow-stage widgets) —
         // a split/grow only makes sense BEFORE this (else it opens a gap to nowhere)
@@ -759,6 +785,13 @@ PanelWindow {
                     scale: motion.scaleFactor
                     // dim the original while its ghost is being dragged
                     opacity: ((barSlot.dragItem === ldr && barSlot.dragActive) ? 0.25 : 1.0) * motion.introOpacity
+                }
+                // widgets with readings to fold declare `detail` (DetailFold)
+                Binding {
+                    target: ldr.item
+                    property: "detail"
+                    value: slotRow.details
+                    when: !!ldr.item && ldr.item.detail !== undefined
                 }
                 // ── drag-catcher: only in unlock mode, overlays the widget ──
                 MouseArea {

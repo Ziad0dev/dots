@@ -5,8 +5,10 @@ import Quickshell.Wayland
 
 // Desktop clock (STYLE → Desk clock): large time and date on the wallpaper,
 // bottom-left, on the Bottom layer — above the wallpaper, below windows, so it
-// only shows on empty workspaces. Takes no input. Palette-coloured, with a soft
-// shadow so it stays legible on bright wallpapers.
+// only shows on empty workspaces. Takes no input. Palette-coloured, over a
+// feathered dark scrim: unseen on a dark wallpaper, and on a bright or busy one
+// (white blossoms under it) it dims just the area behind the text, which a drop
+// shadow on thin glyphs couldn't.
 PanelWindow {
     id: desk
     required property var root
@@ -14,16 +16,20 @@ PanelWindow {
     visible: root.styleDeskClock
     color: "transparent"
     anchors { bottom: true; left: true }
+    // the face sits padX/padY in from the window's edges, room for the scrim's
+    // feathering; the margins take it back so the clock stays where it was
+    readonly property int padX: 72
+    readonly property int padY: 60
     margins {
-        left: (root.frameOn ? root.frameThickness : 0) + 48
-        bottom: (root.frameOn ? root.frameThickness : 0) + 40
+        left: Math.max(0, (root.frameOn ? root.frameThickness : 0) + 68 - padX)
+        bottom: Math.max(0, (root.frameOn ? root.frameThickness : 0) + 60 - padY)
     }
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.layer: WlrLayer.Bottom
     WlrLayershell.namespace: "quickshell-deskclock"
     mask: Region {}
-    implicitWidth: face.implicitWidth + 40
-    implicitHeight: face.implicitHeight + 40
+    implicitWidth: face.implicitWidth + 2 * padX
+    implicitHeight: face.implicitHeight + 2 * padY
 
     property date now: new Date()
     Timer {
@@ -34,15 +40,28 @@ PanelWindow {
         onTriggered: { desk.now = new Date(); restart() }
     }
 
+    Rectangle {
+        x: face.x - 24; y: face.y - 14
+        width: face.width + 48; height: face.height + 28
+        radius: 40
+        color: Qt.rgba(0, 0, 0, 0.72)
+        layer.enabled: true
+        layer.effect: MultiEffect {
+            blurEnabled: true
+            blur: 1
+            blurMax: 44
+        }
+    }
+
     Column {
         id: face
-        x: 20; y: 20
+        x: desk.padX; y: desk.padY
         spacing: 0
         layer.enabled: true
         layer.effect: MultiEffect {
             shadowEnabled: true
-            shadowBlur: 0.8
-            shadowColor: Qt.rgba(0, 0, 0, 0.55)
+            shadowBlur: 0.6
+            shadowColor: Qt.rgba(0, 0, 0, 0.8)
             shadowVerticalOffset: 2
         }
         Text {

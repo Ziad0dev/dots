@@ -10,6 +10,8 @@ hl.bind(mod .. " + C", util.launch_or_focus("discord",  "discord"))
 
 hl.bind(mod .. " + D", hl.dsp.exec_cmd("qs -c rise ipc call launcher toggle"))
 hl.bind(mod .. " + A", hl.dsp.exec_cmd("qs -c rise ipc call overview toggle"))
+-- the settings app (Rise Nexus.qml, after Caelestia's)
+hl.bind(mod .. " + CTRL + I", hl.dsp.exec_cmd("qs -c rise ipc call nexus toggle"))
 hl.bind(mod .. " + U", hl.dsp.exec_cmd("qs -c rise ipc call utilities toggle"))
 hl.bind(mod .. " + I", hl.dsp.exec_cmd("qs -c rise ipc call dashboard toggle"))
 hl.bind(mod .. " + W", hl.dsp.exec_cmd("qs -c rise ipc call drawer toggle"))

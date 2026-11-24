@@ -138,6 +138,8 @@ in
     # not tied to a colour theme: extra quick picks (Themes → App style)
     tela-circle-icon-theme
     colloid-icon-theme
+    # macOS-style; it falls back to breeze, which isn't installed
+    (iconFallback whitesur-icon-theme)
     phinger-cursors
 
     # everforest (GTK + icons), kanagawa (icons)

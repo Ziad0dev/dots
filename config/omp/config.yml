@@ -1,12 +1,16 @@
 modelRoles:
-  smol: lc-small/qwen3-4b
-  task: lc-small/qwen3-4b
-  tiny: lc-small/qwen3-4b
-  memory: lc-small/qwen3-4b:low
-  commit: lc-small/qwen3-4b:low
-  plan: lc-big/gpt-oss-20b:high
-  advisor: lc-big/gpt-oss-20b:high
-  vision: lc-vision/qwen3-vl-8b
+  # OMP is the local-model agent (Claude stays in Claude Code). Ollama keeps
+  # one model loaded (OLLAMA_MAX_LOADED_MODELS=1), so the roles share one
+  # model: a second one would reload on every commit message or subagent.
+  default: ollama/qwen3.6:35b-a3b
+  smol: ollama/qwen3.6:35b-a3b:low
+  task: ollama/qwen3.6:35b-a3b
+  tiny: ollama/qwen3.6:35b-a3b:low
+  memory: ollama/qwen3.6:35b-a3b:low
+  commit: ollama/qwen3.6:35b-a3b:low
+  plan: ollama/qwen3.6:35b-a3b:high
+  advisor: ollama/qwen3.6:35b-a3b:high
+  vision: ollama/qwen3.6:35b-a3b
   web: web/google
 setupVersion: 3
 composer:
@@ -24,9 +28,6 @@ tools:
     - grep
 retry:
   fallbackChains:
-    lc-big/gpt-oss-20b:
-      - lc-small/qwen3-4b
-    lc-small/qwen3-4b:
-      - lc-big/gpt-oss-20b
-    lc-vision/qwen3-vl-8b:
-      - lc-big/gpt-oss-20b
+    # the smaller model fits in VRAM where the MoE one may not load
+    ollama/qwen3.6:35b-a3b:
+      - ollama/qwen3.5:9b

@@ -180,10 +180,25 @@ let
     text = builtins.readFile ../scripts/dots-bar-tools.sh;
   };
 
+  # per-workspace tiling/scrolling/floating (config/hypr/lib/workspace_modes.lua);
+  # hyprctl comes from the session, matching the running compositor
+  layout = pkgs.writeShellApplication {
+    name = "dots-layout";
+    runtimeInputs = with pkgs; [
+      coreutils
+      gnugrep
+      gnused
+      jq
+      libnotify
+    ];
+    text = builtins.readFile ../scripts/dots-layout.sh;
+  };
+
   helpers = [
     setWallpaper
     currentWallpaper
     barTools
+    layout
   ];
 
   compatBase = pkgs.writeShellApplication {

@@ -65,6 +65,7 @@ let
     with pkgs;
     [
       coreutils
+      gnugrep
       grim
       hyprpicker
       jq

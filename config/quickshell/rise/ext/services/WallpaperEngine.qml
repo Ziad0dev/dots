@@ -90,9 +90,65 @@ Singleton {
         Quickshell.execDetached(["themectl", "bg", "set", p]);
     }
 
+    // A theme's intro (Omarchy 4.5; themectl calls it on a theme switch): the
+    // clip plays once, then `still` takes over without a second transition.
+    // While it plays, show(still) (dots-set-wallpaper, right after) waits for
+    // it. Display only: the lock screens' still and the recorded wallpaper
+    // never point at the clip.
+    property string introPath: ""
+    property string introStill: ""
+    // the moment the clip hands over: layers swap to the still at once
+    property double handoffUntil: 0
+
+    function intro(video, still) {
+        const v = resolve(video), s = resolve(still);
+        if (external || !v || !s || kind(v) !== "video")
+            return false;
+        introPath = v;
+        introStill = s;
+        introGuard.restart();
+        if (v !== current) {
+            current = v;
+            serial++;
+            changed(v);
+        }
+        return true;
+    }
+
+    // The clip ended (or failed, or stalled: ended false); the first screen to
+    // get there hands over. Only a clip that played to its end swaps to the
+    // still at once; otherwise there's nothing on screen to hand over from.
+    function introDone(video, ended) {
+        if (!introPath || video !== introPath)
+            return;
+        const s = introStill;
+        introPath = "";
+        introStill = "";
+        introGuard.stop();
+        if (ended)
+            handoffUntil = Date.now() + 2000;
+        show(s);
+    }
+
+    // a clip that stalls or never starts must not hold the wallpaper
+    Timer {
+        id: introGuard
+        interval: 30000
+        onTriggered: root.introDone(root.introPath, false)
+    }
+
     // Display only (see the top). True when rise is the one drawing it.
     function show(path) {
         const p = resolve(path);
+        if (introPath && p === introStill)
+            return !external;
+        // anything else shown meanwhile (the picker, another theme) wins: drop
+        // the intro, or its end or guard would put the old still back over it
+        if (introPath && p && p !== introPath) {
+            introPath = "";
+            introStill = "";
+            introGuard.stop();
+        }
         if (p && p !== current) {
             current = p;
             serial++;
@@ -163,8 +219,13 @@ Singleton {
         }
     }
 
+    // Bumped once wallpaper-apply has rewritten the still link, for readers
+    // of `link` (the overview's thumbnails); `serial` moves before that.
+    property int stillSerial: 0
+
     Process {
         id: apply
+        onExited: root.stillSerial++
         stderr: StdioCollector {
             onStreamFinished: {
                 if (text.trim())

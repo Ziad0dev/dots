@@ -4,6 +4,8 @@ import Quickshell.Io
 
 Item {
     id: rootMod
+    // folded readings show while true (the bar sets it from hover)
+    property bool detail: true
     required property var root
     property string gid: "G4"
 
@@ -89,19 +91,26 @@ Item {
             }
         }
 
-        Row {
-            visible: !root.compactMemory
-            spacing: 0
+        DetailFold {
             anchors.verticalCenter: parent.verticalCenter
+            shown: rootMod.detail && !root.compactMemory
+            contentWidth: foldValue3.implicitWidth
+            contentHeight: foldValue3.implicitHeight
+            Row {
+                id: foldValue3
+                visible: !root.compactMemory
+                spacing: 0
+                anchors.verticalCenter: parent.verticalCenter
 
-            RollingNumber {
-                value: Math.round(rootMod.usedGiB)
-                digits: 2
-                suffix: "G"
-                tint: root.seal
-                family: root.mono
-                pixelSize: 12
-                rolling: root.motionDigits
+                RollingNumber {
+                    value: Math.round(rootMod.usedGiB)
+                    digits: 2
+                    suffix: "G"
+                    tint: root.barValue
+                    family: root.mono
+                    pixelSize: 12
+                    rolling: root.motionDigits
+                }
             }
         }
 
@@ -155,16 +164,23 @@ Item {
             }
         }
 
-        RollingNumber {
+        DetailFold {
             anchors.verticalCenter: parent.verticalCenter
-            visible: root.compactMemory
-            value: Math.round(rootMod.usedGiB)
-            digits: 2
-            suffix: "G"
-            tint: root.seal
-            family: root.mono
-            pixelSize: 12
-            rolling: root.motionDigits
+            shown: rootMod.detail && root.compactMemory
+            contentWidth: foldValue4.implicitWidth
+            contentHeight: foldValue4.implicitHeight
+            RollingNumber {
+                id: foldValue4
+                anchors.verticalCenter: parent.verticalCenter
+                visible: root.compactMemory
+                value: Math.round(rootMod.usedGiB)
+                digits: 2
+                suffix: "G"
+                tint: root.barValue
+                family: root.mono
+                pixelSize: 12
+                rolling: root.motionDigits
+            }
         }
     }
 

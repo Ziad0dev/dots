@@ -149,7 +149,14 @@ PanelWindow {
 
                         Image {
                             anchors.fill: parent
-                            source: Services.WallpaperEngine.current ? "file://" + Services.WallpaperEngine.current : ""
+                            // a video (wallpaper or intro) can't load as an image:
+                            // use the still link, whose frame wallpaper-apply keeps
+                            // (stillSerial moves once the link is rewritten, and makes
+                            // the unchanged link path reload)
+                            source: !Services.WallpaperEngine.current ? ""
+                                : Services.WallpaperEngine.kind(Services.WallpaperEngine.current) === "video"
+                                    ? "file://" + Services.WallpaperEngine.link + "?" + Services.WallpaperEngine.stillSerial
+                                    : "file://" + Services.WallpaperEngine.current
                             fillMode: Image.PreserveAspectCrop
                             sourceSize.width: 480
                             asynchronous: true
@@ -174,7 +181,7 @@ PanelWindow {
                                 id: thumb
                                 required property var modelData
                                 readonly property var ipc: modelData.lastIpcObject
-                                readonly property bool placed: ipc && ipc.at && ipc.size
+                                readonly property bool placed: !!(ipc && ipc.at && ipc.size)
                                 x: placed ? cell.offX + (ipc.at[0] - cell.monX) * cell.k : 8
                                 y: placed ? cell.offY + (ipc.at[1] - cell.monY) * cell.k : 8
                                 width: placed ? Math.max(24, ipc.size[0] * cell.k) : win.cardW * 0.4

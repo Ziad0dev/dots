@@ -28,6 +28,14 @@ A `monitor.added` handler re-applies the matching profile when a display reconne
 
 Workspaces 1–8 and 10 live on DP-1; 9 is pinned to HDMI-A-1 and persistent.
 
+### Workspace layouts
+
+Each workspace tiles (dwindle), scrolls or floats, after Omarchy 4.5's workspace modes (`config/hypr/lib/workspace_modes.lua`, ported without its title bars and dock). `SUPER + T` cycles the focused workspace; the layout tool in the bar's quick group (shown while a workspace scrolls or floats) opens a picker for this workspace and for the default. From a terminal: `dots-layout current|next|back|set <tiling|scrolling|floating> [ws]|default [mode]`.
+
+- **Floating:** every tiled window there floats at a comfortable size, centred and stepped from the last; new windows open that way. Focus follows clicks there instead of the pointer. Leaving the mode tiles again only the windows it floated, so dialogs and windows floated by hand stay floating; a window carried to a tiled workspace tiles.
+- **A new default** applies to empty and new workspaces; workspaces with windows keep the layout they have.
+- Choices live in `~/.local/state/dots/workspace-layouts` as `default=<mode>` / `<ws>=<mode>` lines, read as data and restored at every Hyprland (re)load.
+
 HDR: a profile with `bitdepth = 10` and `cm = "hdr"` keeps that output in HDR permanently. That costs compositor CPU on the desktop; if Hyprland starts pegging a core, drop `bitdepth` / `cm` / luminance from the local profile and pin `cm = "srgb"` — see [Troubleshooting](troubleshooting.md#hyprland-uses-a-lot-of-cpu).
 
 ## Input
@@ -39,7 +47,9 @@ HDR: a profile with `bitdepth = 10` and `cm = "hdr"` keeps that output in HDR pe
 
 ## Keybinds
 
-`SUPER` is the modifier. `hjkl` and arrows are interchangeable everywhere they appear.
+A switch reloads Hyprland at the end of home-manager's activation (`home/profiles/linux-desktop.nix`, `hyprlandReload`): the config moves to a new store path, which Hyprland doesn't notice on its own, so new binds and rules would otherwise wait for a manual reload.
+
+`SUPER` is the modifier. `hjkl` and arrows are interchangeable everywhere they appear, except plain `SUPER + L`, which locks (focus right is `SUPER + →`).
 
 ### Windows
 
@@ -48,7 +58,7 @@ HDR: a profile with `bitdepth = 10` and `cm = "hdr"` keeps that output in HDR pe
 | `SUPER + Return` | Ghostty |
 | `SUPER + SHIFT + Return` | Ghostty attached to tmux session `main` |
 | `SUPER + SHIFT + Q` | Close window |
-| `SUPER + h j k l` | Focus |
+| `SUPER + h j k` / arrows | Focus (right is `SUPER + →`: `SUPER + L` locks) |
 | `SUPER + SHIFT + h j k l` | Move window |
 | `SUPER + F` | Fullscreen |
 | `SUPER + SHIFT + Space` | Toggle floating |
@@ -70,6 +80,7 @@ HDR: a profile with `bitdepth = 10` and `cm = "hdr"` keeps that output in HDR pe
 | `SUPER + scroll` | Next / previous occupied workspace |
 | `SUPER + minus` | Toggle scratchpad |
 | `SUPER + SHIFT + minus` | Send window to scratchpad |
+| `SUPER + T` / `SUPER + CTRL + T` | This workspace's layout: tiling → scrolling → floating (and back) |
 
 ### Launch
 
@@ -79,6 +90,7 @@ HDR: a profile with `bitdepth = 10` and `cm = "hdr"` keeps that output in HDR pe
 | `SUPER + A` | Overview |
 | `SUPER + U` | Utilities corner (quick toggles, recent captures) |
 | `SUPER + I` | Dashboard (dashboard · media · performance · weather tabs) |
+| `SUPER + CTRL + I` | Settings app (`Nexus.qml`, after Caelestia's Nexus): wallpaper & style (themes, wallpapers), network and Tailscale, Bluetooth devices, audio devices and per-app volume, notifications, bar switches, about. A centred floating window; the bar's full settings stay in the Settings panel |
 | `SUPER + SHIFT + D` | Discover: artists similar to the one playing, artists to try picked from the whole library, new releases from library artists, and (after `music-scout spotify my_spotify_data.zip`) the most-played Spotify albums the library lacks with Bandcamp / Qobuz links (`buy list` opens them all as a page; bought zips dropped in `~/Downloads` import themselves, `music-buy-import`), and ListenBrainz's weekly exploration playlist once a user token is in `~/.config/music-scout/listenbrainz-token` (`music-scout`). The `slsk` buttons, `other versions`, and a right click on a similar artist open that search in Nicotine+ (`slsk-search`) |
 | `SUPER + ,` | Settings: every bar setting by page (bar, widgets, style, general), links to the network / Bluetooth / audio / theme panels, versions |
 | `SUPER + SHIFT + I` | Window info: preview, details, float / pin / fullscreen / center / move / close / kill (`1`–`9`, `F`, `P`, `Q`) |
@@ -113,11 +125,11 @@ HDR: a profile with `bitdepth = 10` and `cm = "hdr"` keeps that output in HDR pe
 | Keys | Action |
 |---|---|
 | `SUPER + S` | Flameshot |
-| `Print` | Region (screen frozen while selecting) |
+| `Print` | Area picker: screens freeze, hover offers the window under the pointer, drag picks any region, click takes what's offered, `Esc` cancels |
 | `SUPER + Print` | Focused monitor |
 | `SUPER + SHIFT + S` | Active window |
 
-The last three go through `dots-shot`: saved as `~/Pictures/<date>_<time>.png`, copied to the clipboard, and announced with a preview notification; click it to open, or **Edit** to annotate in satty.
+The area picker is Rise's (`AreaPicker.qml`, after Caelestia's; it cuts the pick from the frozen frame and hands it to `dots-shot import`); without Rise running, `Print` falls back to `slurp` on a frozen screen. The last three go through `dots-shot`: saved as `~/Pictures/<date>_<time>.png`, copied to the clipboard, and announced with a preview notification; click it to open, or **Edit** to annotate in satty.
 | `SUPER + ALT + R` | Arm / disarm the replay buffer |
 | `SUPER + SHIFT + R` | Save the last 5 minutes |
 
@@ -125,7 +137,7 @@ The last three go through `dots-shot`: saved as `~/Pictures/<date>_<time>.png`, 
 
 | Keys | Action |
 |---|---|
-| `SUPER + Escape`, `SUPER + CTRL + L` | Lock |
+| `SUPER + L`, `SUPER + Escape`, `SUPER + CTRL + L` | Lock |
 | `SUPER + CTRL + R` | Reload Hyprland |
 | `SUPER + SHIFT + E` | Exit Hyprland |
 | Volume keys | ±5 % / mute (work while locked) |
@@ -174,6 +186,9 @@ The bar, launcher, control panel, pickers and notifications UI. Vendored in `con
 - The unit's PATH is pinned: the `dots-*` shims, wallpaper helpers and a fixed tool set come first, so the bar behaves the same regardless of your login environment. `DOTS_SHELL_PATH` points at the repo copy.
 - Bar widgets include workspaces, clock/calendar, media (MPRIS), audio, network, CPU/GPU/memory/temps, storage and mount health, power profile, weather, VPN, night light, idle inhibitor, notification silencing, dictation state, LLM unit, qBittorrent speeds, update indicator, screen recording, tray, and AI usage (Claude Code quota refreshed every 10 minutes by `dots-ai-usage.timer`).
 - The quick group folds like Omarchy 4.5's indicators (`modules/QuickReveal.qml`): tools that are on (stay-awake, night light, VPN, Tailscale connected, pending reminders, a running LLM, qBittorrent transferring) always show; the rest appear while you hover the group or one of its popouts is open, and fold away shortly after. With nothing on, a ⋯ handle marks the group. The whole group is still the `modQuick` setting.
+- **Dock** (`Dock.qml`, after Omarchy 4.5's, styled like macOS's): a glass shelf along the bottom with an apps button (the launcher), your pinned apps, then everything running. One dot under a running app, the accent while it has focus; icons magnify under the pointer and bounce while an app starts. Click opens the app, focuses it, or cycles its windows; middle-click opens a new window; right-click keeps it in the dock, removes it, or quits it. Pins are desktop ids, one per line, in `~/.local/state/dots/dock-pins`. Settings → Bar → Dock (or the settings app's Bar page): **Auto-hide** (default: every workspace, up from the bottom edge, no space taken), **Floating only** (as in Omarchy), **Always** (reserves a strip) or **Off**. It steps aside for fullscreen windows.
+- Readings fold too (`modules/DetailFold.qml`, Settings → Bar → Readings on hover, on by default): at rest the bar shows glyphs only, and hovering either side unfolds that side's numbers (CPU, memory, volume, Claude usage, GPU, temperature, storage, network speed and graph, keyboard layout). A reading in trouble stays out: CPU at 80 °C or more, storage or GPU memory at 90 % or more, a blocked Claude limit.
+- One colour rule across the bar: glyphs in the accent, readings in the text colour (`barValue` in `Theme.qml`), and a reading in trouble in `barAlert`. Symbolic tray icons are filled with the accent; colour app icons are washed in it, keeping their shading (Settings → System tray → Tint tray icons).
 - Tools after Omarchy 4.5's bar (`ThemeBarTools.qml`, `scripts/dots-bar-tools.sh`; new code, ideas from basecamp/omarchy, MIT), hover to open and click to pin like the other popouts:
   - **Tailscale** (quick group, lit when connected; hidden if `tailscaled` isn't running): state, this machine and the tailnet's machines (online first). Click a machine to copy its IP, right-click for its MagicDNS name. Connect / Disconnect starts the root oneshots `tailscale-connect` / `tailscale-disconnect` (`tailscale up` / `down`, `modules/media.nix`), which a polkit rule lets your user start. Your user is deliberately not the Tailscale operator, which would also allow `tailscale serve` / `funnel`. If `up` fails (e.g. it wants flags you set earlier), see `journalctl -u tailscale-connect`.
   - **World clock** (globe): the time, offset and day in each zone listed in `~/.local/state/dots/worldclock` (one IANA zone per line); add zones in the panel, hover a row for ✕.
@@ -294,7 +309,9 @@ qs -c rise ipc call <target> <function>
 
 ## Lock and idle
 
+
 - Lock screen: `quickshell -c lock` (`config/quickshell/lock/`) — blurred current wallpaper, clock, date, password field, themed from the same palette as the bar. It authenticates through the `quickshell-lock` PAM service (`modules/lockscreen.nix`).
+- On screens at least 1500 px wide, side columns after Caelestia's lock (`LockCentre.qml`): the weather (wttr.in, as the bar fetches it; no card when offline) and what's playing with previous / play-pause / next on the left, CPU, memory, disk and uptime, and the latest notifications on the right. Notifications come from the bar's saved history and show only the app and the title, never the message body, since anyone at the desk can read a lock screen; ones that arrived after locking are marked and counted.
 - `hypridle` (`config/hypr/hypridle.conf`): lock at **10 min**, displays off at **15 min** (`wlopm`). `lock_cmd` refuses to start a second lock instance.
 - The idle toggle in the bar stops/starts the `hypridle` user unit; the unit's start/stop hooks maintain `~/.local/state/dots/indicators/stay-awake` for the widget.
 - The machine never suspends — sleep targets are disabled system-wide.

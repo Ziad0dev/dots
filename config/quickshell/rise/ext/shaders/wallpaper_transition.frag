@@ -1,6 +1,7 @@
 #version 440
 // Wallpaper change, one look per desktop theme (`mode`):
-//   0 grow   - a soft circle grows from the centre (the plain rice)
+//   0 reveal - a slanted band opens from the centre (the plain rice;
+//              Omarchy 4.5's background reveal)
 //   1 tiles  - square tiles flip in along a diagonal wave (HUD)
 //   2 scan   - a bright scanline wipes down the screen (Mainframe)
 //   3 warp   - an iris opens with a glowing rim while the new image settles
@@ -311,8 +312,14 @@ void main() {
         float spark = step(0.93, hash(floor(g))) * smoothstep(0.24, 0.08, length(fract(g) - 0.5));
         edge += vec3(1.0, 0.6, 0.2) * spark * smoothstep(0.16, 0.02, dd) * step(0.0, dd) * running;
     } else {
-        float r = p * maxR * 1.05;
-        m = smoothstep(r, r - 0.04, length(c));
+        // Omarchy 4.5's reveal: a band around a centre line leaning 0.18 of
+        // the height (right at the top, left at the bottom) opens outwards.
+        // c is in screen heights, so the lean and the soft edge (a few px)
+        // look the same on any screen.
+        float lean = -0.18;
+        float reach = 0.5 * ubuf.aspect + 0.5 * abs(lean) + 0.01;
+        float half_ = reach * p;
+        m = smoothstep(half_, half_ - 0.004, abs(c.x - lean * c.y));
     }
 
     vec3 col = mix(a.rgb, b.rgb, m) + edge;

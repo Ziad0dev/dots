@@ -71,7 +71,14 @@ Scope {
             function start() {
                 waiting = false;
                 progress = 0;
-                anim.duration = ({ 1: 1300, 4: 1500, 6: 950, 7: 1400, 8: 1400, 9: 1500, 10: 1600, 11: 1500, 12: 1500, 13: 1600, 14: 1500, 15: 1600 })[mode] ?? 1100;
+                // a theme intro just ended on its still: swap, no transition
+                if (Date.now() < Services.WallpaperEngine.handoffUntil) {
+                    finish();
+                    return;
+                }
+                // the plain reveal (0) is Omarchy's: quick and decelerating
+                anim.easing.type = mode === 0 ? Easing.OutCubic : Easing.InOutCubic;
+                anim.duration = ({ 0: 840, 1: 1300, 4: 1500, 6: 950, 7: 1400, 8: 1400, 9: 1500, 10: 1600, 11: 1500, 12: 1500, 13: 1600, 14: 1500, 15: 1600 })[mode] ?? 1100;
                 anim.start();
             }
 
@@ -178,9 +185,14 @@ Scope {
                         property bool shown: false
                         readonly property bool ready: shown
                         readonly property bool failed: player.error !== MediaPlayer.NoError
+                        // a theme intro: plays once, even under windows (its
+                        // end hands the desktop to the still)
+                        readonly property bool intro: wall.path === Services.WallpaperEngine.introPath
+
+                        onFailedChanged: if (failed && intro) Services.WallpaperEngine.introDone(wall.path, false)
 
                         function sync() {
-                            if (win.playing || !shown)
+                            if (win.playing || !shown || intro)
                                 player.play();
                             else
                                 player.pause();
@@ -199,8 +211,12 @@ Scope {
                         MediaPlayer {
                             id: player
                             source: "file://" + wall.path
-                            loops: MediaPlayer.Infinite
+                            loops: clip.intro ? 1 : MediaPlayer.Infinite
                             videoOutput: output
+                            onMediaStatusChanged: {
+                                if (mediaStatus === MediaPlayer.EndOfMedia && clip.intro)
+                                    Services.WallpaperEngine.introDone(wall.path, true);
+                            }
                             onErrorOccurred: (error, errorString) => console.warn("wallpaper:", errorString)
                         }
 

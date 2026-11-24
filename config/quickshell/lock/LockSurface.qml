@@ -65,6 +65,13 @@ Item {
     FrameBand { inset: root.frameThickness + 2; rounding: root.frameRounding; thickness: root.frameThickness; border.color: theme.frameEdge }   // the window-border colour, as on the bar
     FrameBand { inset: root.frameThickness; rounding: root.frameRounding; thickness: root.frameThickness; border.color: theme.bg }
 
+    // weather, now playing, load and notifications at the sides (wide screens)
+    LockCentre {
+        anchors.fill: parent
+        anchors.margins: root.frameThickness
+        theme: root.theme
+    }
+
     // ── clock ──
     Column {
         id: clockCol

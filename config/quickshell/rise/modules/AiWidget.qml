@@ -6,6 +6,8 @@ import Quickshell.Io
 // clicking opens the AiUsagePanel. root.modAi is the on/off toggle for the pill.
 Item {
     id: rootMod
+    // folded readings show while true (the bar sets it from hover)
+    property bool detail: true
     required property var root
     property string gid: "G7"
 
@@ -121,17 +123,22 @@ Item {
             }
         }
 
-        UiText {
+        DetailFold {
             anchors.verticalCenter: parent.verticalCenter
-            text: root.aiClBlocked
-                ? "BLK"
-                : (rootMod.clSignal ? String(root.aiClPct5h).padStart(2, "0") + "%" : "··")
-            color: root.aiClBlocked
-                ? root.seal
-                : Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.85)
-            font.family: root.mono
-            font.pixelSize: 12
-            Behavior on color { CAnim { ms: 200 } }
+            shown: rootMod.detail || root.aiClBlocked
+            contentWidth: foldValue3.implicitWidth
+            contentHeight: foldValue3.implicitHeight
+            UiText {
+                id: foldValue3
+                anchors.verticalCenter: parent.verticalCenter
+                text: root.aiClBlocked
+                    ? "BLK"
+                    : (rootMod.clSignal ? String(root.aiClPct5h).padStart(2, "0") + "%" : "··")
+                color: root.aiClBlocked ? root.barAlert : root.barValue
+                font.family: root.mono
+                font.pixelSize: 12
+                Behavior on color { CAnim { ms: 200 } }
+            }
         }
     }
 

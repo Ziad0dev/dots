@@ -46,7 +46,8 @@ Item {
 
         UiText {
             anchors.verticalCenter: parent.verticalCenter
-            visible: !root.compactBluetooth
+            // a word beside a glyph only when the bar shows words, not glyphs
+            visible: !root.compactBluetooth && !root.styleIconLabels
             text: "BT"
             color: Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.6)
             font.family: root.mono
@@ -68,7 +69,7 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             visible: rootMod.connected
             text: String(rootMod.numConnected)
-            color: root.seal
+            color: root.barValue
             font.family: root.mono
             font.pixelSize: 12
         }

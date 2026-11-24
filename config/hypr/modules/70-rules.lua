@@ -81,3 +81,12 @@ hl.window_rule({
     move              = "100%-w-24 100%-h-24",
     no_initial_focus  = true,
 })
+
+-- Rise's settings app (Nexus.qml): a centred floating window, not a tile
+hl.window_rule({
+    name   = "rise-settings",
+    match  = { class = "^org\\.quickshell$", title = "^Settings$" },
+    float  = true,
+    size   = "1000 700",
+    center = true,
+})

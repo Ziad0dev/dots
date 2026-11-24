@@ -4,6 +4,8 @@ import Quickshell.Io
 
 Item {
     id: rootMod
+    // folded readings show while true (the bar sets it from hover)
+    property bool detail: true
     required property var root
     property string gid: "G16"
 
@@ -47,12 +49,19 @@ Item {
             fill: 1
         }
 
-        UiText {
+        DetailFold {
             anchors.verticalCenter: parent.verticalCenter
-            text: rootMod.tempC + "\u00B0"
-            color: rootMod.hot ? root.color01 : root.seal
-            font.family: root.mono
-            font.pixelSize: 12
+            shown: rootMod.detail || rootMod.hot
+            contentWidth: foldValue6.implicitWidth
+            contentHeight: foldValue6.implicitHeight
+            UiText {
+                id: foldValue6
+                anchors.verticalCenter: parent.verticalCenter
+                text: rootMod.tempC + "\u00B0"
+                color: rootMod.hot ? root.barAlert : root.barValue
+                font.family: root.mono
+                font.pixelSize: 12
+            }
         }
     }
 
