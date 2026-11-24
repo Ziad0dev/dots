@@ -48,7 +48,7 @@ PanelWindow {
                 e("barAnim", "Bar animation", "Runs continuously on the bar, so it costs some GPU",
                   o(barAnimNames.map(function (_, i) { return i }), barAnimNames)),
                 b("barFoldDetails", "Readings on hover", "Numbers and speeds fold away until you hover their side of the bar; warnings stay"),
-                e("dockMode", "Dock", "The app dock at the bottom (right-click an app to keep it)", o(["autohide", "floating", "always", "off"], ["Auto-hide", "Floating only", "Always", "Off"]))
+                e("dockMode", "Dock", "The app dock on the left edge (right-click an app to keep it)", o(["autohide", "floating", "always", "off"], ["Auto-hide", "Floating only", "Always", "Off"]))
             ] },
             { title: "Launcher button", rows: [
                 e("launcherLogoMode", "Shows", "", o(["text", "icon"], ["Wordmark", "Icon"])),

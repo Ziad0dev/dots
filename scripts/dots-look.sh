@@ -117,10 +117,47 @@ cmd_glass() {
     notify "Glass $want" "Zen picks it up when restarted"
 }
 
+# game mode (46-look.lua): no animations, blur, shadows or gaps, and
+# notifications silenced. It only lifts the silence it set itself, so a
+# do-not-disturb you turned on before stays on.
+cmd_game() {
+    local want="${1:-toggle}" dnd="${XDG_STATE_HOME:-$HOME/.local/state}/dots/notifications.json"
+    if [ "$want" = toggle ]; then
+        if [ "$(get game)" = on ]; then want=off; else want=on; fi
+    fi
+    case "$want" in
+        on)
+            put game on
+            hyprctl reload >/dev/null || true
+            notify "Game mode on" "Effects off, notifications silenced"
+            if ! grep -q '"dnd":true' "$dnd" 2>/dev/null &&
+                command -v dots-toggle-notification-silencing >/dev/null &&
+                dots-toggle-notification-silencing >/dev/null 2>&1; then
+                put game-dnd on
+            fi
+            ;;
+        # "off", not removed: the bar watches this file
+        off)
+            put game off
+            if [ "$(get game-dnd)" = on ]; then
+                put game-dnd ""
+                if grep -q '"dnd":true' "$dnd" 2>/dev/null; then
+                    dots-toggle-notification-silencing >/dev/null 2>&1 || true
+                fi
+            fi
+            hyprctl reload >/dev/null || true
+            notify "Game mode off" ""
+            ;;
+        status) if [ "$(get game)" = on ]; then echo on; else echo off; fi ;;
+        *) die "usage: dots-look game [on|off|toggle|status]" ;;
+    esac
+}
+
 case "${1:-}" in
     anim) shift; cmd_anim "$@" ;;
+    game) shift; cmd_game "$@" ;;
     shader) shift; cmd_shader "$@" ;;
     blur) shift; cmd_blur "$@" ;;
     glass) shift; cmd_glass "$@" ;;
-    *) die "usage: dots-look {anim [pick|list|<name>] | shader [pick|list|off|<name>] | blur [on|off|toggle|status] | glass [on|off|toggle|status]}" ;;
+    *) die "usage: dots-look {anim [pick|list|<name>] | shader [pick|list|off|<name>] | blur [on|off|toggle|status] | glass [on|off|toggle|status] | game [on|off|toggle|status]}" ;;
 esac

@@ -142,7 +142,9 @@ stage_vulns() {
     heading "vulns: CVEs in /run/current-system (advisory)"
     local raw
     raw="$(mktemp)"
-    trap 'rm -f "$raw"' RETURN
+    # the RETURN trap is global: clear it once it has run, or it fires again
+    # on later returns, where $raw no longer exists (nounset)
+    trap 'rm -f -- "${raw:-}"; trap - RETURN' RETURN
     vulnix --closure --json /run/current-system >"$raw" || true # exit 2 = "found some"
     printf 'CVSS>=7, deduplicated. NVD matches by version string, so verify before panicking\n'
     printf '(nixpkgs often backports fixes without bumping the version).\n\n'

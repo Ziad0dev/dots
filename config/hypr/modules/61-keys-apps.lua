@@ -30,6 +30,12 @@ hl.bind(mod .. " + ALT + A", hl.dsp.exec_cmd("dots-look anim pick"))
 hl.bind(mod .. " + ALT + S", hl.dsp.exec_cmd("dots-look shader pick"))
 hl.bind(mod .. " + ALT + B", hl.dsp.exec_cmd("dots-look blur toggle"))
 hl.bind(mod .. " + ALT + V", hl.dsp.exec_cmd("dots-look glass toggle"))
+-- game mode: no animations, blur, shadows, gaps or notifications
+hl.bind(mod .. " + CTRL + G", hl.dsp.exec_cmd("dots-look game toggle"))
+-- everything in one searchable menu (Omarchy's SUPER + ALT + Space)
+hl.bind(mod .. " + ALT + SPACE", hl.dsp.exec_cmd("dots-menu"))
+-- pick a colour anywhere on screen; its hex goes to the clipboard
+hl.bind(mod .. " + SHIFT + C", hl.dsp.exec_cmd("hyprpicker -a -n -f hex"))
 hl.bind(mod .. " + ALT + M", hl.dsp.exec_cmd("dots-songrec"))
 hl.bind(mod .. " + ALT + G", hl.dsp.exec_cmd("dots-lens"))
 -- dots-say is only installed with dots.tts.enable (home/desktop-tools.nix)

@@ -6,7 +6,7 @@ if shader then
 end
 
 -- `dots-look glass on`: OrbitOS-style frosted windows. Rounder, borderless,
--- floating a little off each other, and a heavier, darker, grainier blur
+-- floating a little off each other, and a soft haze blur
 -- that sees through windows to the ones behind (xray off; the bar and frame
 -- keep their own xray in 71-layers.lua). Alphas: themectl's glass_* keys.
 if util.state("glass") == "on" then
@@ -19,23 +19,23 @@ if util.state("glass") == "on" then
             dim_strength   = 0.05,
             shadow = { enabled = true, range = 24, render_power = 3, color = "rgba(00000066)" },
             blur = {
-                -- acrylic: the wiki's "similar to liquid glass" variant (frost is
-                -- a cracked-ice pattern). Clarity between frosted (0.25 read
-                -- as smoke) and its sharp default (0.82): the light and the
-                -- refraction show through, and text still reads.
-                variant    = "acrylic",
-                acrylic    = { clarity = 0.4, bulb = 28, refraction = 16, aberration = 0.012 },
+                -- haze: a soft, foggy frost. Tried and dropped: acrylic's lens
+                -- (bulb, refraction, colour fringes) bent the backdrop and read
+                -- as odd; kawase let bright colours behind shine through too
+                -- strongly; the base config's "frost" is a
+                -- cracked-ice pattern, so the variant is set explicitly here
+                variant    = "haze",
+                haze       = { intensity = 0.35, iridescence = 0.7 },
                 size       = 10,
                 passes     = 3,
                 xray       = false,
                 -- Orbit darkens to 0.8; over a dark wallpaper and a 55% fill
                 -- that reads as plain black, not glass, so keep full brightness
-                -- and lift the wallpaper's colour a little instead
-                brightness = 1.05,
+                brightness = 1.0,
                 contrast   = 1.0,
                 noise      = 0.03,
-                -- colours behind glow through the glass instead of greying out
-                vibrancy   = 0.45,
+                -- no colour boost: vibrancy saturates what's behind the glass
+                vibrancy   = 0.0,
             },
         },
     })
@@ -43,4 +43,30 @@ end
 
 if util.state("blur") == "off" then
     hl.config({ decoration = { blur = { enabled = false } } })
+end
+
+-- `dots-look game on` (SUPER + CTRL + G): game mode. Everything on windows
+-- that costs GPU time or gets in the way goes: animations, window blur,
+-- see-through, shadows, rounding, gaps, inactive dim. Last, so it wins over
+-- glass. Blur itself stays on: the bar, frame and panels are translucent and
+-- read as broken without it, and theirs is cheap (xray, the cached wallpaper
+-- blur, 71-layers.lua). dots-look also silences notifications while it's on.
+if util.state("game") == "on" then
+    hl.config({
+        animations = { enabled = false },
+        general    = { gaps_in = 0, gaps_out = 0 },
+        decoration = {
+            rounding     = 0,
+            dim_inactive = false,
+            shadow       = { enabled = false },
+        },
+    })
+    hl.window_rule({
+        name      = "game-mode",
+        match     = { class = ".*" },
+        no_blur   = true,
+        opaque    = true,
+        opacity   = "1.0 override 1.0 override 1.0 override",
+        no_shadow = true,
+    })
 end

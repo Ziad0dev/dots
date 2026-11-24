@@ -33,7 +33,6 @@ hl.window_rule({
 hl.window_rule({
     name      = "discord",
     match     = { class = "^(discord)$" },
-    workspace = "10 silent",
     opacity   = "1.0 override 1.0 override 1.0 override",
     opaque    = true,
     no_blur   = true,
@@ -52,8 +51,19 @@ hl.window_rule({
 hl.window_rule({
     name             = "sysmon",
     match            = { class = "^(dev\\.dots\\.sysmon)$" },
+    -- workspace 9 is the second monitor's (20-workspaces.lua)
     workspace        = "9 silent",
     no_initial_focus = true,
+})
+
+-- the scratchpad's own copy (SUPER + CTRL + M, 64-keys-scratch.lua; only
+-- that key starts this class). Discord and Tauon get their scratchpads from
+-- the launch itself (autostart, the scratch keys), not from a rule, so
+-- opening them normally doesn't hide them away.
+hl.window_rule({
+    name      = "sysmon-pad",
+    match     = { class = "^(dev\\.dots\\.sysmon\\.pad)$" },
+    workspace = "special:monitor silent",
 })
 
 hl.window_rule({

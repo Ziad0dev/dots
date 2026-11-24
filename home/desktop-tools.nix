@@ -31,6 +31,48 @@ let
     ]
   );
 
+  # SUPER + ALT + Space: everything in one menu (Omarchy's); the programs its
+  # entries run are the ones their own keys run, installed with them
+  # qs, ghostty, hyprctl, bemoji, nh and flatpak come from the session: they
+  # must be the running bar's, terminal's and compositor's own
+  menu = pkgs.writeShellApplication {
+    name = "dots-menu";
+    runtimeInputs = with pkgs; [
+      coreutils
+      fuzzel
+      libnotify
+      systemd
+      util-linux
+      xdg-utils
+    ];
+    text = ''
+      DOTS_DIR="''${DOTS_DIR:-${config.dots.repoPath}}"
+    ''
+    + builtins.readFile ../scripts/dots-menu.sh;
+  };
+
+  webapp = script "dots-webapp" (
+    with pkgs;
+    [
+      coreutils
+      curl
+      file
+      gnused
+    ]
+  );
+
+  screensaver = script "dots-screensaver" (
+    with pkgs;
+    [
+      coreutils
+      figlet
+      jq
+      ncurses # clear
+      terminaltexteffects
+      util-linux
+    ]
+  );
+
   appearance = script "dots-appearance" (
     with pkgs;
     [
@@ -222,6 +264,12 @@ in
   config = {
     home.packages = [
       look
+      menu
+      webapp
+      screensaver
+      # LocalSend: files and text to phones and computers on the LAN (its
+      # port is opened on the LAN interface in modules/lan.nix)
+      pkgs.localsend
       appearance
       songrec
       lens

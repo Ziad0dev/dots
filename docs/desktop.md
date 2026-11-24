@@ -87,6 +87,10 @@ A switch reloads Hyprland at the end of home-manager's activation (`home/profile
 | Keys | Action |
 |---|---|
 | `SUPER + D` | App launcher (Rise) |
+| `SUPER + ALT + Space` | The menu (`dots-menu`, after Omarchy's): the launcher's menu mode, sections for apps, learn, capture, share, toggles, style, setup, web apps, update and system. Enter opens a section, `Backspace` goes back, typing searches every entry. Without the bar running it falls back to fuzzel |
+| `SUPER + M` | Music scratchpad (Tauon; started if it isn't running) |
+| `SUPER + CTRL + C` | Chat scratchpad (Discord) |
+| `SUPER + CTRL + M` | System monitor scratchpad (btop over nvtop; its own copy, the one on workspace 9 stays on the second monitor) |
 | `SUPER + A` | Overview |
 | `SUPER + U` | Utilities corner (quick toggles, recent captures) |
 | `SUPER + I` | Dashboard (dashboard · media · performance · weather tabs) |
@@ -118,7 +122,8 @@ A switch reloads Hyprland at the end of home-manager's activation (`home/profile
 | `SUPER + ALT + A` | Animation preset picker |
 | `SUPER + ALT + S` | Screen shader picker |
 | `SUPER + ALT + B` | Blur on / off |
-| `SUPER + ALT + V` | Glass on / off: rounder borderless windows, frosted acrylic glass blur (`acrylic` variant), more see-through GTK / ghostty / Zen (`dots-look glass`) |
+| `SUPER + CTRL + G` | Game mode on / off: no animations, window blur or see-through, shadows, rounding or gaps, notifications silenced; the bar, frame and panels keep their blur (`dots-look game`; also a Utilities tile). It only lifts a silence it set itself |
+| `SUPER + ALT + V` | Glass on / off: rounder borderless windows, a soft haze blur (`haze` variant, no colour boost), more see-through GTK / ghostty / Zen (`dots-look glass`) |
 
 ### Capture
 
@@ -128,6 +133,7 @@ A switch reloads Hyprland at the end of home-manager's activation (`home/profile
 | `Print` | Area picker: screens freeze, hover offers the window under the pointer, drag picks any region, click takes what's offered, `Esc` cancels |
 | `SUPER + Print` | Focused monitor |
 | `SUPER + SHIFT + S` | Active window |
+| `SUPER + SHIFT + C` | Colour picker: click anywhere, the hex code goes to the clipboard (`hyprpicker`) |
 
 The area picker is Rise's (`AreaPicker.qml`, after Caelestia's; it cuts the pick from the frozen frame and hands it to `dots-shot import`); without Rise running, `Print` falls back to `slurp` on a frozen screen. The last three go through `dots-shot`: saved as `~/Pictures/<date>_<time>.png`, copied to the clipboard, and announced with a preview notification; click it to open, or **Edit** to annotate in satty.
 | `SUPER + ALT + R` | Arm / disarm the replay buffer |
@@ -142,6 +148,26 @@ The area picker is Rise's (`AreaPicker.qml`, after Caelestia's; it cuts the pick
 | `SUPER + SHIFT + E` | Exit Hyprland |
 | Volume keys | ±5 % / mute (work while locked) |
 
+## Named scratchpads
+
+After Caelestia's special workspaces (`config/hypr/modules/64-keys-scratch.lua`): music, chat and a system monitor each live on a special workspace of their own (the monitor's is a second copy; the first stays on workspace 9, the second monitor) and slide in over whatever you're doing with one key (`SUPER + M`, `SUPER + CTRL + C`, `SUPER + CTRL + M`), and away with the same key. A key whose app isn't running starts it there, and one whose app is open somewhere else brings it over. Only those launches (and Discord's at login) go to a scratchpad: the same app opened from the launcher or the dock opens where you are. `SUPER + C` still focuses Discord, which brings its scratchpad up. `SUPER + minus` stays the plain scratchpad.
+
+## Web apps
+
+`dots-webapp` (also **Menu → Web apps**, which asks for the name, address and icon in a small terminal) turns a site into an app, as in Omarchy: its own launcher entry, icon and window (Helium's app mode, no tabs or address bar; `DOTS_WEBAPP_BROWSER` picks another Chromium).
+
+```sh
+dots-webapp install "YouTube Music" https://music.youtube.com https://…/youtube-music.png
+dots-webapp install "Maps" http://127.0.0.1:8090/maps     # the offline hub
+dots-webapp list | open NAME | remove NAME
+```
+
+Addresses are https, or http on this machine only. The icon is optional (an https PNG or SVG, checked by content, 2 MB at most; [dashboard-icons](https://github.com/homarr-labs/dashboard-icons) has most sites); without one it's the theme's browser icon. Entries are `~/.local/share/applications/dots-webapp-*.desktop`.
+
+## Sharing
+
+LocalSend (**Menu → Share**) sends files and text to phones and computers on the LAN; its port (53317, TCP and UDP) is open on the LAN interface only (`modules/lan.nix`).
+
 ## Window rules
 
 | Match (class) | Rule |
@@ -149,8 +175,10 @@ The area picker is Rise's (`AreaPicker.qml`, after Caelestia's; it cuts the pick
 | `com.dots.float{,.sm,.md,.lg}` | Floating, centred, 1200×750 / 900×600 / 1100×700 / 1200×750. Every `dots-*` popup terminal uses these |
 | `zen-beta`, `dev.dots.sideterm` | Workspace 1 |
 | `org.qbittorrent.qBittorrent` | Workspace 3 (silent) |
-| `dev.dots.sysmon` | Workspace 9 (silent, no focus) — tmux session `sysmon` with btop over nvtop |
-| `discord` | Workspace 10 (silent) |
+| `dev.dots.sysmon` | Workspace 9, the second monitor (silent, no focus) — tmux session `sysmon` with btop over nvtop |
+| `dev.dots.sysmon.pad` | The `monitor` scratchpad (silent) — its own tmux session, `sysmon-pad` |
+| `discord` | Opaque, no blur, dim or shadow. Autostart opens it on the `chat` scratchpad |
+| `dev.dots.screensaver` | Fullscreen on its monitor, opaque, no animation (set by `dots-screensaver` when it starts each one) |
 | `org.pwmt.zathura` | Opaque, no blur, inhibits idle when fullscreen |
 | `flameshot` | Floating, pinned |
 | `com.gabm.satty` (screenshot editor) | Floating |
@@ -186,7 +214,7 @@ The bar, launcher, control panel, pickers and notifications UI. Vendored in `con
 - The unit's PATH is pinned: the `dots-*` shims, wallpaper helpers and a fixed tool set come first, so the bar behaves the same regardless of your login environment. `DOTS_SHELL_PATH` points at the repo copy.
 - Bar widgets include workspaces, clock/calendar, media (MPRIS), audio, network, CPU/GPU/memory/temps, storage and mount health, power profile, weather, VPN, night light, idle inhibitor, notification silencing, dictation state, LLM unit, qBittorrent speeds, update indicator, screen recording, tray, and AI usage (Claude Code quota refreshed every 10 minutes by `dots-ai-usage.timer`).
 - The quick group folds like Omarchy 4.5's indicators (`modules/QuickReveal.qml`): tools that are on (stay-awake, night light, VPN, Tailscale connected, pending reminders, a running LLM, qBittorrent transferring) always show; the rest appear while you hover the group or one of its popouts is open, and fold away shortly after. With nothing on, a ⋯ handle marks the group. The whole group is still the `modQuick` setting.
-- **Dock** (`Dock.qml`, after Omarchy 4.5's, styled like macOS's): a glass shelf along the bottom with an apps button (the launcher), your pinned apps, then everything running. One dot under a running app, the accent while it has focus; icons magnify under the pointer and bounce while an app starts. Click opens the app, focuses it, or cycles its windows; middle-click opens a new window; right-click keeps it in the dock, removes it, or quits it. Pins are desktop ids, one per line, in `~/.local/state/dots/dock-pins`. Settings → Bar → Dock (or the settings app's Bar page): **Auto-hide** (default: every workspace, up from the bottom edge, no space taken), **Floating only** (as in Omarchy), **Always** (reserves a strip) or **Off**. It steps aside for fullscreen windows.
+- **Dock** (`Dock.qml`, after Omarchy 4.5's and macOS's): on the left edge, part of the frame. With the frame on, its shelf is a frame card, so it grows out of the left band like Caelestia's drawers and swells with the icons as they magnify under the pointer; without the frame it's a glass shelf. An apps button (the launcher), your pinned apps, then everything running, in the theme's icons. The whole bar (dock, tray, launcher, panels) takes its icon theme from `dots-appearance` when it starts (`QS_ICON_THEME`: WhiteSur-dark on oled); a theme switch changes them at the next bar restart. With many apps the icons shrink to fit between the bar and the dashboard's corner. A mark on the frame side shows a running app, longer and in the accent while it has focus; an app bounces while it starts. Click opens the app, focuses it, or cycles its windows; middle-click opens a new window; right-click keeps it in the dock, removes it, or quits it. Pins are desktop ids, one per line, in `~/.local/state/dots/dock-pins`. Settings → Bar → Dock (or the settings app's Bar page): **Auto-hide** (default: every workspace, out of the left band when the pointer touches it; the band's bottom end still opens the dashboard), **Floating only** (as in Omarchy), **Always** (reserves its width) or **Off**. It steps aside for fullscreen windows.
 - Readings fold too (`modules/DetailFold.qml`, Settings → Bar → Readings on hover, on by default): at rest the bar shows glyphs only, and hovering either side unfolds that side's numbers (CPU, memory, volume, Claude usage, GPU, temperature, storage, network speed and graph, keyboard layout). A reading in trouble stays out: CPU at 80 °C or more, storage or GPU memory at 90 % or more, a blocked Claude limit.
 - One colour rule across the bar: glyphs in the accent, readings in the text colour (`barValue` in `Theme.qml`), and a reading in trouble in `barAlert`. Symbolic tray icons are filled with the accent; colour app icons are washed in it, keeping their shading (Settings → System tray → Tint tray icons).
 - Tools after Omarchy 4.5's bar (`ThemeBarTools.qml`, `scripts/dots-bar-tools.sh`; new code, ideas from basecamp/omarchy, MIT), hover to open and click to pin like the other popouts:
@@ -312,7 +340,7 @@ qs -c rise ipc call <target> <function>
 
 - Lock screen: `quickshell -c lock` (`config/quickshell/lock/`) — blurred current wallpaper, clock, date, password field, themed from the same palette as the bar. It authenticates through the `quickshell-lock` PAM service (`modules/lockscreen.nix`).
 - On screens at least 1500 px wide, side columns after Caelestia's lock (`LockCentre.qml`): the weather (wttr.in, as the bar fetches it; no card when offline) and what's playing with previous / play-pause / next on the left, CPU, memory, disk and uptime, and the latest notifications on the right. Notifications come from the bar's saved history and show only the app and the title, never the message body, since anyone at the desk can read a lock screen; ones that arrived after locking are marked and counted.
-- `hypridle` (`config/hypr/hypridle.conf`): lock at **10 min**, displays off at **15 min** (`wlopm`). `lock_cmd` refuses to start a second lock instance.
+- `hypridle` (`config/hypr/hypridle.conf`): screensaver at **5 min** (`dots-screensaver`, after Omarchy's: a big clock played through random terminal-text effects on every monitor; any key or pointer movement ends it; it skips game mode, and monitors showing a fullscreen window), lock at **10 min**, displays off at **15 min** (`wlopm`). `lock_cmd` refuses to start a second lock instance.
 - The idle toggle in the bar stops/starts the `hypridle` user unit; the unit's start/stop hooks maintain `~/.local/state/dots/indicators/stay-awake` for the widget.
 - The machine never suspends — sleep targets are disabled system-wide.
 

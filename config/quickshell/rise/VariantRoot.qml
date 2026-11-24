@@ -33,6 +33,13 @@ Item {
 
     function toggleDiscover() { if (!theme.discoverVisible) theme.activateFocusedPopupScreen(); theme.discoverVisible = !theme.discoverVisible }
 
+    // the menu: the launcher in its menu mode; again (or Escape) closes it
+    function openLauncherMenu() {
+        if (theme.appLauncherVisible) { theme.appLauncherVisible = false; return }
+        theme.activateFocusedPopupScreen()
+        theme.appLauncherMenu = true
+        theme.appLauncherVisible = true
+    }
     function toggleAppLauncher() { if (!theme.appLauncherVisible) theme.activateFocusedPopupScreen(); theme.appLauncherVisible = !theme.appLauncherVisible }
 
     required property var variantHost
@@ -275,7 +282,7 @@ Item {
         }
     }
 
-    // the app dock (Omarchy 4.5's), along the bottom of each bar screen
+    // the app dock (Omarchy 4.5's), on the left edge of each bar screen
     Variants {
         model: root.barScreens
 

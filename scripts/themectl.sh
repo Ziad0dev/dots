@@ -145,8 +145,8 @@ render_all() {
             scheme=$(scheme_of "$background")
             # shellcheck disable=SC2034
             if [ "$(head -n1 "${XDG_STATE_HOME:-$HOME/.local/state}/dots/hypr/glass" 2>/dev/null)" = on ]; then
-                glass_window=0.4 glass_view=0.1 glass_bar=0.2 glass_dialog=0.55 glass_chrome=40% glass_term=0.42 glass_page=30%
-                glass_fill=transparent glass_raise=35% glass_menu=0.3 glass_menu_pct=30% glass_hex=66
+                glass_window=0.55 glass_view=0.15 glass_bar=0.3 glass_dialog=0.7 glass_chrome=55% glass_term=0.55 glass_page=40%
+                glass_fill=transparent glass_raise=45% glass_menu=0.4 glass_menu_pct=40% glass_hex=80
             else
                 glass_window=0.85 glass_view=0.35 glass_bar=0.6 glass_dialog=0.85 glass_chrome=85% glass_term=0.85 glass_page=100%
                 glass_fill=$background glass_raise=100% glass_menu=0.62 glass_menu_pct=62% glass_hex=d9

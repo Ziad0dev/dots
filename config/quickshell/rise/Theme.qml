@@ -144,6 +144,18 @@ ThemeAiUsage {
         onLoadFailed: theme.glassMode = false
     }
 
+    // `dots-look game on`: game mode (46-look.lua); the Utilities tile shows it
+    property bool gameMode: false
+    FileView {
+        id: gameFile
+        path: Quickshell.env("HOME") + "/.local/state/dots/hypr/game"
+        watchChanges: true
+        printErrors: false
+        onFileChanged: gameFile.reload()
+        onLoaded: theme.gameMode = gameFile.text().trim() === "on"
+        onLoadFailed: theme.gameMode = false
+    }
+
     readonly property string mono: _appearanceMono !== "" ? _appearanceMono : "JetBrainsMono Nerd Font"
     property string _appearanceMono: ""
     FileView {
@@ -172,13 +184,13 @@ ThemeAiUsage {
     // ── transparency knobs (0.0 = fully transparent, 1.0 = opaque) ──
     // große Insel / Split-Sektionen; with glass on, about half, so bar,
     // panels and frame show Hyprland's blur like the windows do
-    property real barOpacity:  glassMode ? 0.32 : 0.94
+    property real barOpacity:  glassMode ? 0.5 : 0.94
     property real pillOpacity: 0.18   // einzelne Widget-Pillen (workspace, mem, cpu, …)
 
     readonly property color bg:     Qt.rgba(paper.r, paper.g, paper.b, barOpacity)
     // the backing of standalone cards (launcher, clipboard, polkit): solid,
     // or see-through with glass on (layer rule "rise-panels" blurs them)
-    readonly property color cardFill: glassMode ? Qt.rgba(paper.r, paper.g, paper.b, 0.36) : paper
+    readonly property color cardFill: glassMode ? Qt.rgba(paper.r, paper.g, paper.b, 0.5) : paper
     // bar island/section bg ONLY (NOT the shared bg -> panels keep their opacity): Frost
     // lowers the island alpha; compositor blur appears automatically when the theme
     // already blurs Quickshell layer surfaces.
@@ -237,7 +249,7 @@ ThemeAiUsage {
     readonly property color windowBorder: _pb
     // the frame layer's alpha: with Frost, low enough that Hyprland's layer blur
     // (71-layers.lua) reads through the bar band and the panels
-    readonly property real frameOpacity: glassMode ? 0.3 : styleFrost ? 0.55 : barOpacity
+    readonly property real frameOpacity: glassMode ? 0.42 : styleFrost ? 0.55 : barOpacity
     readonly property color frameColor: styleDepth ? surfaceTone(0.03, 1) : Qt.rgba(paper.r, paper.g, paper.b, 1)
     // a split bar's sections in frame mode: a tone above the band, same alpha
     readonly property color frameRunFill:   surfaceTone(styleDepth ? 0.09 : 0.06, frameOpacity)
@@ -1502,6 +1514,9 @@ ThemeAiUsage {
     // ── picker visual style (theme/wallpaper/screenshot/video pickers) ──
     property string pickerStyle: "tanzaku"   // "tanzaku", "hearthstone", "carousel"
     property bool appLauncherVisible: false
+    // the launcher opens as the menu (dots-menu, SUPER + ALT + Space); it reads
+    // and clears this when it opens
+    property bool appLauncherMenu: false
     property bool clipboardVisible: false
     // The full-screen panels that take exclusive keyboard focus. closePopups()
     // doesn't know them (each has its own Esc / click-away), so a second

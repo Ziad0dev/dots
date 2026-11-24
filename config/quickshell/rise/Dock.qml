@@ -6,28 +6,49 @@ import Quickshell.Wayland
 import Quickshell.Hyprland
 import "modules"
 
-// A macOS-style dock after Omarchy 4.5's (shell/plugins/dock): pinned apps,
-// then everything running, an apps button that opens the launcher, a dot per
-// window, magnification under the pointer. Click opens, focuses, or cycles an
-// app's windows; middle-click opens a new window; right-click keeps or removes
-// it, or quits it.
+// The app dock, after Omarchy 4.5's (shell/plugins/dock) and macOS's, on the
+// left edge and part of the frame: with the frame on, its shelf is a
+// FrameCard, so the frame grows it out of the left band (and it swells with
+// the magnified icons, jelly included), the way Caelestia's drawers come out
+// of its frame. Without the frame it draws its own glass shelf.
+//
+// Pinned apps, then everything running; an apps button opens the launcher;
+// a mark on the frame side shows what runs (the accent while it has focus).
+// Click opens, focuses, or cycles an app's windows; middle-click opens a new
+// window; right-click keeps or removes it, or quits it. Icons come from the
+// bar's icon theme (QS_ICON_THEME: the theme's own icons, WhiteSur-dark on
+// oled).
 //
 // Settings → Bar → Dock (`dockMode`): "autohide" (default: every workspace,
-// hidden until the pointer touches the bottom edge, no space taken),
-// "floating" (Omarchy's: always on floating workspaces only), "always" (a
-// reserved strip), "off". Pins: desktop ids, one per line, in
-// ~/.local/state/dots/dock-pins. Windows come from the Wayland toplevel list,
-// which activates and closes them itself.
+// out of the left edge when the pointer touches it), "floating" (always on
+// floating workspaces only, as in Omarchy), "always" (reserves its width),
+// "off". Pins: desktop ids, one per line, in ~/.local/state/dots/dock-pins.
+// Windows come from the Wayland toplevel list, which activates and closes
+// them itself.
 PanelWindow {
     id: dock
     required property var root
 
     readonly property string mode: root.dockMode
-    readonly property int iconSize: 44
-    readonly property int maxIcon: 74
-    readonly property int pad: 8
-    readonly property int edge: (root.frameOn ? root.frameThickness : 0) + 8
-    readonly property int dockH: iconSize + 2 * pad + 8
+    readonly property bool framed: root.frameOn
+    readonly property int edge: framed ? root.frameThickness : 0
+    readonly property int pad: 9
+    readonly property int gap: 6
+    // the room on the left band: below the bar band (35, as FrameWindow has
+    // it) and above the dashboard's zone at the band's bottom end (160)
+    readonly property bool barOnTop: root.barPosition !== "bottom"
+    readonly property int topReserve: (barOnTop ? 35 : edge) + 8
+    readonly property int bottomReserve: (barOnTop ? edge : 35) + 160 + 8
+    readonly property real room: Math.max(0, dock.height - topReserve - bottomReserve)
+    // icons shrink (down to 24) when there are too many to fit, leaving room
+    // for the magnified ones to push the others apart
+    readonly property int iconSize: {
+        const n = 1 + apps.length
+        const fixed = 2 * pad + (n - 1) * gap + (apps.length > 0 ? 1 + gap : 0)
+        const fit = Math.floor((room - fixed - 56) / n)
+        return Math.max(24, Math.min(38, fit))
+    }
+    readonly property int maxIcon: Math.round(iconSize * 1.47)
 
     // ── when it shows ──
     readonly property var monitor: Hyprland.monitorFor(dock.screen)
@@ -37,29 +58,54 @@ PanelWindow {
     property bool edgeHovered: false
     property bool dockHovered: false
     property bool menuOpen: false
+    // whether the dock applies right now (floating: only on floating workspaces)
+    readonly property bool active: mode === "autohide" || mode === "always" || (mode === "floating" && onFloating)
+    onActiveChanged: if (!active) { menuOpen = false; dockHovered = false; edgeHovered = false }
     readonly property bool wanted: mode === "always" || (mode === "floating" && onFloating)
         || (mode === "autohide" && (edgeHovered || dockHovered || hideDelay.running || menuOpen))
-    readonly property bool shown: mode !== "off" && !fullscreen && (wanted || dockHovered || menuOpen)
-    Timer { id: hideDelay; interval: 700 }
+    readonly property bool shown: active && !fullscreen && (wanted || dockHovered || menuOpen)
+    Timer { id: hideDelay; interval: 600 }
 
-    visible: mode !== "off" && !(mode === "floating" && !onFloating)
+    // 0 → 1 as it comes out; the frame grows the shelf with it
+    property real reveal: shown ? 1 : 0
+    Behavior on reveal { Anim { kind: "spatial" } }
+
+    // unmapped when off and under a fullscreen window: a mapped Overlay
+    // surface, even an empty one, stops Hyprland scanning a fullscreen game
+    // out directly (latency, no tearing). It maps again above any panel
+    // already open; panels open over it as usual.
+    visible: mode !== "off" && !fullscreen
     color: "transparent"
-    anchors { bottom: true; left: true; right: true }
-    implicitHeight: dockH + edge + maxIcon - iconSize + 40     // room to magnify and for the menu
-    exclusionMode: mode === "always" ? ExclusionMode.Normal : ExclusionMode.Ignore
-    exclusiveZone: mode === "always" ? dockH + edge : 0
-    WlrLayershell.layer: WlrLayer.Top
+    anchors { left: true; top: true; bottom: true }
+    // room for the shelf at its widest plus the name bubble / menu beside it
+    implicitWidth: edge + baseWidth + (maxIcon - iconSize) + 240
+    // always at the screen's corner: the frame draws the shelf in screen
+    // coordinates from this window's (FrameCard offsets 0). Respecting the
+    // bar's and frame's zones would inset the window and split the shelf
+    // from its blob; "always" reserves its width with dockSpace instead.
+    exclusionMode: ExclusionMode.Ignore
+    // above the frame: the frame layer (Top, mapped after this) draws the
+    // shelf's background with a compositor blur, which on the same layer
+    // stacked over the icons and smeared them into ghosts beside each one.
+    // The dock hides for fullscreen windows itself, and maps before any panel
+    // opens, so panels still stack above it.
+    WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.namespace: "dots-dock"
-    // input: the dock (and its menu) while shown; a 2px strip along the bottom
-    // edge while hidden, which is what calls it up
+    // input: the shelf (and its menu) while out; while hidden, a strip on the
+    // frame's left band beside the shelf, which is what calls it out
     mask: Region {
-        item: dock.shown ? hitArea : edgeStrip
+        Region { item: dock.active && !dock.fullscreen && dock.mode === "autohide" ? edgeStrip : null }
+        Region { item: dock.shown ? shelf : null }
+        Region { item: dock.shown && menu.visible ? menu : null }
     }
 
     Item {
         id: edgeStrip
-        anchors.bottom: parent.bottom
-        width: parent.width; height: 2
+        x: 0
+        width: Math.max(2, dock.edge)
+        // clear of the bar band and the dashboard's zone below
+        y: Math.max(dock.topReserve, shelf.y - 40)
+        height: Math.min(dock.height - dock.bottomReserve, shelf.y + shelf.height + 40) - y
         HoverHandler {
             onHoveredChanged: {
                 dock.edgeHovered = hovered
@@ -147,96 +193,114 @@ PanelWindow {
         for (const t of windowsOf(app)) t.close()
     }
 
-    // ── the dock ──
-    Item {
-        id: hitArea
-        x: Math.round((dock.width - width) / 2)
-        width: shelf.width
-        height: dock.height - y
-        y: dock.height - dock.edge - dock.dockH - (dock.maxIcon - dock.iconSize) - (menu.visible ? menu.height + 8 : 0)
+    // ── geometry: unmagnified slots (magnification measures from these, so
+    // it can't feed back into its own layout) ──
+    readonly property int slotCount: 1 + apps.length
+    readonly property real dividerSpan: gap + 1 + gap
+    readonly property real baseWidth: iconSize + 2 * pad
+    readonly property real baseHeight: slotCount * iconSize + Math.max(0, slotCount - 1) * gap
+        + (apps.length > 0 ? dividerSpan - gap : 0) + 2 * pad
+    readonly property real shelfY: topReserve + Math.max(0, Math.round((room - baseHeight) / 2))
+    function slotCentre(slot) {
+        const top = shelfY + pad
+        if (slot === 0) return top + iconSize / 2
+        return top + iconSize + dividerSpan + (slot - 1) * (iconSize + gap) + iconSize / 2
+    }
+    // the pointer's y in the window (-1: not over the shelf)
+    readonly property real my: shelfHover.hovered ? shelfHover.point.scenePosition.y : -1
+    function growAt(cy) {
+        if (my < 0) return 0
+        const g = Math.max(0, 1 - Math.abs(my - cy) / 130)
+        return (maxIcon - iconSize) * g * g
+    }
+    // the widest icon right now, which the shelf widens to
+    readonly property real swell: {
+        if (my < 0) return 0
+        let best = 0
+        for (let s = 0; s < slotCount; s++) best = Math.max(best, growAt(slotCentre(s)))
+        return best
+    }
+
+    // ── the shelf ──
+    Rectangle {
+        id: shelf
+        x: dock.edge
+        y: dock.shelfY - Math.round((height - dock.baseHeight) / 2)
+        width: dock.baseWidth + dock.swell
+        height: column.implicitHeight + 2 * dock.pad
+        radius: 22
+        Behavior on width { Anim { kind: "spatialFast" } }
+        // framed: the frame draws the background (FrameCard below)
+        color: dock.framed ? "transparent"
+            : Qt.rgba(dock.root.paper.r, dock.root.paper.g, dock.root.paper.b, dock.root.glassMode ? 0.22 : 0.34)
+        border.width: dock.framed ? 0 : 1
+        border.color: Qt.rgba(1, 1, 1, 0.16)
+        visible: dock.reveal > 0.01
+        // unframed: slides in from the edge
+        transform: Translate { x: dock.framed ? 0 : -(1 - dock.reveal) * (dock.baseWidth + 12) }
+
         HoverHandler {
-            id: dockHover
+            id: shelfHover
             onHoveredChanged: {
                 dock.dockHovered = hovered
                 if (!hovered) hideDelay.restart()
             }
         }
-    }
 
-    Rectangle {
-        id: shelf
-        property real slide: dock.shown ? 0 : dock.dockH + dock.edge + 6
-        x: Math.round((dock.width - width) / 2)
-        y: dock.height - dock.edge - dock.dockH + slide
-        Behavior on slide { Anim { kind: "spatialFast" } }
-        opacity: dock.shown ? 1 : 0
-        Behavior on opacity { Anim { kind: "effects"; ms: 160 } }
-        width: row.width + 2 * dock.pad + 8
-        height: dock.dockH
-        // glass: a see-through tint over Hyprland's blur (the dots-* layer
-        // rule), a hairline border and a soft light along the top edge
-        radius: 22
-        color: Qt.rgba(dock.root.paper.r, dock.root.paper.g, dock.root.paper.b, dock.root.glassMode ? 0.22 : 0.34)
-        border.width: 1
-        border.color: Qt.rgba(1, 1, 1, 0.18)
+        // a soft light along the shelf (glass), unframed only
         Rectangle {
+            visible: !dock.framed
             anchors.fill: parent
             anchors.margins: 1
             radius: parent.radius - 1
             gradient: Gradient {
-                GradientStop { position: 0.0; color: Qt.rgba(1, 1, 1, 0.16) }
-                GradientStop { position: 0.45; color: Qt.rgba(1, 1, 1, 0.02) }
+                orientation: Gradient.Horizontal
+                GradientStop { position: 0.0; color: Qt.rgba(1, 1, 1, 0.12) }
+                GradientStop { position: 0.5; color: Qt.rgba(1, 1, 1, 0.02) }
                 GradientStop { position: 1.0; color: Qt.rgba(1, 1, 1, 0.0) }
             }
         }
 
-        // the pointer's x in the window, for magnification (-1: not hovering).
-        // Icons measure from where their slot would be unmagnified: measuring
-        // from their own (magnified) place fed back into their size.
-        readonly property real mx: dockHover.hovered ? dockHover.point.scenePosition.x : -1
-        readonly property int gap: 6
-        readonly property real baseWidth: dock.iconSize + gap + 1 + gap
-            + dock.apps.length * dock.iconSize + Math.max(0, dock.apps.length - 1) * gap
-        function slotCentre(slot) {
-            const left = dock.width / 2 - baseWidth / 2
-            if (slot === 0) return left + dock.iconSize / 2
-            return left + dock.iconSize + gap + 1 + gap + (slot - 1) * (dock.iconSize + gap) + dock.iconSize / 2
-        }
-
-        Row {
-            id: row
-            anchors.horizontalCenter: parent.horizontalCenter
-            anchors.bottom: parent.bottom
-            anchors.bottomMargin: dock.pad + 4
-            spacing: shelf.gap
+        Column {
+            id: column
+            x: dock.pad
+            y: dock.pad
+            spacing: dock.gap
+            opacity: Math.min(1, dock.reveal * 1.6)
+            transform: Translate { x: -(1 - dock.reveal) * 14 }
 
             // the apps button: the launcher's grid of every app
             DockIcon {
                 slot: 0
-                iconName: ""
                 glyph: "apps"
                 label: "Apps"
                 onPicked: Quickshell.execDetached(["qs", "-c", "rise", "ipc", "call", "launcher", "toggle"])
             }
-            Rectangle {
-                width: 1; height: dock.iconSize * 0.7
-                anchors.bottom: parent.bottom; anchors.bottomMargin: dock.iconSize * 0.15
-                color: Qt.rgba(dock.root.ink.r, dock.root.ink.g, dock.root.ink.b, 0.15)
+            Item {
+                width: dock.iconSize
+                height: 1
+                visible: dock.apps.length > 0
+                Rectangle {
+                    anchors.centerIn: parent
+                    width: dock.iconSize * 0.6
+                    height: 1
+                    color: Qt.rgba(dock.root.ink.r, dock.root.ink.g, dock.root.ink.b, 0.16)
+                }
             }
             Repeater {
                 model: dock.apps
                 delegate: DockIcon {
                     required property var modelData
                     required property int index
-                    slot: index + 1
                     readonly property var wins: dock.windowsOf(modelData)
+                    slot: index + 1
                     app: modelData
                     iconName: modelData.entry ? modelData.entry.icon : (modelData.appId || "")
                     label: modelData.entry ? modelData.entry.name : (modelData.appId || "")
                     windows: wins.length
                     focused: wins.some(function (t) { return t.activated })
-                    bouncing: dock.bouncing[modelData.id] !== undefined
                     faded: modelData.pinned && wins.length === 0
+                    bouncing: dock.bouncing[modelData.id] !== undefined
                     onPicked: dock.activate(modelData)
                     onMiddle: dock.launch(modelData)
                     onMenu: function (item) { menu.openFor(modelData, item) }
@@ -245,9 +309,32 @@ PanelWindow {
         }
     }
 
-    // one icon, magnified by the pointer's distance
+    // "always": tiled windows keep clear of the shelf (stacked on the frame's
+    // own reserved band, as FrameExclusions does it)
+    PanelWindow {
+        screen: dock.screen
+        visible: dock.visible && dock.mode === "always"
+        anchors { left: true; top: true; bottom: true }
+        implicitWidth: 1
+        color: "transparent"
+        mask: Region {}
+        exclusiveZone: Math.round(dock.baseWidth + dock.maxIcon - dock.iconSize)
+        WlrLayershell.namespace: "dots-dock-space"
+    }
+
+    // the frame grows the shelf out of its left band
+    FrameCard {
+        root: dock.root
+        card: shelf
+        reveal: dock.framed ? dock.reveal : 0
+        edge: "left"
+        screenName: dock.screen ? dock.screen.name : ""
+    }
+
+    // one icon: grows rightwards, away from the frame, with the pointer
     component DockIcon: Item {
         id: di
+        property int slot: 0
         property var app: null
         property string iconName: ""
         property string glyph: ""
@@ -256,69 +343,74 @@ PanelWindow {
         property bool focused: false
         property bool faded: false
         property bool bouncing: false
-        // the launch bounce: up and back, again and again (macOS)
+        signal picked()
+        signal middle()
+        signal menu(var item)
+        readonly property real size: dock.iconSize + dock.growAt(dock.slotCentre(slot))
+        // the launch bounce: out from the frame and back (macOS)
         property real hop: 0
         SequentialAnimation on hop {
             running: di.bouncing
             loops: Animation.Infinite
             alwaysRunToEnd: true
-            NumberAnimation { to: -18; duration: 260; easing.type: Easing.OutQuad }
+            NumberAnimation { to: 16; duration: 260; easing.type: Easing.OutQuad }
             NumberAnimation { to: 0; duration: 260; easing.type: Easing.InQuad }
             PauseAnimation { duration: 120 }
         }
-        signal picked()
-        signal middle()
-        signal menu(var item)
-        property int slot: 0
-        readonly property real dist: shelf.mx < 0 ? 1e9 : Math.abs(shelf.mx - shelf.slotCentre(slot))
-        readonly property real grow: Math.max(0, 1 - dist / 140)
-        readonly property real size: dock.iconSize + (dock.maxIcon - dock.iconSize) * grow * grow
-        width: size
-        height: size + 8
-        Behavior on width { enabled: shelf.mx >= 0; Anim { kind: "spatialFast" } }
+        width: dock.iconSize
+        height: di.size
+
+        // hover wash behind the icon
+        Rectangle {
+            x: -4; y: (parent.height - height) / 2
+            width: di.size + 8; height: di.size + 8
+            radius: 12
+            color: iconMa.containsMouse ? Qt.rgba(dock.root.ink.r, dock.root.ink.g, dock.root.ink.b, 0.07) : "transparent"
+            Behavior on color { CAnim { ms: 120 } }
+        }
 
         Image {
-            id: img
             visible: di.glyph === ""
-            width: di.size - 4; height: width
-            anchors.horizontalCenter: parent.horizontalCenter
-            anchors.bottom: dots.top; anchors.bottomMargin: 2 - di.hop
+            x: Math.min(di.hop, dock.pad - 2 + dock.swell - (di.size - dock.iconSize))
+            anchors.verticalCenter: parent.verticalCenter
+            width: di.size; height: di.size
             source: di.glyph === "" ? Quickshell.iconPath(di.iconName, "application-x-executable") : ""
             sourceSize: Qt.size(128, 128)
             smooth: true; mipmap: true
-            opacity: di.faded ? 0.55 : 1
+            opacity: di.faded ? 0.5 : 1
+            Behavior on opacity { NumberAnimation { duration: 160 } }
         }
         IconText {
             visible: di.glyph !== ""
-            anchors.horizontalCenter: parent.horizontalCenter
-            anchors.bottom: dots.top; anchors.bottomMargin: 2
+            anchors.verticalCenter: parent.verticalCenter
+            width: di.size
+            horizontalAlignment: Text.AlignHCenter
             text: di.glyph
-            font.pixelSize: di.size * 0.62
-            color: dock.root.ink
+            font.pixelSize: di.size * 0.58
+            color: iconMa.containsMouse ? dock.root.seal : dock.root.ink
         }
-        // running: one dot, as on macOS; the accent while it has focus
-        Item {
-            id: dots
-            anchors.horizontalCenter: parent.horizontalCenter
-            anchors.bottom: parent.bottom
-            width: 4; height: 4
-            Rectangle {
-                anchors.fill: parent
-                radius: 2
-                visible: di.windows > 0
-                color: di.focused ? dock.root.seal : Qt.rgba(dock.root.ink.r, dock.root.ink.g, dock.root.ink.b, 0.75)
-            }
+        // running: a mark on the frame side, a longer one in the accent while
+        // it has focus (several windows: a little longer still)
+        Rectangle {
+            x: -dock.pad + 2
+            anchors.verticalCenter: parent.verticalCenter
+            visible: di.windows > 0
+            width: 3
+            height: di.focused ? 18 : di.windows > 1 ? 10 : 5
+            radius: 1.5
+            color: di.focused ? dock.root.seal : Qt.rgba(dock.root.ink.r, dock.root.ink.g, dock.root.ink.b, 0.7)
+            Behavior on height { Anim { kind: "spatialFast" } }
         }
-        // the name, over the icon while hovered
+        // the name, beside the icon while hovered
         Rectangle {
             visible: iconMa.containsMouse && di.label !== "" && !menu.visible
-            anchors.horizontalCenter: parent.horizontalCenter
-            y: -height - 8
-            width: tip.implicitWidth + 14; height: tip.implicitHeight + 6
+            x: di.size + 14
+            anchors.verticalCenter: parent.verticalCenter
+            width: tip.implicitWidth + 16; height: tip.implicitHeight + 8
             radius: 8
-            color: Qt.rgba(dock.root.paper.r, dock.root.paper.g, dock.root.paper.b, 0.78)
+            color: Qt.rgba(dock.root.paper.r, dock.root.paper.g, dock.root.paper.b, 0.9)
             border.width: 1
-            border.color: Qt.rgba(1, 1, 1, 0.12)
+            border.color: Qt.rgba(1, 1, 1, 0.1)
             UiText {
                 id: tip
                 anchors.centerIn: parent
@@ -330,7 +422,8 @@ PanelWindow {
         }
         MouseArea {
             id: iconMa
-            anchors.fill: parent
+            x: 0; y: (parent.height - height) / 2
+            width: di.size; height: di.size
             hoverEnabled: true
             acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
             cursorShape: Qt.PointingHandCursor
@@ -342,14 +435,14 @@ PanelWindow {
         }
     }
 
-    // ── right-click menu ──
+    // ── right-click menu, beside the icon ──
     Rectangle {
         id: menu
         property var app: null
-        property real anchorX: 0
-        visible: dock.menuOpen && app !== null
-        x: Math.max(8, Math.min(dock.width - width - 8, anchorX - width / 2))
-        y: shelf.y - height - (dock.maxIcon - dock.iconSize) - 10
+        property real anchorY: 0
+        visible: dock.menuOpen && app !== null && dock.shown
+        x: shelf.x + shelf.width + 10
+        y: Math.max(8, Math.min(dock.height - height - 8, anchorY - height / 2))
         width: 190
         height: menuCol.implicitHeight + 12
         radius: 12
@@ -359,7 +452,7 @@ PanelWindow {
 
         function openFor(app, item) {
             menu.app = app
-            menu.anchorX = item.mapToItem(null, item.width / 2, 0).x
+            menu.anchorY = item.mapToItem(null, 0, item.height / 2).y
             dock.menuOpen = true
         }
         function close() { dock.menuOpen = false; hideDelay.restart() }
@@ -394,8 +487,8 @@ PanelWindow {
                 }
             }
         }
-        // a click anywhere else on the dock closes it
-        HoverHandler { onHoveredChanged: if (!hovered && !dockHover.hovered) menuCloser.restart() }
-        Timer { id: menuCloser; interval: 900; onTriggered: if (!dockHover.hovered) menu.close() }
+        // leaving the menu (and the shelf) closes it
+        HoverHandler { onHoveredChanged: if (!hovered && !shelfHover.hovered) menuCloser.restart() }
+        Timer { id: menuCloser; interval: 900; onTriggered: if (!shelfHover.hovered) menu.close() }
     }
 }

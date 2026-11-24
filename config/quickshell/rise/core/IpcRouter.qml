@@ -158,6 +158,10 @@ Item {
     IpcHandler {
         target: "launcher"
         function toggle(): void { router.invoke("toggleAppLauncher") }
+        // the menu (dots-menu): the launcher in its menu mode
+        // true once handled; false while the bar is starting (dots-menu
+        // then falls back to fuzzel)
+        function menu(): bool { return router.invoke("openLauncherMenu") }
     }
 
     IpcHandler {

@@ -16,10 +16,14 @@
       # port forward on the router
       2234
       32400
+      # LocalSend (home/desktop-tools.nix): transfers
+      53317
     ];
     allowedUDPPorts = [
       5353
       32410
+      # LocalSend: discovery (multicast announcements)
+      53317
     ];
   };
 }

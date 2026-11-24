@@ -261,6 +261,30 @@ let
       (python3.withPackages (p: [ p.pygobject3 ])) # keybinds.py, palettes, BlueZ pairing agent
     ])
   );
+
+  # Quickshell takes its icon theme from QS_ICON_THEME at startup (the Qt
+  # platform theme isn't loaded here), for every icon in the bar: dock, tray,
+  # launcher, panels. This sets it to the current theme's icons as
+  # dots-appearance resolves them (WhiteSur-dark for oled; themes without
+  # their own get the appearance default). A theme switch changes them at
+  # the next bar restart. Only without dots-appearance, or if it hangs past
+  # the timeout (the bar must still start), is it Quickshell's default.
+  iconEnv = pkgs.writeShellApplication {
+    name = "rise-icon-env";
+    runtimeInputs = [
+      pkgs.coreutils
+      pkgs.jq
+    ];
+    text = ''
+      if command -v dots-appearance >/dev/null 2>&1; then
+        icons=$(timeout 5 dots-appearance state 2>/dev/null | jq -r '.effective.icons // .look.icons // empty' 2>/dev/null || true)
+        if [[ $icons =~ ^[A-Za-z0-9._+-]+$ ]]; then
+          export QS_ICON_THEME="$icons"
+        fi
+      fi
+      exec "$@"
+    '';
+  };
 in
 {
   home.packages = helpers ++ [
@@ -315,6 +339,9 @@ in
         "DOTS_SHELL_PATH=${config.xdg.configHome}/quickshell/rise"
         # theme pickers list ''${DOTS_DIR}/config/themes
         "DOTS_DIR=${config.dots.src}"
+        # the checkout itself (the menu's rebuild entries); DOTS_DIR is the
+        # store copy when liveConfig is off
+        "DOTS_REPO=${config.dots.repoPath}"
         # Caelestia.Blobs: the SDF frame + melting panel backgrounds
         # rise/ext: Qt5Compat.GraphicalEffects (window switcher) and
         # QtMultimedia (video wallpapers; its ffmpeg backend is a plugin)
@@ -342,7 +369,7 @@ in
       ExecStartPre = "${pkgs.coreutils}/bin/mkdir -p %S/dots/shell/ext %C/quickshell";
       # tray apps and MPRIS players with broken D-Bus properties logged a
       # warning on every update (~80 an hour); nothing here can act on them
-      ExecStart = lib.mkForce "${thpOff}/bin/thp-off ${config.programs.quickshell.package}/bin/quickshell --config rise --log-rules quickshell.dbus.properties.warning=false";
+      ExecStart = lib.mkForce "${iconEnv}/bin/rise-icon-env ${thpOff}/bin/thp-off ${config.programs.quickshell.package}/bin/quickshell --config rise --log-rules quickshell.dbus.properties.warning=false";
       # soft backstop: the bar idles at ~300–450 MB; past this the kernel
       # reclaims/throttles the cgroup instead of letting a runaway helper (a
       # thumbnail batch, a leak) push the whole session into swap

@@ -578,7 +578,7 @@ Scope {
                     Toggle { key: "styleAutoHide"; icon: "visibility_off"; title: "Auto-hide"; sub: "The bar shrinks to the edge until hovered" }
                     NxRow {
                         id: dockRow
-                        icon: "dock_to_bottom"; title: "Dock"; sub: "Apps along the bottom; right-click one to keep it"
+                        icon: "dock_to_left"; title: "Dock"; sub: "Apps on the left edge; right-click one to keep it"
                         Repeater {
                             model: [["autohide", "Auto-hide"], ["floating", "Floating"], ["always", "Always"], ["off", "Off"]]
                             delegate: NxButton {

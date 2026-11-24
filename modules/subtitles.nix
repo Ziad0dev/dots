@@ -115,10 +115,23 @@ let
         exit 0
       fi
 
-      api -o /dev/null -X POST \
+      # Saving settings makes Bazarr reconnect to the *arrs before it replies,
+      # which can take minutes: post once, without retries (a retried POST
+      # that times out each time outlasted the unit's 5-minute timeout). The
+      # setting is the same every run, so a miss is fixed at the next start.
+      rc=0
+      curl -sf -o /dev/null --max-time 60 -H @- -X POST \
         --data-urlencode "languages-enabled=en" \
         --data-urlencode ${lib.escapeShellArg "languages-profiles=${englishProfile}"} \
-        "${bazarrUrl}/api/system/settings"
+        "${bazarrUrl}/api/system/settings" <<<"X-API-KEY: $key" || rc=$?
+      case $rc in
+        0) ;;
+        28) echo "Bazarr: no reply to the language settings in time; they apply at the next run" >&2 ;;
+        *)
+          echo "Bazarr refused the language settings (curl exit $rc)" >&2
+          exit 1
+          ;;
+      esac
 
       dir=$(mktemp -d)
       trap 'rm -rf "$dir"' EXIT
@@ -284,6 +297,9 @@ in
       "sonarr.service"
       "radarr.service"
     ];
+    # it can take minutes (Bazarr reconnecting to the *arrs): a switch must
+    # not restart it and wait. It runs at boot, and by hand when wanted.
+    restartIfChanged = false;
     serviceConfig = setupSandbox // {
       ExecStart = "${setup}/bin/bazarr-setup";
     };

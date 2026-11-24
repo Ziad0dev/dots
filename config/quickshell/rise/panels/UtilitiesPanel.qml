@@ -95,6 +95,7 @@ PanelWindow {
           cmd: "if command -v dots-toggle-idle >/dev/null 2>&1; then exec dots-toggle-idle; fi; exec dots toggle idle" },
         { id: "inhibit", label: "Caffeine", glyph: "", shown: true, on: root.idleInhibited, cmd: "" },
         { id: "night", label: "Night light", glyph: "", shown: true, on: nightLight, cmd: "dots-nightlight toggle" },
+        { id: "game", label: "Game mode", glyph: "sports_esports", shown: true, on: root.gameMode, cmd: "dots-look game toggle" },
         { id: "rec", label: root.screenRecording ? "Stop rec" : "Record", glyph: "", shown: true, on: root.screenRecording,
           cmd: root.screenRecording ? "dots-capture-screenrecording --stop" : "dots-capture-screenrecording" },
         { id: "recarea", label: "Record area", glyph: "crop", shown: !root.screenRecording, on: false,

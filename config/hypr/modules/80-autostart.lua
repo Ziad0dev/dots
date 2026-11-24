@@ -1,3 +1,5 @@
+local util = require("lib.util")
+
 local SESSION_VARS = "WAYLAND_DISPLAY DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_DESKTOP HYPRLAND_INSTANCE_SIGNATURE XDG_SESSION_TYPE NIXOS_OZONE_WL MOZ_ENABLE_WAYLAND QT_QPA_PLATFORM QT_QPA_PLATFORMTHEME GDK_BACKEND CLUTTER_BACKEND XCURSOR_SIZE"
 
 hl.on("hyprland.start", function()
@@ -15,15 +17,11 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("awww-daemon --no-cache")
 
     hl.exec_cmd("zen-beta")
-    hl.exec_cmd("discord")
+    -- on its "chat" scratchpad (SUPER + CTRL + C), out of the way
+    hl.exec_cmd("discord", { workspace = "special:chat silent" })
 
     hl.exec_cmd([[sh -c 'sleep 2; ghostty --class=dev.dots.sideterm']])
-    hl.exec_cmd([[sh -c '
-        tmux has-session -t sysmon 2>/dev/null || {
-            tmux new-session -d -s sysmon -n sysmon "btop || exec fish"
-            tmux split-window -v -t sysmon:sysmon "nvtop || exec fish"
-        }
-        ghostty --class=dev.dots.sysmon -e tmux new-session -A -s sysmon']])
+    hl.exec_cmd(util.sysmon_cmd("dev.dots.sysmon", "sysmon"))
 end)
 
 hl.on("hyprland.shutdown", function()
