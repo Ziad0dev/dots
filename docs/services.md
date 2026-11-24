@@ -35,6 +35,15 @@ On the LAN only Jellyfin, the Soulseek listener and mDNS are admitted; on the ta
 | **calibre-web** | loopback only, library at `/mnt/media/books`, uploads disabled. `GOOGLE_BOOKS_API_KEY` (optional) comes from secretspec |
 | **MPD** | user service (`home/profiles/linux-desktop.nix`), music at `/mnt/media/music`. Two outputs: PipeWire (default) and a bit-perfect ALSA output from `~/.config/dots-local/mpd.conf` (it names the DAC, so it stays out of the repo; disabled; switch with `mpc enable only 2`, back with `mpc enable only 1`). Clients: rmpc, mpdris2 for media keys |
 
+## Download bufferbloat
+
+`modules/sqm.nix` (`dots.sqm.enable`, `dots.sqm.download`). A download that fills the line built a queue upstream, and everything else waited behind it: on the gigabit line, pings went from 5 ms idle to about 69 ms on average and 221 ms at worst. The gateway's Smart Queues fixed the latency but capped the line at about 730 Mb/s (its CPU can't shape a gigabit), so they're off, and this machine shapes its own downloads instead: incoming internet traffic is redirected to an IFB device (`ifb-sqm`) and shaped with CAKE a little below the line rate, which keeps the queue here, short and fair.
+
+- Only internet traffic is shaped: private source addresses (`dots.sqm.lanSubnets`: the LAN, IoT and guest VLANs, media clients) pass at full speed. Upload stays on the default `fq_codel`; it showed no bufferbloat.
+- The rate must sit below the line's real download speed, or nothing improves. Retune it after a plan change: run a speed test with the unit stopped, set `download` to about 95 %, switch, and check that latency under load stays near idle.
+- It protects this machine's own traffic. Another device saturating the line still adds latency for everyone.
+- `systemctl status dots-sqm`, `tc -s qdisc show dev ifb-sqm` (drops and delays), `sudo systemctl stop dots-sqm` removes the shaping until the next boot or switch.
+
 ## VPN namespace
 
 `modules/vpn.nix`, using [VPN-Confinement](https://github.com/Maroka-chan/VPN-Confinement).

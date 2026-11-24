@@ -56,6 +56,12 @@
   networking.hostName = hostname;
   networking.networkmanager.enable = true;
   dots.lanInterface = "enp5s0";
+  # download bufferbloat (modules/sqm.nix): shaped here, since the gateway's
+  # Smart Queues can't do a full gigabit
+  dots.sqm = {
+    enable = true;
+    download = "900mbit";
+  };
 
   time.timeZone = "Europe/Stockholm";
   i18n.defaultLocale = "en_US.UTF-8";

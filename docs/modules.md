@@ -87,6 +87,7 @@ Per-user: MangoHud in `home/gaming-home.nix` (hidden by default, `Right Shift + 
 | `vpn.nix` | WireGuard namespace `wg`; qBittorrent, Prowlarr, FlareSolverr confined to it | [Services](services.md#vpn-namespace) |
 | `mullvad.nix` | Mullvad daemon + GUI for the host; systemd-resolved with LLMNR off | |
 | `lan.nix` | Jellyfin ports on the LAN interface only | |
+| `sqm.nix` | CAKE shaping of internet downloads on the LAN interface, against bufferbloat (`dots.sqm`) | [Services](services.md#download-bufferbloat) |
 | `llm.nix` | Eight llama.cpp units (CUDA, prebuilt from the NixOS CUDA cache; `--fit` places layers in free VRAM), mutually exclusive, user-startable without sudo | [Services](services.md#local-llms) |
 | `ollama.nix` | Ollama (Vulkan) on `127.0.0.1:11434`, Qwen3.5 9B, Qwen2.5-Coder 14B + 7B, Devstral Small 2 24B, starts at boot, loads models on demand | [Services](services.md#local-llms) |
 | `backup.nix` | Daily restic of `$HOME`, quiesced media/download application state and the Secure Boot keys to `/mnt/backup/restic-new` | [Services](services.md#backups) |
