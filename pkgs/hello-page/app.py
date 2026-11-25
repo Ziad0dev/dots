@@ -25,6 +25,7 @@ except ImportError:
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 STATIC = os.path.join(ROOT, "static")
+STATIC_REAL = os.path.realpath(STATIC)
 DB_PATH = os.environ.get("DB_PATH", os.path.join(ROOT, "data.db"))
 CONFIG_PATH = os.environ.get("CONFIG_PATH", os.path.join(ROOT, "config.json"))
 CONTENT_DIR = os.environ.get("CONTENT_DIR", os.path.join(ROOT, "content"))
@@ -675,11 +676,16 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def send_file(self, path, cache=True):
-        if not os.path.isfile(path):
+        # Callers only pass names matched against a strict pattern, but serve
+        # nothing outside static/ even if a future route forgets to.
+        path = os.path.realpath(path)
+        if os.path.commonpath([path, STATIC_REAL]) != STATIC_REAL or not os.path.isfile(path):
             return self.send_error(404)
         ctype = mimetypes.guess_type(path)[0] or "application/octet-stream"
         if ctype.startswith("text/") or ctype.endswith("json") or "javascript" in ctype:
             ctype += "; charset=utf-8"
+        if not re.fullmatch(r"[\w.+/-]+(; charset=utf-8)?", ctype):  # never a CR/LF into a header
+            ctype = "application/octet-stream"
         size = os.path.getsize(path)
         start, end = 0, size - 1
         partial = False

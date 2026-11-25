@@ -6,6 +6,11 @@
 }:
 let
   staging = "/mnt/media/slsk";
+  # What a release carries besides its music (rip logs, DR reports, cue
+  # sheets, checksums, lyrics files, scans, booklets): slsk-import deletes a
+  # staging folder once only this is left, music-tidy doesn't count it as
+  # music. A find -iregex over the whole path.
+  clutter = ".*\\.(txt|log|cue|nfo|m3u8?|pls|sfv|md5|sha1|sha256|crc|ffp|st5|accurip|toc|sfk|lrc|url|ini|db|rtf|html?|md|jpe?g|png|gif|webp|bmp|tiff?|pdf)$";
   # `music-scout playlists` writes here; Tauon reads it (home/flatpak.nix)
   playlists = "/mnt/media/playlists";
 
@@ -80,6 +85,9 @@ let
     runtimeInputs = [
       config.programs.beets.package
       pkgs.util-linux
+      pkgs.gnugrep
+      pkgs.findutils
+      pkgs.coreutils
     ];
     text = ''
       lock="''${XDG_RUNTIME_DIR:-/tmp}/slsk-import.lock" # one beets run at a time
@@ -89,11 +97,51 @@ let
 
       echo "== filing music beets doesn't know yet"
       # `unimported` ignores beets' `ignore` list: leave the compilations alone here
-      mapfile -t dirs < <(beet unimported | grep -v '^${config.programs.beets.settings.directory}/playlists/' |
-        xargs -r -d '\n' dirname | sort -u)
-      if [ "''${#dirs[@]}" -gt 0 ]; then
-        # MusicBrainz where the match is clear, the files' own tags otherwise
-        beet import -q --quiet-fallback=asis "''${dirs[@]}" </dev/null || true
+      # only music counts: `unimported` also lists stray clutter and hidden
+      # files, which would mark a folder untagged and re-import a library album
+      mapfile -t files < <(beet unimported | grep -v '^${config.programs.beets.settings.directory}/playlists/' |
+        grep -viE '${clutter}' | grep -vE '/\.[^/]*$|~$')
+      # files grouped by folder in one pass
+      declare -A byDir=()
+      for f in "''${files[@]}"; do
+        [ -n "$f" ] && byDir["''${f%/*}"]+="$f"$'\n'
+      done
+      # `beet import DIR` walks subfolders too, so a folder inside one already
+      # listed is covered by it; its files are checked with the parent's
+      mapfile -t all < <(printf '%s\n' "''${!byDir[@]}" | grep . | sort)
+      dirs=()
+      for d in "''${all[@]}"; do
+        [ "''${#dirs[@]}" -gt 0 ] && [[ $d == "''${dirs[-1]}"/* ]] && continue
+        dirs+=("$d")
+      done
+      untagged=()
+      for d in "''${dirs[@]}"; do
+        mine=()
+        for k in "''${all[@]}"; do
+          if [ "$k" = "$d" ] || [[ $k == "$d"/* ]]; then
+            mapfile -t -O "''${#mine[@]}" mine < <(printf '%s' "''${byDir[$k]}")
+          fi
+        done
+        # as slsk-import: split by album (-g) only when the folder holds more
+        # than one album tag, or a compilation splits into one album per artist
+        group=(-g)
+        if ${python}/bin/python3 -I ${../scripts/audio-tagged.py} --one-album "''${mine[@]}"; then
+          group=()
+        fi
+        # MusicBrainz where the match is clear, the files' own tags otherwise,
+        # but only when every file has artist and album tags: untagged files
+        # filed as-is land in the library as "_/[id]/00.flac"
+        fallback=()
+        if ${python}/bin/python3 -I ${../scripts/audio-tagged.py} "''${mine[@]}" 2>/dev/null; then
+          fallback=(--quiet-fallback=asis)
+        else
+          untagged+=("$d")
+        fi
+        beet import -q "''${group[@]}" "''${fallback[@]}" "$d" </dev/null || true
+      done
+      if [ "''${#untagged[@]}" -gt 0 ]; then
+        echo "untagged files, filed only where MusicBrainz matched; tag the rest by hand:"
+        printf '  %s\n' "''${untagged[@]}"
       fi
 
       echo "== cover art: fetch what's missing, put it in the files"
@@ -153,6 +201,8 @@ let
     '';
   };
   # Nicotine+ "run command after folder finishes" hook: afterfolder = slsk-import $
+  # Moves the folder to the staging dir, files it into the library with beets,
+  # then clears it from staging.
   slsk-import = pkgs.writeShellApplication {
     name = "slsk-import";
     runtimeInputs = [
@@ -177,8 +227,54 @@ let
       echo "== $(date -Is) $src -> $dest"
       mv -- "$src" "$dest"
 
+      # Sets `left` to the files in $dest other than the clutter a release
+      # carries (rip logs, DR reports, cue sheets, checksums, scans). It lists
+      # what isn't clutter rather than what is audio, so music in a format
+      # nobody listed (wma, m4b, mka, ...) keeps the folder. Fails when find
+      # does (drive gone, I/O error), and the caller then keeps everything.
+      left=()
+      scan() {
+        local out
+        out="$(mktemp)"
+        # hidden files (macOS ._* forks, .DS_Store) and *~ are what beets'
+        # `ignore` skips, so they'd never leave either
+        if ! find "$dest" -regextype posix-extended -type f \
+          -not -iregex '${clutter}' -not -name '.*' -not -name '*~' -print0 >"$out"; then
+          rm -f -- "$out"
+          return 1
+        fi
+        mapfile -d "" left <"$out"
+        rm -f -- "$out"
+      }
+
       # one beets run at a time; the library is a single sqlite db
-      flock "''${XDG_RUNTIME_DIR:-/tmp}/slsk-import.lock" beet import -q "$dest" || true
+      exec 9>"''${XDG_RUNTIME_DIR:-/tmp}/slsk-import.lock"
+      flock 9
+      # -g: Nicotine+ names a folder by its last path part, so two albums'
+      # "Disc 1" can land in one folder; split it by the files' album tags.
+      # Only then: -g groups by artist too, which would split a compilation
+      # without album-artist tags into one album per track artist
+      group=(-g)
+      if scan && [ "''${#left[@]}" -gt 0 ] &&
+        ${python}/bin/python3 -I ${../scripts/audio-tagged.py} --one-album "''${left[@]}"; then
+        group=()
+      fi
+      beet import -q "''${group[@]}" "$dest" </dev/null || true
+      # what MusicBrainz couldn't match clearly (compilations, samplers, odd
+      # rips) is filed by its own tags rather than left here, but only when
+      # every file left has artist and album tags: untagged files filed as-is
+      # land in the library as "_/[id]/00.flac"
+      # (-I: the first pass may have recorded this folder as imported)
+      if scan && [ "''${#left[@]}" -gt 0 ] &&
+        ${python}/bin/python3 -I ${../scripts/audio-tagged.py} "''${left[@]}"; then
+        beet import -q "''${group[@]}" -I --quiet-fallback=asis "$dest" </dev/null || true
+      fi
+      exec 9>&-
+      # once the music is in the library the clutter goes too; a folder that
+      # still holds anything else is kept
+      if scan && [ "''${#left[@]}" -eq 0 ]; then
+        rm -rf -- "$dest"
+      fi
       find "$dest" -depth -type d -empty -delete 2>/dev/null || true
       # the Spotify playlists (Tauon, Jellyfin) fill in with what just arrived.
       # Queued, not run here: a batch of folders merges into one refresh, and
@@ -186,7 +282,8 @@ let
       systemctl --user start --no-block music-playlists.service || true
 
       if [ -d "$dest" ]; then
-        notify-send -a "$app" "beets skipped: $name" "left in ${staging}, run: beet import ${staging}" || true
+        notify-send -a "$app" "Kept in staging: $name" \
+          "beets didn't file all of it (untagged, unmatched or an error); see ${config.xdg.stateHome}/slsk-import.log" || true
       else
         notify-send -a "$app" "Imported: $name" || true
       fi
@@ -394,16 +491,15 @@ in
           "album"
         ];
       };
-      # timed lyrics from LRCLIB first (Tauon, rmpc and the bar scroll them),
-      # plain ones from Genius otherwise; never replace timed lyrics a file has
+      # timed lyrics from LRCLIB (Tauon, rmpc and the bar scroll them), plain
+      # ones where it has no timed copy; never replace timed lyrics a file has.
+      # No Genius: beets' shared API key is rate-limited (every request 429),
+      # so it only added minutes of retries to each import
       lyrics = {
         auto = true;
         synced = true;
         keep_synced = true;
-        sources = [
-          "lrclib"
-          "genius"
-        ];
+        sources = [ "lrclib" ];
       };
       # the cover goes into the files too (players that don't read cover.jpg,
       # phones, Jellyfin), but never over art a file already carries

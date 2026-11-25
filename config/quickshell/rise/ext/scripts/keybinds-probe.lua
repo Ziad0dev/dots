@@ -166,10 +166,17 @@ end
 
 -- Callable, indexable, concatenable nothing, for every hl call whose result
 -- the config might keep or chain (hl.get_active_monitor():…, rules, timers).
+-- A numeric index is nil, so a query's list (hl.get_windows()) reads as
+-- empty: ipairs over a Nothing that answered [1], [2], … never ended.
 local Nothing
 Nothing = setmetatable({}, {
     __call = function() return Nothing end,
-    __index = function() return Nothing end,
+    __index = function(_, k)
+        if type(k) == "number" then
+            return nil
+        end
+        return Nothing
+    end,
     __concat = function(a, b) return (a == Nothing and "" or tostring(a)) .. (b == Nothing and "" or tostring(b)) end,
     __tostring = function() return "" end,
     __len = function() return 0 end,

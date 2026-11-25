@@ -137,6 +137,10 @@ ro.hardware.egl=swiftshader
 
 then `sudo waydroid upgrade --offline` and `sudo systemctl restart waydroid-container`. Expect it to be CPU-bound: fine for apps, not for games.
 
+### Discord: streams from Apple devices glitch, with colour fringing
+
+Known, not fixed here. On this NVIDIA setup, H.264 video from Apple devices (screen shares, cameras) glitches and fringes in every Chromium-based client: the Discord app (with or without Vencord, hardware or software decoding, Wayland or XWayland) and Discord in Helium. Hardware decoding goes through nvidia-vaapi-driver, which hands out pictures before they're decoded ([nvidia-vaapi-driver#455](https://github.com/elFarto/nvidia-vaapi-driver/issues/455)); software decoding is libwebrtc's ffmpeg decoder, whose log shows `avcodec_receive_frame error: -11` on keyframes. Patching the driver to wait in `vaEndPicture` didn't help. Discord in Zen plays these streams cleanly: watch them there. Check again after a Discord or nvidia-vaapi-driver update.
+
 ## Login screen
 
 ### SDDM shows the fallback theme

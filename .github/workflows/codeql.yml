@@ -1,0 +1,55 @@
+name: codeql
+
+# Replaces GitHub's default CodeQL setup, which can't leave files out. The
+# bar's QML JavaScript libraries below start with `.pragma library`, a QML
+# directive that isn't JavaScript, so CodeQL couldn't parse them and marked
+# every scan with a warning. They hold palettes, icon names and easing
+# curves and take no input. A new QML library with `.pragma` goes here too.
+# Categories match the default setup's, so existing alerts carry over.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # weekly, like the default setup: new queries can flag old code
+    - cron: "23 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write # upload the results to code scanning
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [actions, javascript-typescript, python]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: github/codeql-action/init@1bd86f2fdb4b86187fa4059f16f31a3202acc9ea # v4.39.4
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: none
+          config: |
+            paths-ignore:
+              - config/quickshell/lock/Palette.js
+              - config/quickshell/rise/DotsPower.js
+              - config/quickshell/rise/IconMap.js
+              - config/quickshell/rise/Palette.js
+              - config/quickshell/rise/modules/Calc.js
+              - config/quickshell/rise/modules/Motion.js
+              - config/quickshell/rise/panels/dash/Occult.js
+      - uses: github/codeql-action/analyze@1bd86f2fdb4b86187fa4059f16f31a3202acc9ea # v4.39.4
+        with:
+          category: /language:${{ matrix.language }}

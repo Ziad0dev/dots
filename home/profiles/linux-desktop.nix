@@ -250,6 +250,7 @@ in
 
       tor
       tor-browser
+      ladybird
       feather
       sparrow
       slack

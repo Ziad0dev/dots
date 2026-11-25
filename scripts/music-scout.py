@@ -142,7 +142,7 @@ def save(f, text):
 
 def cached(key, ttl, fn):
     """fn()'s JSON-able result, reused for ttl seconds. Failures aren't stored."""
-    f = CACHE / (hashlib.md5(key.encode()).hexdigest() + ".json")
+    f = CACHE / (hashlib.sha256(key.encode()).hexdigest()[:32] + ".json")
     if f.exists() and time.time() - f.stat().st_mtime < ttl:
         try:
             return json.loads(f.read_text())

@@ -64,7 +64,8 @@ page for the area you touch before changing it.
 - `.github/workflows/`: `check.yml` (pre-commit hook, builds, VM test),
   `security.yml` (`scripts/audit.sh`: gitleaks, actionlint/zizmor,
   shellcheck, Lua syntax, nixfmt, policy, vulnix), `flake-update.yml` (weekly
-  lock PRs), `wiki.yml` (publishes `docs/`).
+  lock PRs), `wiki.yml` (publishes `docs/`), `codeql.yml` (code scanning;
+  skips the QML `.pragma library` JS files, which aren't plain JavaScript).
 
 ## How to make a change
 

@@ -36,7 +36,14 @@
     boot.kernel.sysctl = {
       "vm.max_map_count" = 2147483642;
       "kernel.split_lock_mitigate" = 0;
-      "net.core.rmem_max" = 2500000;
+      "net.core.rmem_max" = 8388608;
+      # Sockets that don't size their own receive buffer get this one. The
+      # 208 KiB kernel default overflowed in bursts (UdpRcvbufErrors): a call
+      # app's video arrives as a burst of UDP packets per frame, and if its
+      # network thread stalls a moment the rest are dropped, which shows as
+      # glitching until the next keyframe. Discord's call sockets keep the
+      # default.
+      "net.core.rmem_default" = 4194304;
     };
 
     services.fstrim = {
