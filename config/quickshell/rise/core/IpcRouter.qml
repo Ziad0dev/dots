@@ -91,6 +91,14 @@ Item {
         function activate(version: string): void { router.variantHost.requestSwitch(version) }
     }
 
+    // dots-screensaver (hypridle's 5-minute step, the launcher, dots-menu)
+    IpcHandler {
+        target: "screensaver"
+        function start(): bool { return router.invoke("screensaverStart") }
+        function stop(): bool { return router.invoke("screensaverStop") }
+        function active(): bool { return router.canDispatch() && router.variantHost.activeItem.screensaverActive() }
+    }
+
     IpcHandler {
         target: "layout"
         function lock(): void { router.invoke("layoutLock") }

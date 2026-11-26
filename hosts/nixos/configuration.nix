@@ -10,11 +10,6 @@
 }:
 
 {
-  imports = [
-
-    inputs.hyprland.nixosModules.default
-  ];
-
   boot.kernelModules = [ "nct6775" ];
 
   systemd.sleep.settings.Sleep = {
@@ -111,6 +106,8 @@
 
   programs.coolercontrol.enable = true;
 
+  # nixpkgs' module, with the flake's packages: the Hyprland flake dropped
+  # its own NixOS module
   programs.hyprland = {
     enable = true;
     package = inputs.hyprland.packages.${system}.hyprland;

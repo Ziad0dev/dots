@@ -61,17 +61,9 @@ let
     ]
   );
 
-  screensaver = script "dots-screensaver" (
-    with pkgs;
-    [
-      coreutils
-      figlet
-      jq
-      ncurses # clear
-      terminaltexteffects
-      util-linux
-    ]
-  );
+  # drawn by the bar (rise/Screensaver.qml); qs comes from the session, like
+  # dots-menu's: it must be the running bar's own
+  screensaver = script "dots-screensaver" (with pkgs; [ coreutils ]);
 
   appearance = script "dots-appearance" (
     with pkgs;

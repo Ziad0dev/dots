@@ -1,0 +1,107 @@
+name: superwhisper-update
+
+# Monthly Superwhisper bump (flakes/superwhisper/package.nix) as a pull
+# request. scripts/superwhisper-bump.py verifies each new archive's SHA-256
+# and minisign signature before it changes the hashes. As in flake-update.yml,
+# a PR opened with GITHUB_TOKEN triggers no other workflows, so check.yml and
+# security.yml run here on the PR's head and the result is posted on the PR.
+on:
+  schedule:
+    - cron: "0 6 1 * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  update:
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      pull-request-number: ${{ steps.pr.outputs.number }}
+    runs-on: ubuntu-latest
+    steps:
+      # the PR step pushes its branch with the checkout's credentials, so they must persist
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1 # zizmor: ignore[artipacked]
+
+      - uses: cachix/install-nix-action@3dc140bfc76c49fbd4dd958429132e3746bcb086 # v31.11.5
+
+      - id: bump
+        name: bump to the latest stable release
+        run: |
+          # minisign from the repo's own pinned nixpkgs
+          version=$(nix shell --inputs-from . nixpkgs#minisign -c python3 -I scripts/superwhisper-bump.py)
+          echo "version=$version" >>"$GITHUB_OUTPUT"
+
+      - id: pr
+        name: open the pull request
+        if: steps.bump.outputs.version != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.bump.outputs.version }}
+          BASE: ${{ github.event.repository.default_branch }}
+        run: |
+          branch="superwhisper/$VERSION"
+          # rerun in the same month: reuse the open PR. A closed one means
+          # this version was declined; its branch is still there, so skip it
+          # (the next release gets a branch of its own).
+          number=$(gh pr list --head "$branch" --state open --json number --jq '.[0].number // empty')
+          if [ -z "$number" ] && git ls-remote --exit-code --heads origin "$branch" >/dev/null; then
+            echo "superwhisper $VERSION was proposed before and closed; skipping"
+            exit 0
+          fi
+          if [ -z "$number" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git switch -c "$branch"
+            git commit -am "superwhisper: $VERSION"
+            git push origin "$branch"
+            notes="https://github.com/superultrainc/superwhisper-linux-releases/releases/tag/v$VERSION"
+            url=$(gh pr create --base "$BASE" --head "$branch" --title "superwhisper: $VERSION" \
+              --body "Superwhisper $VERSION ([release notes]($notes)). Both archives' SHA-256 and minisign signatures were verified against the pinned release key before the hashes changed.")
+            number=${url##*/}
+          fi
+          echo "number=$number" >>"$GITHUB_OUTPUT"
+
+  check:
+    needs: update
+    if: needs.update.outputs.pull-request-number != ''
+    uses: ./.github/workflows/check.yml
+    with:
+      ref: refs/pull/${{ needs.update.outputs.pull-request-number }}/head
+    permissions:
+      contents: read
+
+  security:
+    needs: update
+    if: needs.update.outputs.pull-request-number != ''
+    uses: ./.github/workflows/security.yml
+    with:
+      ref: refs/pull/${{ needs.update.outputs.pull-request-number }}/head
+    permissions:
+      contents: read
+
+  report:
+    needs: [update, check, security]
+    if: always() && needs.update.outputs.pull-request-number != ''
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: report on the PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          # no checkout in this job, so gh can't infer the repo from .git
+          GH_REPO: ${{ github.repository }}
+          PR: ${{ needs.update.outputs.pull-request-number }}
+          CHECK: ${{ needs.check.result }}
+          SECURITY: ${{ needs.security.result }}
+          RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ "$CHECK" = success ] && [ "$SECURITY" = success ]; then
+            body="Build, VM test and security audit all pass with Superwhisper bumped ([run]($RUN))."
+          else
+            body="**Checks failed** with Superwhisper bumped (check: $CHECK, security: $SECURITY; [run]($RUN)) — do not merge as is."
+          fi
+          gh pr comment "$PR" --body "$body"
+          [ "$CHECK" = success ] && [ "$SECURITY" = success ]

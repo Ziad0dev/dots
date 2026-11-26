@@ -97,6 +97,7 @@ The commit-msg hook runs the same privacy check on the commit message.
 | Thing | Source | Regenerate |
 |---|---|---|
 | Weekly `flake.lock` PR | `.github/workflows/flake-update.yml` | automatic on Mondays, or from the Actions tab. A PR the workflow opens can't trigger other workflows, so it runs `check.yml` and `security.yml` on the PR itself and comments the result there; merge only on a passing comment |
+| Monthly Superwhisper PR | `.github/workflows/superwhisper-update.yml` (`scripts/superwhisper-bump.py`) | automatic on the 1st, or from the Actions tab; same checks-and-comment flow as the `flake.lock` PR. Opens nothing when the package is current |
 | Wiki | `docs/*.md` | automatic — `.github/workflows/wiki.yml` runs on pushes touching `docs/`, and on demand from the Actions tab |
 | CodeQL scans | `.github/workflows/codeql.yml` | automatic on pushes, PRs and weekly. It replaces GitHub's default setup (switch that off under Settings › Code security, or the uploads clash) so it can skip the bar's QML JavaScript libraries: their `.pragma library` line isn't JavaScript. A new `.js` file starting with `.pragma` goes in its `paths-ignore` |
 | Banner and theme gallery | `config/themes/*/colors.sh` | `python3 .github/scripts/gen-assets.py` after adding or editing a theme, then commit `.github/assets/*.svg` |

@@ -40,9 +40,30 @@ in
     ../upstream-watch.nix
     ../desktop-tools.nix
     ../flatpak.nix
+    ../../flakes/superwhisper/module.nix
   ];
 
   dots.upstreamWatch.enable = true;
+  # alongside voxtype (SUPER + V): Superwhisper holds Right Alt
+  services.superwhisper.enable = true;
+
+  # Lights up in the bar when a Superwhisper release is newer than the one
+  # installed; .github/workflows/superwhisper-update.yml opens the bump PR.
+  dots.upstreamWatch.watches.superwhisper = {
+    description = "Superwhisper update available";
+    url = "https://github.com/superultrainc/superwhisper-linux-releases/releases";
+    check = ''
+      installed=${config.services.superwhisper.package.version}
+      latest=$(curl -fsSL --proto '=https' --max-time 20 https://tux.superwhisper.com/stable.json | jq -er .version) || exit 2
+      [[ "$latest" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "unexpected version in the manifest"; exit 2; }
+      if [ "$latest" != "$installed" ] && [ "$(printf '%s\n' "$installed" "$latest" | sort -V | tail -1)" = "$latest" ]; then
+        echo "Superwhisper $latest is out (installed $installed); merge the superwhisper-update PR, then switch"
+        exit 0
+      fi
+      echo "up to date ($installed)"
+      exit 1
+    '';
+  };
 
   home.sessionVariables = {
     BROWSER = "zen-beta";

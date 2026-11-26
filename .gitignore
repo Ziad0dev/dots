@@ -11,3 +11,6 @@ iso-test/
 # anything else under secrets/ stays local.
 secrets/*
 !secrets/nixos.yaml
+
+# Claude Code session worktrees (each a separate checkout)
+.claude/worktrees/

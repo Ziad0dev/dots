@@ -93,6 +93,10 @@ The config is Lua. Dispatchers are namespaced (`hl.dsp.*`) and legacy strings ex
 
 `graphical-session.target` isn't active. The `hyprland.start` handler starts `hyprland-session.target`, which binds it. Check `systemctl --user status hyprland-session.target`; if the handler failed, the environment import line in `hyprland.lua` is the first suspect.
 
+### Screen sharing offers nothing, or a share has no sound, after Hyprland restarted
+
+OBS and Discord open a capture session and drop it before the picker shows, or a Discord share carries video but no audio. Check `busctl --user get-property org.freedesktop.portal.Desktop /org/freedesktop/portal/desktop org.freedesktop.portal.ScreenCast AvailableCursorModes`: `u 0` means the portal frontend started while its Hyprland backend couldn't (`journalctl --user -u xdg-desktop-portal-hyprland` shows `start-limit-hit`), and it keeps those empty capabilities. The `hyprland.start` handler now clears that on every start; within a session, `systemctl --user restart xdg-desktop-portal` fixes it, and Discord needs a full quit and restart to capture sound again.
+
 ### Hyprland uses a lot of CPU
 
 Check in this order:
@@ -113,6 +117,8 @@ Nix wrappers rename the process: `dunst` runs as `.dunst-wrapped`, `awww-daemon`
 ### The screen never locks
 
 Something holds an `org.freedesktop.ScreenSaver` inhibit and keeps resetting hypridle's timer — Electron apps do it for autoplaying media (animated emoji count). Watch `journalctl --user -u hypridle -f` while idle, and check the bar's idle toggle hasn't simply stopped hypridle.
+
+If the journal shows `Resumed` a second after an `on-timeout` with no one at the desk, the timeout's own command opened or focused a window. Hyprland re-checks idle inhibitors on every window map, fullscreen change and window focus, and that re-check resets every idle timer (even when nothing is inhibiting), so the later listeners (lock, displays off) start over. Anything an idle step shows must be a layer surface (a Quickshell `PanelWindow`), which is why the screensaver is drawn by the bar.
 
 ### GeForce NOW: mouse aim stops at ~180°, cursor escapes
 

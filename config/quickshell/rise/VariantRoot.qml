@@ -66,6 +66,9 @@ Item {
         theme.closePopups()
     }
     function deactivationReady() { return !theme.anyPopupVisible }
+    function screensaverStart() { screensaver.start() }
+    function screensaverStop() { screensaver.stop() }
+    function screensaverActive() { return screensaver.active }
     function layoutLock() { theme.barUnlocked = false }
     function layoutUnlock() { theme.barUnlocked = true }
     function systemUpdateRefresh() { theme.dotsUpdateCheckTick++ }
@@ -80,7 +83,8 @@ Item {
     // exists; exclude it so no unusable layer surface is created. A new real
     // ShellScreen identity makes Variants destroy the old BarSlot and
     // instantiate a fresh one.
-    readonly property var barScreens: {
+    // every real output, whatever the bar is set to (the screensaver covers all)
+    readonly property var outputScreens: {
         var valid = []
 
         for (var i = 0; i < Quickshell.screens.length; i++) {
@@ -89,6 +93,11 @@ Item {
                 valid.push(candidate)
             }
         }
+        return valid
+    }
+
+    readonly property var barScreens: {
+        var valid = outputScreens
 
         if (theme.barMonitor === "all" || valid.length === 0) return valid
         for (var j = 0; j < valid.length; j++)
@@ -335,6 +344,7 @@ Item {
         }
     }
 
+    Screensaver { id: screensaver; root: theme; screens: root.outputScreens }
     TooltipOverlay { root: theme }
     OsdPanel { root: theme }
     NotificationPopups { root: theme }

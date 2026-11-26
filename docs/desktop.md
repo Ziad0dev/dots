@@ -9,6 +9,7 @@ SDDM (kwin greeter, dots theme)
   └─ Hyprland
        └─ hyprland.start handler (config/hypr/hyprland.lua)
             ├─ import WAYLAND_DISPLAY, HYPRLAND_INSTANCE_SIGNATURE, … into dbus + systemd --user
+            ├─ reset-failed on the session's units and the portals, then stop the portals
             ├─ systemctl --user start hyprland-session.target ── BindsTo graphical-session.target
             │     ├─ quickshell (rise)         ├─ swayosd-server
             │     │                            └─ hypridle, cliphist, udiskie, mpdris2, …
@@ -16,7 +17,7 @@ SDDM (kwin greeter, dots theme)
             └─ apps: zen, sideterm, sysmon, discord
 ```
 
-`hyprland-session.target` is defined in `home/profiles/linux-desktop.nix`. Without it `graphical-session.target` never activates and nothing that hangs off it starts. On exit, the `hyprland.shutdown` handler stops the target.
+`hyprland-session.target` is defined in `home/profiles/linux-desktop.nix`. Without it `graphical-session.target` never activates and nothing that hangs off it starts. On exit, the `hyprland.shutdown` handler stops the target. Between two sessions, apps still wake the portals and restart session units against the dead compositor until systemd's start limit blocks them; the block survives a stop, so the next session's units (the bar, hypridle, …) and the screen-capture portal wouldn't start. The `reset-failed` step clears it on every start, crash or clean exit.
 
 ## Monitors and workspaces
 
@@ -178,7 +179,6 @@ LocalSend (**Menu → Share**) sends files and text to phones and computers on t
 | `dev.dots.sysmon` | Workspace 9, the second monitor (silent, no focus) — tmux session `sysmon` with btop over nvtop |
 | `dev.dots.sysmon.pad` | The `monitor` scratchpad (silent) — its own tmux session, `sysmon-pad` |
 | `discord` | Opaque, no blur, dim or shadow. Autostart opens it on the `chat` scratchpad |
-| `dev.dots.screensaver` | Fullscreen on its monitor, opaque, no animation (set by `dots-screensaver` when it starts each one) |
 | `org.pwmt.zathura` | Opaque, no blur, inhibits idle when fullscreen |
 | `flameshot` | Floating, pinned |
 | `com.gabm.satty` (screenshot editor) | Floating |
@@ -340,7 +340,7 @@ qs -c rise ipc call <target> <function>
 
 - Lock screen: `quickshell -c lock` (`config/quickshell/lock/`) — blurred current wallpaper, clock, date, password field, themed from the same palette as the bar. It authenticates through the `quickshell-lock` PAM service (`modules/lockscreen.nix`).
 - On screens at least 1500 px wide, side columns after Caelestia's lock (`LockCentre.qml`): the weather (wttr.in, as the bar fetches it; no card when offline) and what's playing with previous / play-pause / next on the left, CPU, memory, disk and uptime, and the latest notifications on the right. Notifications come from the bar's saved history and show only the app and the title, never the message body, since anyone at the desk can read a lock screen; ones that arrived after locking are marked and counted.
-- `hypridle` (`config/hypr/hypridle.conf`): screensaver at **5 min** (`dots-screensaver`, after Omarchy's: a big clock played through random terminal-text effects on every monitor; any key or pointer movement ends it; it skips game mode, and monitors showing a fullscreen window), lock at **10 min**, displays off at **15 min** (`wlopm`). `lock_cmd` refuses to start a second lock instance.
+- `hypridle` (`config/hypr/hypridle.conf`): screensaver at **5 min** (`dots-screensaver`, drawn by the bar: `rise/Screensaver.qml`, after Omarchy's — the NixOS logo (`rise/NixosArt.js`, fastfetch's block-character art) played through terminal-text-style effects on black (decrypt, rain, beams, print, expand, slide; one after another), in a gradient through the theme's palette, with a small clock under it; the same picture on every monitor, sized to fit each, wandering a little every two minutes against burn-in; any key, click or pointer movement ends it, and the key doesn't reach the app underneath; it skips game mode; `qs -c rise ipc call screensaver start|stop|active`. It is a layer overlay rather than windows because Hyprland resets idle timers whenever a window opens or takes focus, see troubleshooting), lock at **10 min** (stopping the screensaver first), displays off at **15 min** (`wlopm`). `lock_cmd` refuses to start a second lock instance.
 - The idle toggle in the bar stops/starts the `hypridle` user unit; the unit's start/stop hooks maintain `~/.local/state/dots/indicators/stay-awake` for the widget.
 - The machine never suspends — sleep targets are disabled system-wide.
 
@@ -362,6 +362,8 @@ qs -c rise ipc call <target> <function>
 ## Dictation
 
 `voxtype` (from `scripts/voxtype.sh`): `SUPER + V` starts recording from the default PipeWire source (16 kHz mono); press again to transcribe with whisper.cpp and type the result into the focused window with `wtype` (falls back to the clipboard). Put `ggml-*.bin` files in `~/.local/share/voxtype/models`; pick one with `voxtype models` / `voxtype set-model <path>` or from the bar. Install a model manually after reinstalling, e.g. `ggml-large-v3-turbo-q5_0.bin` (550 MB, multilingual) from `huggingface.co/ggerganov/whisper.cpp`, checked against the SHA-256 shown there. whisper.cpp is the CUDA build (`modules/media-extras.nix`), so transcription runs on the GPU.
+
+Superwhisper (proprietary, `flakes/superwhisper`) runs next to it as the `superwhisper` user unit: hold **Right Alt** to dictate, let go to paste, **Escape** cancels. Open **Superwhisper** from the launcher (or `superwhisper`) to sign in, pick Cloud or Offline under Configuration → Processing, and download the offline models; settings, models and history live in `~/.config/superwhisper` and `~/.local/share/superwhisper`. Its shortcuts are a Lua file it writes itself, `~/.local/state/superwhisper/hyprland.lua`, which `config/hypr/modules/65-superwhisper.lua` loads (the Hyprland config is read-only, so it can't edit `bindings.lua` as upstream does). On its first start it also links `~/.config/wireplumber/wireplumber.conf.d/superwhisper-keep-inputs-ready.conf` (keeps microphones from suspending, so dictation starts at once; applies from the next login). `superwhisper doctor` checks its dependencies; `journalctl --user -u superwhisper` for logs. The in-app updater is refused; updates come as a monthly `superwhisper: <version>` PR from `.github/workflows/superwhisper-update.yml` instead (merge it on a passing comment, pull, switch), and the bar's upstream-watch lights up (`dots-upstream-watch status`) once a newer release is out. `python3 -I scripts/superwhisper-bump.py` (with `minisign` on PATH) does the same bump locally: it verifies both archives' SHA-256 and minisign signature before it rewrites `version` and the hashes.
 
 ## Night light
 

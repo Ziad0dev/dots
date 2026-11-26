@@ -94,6 +94,8 @@ inputs.dots-maths.url = "github:Ziad0dev/dots?dir=flakes/maths";
 
 Sets live in `names.nix`, one attribute path string per entry (`"python3Packages.pwntools"` works).
 
+`flakes/superwhisper` packages the Superwhisper Linux release (unfree, x86_64 and aarch64): `packages.default` and `homeManagerModules.default` (`services.superwhisper.enable`, `package`, `hyprlandBindingsFile`). `home/profiles/linux-desktop.nix` imports and enables it; see [Desktop](desktop.md#dictation). `nix build ~/dots/flakes/superwhisper` builds it alone.
+
 ## Foreign binaries
 
 `modules/foreign.nix` covers software that wasn't built for Nix. Pick by symptom:

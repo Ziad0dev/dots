@@ -4,7 +4,7 @@ NixOS + home-manager flake. Outputs: `nixosConfigurations.{nixos,vm,installer}`
 (`nixos` is the desktop), `darwinConfigurations.mac`, standalone
 `homeConfigurations."<user>@{linux,linux-desktop,aarch64-linux,mac}"`,
 `checks.x86_64-linux.vm` (a NixOS VM test), dev-shell `templates`, a
-`formatter`. Sub-flakes in `flakes/` (`offline`, `infosec`, `maths`, `lib`).
+`formatter`. Sub-flakes in `flakes/` (`offline`, `infosec`, `maths`, `superwhisper`, `lib`).
 Human docs are in `docs/`: read `docs/README.md`, `docs/workflow.md` and the
 page for the area you touch before changing it.
 
@@ -64,8 +64,9 @@ page for the area you touch before changing it.
 - `.github/workflows/`: `check.yml` (pre-commit hook, builds, VM test),
   `security.yml` (`scripts/audit.sh`: gitleaks, actionlint/zizmor,
   shellcheck, Lua syntax, nixfmt, policy, vulnix), `flake-update.yml` (weekly
-  lock PRs), `wiki.yml` (publishes `docs/`), `codeql.yml` (code scanning;
-  skips the QML `.pragma library` JS files, which aren't plain JavaScript).
+  lock PRs), `superwhisper-update.yml` (monthly Superwhisper bump PR),
+  `wiki.yml` (publishes `docs/`), `codeql.yml` (code scanning; skips the
+  QML `.pragma library` JS files, which aren't plain JavaScript).
 
 ## How to make a change
 

@@ -66,7 +66,7 @@ The package test for the system list: root needs it, a system service needs it, 
 
 | Module | Owns |
 |---|---|
-| `gaming.nix` | **The kernel** (`linuxPackages_cachyos`); sched_ext (`scx_lavd`, currently **disabled**); Steam + gamescope session + `proton-cachyos-bin_edge`, remote-play/dedicated ports closed; gamemode; ananicy-cpp with CachyOS rules; ProtonUp-Qt, Heroic |
+| `gaming.nix` | **The kernel** (`linuxPackages_cachyos`); sched_ext (`scx_lavd`, currently **disabled**); Steam + gamescope session + `proton-cachyos-bin_edge`, remote-play/dedicated ports closed; gamemode; ananicy-cpp with CachyOS rules, minus the ones for shells (they gave every shell-script job nice −4, defeating `Nice=19`; terminals keep theirs); ProtonUp-Qt, Heroic |
 | `gaming-extras.nix` | protontricks, winetricks, Lutris |
 
 Per-user: MangoHud in `home/gaming-home.nix` (hidden by default, `Right Shift + F12`).
