@@ -38,7 +38,7 @@ Item {
     Behavior on oy { NumberAnimation { duration: 9000; easing.type: Easing.InOutSine } }
     Timer {
         interval: 120000
-        running: true
+        running: !face.paused
         repeat: true
         onTriggered: {
             face.ox = (Math.random() - 0.5) * face.w * 0.1
@@ -55,9 +55,11 @@ Item {
     property real t: 0          // intro progress, 0..1
     property real artOpacity: 1
     property bool autoplay: true  // false: hold `effectIndex` at `t` (tests)
+    // black and still: nothing drawn, every animation and timer stopped (set at the lock; see Screensaver.qml)
+    property bool paused: false
 
     SequentialAnimation {
-        running: face.autoplay
+        running: face.autoplay && !face.paused
         loops: Animation.Infinite
         ScriptAction { script: { face.t = 0; face.artOpacity = 1 } }
         NumberAnimation { target: face; property: "t"; from: 0; to: 1; duration: 3500 }
@@ -108,6 +110,7 @@ Item {
 
         Item {
             anchors.fill: parent
+            visible: !face.paused
             opacity: face.artOpacity
 
             Repeater {
@@ -166,8 +169,9 @@ Item {
         // a quiet clock under the logo
         Text {
             id: clock
+            visible: !face.paused
             property date now: new Date()
-            Timer { interval: 1000; running: true; repeat: true; onTriggered: clock.now = new Date() }
+            Timer { interval: 1000; running: !face.paused; repeat: true; onTriggered: clock.now = new Date() }
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.horizontalCenterOffset: face.ox
             y: face.artY + face.artH + face.h * 0.06

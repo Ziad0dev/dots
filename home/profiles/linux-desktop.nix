@@ -39,6 +39,7 @@ in
     ../reversing.nix
     ../upstream-watch.nix
     ../desktop-tools.nix
+    ../phone.nix
     ../flatpak.nix
     ../../flakes/superwhisper/module.nix
   ];

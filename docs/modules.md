@@ -87,6 +87,7 @@ Per-user: MangoHud in `home/gaming-home.nix` (hidden by default, `Right Shift + 
 | `vpn.nix` | WireGuard namespace `wg`; qBittorrent, Prowlarr, FlareSolverr confined to it | [Services](services.md#vpn-namespace) |
 | `mullvad.nix` | Mullvad daemon + GUI for the host; systemd-resolved with LLMNR off | |
 | `lan.nix` | LAN-facing ports on the LAN interface only: Jellyfin, Plex, Soulseek, LocalSend | |
+| `phone.nix` | Phone integration's system side: KDE Connect (1714–1764) and Quick Share (`dots.phone.quickSharePort`) ports on the LAN interface only; the v4l2loopback "Phone camera" device (`dots.phone.webcamDevice`). The tools are in `home/phone.nix` | [Desktop](desktop.md#phone) |
 | `sqm.nix` | CAKE shaping of internet downloads on the LAN interface, against bufferbloat (`dots.sqm`) | [Services](services.md#download-bufferbloat) |
 | `llm.nix` | Eight llama.cpp units (CUDA, prebuilt from the NixOS CUDA cache; `--fit` places layers in free VRAM), mutually exclusive, user-startable without sudo | [Services](services.md#local-llms) |
 | `ollama.nix` | Ollama (Vulkan) on `127.0.0.1:11434`, Qwen3.5 9B, Qwen2.5-Coder 14B + 7B, Devstral Small 2 24B, starts at boot, loads models on demand | [Services](services.md#local-llms) |

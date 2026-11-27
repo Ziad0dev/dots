@@ -94,6 +94,7 @@ These open a floating terminal (`$DOTS_TERMINAL`, default ghostty) with window c
 | `dots-songrec` | `scripts/dots-songrec.sh` | `desktop` (default) · `mic` · `history [n]` |
 | `dots-lens` | `scripts/dots-lens.sh` | region → clipboard → lens.google.com |
 | `dots-shot` | `scripts/dots-shot.sh` | `region`/`screen`/`window` screenshot → `~/Pictures` + clipboard + notification (Open / Edit in satty) |
+| `dots-phone` | `scripts/dots-phone.sh` (`home/phone.nix`) | `ring` · `send [file…]` · `send-clipboard` · `sms` · `pair` (KDE Connect) · `mirror` · `webcam [back\|front\|stop]` (scrcpy) · `qr [text]` · `wifi-qr` · `quickshare` — see [Phone](desktop.md#phone) |
 | `dots-say` | `scripts/dots-say.py` | `[toggle\|stop] [text…]` — Kokoro TTS; only with `dots.tts.enable = true` |
 | `dots-mono` | `scripts/dots-mono.sh` | `on` · `off` · `toggle` · `status` |
 | `dots-usb-sound` | `scripts/dots-usb-sound.sh` | `watch` (the unit) · `on` · `off` · `toggle` · `status` |

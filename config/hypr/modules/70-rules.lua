@@ -92,6 +92,22 @@ hl.window_rule({
     no_initial_focus  = true,
 })
 
+-- dots-phone qr / wifi-qr: the code floats in the middle, sized to scan
+hl.window_rule({
+    name   = "dots-qr",
+    match  = { class = "^(imv)$", title = "dots-qr\\.png" },
+    float  = true,
+    size   = "560 600",
+    center = true,
+})
+
+-- dots-phone mirror: the phone's screen in its own floating window
+hl.window_rule({
+    name  = "dots-phone-mirror",
+    match = { class = "^(scrcpy)$" },
+    float = true,
+})
+
 -- Rise's settings app (Nexus.qml): a centred floating window, not a tile
 hl.window_rule({
     name   = "rise-settings",

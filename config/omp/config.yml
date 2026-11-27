@@ -1,8 +1,5 @@
 modelRoles:
-  # OMP is the local-model agent (Claude stays in Claude Code). Ollama keeps
-  # one model loaded (OLLAMA_MAX_LOADED_MODELS=1), so the roles share one
-  # model: a second one would reload on every commit message or subagent.
-  default: ollama/qwen3.6:35b-a3b
+  default: ollama/qwen3.5:9b:high
   smol: ollama/qwen3.6:35b-a3b:low
   task: ollama/qwen3.6:35b-a3b
   tiny: ollama/qwen3.6:35b-a3b:low
@@ -28,6 +25,5 @@ tools:
     - grep
 retry:
   fallbackChains:
-    # the smaller model fits in VRAM where the MoE one may not load
     ollama/qwen3.6:35b-a3b:
       - ollama/qwen3.5:9b

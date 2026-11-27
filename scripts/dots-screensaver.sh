@@ -7,7 +7,10 @@
 # when a window opens or takes focus, so a window-based screensaver woke
 # hypridle straight away and the lock and blackout never came.
 #
-#   dots-screensaver start | stop | status
+# At the lock it is paused (black, nothing animating) rather than stopped:
+# closing it moves keyboard focus to a window, which resets the timers again.
+#
+#   dots-screensaver start | stop | pause | status
 
 ipc() { qs -c rise ipc call screensaver "$@"; }
 
@@ -18,9 +21,10 @@ case "${1:-}" in
         ipc start >/dev/null
         ;;
     stop) ipc stop >/dev/null 2>&1 || true ;;
+    pause) ipc pause >/dev/null 2>&1 || true ;;
     status) ipc active ;;
     *)
-        echo "usage: dots-screensaver start|stop|status" >&2
+        echo "usage: dots-screensaver start|stop|pause|status" >&2
         exit 2
         ;;
 esac

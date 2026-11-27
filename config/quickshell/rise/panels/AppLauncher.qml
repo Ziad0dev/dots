@@ -131,8 +131,20 @@ PanelWindow {
             { name: "Identify song", comment: "what's playing (SUPER + ALT + M)", glyph: "music_note", run: function () { win.sh(["dots-songrec"]) } },
             { name: "Google Lens", comment: "search a region (SUPER + ALT + G)", glyph: "image_search", run: function () { win.later(["dots-lens"]) } }
         ] },
-        { name: "Share", comment: "LocalSend, clipboard, emoji", glyph: "share", children: [
+        { name: "Share", comment: "LocalSend, phone, clipboard, emoji", glyph: "share", children: [
             { name: "LocalSend", comment: "files and text to devices on the LAN", glyph: "send_to_mobile", run: function () { win.sh(["localsend_app"]) } },
+            { name: "Phone", comment: "KDE Connect, mirror, webcam, QR, Quick Share", glyph: "smartphone", children: [
+                { name: "Send files", comment: "to the phone (KDE Connect)", glyph: "upload_file", run: function () { win.sh(["dots-phone", "send"]) } },
+                { name: "Send clipboard", comment: "its text, to the phone", glyph: "content_paste_go", run: function () { win.sh(["dots-phone", "send-clipboard"]) } },
+                { name: "Ring phone", comment: "find it", glyph: "ring_volume", run: function () { win.sh(["dots-phone", "ring"]) } },
+                { name: "Messages", comment: "read and send SMS (Android)", glyph: "sms", run: function () { win.sh(["dots-phone", "sms"]) } },
+                { name: "Mirror screen", comment: "see and control it (Android, USB debugging)", glyph: "screen_share", run: function () { win.sh(["dots-phone", "mirror"]) } },
+                { name: "Phone as webcam", comment: "\"Phone camera\" in apps; again to stop (Android)", glyph: "videocam", run: function () { win.sh(["dots-phone", "webcam"]) } },
+                { name: "QR of clipboard", comment: "scan it with the phone", glyph: "qr_code", run: function () { win.sh(["dots-phone", "qr"]) } },
+                { name: "Wi-Fi QR", comment: "join this Wi-Fi by scanning", glyph: "qr_code_2", run: function () { win.sh(["dots-phone", "wifi-qr"]) } },
+                { name: "Quick Share", comment: "receive from Android's Share → Quick Share", glyph: "share_location", run: function () { win.sh(["dots-phone", "quickshare"]) } },
+                { name: "Pair a phone", comment: "KDE Connect devices and settings", glyph: "devices", run: function () { win.sh(["dots-phone", "pair"]) } }
+            ] },
             { name: "Clipboard history", comment: "SUPER + SHIFT + V", glyph: "content_paste", run: function () { win.openPopup("clipboardVisible") } },
             { name: "Emoji", comment: "SUPER + .", glyph: "mood", run: function () { win.later(["bemoji", "-n", "-t"]) } }
         ] },

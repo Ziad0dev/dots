@@ -96,6 +96,8 @@ Item {
         target: "screensaver"
         function start(): bool { return router.invoke("screensaverStart") }
         function stop(): bool { return router.invoke("screensaverStop") }
+        // black and still but still mapped (the lock step: closing it would reset the idle timers)
+        function pause(): bool { return router.invoke("screensaverPause") }
         function active(): bool { return router.canDispatch() && router.variantHost.activeItem.screensaverActive() }
     }
 

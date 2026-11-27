@@ -68,6 +68,7 @@ Item {
     function deactivationReady() { return !theme.anyPopupVisible }
     function screensaverStart() { screensaver.start() }
     function screensaverStop() { screensaver.stop() }
+    function screensaverPause() { screensaver.pause() }
     function screensaverActive() { return screensaver.active }
     function layoutLock() { theme.barUnlocked = false }
     function layoutUnlock() { theme.barUnlocked = true }

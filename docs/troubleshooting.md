@@ -118,7 +118,7 @@ Nix wrappers rename the process: `dunst` runs as `.dunst-wrapped`, `awww-daemon`
 
 Something holds an `org.freedesktop.ScreenSaver` inhibit and keeps resetting hypridle's timer — Electron apps do it for autoplaying media (animated emoji count). Watch `journalctl --user -u hypridle -f` while idle, and check the bar's idle toggle hasn't simply stopped hypridle.
 
-If the journal shows `Resumed` a second after an `on-timeout` with no one at the desk, the timeout's own command opened or focused a window. Hyprland re-checks idle inhibitors on every window map, fullscreen change and window focus, and that re-check resets every idle timer (even when nothing is inhibiting), so the later listeners (lock, displays off) start over. Anything an idle step shows must be a layer surface (a Quickshell `PanelWindow`), which is why the screensaver is drawn by the bar.
+If the journal shows `Resumed` a second after an `on-timeout` with no one at the desk, the timeout's own command opened or focused a window. Hyprland re-checks idle inhibitors on every window map, fullscreen change and window focus, and that re-check resets every idle timer (even when nothing is inhibiting), so the later listeners (lock, displays off) start over. Anything an idle step shows must be a layer surface (a Quickshell `PanelWindow`), which is why the screensaver is drawn by the bar. Closing an overlay that holds keyboard focus counts too, since focus goes back to a window: that is why the lock step only pauses the screensaver.
 
 ### GeForce NOW: mouse aim stops at ~180°, cursor escapes
 

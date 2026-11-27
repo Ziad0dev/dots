@@ -4,7 +4,7 @@
 # fuzzel version below is the fallback when the bar isn't running, and what
 # `dots-menu <section>` opens. Escape at any level closes it.
 #
-#   dots-menu [apps|learn|capture|share|toggle|style|setup|webapps|update|system]
+#   dots-menu [apps|learn|capture|share|phone|toggle|style|setup|webapps|update|system]
 
 # DOTS_DIR: the checkout (dots.repoPath; the package sets it)
 DOTS_DIR="${DOTS_DIR:-$HOME/dots}"
@@ -70,10 +70,28 @@ capture() {
 }
 
 share() {
-    case "$(menu Share "LocalSend" "Clipboard history" "Emoji")" in
+    case "$(menu Share "LocalSend" "Phone" "Clipboard history" "Emoji")" in
         LocalSend) go localsend_app ;;
+        Phone) phone ;;
         "Clipboard history") qs_call clipboard toggle ;;
         Emoji) go bemoji -n -t ;;
+    esac
+}
+
+# dots-phone (docs/desktop.md → Phone)
+phone() {
+    case "$(menu Phone "Send files" "Send clipboard" "Ring phone" "Messages" "Mirror screen" "Phone as webcam" \
+        "QR of clipboard" "Wi-Fi QR" "Quick Share" "Pair a phone")" in
+        "Send files") go dots-phone send ;;
+        "Send clipboard") go dots-phone send-clipboard ;;
+        "Ring phone") go dots-phone ring ;;
+        Messages) go dots-phone sms ;;
+        "Mirror screen") go dots-phone mirror ;;
+        "Phone as webcam") go dots-phone webcam ;;
+        "QR of clipboard") go dots-phone qr ;;
+        "Wi-Fi QR") go dots-phone wifi-qr ;;
+        "Quick Share") go dots-phone quickshare ;;
+        "Pair a phone") go dots-phone pair ;;
     esac
 }
 
@@ -164,9 +182,9 @@ system() {
 case "${1:-}" in
     # the bar says "true" once it has opened (or closed) the menu
     "") [ "$(qs -c rise ipc call launcher menu 2>/dev/null)" = true ] || main ;;
-    apps | learn | capture | share | toggle | style | setup | webapps | update | system) "$1" ;;
+    apps | learn | capture | share | phone | toggle | style | setup | webapps | update | system) "$1" ;;
     *)
-        echo "usage: dots-menu [apps|learn|capture|share|toggle|style|setup|webapps|update|system]" >&2
+        echo "usage: dots-menu [apps|learn|capture|share|phone|toggle|style|setup|webapps|update|system]" >&2
         exit 2
         ;;
 esac
